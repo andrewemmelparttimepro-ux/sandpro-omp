@@ -161,6 +161,7 @@ export function useObjectives() {
         name: f.name,
         type: f.type,
         size: f.size,
+        url: f.url,
         ts: f.created_at,
       })),
     }));
@@ -236,6 +237,9 @@ export function useObjectives() {
     if (changes.blockerReason !== undefined) dbChanges.blocker_reason = changes.blockerReason;
     if (changes.nextAction !== undefined) dbChanges.next_action = changes.nextAction;
     if (changes.parentId !== undefined) dbChanges.parent_id = changes.parentId;
+    if (changes.startDate !== undefined) dbChanges.start_date = changes.startDate;
+    if (changes.delegatedBy !== undefined) dbChanges.delegated_by = changes.delegatedBy;
+    if (changes.type !== undefined) dbChanges.type = changes.type;
 
     const { error } = await supabase
       .from('objectives')

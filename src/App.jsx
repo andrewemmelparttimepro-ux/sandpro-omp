@@ -181,6 +181,7 @@ function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [toasts, setToasts] = useState([]);
+  const [editingObj, setEditingObj] = useState(null);
 
   // Refetch data once user is authenticated (initial fetch happens before auth, RLS blocks it)
   useEffect(() => {
@@ -396,8 +397,9 @@ function App() {
       </div>
 
       {/* MODALS */}
-      {openCard && <SuperCard obj={openCard} objectives={objectives} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} />}
-      {showCreateForm && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} onSave={handleSaveObjective} onClose={() => setShowCreateForm(false)} />}
+      {openCard && <SuperCard obj={openCard} objectives={objectives} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast}
+        onEdit={(obj) => { setEditingObj(obj); setOpenCard(null); }} />}
+      {(showCreateForm || editingObj) && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={(obj) => { handleSaveObjective(obj); setEditingObj(null); }} onClose={() => { setShowCreateForm(false); setEditingObj(null); }} />}
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 150 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}

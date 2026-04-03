@@ -3,9 +3,10 @@ import {
   X, Send, Paperclip, Check, AlertTriangle, Clock, MessageSquare,
   Activity, Zap, Calendar, ChevronDown, Download, Upload, FileText,
   Image, File, Film, Music, Archive, TrendingUp, Layers, ArrowLeft,
-  Target, CheckCircle2, Building2, Plus, Edit3, Trash2, Flag
+  Target, CheckCircle2, Building2, Plus, Edit3, Trash2, Flag, Loader2
 } from 'lucide-react';
 import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, STATUS_CONFIG, generateId } from './data';
+import { supabase } from './lib/supabase';
 
 // ============================================================================
 // AVATAR
@@ -124,7 +125,7 @@ export const EmptyState = ({ icon: Icon, text }) => (
 // ============================================================================
 // SUPER CARD MODAL — Full objective detail
 // ============================================================================
-export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, currentUser, addToast }) => {
+export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, currentUser, addToast, onEdit }) => {
   const [activeTab, setActiveTab] = useState("messages");
   const [newMessage, setNewMessage] = useState("");
   const [editingProgress, setEditingProgress] = useState(false);
@@ -223,6 +224,7 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.3 }}>{localObj.title}</h2>
             </div>
             <div className="flex gap-4">
+              {onEdit && <button className="icon-btn" onClick={() => onEdit(localObj)} title="Edit objective"><Edit3 size={16} /></button>}
               <button className="icon-btn" onClick={toggleBlocker} title={localObj.blockerFlag ? "Remove blocker" : "Flag blocker"}>
                 <Flag size={16} color={localObj.blockerFlag ? "#EF4444" : undefined} />
               </button>
@@ -427,28 +429,7 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
           )}
 
           {/* FILES */}
-          {activeTab === "files" && (
-            <div style={{ padding: "20px 24px" }}>
-              {localObj.files.length === 0 ? <EmptyState icon={Paperclip} text="No files attached yet." /> :
-                localObj.files.map((f, i) => {
-                  const FIcon = getFileIcon(f.type);
-                  return (
-                    <div key={i} className="flex items-center gap-12 card" style={{ padding: "10px 12px", marginBottom: 8 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--brand-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}><FIcon size={16} color="var(--brand)" /></div>
-                      <div style={{ flex: 1 }}>
-                        <div className="text-md font-medium">{f.name}</div>
-                        <div className="text-xs text-muted">{f.size} · {timeAgo(f.ts)}</div>
-                      </div>
-                      <Download size={14} color="var(--accent-7)" className="cursor-pointer" />
-                    </div>
-                  );
-                })}
-              <div className="card cursor-pointer" style={{ marginTop: 16, border: "2px dashed var(--accent-5)", textAlign: "center", padding: 24, color: "var(--accent-7)" }}>
-                <Upload size={18} style={{ margin: "0 auto 6px" }} />
-                <div className="text-sm">Drop files here or click to attach</div>
-              </div>
-            </div>
-          )}
+          {activeTab === "files" && <FilesTab objectiveId={localObj.id} files={localObj.files} addToast={addToast} onFileChange={() => onUpdate({ ...localObj, _refresh: true })} />}
 
           {/* ACTIVITY */}
           {activeTab === "activity" && (
@@ -496,6 +477,91 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
 };
 
 // ============================================================================
+// FILES TAB — Real Supabase Storage upload
+// ============================================================================
+const FilesTab = ({ objectiveId, files, addToast, onFileChange }) => {
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+  const getFileIcon = (type) => ({ pdf: FileText, image: Image, spreadsheet: FileText, video: Film, audio: Music, archive: Archive }[type] || File);
+
+  const getFileType = (mime) => {
+    if (mime.startsWith('image/')) return 'image';
+    if (mime === 'application/pdf') return 'pdf';
+    if (mime.startsWith('video/')) return 'video';
+    if (mime.startsWith('audio/')) return 'audio';
+    if (mime.includes('spreadsheet') || mime.includes('csv') || mime.includes('excel')) return 'spreadsheet';
+    if (mime.includes('zip') || mime.includes('tar') || mime.includes('rar')) return 'archive';
+    return 'file';
+  };
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const uploadFile = async (file) => {
+    setUploading(true);
+    try {
+      const ts = Date.now();
+      const path = `${objectiveId}/${ts}_${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('objective-files').upload(path, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('objective-files').getPublicUrl(path);
+      const { error: dbError } = await supabase.from('files').insert({
+        objective_id: objectiveId,
+        name: file.name,
+        type: getFileType(file.type),
+        size: formatSize(file.size),
+        url: urlData.publicUrl,
+      });
+      if (dbError) throw dbError;
+      addToast({ type: 'success', message: `"${file.name}" uploaded` });
+      onFileChange();
+    } catch (err) {
+      addToast({ type: 'error', message: `Upload failed: ${err.message}` });
+    }
+    setUploading(false);
+  };
+
+  const handleFiles = (fileList) => { for (const f of fileList) uploadFile(f); };
+  const handleDrop = (e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); };
+
+  return (
+    <div style={{ padding: "20px 24px" }}>
+      {files.length === 0 && !uploading ? <EmptyState icon={Paperclip} text="No files attached yet." /> :
+        files.map((f, i) => {
+          const FIcon = getFileIcon(f.type);
+          return (
+            <div key={i} className="flex items-center gap-12 card" style={{ padding: "10px 12px", marginBottom: 8 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--brand-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}><FIcon size={16} color="var(--brand)" /></div>
+              <div style={{ flex: 1 }}>
+                <div className="text-md font-medium">{f.name}</div>
+                <div className="text-xs text-muted">{f.size} · {timeAgo(f.ts)}</div>
+              </div>
+              {f.url && <a href={f.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-7)' }}><Download size={14} /></a>}
+            </div>
+          );
+        })}
+      <input ref={fileInputRef} type="file" multiple hidden onChange={e => handleFiles(e.target.files)} />
+      <div
+        className="card cursor-pointer"
+        style={{ marginTop: 16, border: `2px dashed ${dragOver ? 'var(--brand)' : 'var(--accent-5)'}`, textAlign: "center", padding: 24, color: dragOver ? 'var(--brand)' : 'var(--accent-7)', background: dragOver ? 'var(--brand-bg)' : 'transparent', transition: 'all 0.2s' }}
+        onClick={() => fileInputRef.current?.click()}
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+      >
+        {uploading ? <><Loader2 size={18} style={{ margin: '0 auto 6px', animation: 'spin 1s linear infinite' }} /><div className="text-sm">Uploading...</div></>
+          : <><Upload size={18} style={{ margin: "0 auto 6px" }} /><div className="text-sm">Drop files here or click to attach</div></>}
+      </div>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+};
+
+// ============================================================================
 // CREATE / EDIT OBJECTIVE MODAL
 // ============================================================================
 export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, editObj = null }) => {
@@ -514,8 +580,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const handleSave = () => {
     if (!title.trim()) return;
     const obj = {
-      ...(editObj || {}),
-      id: editObj?.id || generateId(),
+      ...(editObj ? { id: editObj.id } : {}),
       title: title.trim(),
       description,
       priority,
@@ -531,12 +596,8 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
       blockerFlag: editObj?.blockerFlag || false,
       blockerReason: editObj?.blockerReason || "",
       nextAction: editObj?.nextAction || "",
-      type: "simple",
+      type: editObj?.type || "simple",
       startDate: editObj?.startDate || null,
-      subtasks: editObj?.subtasks || [],
-      messages: editObj?.messages || [],
-      updates: editObj?.updates || [{ ts: new Date().toISOString(), status: "not_started", progress: 0, note: editObj ? "Objective updated" : "Objective created" }],
-      files: editObj?.files || [],
     };
     onSave(obj);
   };
