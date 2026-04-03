@@ -5,7 +5,7 @@ import {
   Image, File, Film, Music, Archive, TrendingUp, Layers, ArrowLeft,
   Target, CheckCircle2, Building2, Plus, Edit3, Trash2, Flag
 } from 'lucide-react';
-import { getUser, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, STATUS_CONFIG, generateId, USERS } from './data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, STATUS_CONFIG, generateId } from './data';
 
 // ============================================================================
 // AVATAR
@@ -508,7 +508,8 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const [department, setDepartment] = useState(editObj?.department || currentUser.department);
 
   const isDelegation = ownerId !== currentUser.id;
-  const availableOwners = currentUser.role === "executive" ? USERS : currentUser.role === "manager" ? [currentUser, ...USERS.filter(u => u.reportsTo === currentUser.id)] : [currentUser];
+  const allUsers = getProfiles();
+  const availableOwners = currentUser.role === "executive" ? allUsers : currentUser.role === "manager" ? [currentUser, ...allUsers.filter(u => u.reports_to === currentUser.id)] : [currentUser];
 
   const handleSave = () => {
     if (!title.trim()) return;

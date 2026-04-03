@@ -1,35 +1,47 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Target, Bell, Search, Plus, LayoutDashboard, Network, ChevronDown, X,
-  LogOut, Check, AlertTriangle, MessageSquare, Clock, Flag, UserCheck
+  Target, Bell, Plus, LayoutDashboard, Network, ChevronDown, X,
+  LogOut, Loader2
 } from 'lucide-react';
-import { USERS, INITIAL_OBJECTIVES, INITIAL_NOTIFICATIONS, getUser, getStatusLabel, generateId } from './data';
+import { setProfiles, getUser, generateId } from './data';
+import { useAuth, useProfiles, useObjectives, useNotifications } from './hooks/useSupabase';
 import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer } from './components';
 import { DashboardPage, ObjectivesPage, OrgPage, AdminSidebar } from './pages';
 import './index.css';
 
 // ============================================================================
-// LOGIN SCREEN
+// LOGIN SCREEN — Supabase Auth
 // ============================================================================
-const LoginScreen = ({ onLogin }) => {
+const LoginScreen = ({ onSignIn, onSignUp }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState("signin"); // signin or signup
+  // Signup extras
+  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
+  const [department, setDepartment] = useState("Operations");
 
-  const quickLogins = USERS.filter(u => u.password).slice(0, 6);
-
-  const handleLogin = (e) => {
+  const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    const user = USERS.find(u => u.email === email);
-    if (!user) { setError("User not found"); return; }
-    if (user.password && user.password !== password) { setError("Invalid password"); return; }
-    onLogin(user);
-  };
-
-  const quickLogin = (user) => {
-    setEmail(user.email);
-    setPassword(user.password || "demo2026");
-    onLogin(user);
+    if (!email || !password) { setError("Email and password required"); return; }
+    setError("");
+    setLoading(true);
+    try {
+      if (mode === "signin") {
+        await onSignIn(email, password);
+      } else {
+        if (!name) { setError("Name is required"); setLoading(false); return; }
+        const initials = name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+        const colors = ["#F97316", "#3B82F6", "#8B5CF6", "#10B981", "#EC4899", "#F59E0B", "#06B6D4", "#84CC16"];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        await onSignUp(email, password, { name, initials, title, department, role: "contributor", color });
+      }
+    } catch (err) {
+      setError(err.message || "Authentication failed");
+    }
+    setLoading(false);
   };
 
   return (
@@ -46,47 +58,69 @@ const LoginScreen = ({ onLogin }) => {
         </div>
         <p className="text-sm text-muted" style={{ textAlign: "center", marginBottom: 24 }}>Objective Management Platform</p>
 
-        <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: 16 }}>
+        {/* Tab toggle */}
+        <div className="nav-pills" style={{ marginBottom: 20 }}>
+          <button onClick={() => { setMode("signin"); setError(""); }} className={`nav-pill ${mode === 'signin' ? 'active' : ''}`} style={{ flex: 1, justifyContent: "center" }}>Sign In</button>
+          <button onClick={() => { setMode("signup"); setError(""); }} className={`nav-pill ${mode === 'signup' ? 'active' : ''}`} style={{ flex: 1, justifyContent: "center" }}>Sign Up</button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {mode === "signup" && (
+            <>
+              <div style={{ marginBottom: 14 }}>
+                <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Full Name *</label>
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="Jake Feil" style={{ width: "100%" }} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                <div>
+                  <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Title</label>
+                  <input value={title} onChange={e => setTitle(e.target.value)} placeholder="CEO" style={{ width: "100%" }} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Department</label>
+                  <select value={department} onChange={e => setDepartment(e.target.value)} style={{ width: "100%" }}>
+                    {["Leadership", "Operations", "Automation", "Sales", "HR", "Field Operations", "Quality", "Shop", "Admin", "Safety"].map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
+          <div style={{ marginBottom: 14 }}>
             <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Email</label>
-            <input value={email} onChange={e => { setEmail(e.target.value); setError(""); }} placeholder="you@sandpro.com" style={{ width: "100%" }} />
+            <input value={email} onChange={e => { setEmail(e.target.value); setError(""); }} placeholder="you@sandpro.com" style={{ width: "100%" }} autoComplete="email" />
           </div>
-          <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 14 }}>
             <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Password</label>
-            <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="Enter password" style={{ width: "100%" }} />
+            <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="Min 6 characters" style={{ width: "100%" }} autoComplete={mode === "signup" ? "new-password" : "current-password"} />
           </div>
           {error && <p className="text-sm text-error" style={{ marginBottom: 12 }}>{error}</p>}
-          <button type="submit" className="btn btn-primary w-full" style={{ justifyContent: "center", padding: "12px 16px", fontSize: 14 }}>Sign In</button>
+          <button type="submit" className="btn btn-primary w-full" style={{ justifyContent: "center", padding: "12px 16px", fontSize: 14 }} disabled={loading}>
+            {loading ? <Loader2 size={16} className="animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
+          </button>
         </form>
-
-        <div style={{ marginTop: 24, borderTop: "1px solid var(--accent-5)", paddingTop: 20 }}>
-          <p className="text-xs text-muted" style={{ marginBottom: 12, textAlign: "center" }}>Quick Demo Login</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {quickLogins.map(u => (
-              <button key={u.id} onClick={() => quickLogin(u)} className="flex items-center gap-8 card card-hover cursor-pointer" style={{ padding: "8px 10px" }}>
-                <Avatar user={u} size={24} />
-                <div style={{ textAlign: "left" }}>
-                  <div className="text-xs font-semibold">{u.name.split(" ")[0]}</div>
-                  <div className="text-xs text-muted">{u.role}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
 // ============================================================================
+// LOADING SCREEN
+// ============================================================================
+const LoadingScreen = () => (
+  <div style={{ width: "100vw", height: "100vh", background: "var(--accent-1)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
+    <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #F97316, #EA580C)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <Target size={22} color="#fff" />
+    </div>
+    <Loader2 size={24} color="var(--brand)" style={{ animation: "spin 1s linear infinite" }} />
+    <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+  </div>
+);
+
+// ============================================================================
 // NOTIFICATION PANEL
 // ============================================================================
 const NotificationPanel = ({ notifications, onMarkRead, onMarkAllRead, onClose, onClickNotif }) => {
   const unread = notifications.filter(n => !n.isRead).length;
-  const getIcon = (type) => {
-    const map = { assignment: UserCheck, delegation: Target, comment: MessageSquare, status_change: Flag, due_soon: Clock, overdue: AlertTriangle, blocker: AlertTriangle, acknowledgement: Check };
-    return map[type] || Bell;
-  };
   const getColor = (type) => {
     const map = { assignment: "var(--info)", delegation: "var(--brand)", comment: "var(--accent-8)", status_change: "var(--warning)", due_soon: "var(--warning)", overdue: "var(--error)", blocker: "var(--error)", acknowledgement: "var(--success)" };
     return map[type] || "var(--accent-7)";
@@ -107,26 +141,23 @@ const NotificationPanel = ({ notifications, onMarkRead, onMarkAllRead, onClose, 
       </div>
       <div style={{ maxHeight: 400, overflowY: "auto" }}>
         {notifications.length === 0 ? <div className="text-sm text-muted" style={{ padding: 24, textAlign: "center" }}>No notifications</div> :
-          notifications.map(n => {
-            const NIcon = getIcon(n.type);
-            return (
-              <div key={n.id} onClick={() => onClickNotif(n)} className="flex gap-10 cursor-pointer" style={{
-                padding: "12px 16px", borderBottom: "1px solid var(--accent-4)",
-                background: n.isRead ? "transparent" : "rgba(249,115,22,0.03)"
-              }} onMouseEnter={e => e.currentTarget.style.background = "var(--accent-4)"} onMouseLeave={e => e.currentTarget.style.background = n.isRead ? "transparent" : "rgba(249,115,22,0.03)"}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: getColor(n.type) + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <NIcon size={13} color={getColor(n.type)} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="text-sm" style={{ lineHeight: 1.4, color: n.isRead ? "var(--accent-8)" : "var(--accent-10)" }}>{n.message}</div>
-                  <div className="text-xs text-muted" style={{ marginTop: 2 }}>
-                    {new Date(n.ts).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </div>
-                </div>
-                {!n.isRead && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--brand)", flexShrink: 0, marginTop: 6 }} />}
+          notifications.map(n => (
+            <div key={n.id} onClick={() => onClickNotif(n)} className="flex gap-10 cursor-pointer" style={{
+              padding: "12px 16px", borderBottom: "1px solid var(--accent-4)",
+              background: n.isRead ? "transparent" : "rgba(249,115,22,0.03)"
+            }} onMouseEnter={e => e.currentTarget.style.background = "var(--accent-4)"} onMouseLeave={e => e.currentTarget.style.background = n.isRead ? "transparent" : "rgba(249,115,22,0.03)"}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: getColor(n.type) + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Bell size={13} color={getColor(n.type)} />
               </div>
-            );
-          })}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="text-sm" style={{ lineHeight: 1.4, color: n.isRead ? "var(--accent-8)" : "var(--accent-10)" }}>{n.message}</div>
+                <div className="text-xs text-muted" style={{ marginTop: 2 }}>
+                  {new Date(n.ts).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </div>
+              </div>
+              {!n.isRead && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--brand)", flexShrink: 0, marginTop: 6 }} />}
+            </div>
+          ))}
       </div>
     </div>
   );
@@ -136,23 +167,14 @@ const NotificationPanel = ({ notifications, onMarkRead, onMarkAllRead, onClose, 
 // MAIN APP
 // ============================================================================
 function App() {
-  // Auth
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem("omp_user");
-    if (saved) { const u = USERS.find(u => u.id === saved); if (u) return u; }
-    return null;
-  });
+  // Supabase hooks
+  const { user, profile, loading: authLoading, signIn, signUp, signOut } = useAuth();
+  const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
+  const { objectives, loading: objLoading, createObjective, updateObjective, deleteObjective, sendMessage, refetch: refetchObjectives } = useObjectives();
+  const { notifications, markRead, markAllRead, createNotification } = useNotifications(profile?.id);
 
-  // State
+  // UI State
   const [currentPage, setCurrentPage] = useState(0);
-  const [objectives, setObjectives] = useState(() => {
-    const saved = localStorage.getItem("omp_objectives");
-    return saved ? JSON.parse(saved) : INITIAL_OBJECTIVES;
-  });
-  const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem("omp_notifications");
-    return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
-  });
   const [openCard, setOpenCard] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -160,10 +182,8 @@ function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [toasts, setToasts] = useState([]);
 
-  // Persist
-  useEffect(() => { localStorage.setItem("omp_objectives", JSON.stringify(objectives)); }, [objectives]);
-  useEffect(() => { localStorage.setItem("omp_notifications", JSON.stringify(notifications)); }, [notifications]);
-  useEffect(() => { if (currentUser) localStorage.setItem("omp_user", currentUser.id); }, [currentUser]);
+  // Set profiles for utility lookups
+  useEffect(() => { if (profiles.length > 0) setProfiles(profiles); }, [profiles]);
 
   // Toast helpers
   const addToast = useCallback((toast) => {
@@ -186,41 +206,89 @@ function App() {
   }, []);
 
   // Handlers
-  const handleLogin = (user) => { setCurrentUser(user); addToast({ type: 'success', message: `Welcome back, ${user.name.split(' ')[0]}!` }); };
-  const handleLogout = () => { setCurrentUser(null); localStorage.removeItem("omp_user"); };
+  const handleSignIn = async (email, password) => {
+    await signIn(email, password);
+    addToast({ type: 'success', message: 'Welcome back!' });
+  };
 
-  const handleOpenCard = (obj) => { setOpenCard(obj); };
+  const handleSignUp = async (email, password, metadata) => {
+    await signUp(email, password, metadata);
+    addToast({ type: 'success', message: 'Account created! You can now sign in.' });
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const handleOpenCard = (obj) => setOpenCard(obj);
   const handleCloseCard = () => setOpenCard(null);
-  const handleUpdateCard = (updated) => {
-    setObjectives(prev => prev.map(o => o.id === updated.id ? updated : o));
-    setOpenCard(updated);
-  };
-  const handleDeleteObjective = (id) => {
-    setObjectives(prev => prev.filter(o => o.id !== id));
-    setOpenCard(null);
-    addToast({ type: 'success', message: 'Objective deleted' });
-  };
-  const handleSaveObjective = (obj) => {
-    const exists = objectives.find(o => o.id === obj.id);
-    if (exists) {
-      setObjectives(prev => prev.map(o => o.id === obj.id ? obj : o));
-      addToast({ type: 'success', message: 'Objective updated' });
-    } else {
-      setObjectives(prev => [...prev, obj]);
-      addToast({ type: 'success', message: obj.delegatedBy ? `Objective delegated to ${getUser(obj.ownerId).name}` : 'Objective created' });
-      // Generate notification for delegation
-      if (obj.delegatedBy && obj.ownerId !== currentUser.id) {
-        setNotifications(prev => [...prev, { id: generateId(), userId: obj.ownerId, type: "assignment", objectiveId: obj.id, message: `${currentUser.name} assigned you "${obj.title}"`, isRead: false, ts: new Date().toISOString() }]);
+
+  const handleUpdateCard = async (updated) => {
+    try {
+      // Determine what changed
+      const changes = {};
+      const orig = objectives.find(o => o.id === updated.id);
+      if (!orig) return;
+
+      if (updated.status !== orig.status) { changes.status = updated.status; changes.updateNote = `Status changed to ${updated.status}`; }
+      if (updated.progress !== orig.progress) { changes.progress = updated.progress; changes.updateNote = changes.updateNote || `Progress updated to ${updated.progress}%`; }
+      if (updated.acknowledged !== orig.acknowledged) changes.acknowledged = updated.acknowledged;
+      if (updated.blockerFlag !== orig.blockerFlag) { changes.blockerFlag = updated.blockerFlag; changes.blockerReason = updated.blockerReason; if (updated.blockerFlag) changes.status = 'blocked'; }
+      if (updated.nextAction !== orig.nextAction) changes.nextAction = updated.nextAction;
+
+      // Handle new messages
+      if (updated.messages?.length > (orig.messages?.length || 0)) {
+        const newMsgs = updated.messages.slice(orig.messages?.length || 0);
+        for (const msg of newMsgs) {
+          await sendMessage(updated.id, msg.userId, msg.text);
+        }
       }
+
+      if (Object.keys(changes).length > 0) {
+        await updateObjective(updated.id, changes);
+      }
+
+      // Refresh the open card
+      setTimeout(() => {
+        const refreshed = objectives.find(o => o.id === updated.id);
+        if (refreshed) setOpenCard(refreshed);
+      }, 500);
+    } catch (err) {
+      addToast({ type: 'error', message: err.message });
     }
-    setShowCreateForm(false);
   };
 
-  const userNotifications = notifications.filter(n => n.userId === currentUser?.id).sort((a, b) => new Date(b.ts) - new Date(a.ts));
-  const unreadCount = userNotifications.filter(n => !n.isRead).length;
+  const handleDeleteObjective = async (id) => {
+    try {
+      await deleteObjective(id);
+      setOpenCard(null);
+      addToast({ type: 'success', message: 'Objective deleted' });
+    } catch (err) {
+      addToast({ type: 'error', message: err.message });
+    }
+  };
 
-  const markNotifRead = (id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
-  const markAllRead = () => setNotifications(prev => prev.map(n => n.userId === currentUser?.id ? { ...n, isRead: true } : n));
+  const handleSaveObjective = async (obj) => {
+    try {
+      const exists = objectives.find(o => o.id === obj.id);
+      if (exists) {
+        await updateObjective(obj.id, obj);
+        addToast({ type: 'success', message: 'Objective updated' });
+      } else {
+        const created = await createObjective(obj);
+        addToast({ type: 'success', message: obj.delegatedBy ? `Objective delegated to ${getUser(obj.ownerId).name}` : 'Objective created' });
+        // Notification for delegation
+        if (obj.delegatedBy && obj.ownerId !== profile.id) {
+          await createNotification(obj.ownerId, 'assignment', created.id, `${profile.name} assigned you "${obj.title}"`);
+        }
+      }
+      setShowCreateForm(false);
+    } catch (err) {
+      addToast({ type: 'error', message: err.message });
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const pages = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -228,8 +296,21 @@ function App() {
     { id: "organization", label: "Organization", icon: Network },
   ];
 
-  // Login screen
-  if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
+  // Loading
+  if (authLoading) return <LoadingScreen />;
+
+  // Login
+  if (!user) return <LoginScreen onSignIn={handleSignIn} onSignUp={handleSignUp} />;
+
+  // Waiting for profile/data
+  if (!profile || profilesLoading || objLoading) return <LoadingScreen />;
+
+  // Build a currentUser object matching what components expect
+  const currentUser = {
+    ...profile,
+    // Ensure camelCase compatibility
+    reportsTo: profile.reports_to,
+  };
 
   return (
     <>
@@ -255,7 +336,6 @@ function App() {
 
         <div style={{ flex: 1 }} />
 
-        {/* New Objective */}
         <button className="btn btn-primary btn-sm" onClick={() => setShowCreateForm(true)}>
           <Plus size={14} /> New
         </button>
@@ -266,8 +346,8 @@ function App() {
             <Bell size={18} />
             {unreadCount > 0 && <span className="badge-count">{unreadCount > 9 ? "9+" : unreadCount}</span>}
           </button>
-          {showNotifications && <NotificationPanel notifications={userNotifications} onMarkRead={markNotifRead} onMarkAllRead={markAllRead} onClose={() => setShowNotifications(false)}
-            onClickNotif={(n) => { markNotifRead(n.id); if (n.objectiveId) { const obj = objectives.find(o => o.id === n.objectiveId); if (obj) handleOpenCard(obj); } setShowNotifications(false); }} />}
+          {showNotifications && <NotificationPanel notifications={notifications} onMarkRead={markRead} onMarkAllRead={markAllRead} onClose={() => setShowNotifications(false)}
+            onClickNotif={(n) => { markRead(n.id); if (n.objectiveId) { const obj = objectives.find(o => o.id === n.objectiveId); if (obj) handleOpenCard(obj); } setShowNotifications(false); }} />}
         </div>
 
         {/* User Menu */}
@@ -287,21 +367,8 @@ function App() {
                 <div className="text-xs text-muted">{currentUser.email}</div>
                 <div className="text-xs text-muted">{currentUser.title} · {currentUser.department}</div>
               </div>
-              <div style={{ padding: 8 }}>
-                <div className="text-xs text-muted" style={{ padding: "4px 8px", marginBottom: 4 }}>Switch User</div>
-                {USERS.filter(u => u.password && u.id !== currentUser.id).map(u => (
-                  <button key={u.id} onClick={() => { setCurrentUser(u); setShowUserMenu(false); addToast({ type: 'info', message: `Switched to ${u.name}` }); }} className="flex items-center gap-8 w-full" style={{ padding: "8px", borderRadius: 6, textAlign: "left" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "var(--accent-4)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                    <Avatar user={u} size={24} />
-                    <div>
-                      <div className="text-sm font-medium">{u.name}</div>
-                      <div className="text-xs text-muted">{u.role} · {u.department}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
               <div style={{ padding: 8, borderTop: "1px solid var(--accent-5)" }}>
-                <button onClick={handleLogout} className="flex items-center gap-8 w-full btn btn-ghost" style={{ justifyContent: "flex-start", color: "var(--error)" }}>
+                <button onClick={handleSignOut} className="flex items-center gap-8 w-full btn btn-ghost" style={{ justifyContent: "flex-start", color: "var(--error)" }}>
                   <LogOut size={14} /> Sign Out
                 </button>
               </div>
@@ -327,10 +394,7 @@ function App() {
       {openCard && <SuperCard obj={openCard} objectives={objectives} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} />}
       {showCreateForm && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} onSave={handleSaveObjective} onClose={() => setShowCreateForm(false)} />}
 
-      {/* TOASTS */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-
-      {/* Click-away for menus */}
       {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 150 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}
     </>
   );

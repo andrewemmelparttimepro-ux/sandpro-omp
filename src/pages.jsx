@@ -5,7 +5,7 @@ import {
   Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText,
   Globe, Mail, Bell, Star
 } from 'lucide-react';
-import { getUser, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, USERS, DEPARTMENTS, getDirectReports } from './data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, DEPARTMENTS, getDirectReports } from './data';
 import { Avatar, Badge, ProgressBar, KPICard, ObjectiveCard, EmptyState } from './components';
 
 // ============================================================================
@@ -364,10 +364,10 @@ export const OrgPage = ({ objectives, onOpenCard }) => {
         <div className="card-header">
           <Network size={14} color="var(--brand)" />
           <span className="text-md font-bold">Organization</span>
-          <span className="text-xs text-muted">({USERS.length} people)</span>
+          <span className="text-xs text-muted">({getProfiles().length} people)</span>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: 8 }}>
-          {renderPerson(USERS[0])}
+          {getProfiles().filter(u => !u.reports_to).map(u => renderPerson(u))}
         </div>
       </div>
 
@@ -437,10 +437,10 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
         {activeSection === "users" && (
           <div>
             <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
-              <span className="text-sm text-muted">{USERS.length} users</span>
+              <span className="text-sm text-muted">{getProfiles().length} users</span>
               <button className="btn btn-xs" style={{ border: "1px solid var(--brand)", color: "var(--brand)" }}><UserPlus size={12} />Add User</button>
             </div>
-            {USERS.map(u => (
+            {getProfiles().map(u => (
               <div key={u.id} className="flex items-center gap-8" style={{ padding: "8px 6px", borderBottom: "1px solid var(--accent-4)" }}>
                 <Avatar user={u} size={26} />
                 <div style={{ flex: 1 }}>
@@ -453,7 +453,7 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
           </div>
         )}
         {activeSection === "departments" && DEPARTMENTS.map(d => {
-          const deptUsers = USERS.filter(u => u.department === d);
+          const deptUsers = getProfiles().filter(u => u.department === d);
           const deptObjs = objectives.filter(o => o.department === d);
           return (
             <div key={d} className="card" style={{ marginBottom: 8, padding: "10px 12px" }}>
@@ -486,7 +486,7 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
             </div>
             <div className="card" style={{ padding: 14 }}>
               <div className="text-sm font-semibold" style={{ marginBottom: 8 }}>Workload by Person</div>
-              {USERS.filter(u => objectives.some(o => o.ownerId === u.id)).map(u => {
+              {getProfiles().filter(u => objectives.some(o => o.ownerId === u.id)).map(u => {
                 const count = objectives.filter(o => o.ownerId === u.id && o.status !== "completed").length;
                 return (
                   <div key={u.id} className="flex items-center gap-8" style={{ marginBottom: 4 }}>
