@@ -319,23 +319,37 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser }) => {
 // ============================================================================
 export const OrgPage = ({ objectives, onOpenCard }) => {
   const [selectedUser, setSelectedUser] = useState(null);
+  const [orgSearch, setOrgSearch] = useState("");
 
   const getUserObjectives = (userId) => objectives.filter(o => o.ownerId === userId);
 
+  const matchesSearch = (user) => {
+    if (!orgSearch.trim()) return true;
+    const q = orgSearch.toLowerCase();
+    return user.name?.toLowerCase().includes(q) || user.title?.toLowerCase().includes(q) || user.department?.toLowerCase().includes(q) || user.email?.toLowerCase().includes(q);
+  };
+
+  const hasMatchInBranch = (user) => {
+    if (matchesSearch(user)) return true;
+    return getDirectReports(user.id).some(r => hasMatchInBranch(r));
+  };
+
   const renderPerson = (user, depth = 0) => {
     const reports = getDirectReports(user.id);
+    if (orgSearch.trim() && !hasMatchInBranch(user)) return null;
     const userObjs = getUserObjectives(user.id);
     const activeObjs = userObjs.filter(o => o.status !== "completed" && o.status !== "cancelled");
     const healthPct = activeObjs.length > 0 ? Math.round((activeObjs.filter(o => o.status === "on_track").length / activeObjs.length) * 100) : null;
     const isSelected = selectedUser?.id === user.id;
+    const isMatch = orgSearch.trim() && matchesSearch(user);
 
     return (
       <div key={user.id} style={{ marginLeft: depth * 24 }}>
         <div onClick={() => setSelectedUser(isSelected ? null : user)} className="flex items-center gap-10 cursor-pointer" style={{
-          padding: "10px 12px", borderRadius: 10, background: isSelected ? "var(--brand-bg)" : "transparent",
-          border: `1px solid ${isSelected ? "var(--brand-border)" : "transparent"}`, marginBottom: 2, transition: "all 0.15s"
+          padding: "10px 12px", borderRadius: 10, background: isSelected ? "var(--brand-bg)" : isMatch ? "rgba(249,115,22,0.04)" : "transparent",
+          border: `1px solid ${isSelected ? "var(--brand-border)" : isMatch ? "var(--brand-border)" : "transparent"}`, marginBottom: 2, transition: "all 0.15s"
         }} onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = "var(--accent-4)"; }}
-          onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}>
+          onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = isSelected ? "var(--brand-bg)" : isMatch ? "rgba(249,115,22,0.04)" : "transparent"; }}>
           <Avatar user={user} size={32} />
           <div style={{ flex: 1 }}>
             <div className="text-md font-semibold">{user.name}</div>
@@ -361,10 +375,17 @@ export const OrgPage = ({ objectives, onOpenCard }) => {
   return (
     <div className="org-layout" style={{ height: "100%", display: "flex", gap: 16, overflow: "hidden" }}>
       <div className="card flex flex-col overflow-hidden" style={{ flex: selectedUser ? 1 : 2, transition: "flex 0.3s" }}>
-        <div className="card-header">
-          <Network size={14} color="var(--brand)" />
-          <span className="text-md font-bold">Organization</span>
-          <span className="text-xs text-muted">({getProfiles().length} people)</span>
+        <div className="card-header" style={{ flexDirection: "column", alignItems: "stretch", gap: 8 }}>
+          <div className="flex items-center gap-8">
+            <Network size={14} color="var(--brand)" />
+            <span className="text-md font-bold">Organization</span>
+            <span className="text-xs text-muted">({getProfiles().length} people)</span>
+          </div>
+          <div style={{ position: "relative" }}>
+            <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--accent-7)" }} />
+            <input value={orgSearch} onChange={e => setOrgSearch(e.target.value)} placeholder="Search people..." style={{ width: "100%", paddingLeft: 32, fontSize: 12 }} />
+            {orgSearch && <button onClick={() => setOrgSearch("")} className="icon-btn" style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", width: 22, height: 22 }}><X size={12} /></button>}
+          </div>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: 8 }}>
           {getProfiles().filter(u => !u.reports_to).map(u => renderPerson(u))}

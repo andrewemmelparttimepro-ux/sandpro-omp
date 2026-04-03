@@ -59,7 +59,14 @@ export function useAuth() {
     setProfile(null);
   };
 
-  return { user, profile, loading, signIn, signUp, signOut, refetchProfile: () => user && fetchProfile(user.id) };
+  const resetPassword = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    if (error) throw error;
+  };
+
+  return { user, profile, loading, signIn, signUp, signOut, resetPassword, refetchProfile: () => user && fetchProfile(user.id) };
 }
 
 // ============================================================================

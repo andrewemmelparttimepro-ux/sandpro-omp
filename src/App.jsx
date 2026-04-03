@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Target, Bell, Plus, LayoutDashboard, Network, ChevronDown, X,
-  LogOut, Loader2
+  LogOut, Loader2, Sun, Moon
 } from 'lucide-react';
 import { setProfiles, getUser, generateId } from './data';
 import { useAuth, useProfiles, useObjectives, useNotifications } from './hooks/useSupabase';
@@ -12,12 +12,13 @@ import './index.css';
 // ============================================================================
 // LOGIN SCREEN — Supabase Auth
 // ============================================================================
-const LoginScreen = ({ onSignIn, onSignUp }) => {
+const LoginScreen = ({ onSignIn, onSignUp, onResetPassword }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState("signin"); // signin or signup
+  const [mode, setMode] = useState("signin"); // signin, signup, or reset
+  const [resetSent, setResetSent] = useState(false);
   // Signup extras
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
@@ -29,6 +30,13 @@ const LoginScreen = ({ onSignIn, onSignUp }) => {
     setError("");
     setLoading(true);
     try {
+      if (mode === "reset") {
+        if (!email) { setError("Email required"); setLoading(false); return; }
+        await onResetPassword(email);
+        setResetSent(true);
+        setLoading(false);
+        return;
+      }
       if (mode === "signin") {
         await onSignIn(email, password);
       } else {
@@ -60,9 +68,15 @@ const LoginScreen = ({ onSignIn, onSignUp }) => {
 
         {/* Tab toggle */}
         <div className="nav-pills" style={{ marginBottom: 20 }}>
-          <button onClick={() => { setMode("signin"); setError(""); }} className={`nav-pill ${mode === 'signin' ? 'active' : ''}`} style={{ flex: 1, justifyContent: "center" }}>Sign In</button>
-          <button onClick={() => { setMode("signup"); setError(""); }} className={`nav-pill ${mode === 'signup' ? 'active' : ''}`} style={{ flex: 1, justifyContent: "center" }}>Sign Up</button>
+          <button onClick={() => { setMode("signin"); setError(""); setResetSent(false); }} className={`nav-pill ${mode === 'signin' ? 'active' : ''}`} style={{ flex: 1, justifyContent: "center" }}>Sign In</button>
+          <button onClick={() => { setMode("signup"); setError(""); setResetSent(false); }} className={`nav-pill ${mode === 'signup' ? 'active' : ''}`} style={{ flex: 1, justifyContent: "center" }}>Sign Up</button>
         </div>
+
+        {resetSent && (
+          <div style={{ padding: "12px 16px", borderRadius: 10, background: "var(--success-bg)", border: "1px solid rgba(16,185,129,0.2)", marginBottom: 16, textAlign: "center" }}>
+            <p className="text-sm" style={{ color: "var(--success)", margin: 0 }}>Password reset link sent! Check your email.</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {mode === "signup" && (
@@ -95,8 +109,13 @@ const LoginScreen = ({ onSignIn, onSignUp }) => {
           </div>
           {error && <p className="text-sm text-error" style={{ marginBottom: 12 }}>{error}</p>}
           <button type="submit" className="btn btn-primary w-full" style={{ justifyContent: "center", padding: "12px 16px", fontSize: 14 }} disabled={loading}>
-            {loading ? <Loader2 size={16} className="animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
+            {loading ? <Loader2 size={16} className="animate-spin" /> : mode === "reset" ? "Send Reset Link" : mode === "signin" ? "Sign In" : "Create Account"}
           </button>
+          {mode === "signin" && (
+            <button type="button" onClick={() => { setMode("reset"); setError(""); }} className="text-sm" style={{ color: "var(--brand)", marginTop: 8, display: "block", textAlign: "center", width: "100%" }}>
+              Forgot password?
+            </button>
+          )}
         </form>
       </div>
     </div>
@@ -168,7 +187,7 @@ const NotificationPanel = ({ notifications, onMarkRead, onMarkAllRead, onClose, 
 // ============================================================================
 function App() {
   // Supabase hooks
-  const { user, profile, loading: authLoading, signIn, signUp, signOut } = useAuth();
+  const { user, profile, loading: authLoading, signIn, signUp, signOut, resetPassword } = useAuth();
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
   const { objectives, loading: objLoading, createObjective, updateObjective, deleteObjective, sendMessage, refetch: refetchObjectives } = useObjectives();
   const { notifications, markRead, markAllRead, createNotification } = useNotifications(profile?.id);
@@ -182,11 +201,18 @@ function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [editingObj, setEditingObj] = useState(null);
+  const [theme, setTheme] = useState(() => localStorage.getItem('sandpro-theme') || 'dark');
 
   // Refetch data once user is authenticated (initial fetch happens before auth, RLS blocks it)
   useEffect(() => {
     if (user) { refetchProfiles(); refetchObjectives(); }
   }, [user]);
+
+  // Theme
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('sandpro-theme', theme);
+  }, [theme]);
 
   // Set profiles for utility lookups
   useEffect(() => { if (profiles.length > 0) setProfiles(profiles); }, [profiles]);
@@ -306,7 +332,7 @@ function App() {
   if (authLoading) return <LoadingScreen />;
 
   // Login
-  if (!user) return <LoginScreen onSignIn={handleSignIn} onSignUp={handleSignUp} />;
+  if (!user) return <LoginScreen onSignIn={handleSignIn} onSignUp={handleSignUp} onResetPassword={resetPassword} />;
 
   // Waiting for profile/data
   if (!profile || profilesLoading || objLoading) return <LoadingScreen />;
@@ -344,6 +370,11 @@ function App() {
 
         <button className="btn btn-primary btn-sm" onClick={() => setShowCreateForm(true)}>
           <Plus size={14} /> New
+        </button>
+
+        {/* Theme Toggle */}
+        <button className="icon-btn" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} title="Toggle theme">
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
         {/* Notifications */}
