@@ -45,8 +45,8 @@ const LoginScreen = ({ onSignIn, onSignUp }) => {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "var(--accent-1)", backgroundImage: "radial-gradient(circle at 50% 30%, var(--accent-3) 0%, var(--accent-1) 70%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 420, padding: 40, background: "var(--accent-2)", border: "1px solid var(--accent-5)", borderRadius: 20 }}>
+    <div style={{ width: "100vw", height: "100vh", background: "var(--accent-1)", backgroundImage: "radial-gradient(circle at 50% 30%, var(--accent-3) 0%, var(--accent-1) 70%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ width: "100%", maxWidth: 420, padding: "clamp(24px, 5vw, 40px)", background: "var(--accent-2)", border: "1px solid var(--accent-5)", borderRadius: 20 }}>
         <div className="flex items-center gap-10" style={{ marginBottom: 32, justifyContent: "center" }}>
           <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #F97316, #EA580C)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Target size={22} color="#fff" />
@@ -395,6 +395,16 @@ function App() {
         </main>
         <AdminSidebar isOpen={adminOpen} onToggle={() => setAdminOpen(!adminOpen)} objectives={objectives} />
       </div>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="mobile-nav">
+        {pages.map((page, i) => (
+          <button key={page.id} onClick={() => setCurrentPage(i)} className={currentPage === i ? 'active' : ''}>
+            <page.icon size={20} />
+            {page.label}
+          </button>
+        ))}
+      </nav>
 
       {/* MODALS */}
       {openCard && <SuperCard obj={openCard} objectives={objectives} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast}

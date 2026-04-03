@@ -52,7 +52,7 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard }) => {
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       {/* KPI Strip */}
-      <div className="flex gap-10 flex-shrink-0" style={{ paddingBottom: 16, overflowX: "auto" }}>
+      <div className="kpi-grid flex gap-10 flex-shrink-0" style={{ paddingBottom: 16, overflowX: "auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
         {isExecutive && <>
           <KPICard icon={Target} label="Active" value={allActive.length} sub={`${completed} completed`} color="#3B82F6" />
           <KPICard icon={CheckCircle2} label="On Track" value={onTrack} sub={`${Math.round((onTrack / Math.max(1, allActive.length)) * 100)}% of active`} color="#10B981" />
@@ -97,7 +97,7 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard }) => {
       )}
 
       {/* Main Grid */}
-      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, overflow: "hidden", minHeight: 0 }}>
+      <div className="dashboard-grid" style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, overflow: "auto", minHeight: 0 }}>
         {/* Left: Needs Attention */}
         <div className="card flex flex-col overflow-hidden">
           <div className="card-header">
@@ -267,7 +267,7 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser }) => {
       <div style={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
         {viewMode === "grid" && (
           <div style={{ height: "100%", overflowY: "auto" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+            <div className="objectives-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
               {filtered.map(obj => <ObjectiveCard key={obj.id} obj={obj} onClick={() => onOpenCard(obj)} />)}
             </div>
             {filtered.length === 0 && <EmptyState icon={Target} text="No objectives match your filters." />}
@@ -359,7 +359,7 @@ export const OrgPage = ({ objectives, onOpenCard }) => {
   const userObjs = selectedUser ? getUserObjectives(selectedUser.id) : [];
 
   return (
-    <div style={{ height: "100%", display: "flex", gap: 16, overflow: "hidden" }}>
+    <div className="org-layout" style={{ height: "100%", display: "flex", gap: 16, overflow: "hidden" }}>
       <div className="card flex flex-col overflow-hidden" style={{ flex: selectedUser ? 1 : 2, transition: "flex 0.3s" }}>
         <div className="card-header">
           <Network size={14} color="var(--brand)" />
