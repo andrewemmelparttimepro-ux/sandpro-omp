@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   Search, ChevronDown, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle,
   Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3,
@@ -417,6 +417,150 @@ export const OrgPage = ({ objectives, onOpenCard }) => {
 };
 
 // ============================================================================
+// ============================================================================
+// SETTINGS PANEL — CSV Import + Email Notification Preferences
+// ============================================================================
+const SettingsPanel = () => {
+  const [csvData, setCsvData] = useState(null);
+  const [showSQL, setShowSQL] = useState(false);
+  const csvInputRef = useRef(null);
+  const [prefs, setPrefs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('sandpro-notif-prefs') || '{}'); } catch { return {}; }
+  });
+
+  const updatePref = (key, val) => {
+    const updated = { ...prefs, [key]: val };
+    setPrefs(updated);
+    localStorage.setItem('sandpro-notif-prefs', JSON.stringify(updated));
+  };
+
+  const handleCSV = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const lines = ev.target.result.split('\\n').filter(l => l.trim());
+      if (lines.length < 2) return;
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+      const rows = lines.slice(1).map(line => {
+        const vals = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+        return obj;
+      });
+      setCsvData({ headers, rows });
+    };
+    reader.readAsText(file);
+  };
+
+  const generateSQL = () => {
+    if (!csvData) return '';
+    return csvData.rows.map(r => {
+      const name = r.name || r.full_name || '';
+      const email = r.email || '';
+      const title = r.title || r.job_title || '';
+      const dept = r.department || r.dept || '';
+      const role = r.role || 'contributor';
+      return `-- Create user: ${name} <${email}>\\n-- Run via Supabase Admin API or seed script`;
+    }).join('\\n\\n');
+  };
+
+  const Toggle = ({ checked, onChange, label, desc }) => (
+    <div className="flex items-center justify-between" style={{ padding: "10px 0", borderBottom: "1px solid var(--accent-4)" }}>
+      <div><div className="text-sm font-medium">{label}</div>{desc && <div className="text-xs text-muted">{desc}</div>}</div>
+      <div onClick={() => onChange(!checked)} className="cursor-pointer" style={{
+        width: 40, height: 22, borderRadius: 11, background: checked ? "var(--brand)" : "var(--accent-5)",
+        position: "relative", transition: "background 0.2s", flexShrink: 0
+      }}><div style={{ width: 18, height: 18, borderRadius: "50%", background: "#fff", position: "absolute", top: 2, left: checked ? 20 : 2, transition: "left 0.2s" }} /></div>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* Email Notifications */}
+      <div className="card" style={{ padding: 14, marginBottom: 12 }}>
+        <div className="flex items-center gap-6" style={{ marginBottom: 8 }}>
+          <Mail size={14} color="var(--brand)" />
+          <span className="text-sm font-bold">Email Notifications</span>
+        </div>
+        <Toggle label="Due Reminders" desc="3 days before deadline" checked={prefs.dueReminders ?? true} onChange={v => updatePref('dueReminders', v)} />
+        <Toggle label="Overdue Alerts" desc="When objectives pass due date" checked={prefs.overdueAlerts ?? true} onChange={v => updatePref('overdueAlerts', v)} />
+        <Toggle label="Blocker Notifications" desc="When someone flags a blocker" checked={prefs.blockerNotifs ?? true} onChange={v => updatePref('blockerNotifs', v)} />
+        <Toggle label="Weekly Digest" desc="Monday summary of all objectives" checked={prefs.weeklyDigest ?? false} onChange={v => updatePref('weeklyDigest', v)} />
+        <Toggle label="Comment Notifications" desc="New messages on your objectives" checked={prefs.commentNotifs ?? true} onChange={v => updatePref('commentNotifs', v)} />
+        <Toggle label="Delegation Alerts" desc="When assigned new objectives" checked={prefs.delegationAlerts ?? true} onChange={v => updatePref('delegationAlerts', v)} />
+      </div>
+
+      {/* CSV Import */}
+      <div className="card" style={{ padding: 14, marginBottom: 12 }}>
+        <div className="flex items-center gap-6" style={{ marginBottom: 8 }}>
+          <Upload size={14} color="var(--brand)" />
+          <span className="text-sm font-bold">CSV Import</span>
+        </div>
+        <p className="text-xs text-muted" style={{ marginBottom: 8 }}>Import users via CSV. Required columns: name, email. Optional: title, department, role.</p>
+        <input ref={csvInputRef} type="file" accept=".csv" hidden onChange={handleCSV} />
+        <button className="btn btn-secondary btn-sm w-full" onClick={() => csvInputRef.current?.click()} style={{ justifyContent: "center", marginBottom: 8 }}>
+          <Upload size={12} /> Select CSV File
+        </button>
+        {csvData && (
+          <div>
+            <div className="text-xs font-semibold" style={{ color: "var(--success)", marginBottom: 6 }}>{csvData.rows.length} users parsed</div>
+            <div style={{ maxHeight: 160, overflowY: "auto", border: "1px solid var(--accent-5)", borderRadius: 8, marginBottom: 8 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
+                <thead><tr style={{ background: "var(--accent-4)" }}>
+                  {csvData.headers.slice(0, 4).map(h => <th key={h} style={{ padding: "4px 6px", textAlign: "left", textTransform: "capitalize", color: "var(--accent-8)" }}>{h}</th>)}
+                </tr></thead>
+                <tbody>{csvData.rows.slice(0, 10).map((r, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid var(--accent-4)" }}>
+                    {csvData.headers.slice(0, 4).map(h => <td key={h} style={{ padding: "3px 6px", color: "var(--accent-9)" }}>{r[h]}</td>)}
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+            <div className="text-xs text-muted" style={{ marginBottom: 6 }}>To import, use the Supabase admin API or run a seed script with these users.</div>
+            <button className="btn btn-xs btn-secondary" onClick={() => { setShowSQL(!showSQL); }}>
+              {showSQL ? "Hide" : "Show"} Import Guide
+            </button>
+            {showSQL && (
+              <pre style={{ marginTop: 8, padding: 8, background: "var(--accent-4)", borderRadius: 6, fontSize: 10, color: "var(--accent-8)", overflowX: "auto", whiteSpace: "pre-wrap" }}>
+{csvData.rows.map(r => `supabase.auth.admin.createUser({
+  email: "${r.email || ''}",
+  password: "BoredRoom2025!",
+  email_confirm: true,
+  user_metadata: {
+    name: "${r.name || r.full_name || ''}",
+    title: "${r.title || r.job_title || ''}",
+    department: "${r.department || r.dept || ''}",
+    role: "${r.role || 'contributor'}"
+  }
+});`).join('\n\n')}
+              </pre>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Role Permissions (informational) */}
+      <div className="card" style={{ padding: 14 }}>
+        <div className="flex items-center gap-6" style={{ marginBottom: 8 }}>
+          <Shield size={14} color="var(--brand)" />
+          <span className="text-sm font-bold">Role Permissions</span>
+        </div>
+        {[{ role: "Executive", color: "var(--brand)", perms: "Full access, all objectives, org-wide reports" },
+          { role: "Manager", color: "var(--info)", perms: "Team objectives, delegation, department reports" },
+          { role: "Contributor", color: "var(--accent-7)", perms: "Own objectives, acknowledge delegations" }
+        ].map(r => (
+          <div key={r.role} className="flex items-center gap-8" style={{ padding: "6px 0", borderBottom: "1px solid var(--accent-4)" }}>
+            <Badge color={r.color}>{r.role}</Badge>
+            <span className="text-xs text-muted">{r.perms}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // ADMIN SIDEBAR
 // ============================================================================
 export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
@@ -543,21 +687,7 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
             ))}
           </div>
         )}
-        {activeSection === "settings" && (
-          <div>
-            {[{ label: "Email Notifications", desc: "Configure reminder cadence", icon: Mail },
-              { label: "Notification Rules", desc: "Due soon, overdue, blocked alerts", icon: Bell },
-              { label: "Role Permissions", desc: "Executive, Manager, Contributor", icon: Shield },
-              { label: "Company Branding", desc: "Logo, colors, display name", icon: Star },
-              { label: "CSV Import", desc: "Bulk import users", icon: Upload },
-            ].map((item, i) => (
-              <div key={i} className="card card-hover cursor-pointer flex items-center gap-10" style={{ padding: 12, marginBottom: 8 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--brand-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}><item.icon size={16} color="var(--brand)" /></div>
-                <div><div className="text-sm font-semibold">{item.label}</div><div className="text-xs text-muted">{item.desc}</div></div>
-              </div>
-            ))}
-          </div>
-        )}
+        {activeSection === "settings" && <SettingsPanel />}
       </div>
     </div>
   );
