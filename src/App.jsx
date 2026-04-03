@@ -182,6 +182,11 @@ function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [toasts, setToasts] = useState([]);
 
+  // Refetch data once user is authenticated (initial fetch happens before auth, RLS blocks it)
+  useEffect(() => {
+    if (user) { refetchProfiles(); refetchObjectives(); }
+  }, [user]);
+
   // Set profiles for utility lookups
   useEffect(() => { if (profiles.length > 0) setProfiles(profiles); }, [profiles]);
 
