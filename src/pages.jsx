@@ -56,7 +56,7 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard }) => {
         {isExecutive && <>
           <KPICard icon={Target} label="Active" value={allActive.length} sub={`${completed} completed`} color="#3B82F6" />
           <KPICard icon={CheckCircle2} label="On Track" value={onTrack} sub={`${Math.round((onTrack / Math.max(1, allActive.length)) * 100)}% of active`} color="#10B981" />
-          <KPICard icon={AlertTriangle} label="At Risk" value={atRisk + blocked} sub={`${blocked} blocked`} color="#EF4444" />
+          <KPICard icon={AlertTriangle} label="Needs Attention" value={atRisk + blocked} sub={`${atRisk} at risk · ${blocked} blocked`} color="#EF4444" />
           <KPICard icon={Clock} label="Overdue" value={overdue} sub={`${dueSoon} due this week`} color="#F59E0B" />
         </>}
         {isManager && <>
@@ -180,15 +180,15 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard }) => {
               <span className="text-md font-bold">Recent Messages</span>
             </div>
             <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px" }}>
-              {recentActivity.map((msg, i) => {
+              {recentActivity.filter(msg => msg.userId && msg.objTitle).map((msg, i) => {
                 const u = getUser(msg.userId);
                 return (
                   <div key={msg.id + i} onClick={() => { const obj = objectives.find(o => o.id === msg.objId); if (obj) onOpenCard(obj); }} className="flex gap-8 cursor-pointer" style={{ padding: "8px 4px", borderBottom: "1px solid var(--accent-4)" }}
                     onMouseEnter={e => e.currentTarget.style.background = "var(--accent-4)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                     <Avatar user={u} size={24} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="text-xs"><span className="font-semibold" style={{ color: u.color }}>{u.name.split(" ")[0]}</span> <span className="text-muted">in</span> <span className="text-secondary">{msg.objTitle.length > 35 ? msg.objTitle.slice(0, 35) + "..." : msg.objTitle}</span></div>
-                      <div className="text-sm truncate" style={{ marginTop: 1 }}>{msg.text.length > 70 ? msg.text.slice(0, 70) + "..." : msg.text}</div>
+                      <div className="text-xs"><span className="font-semibold" style={{ color: u.color }}>{u.name.split(" ")[0]}</span> <span className="text-muted">in</span> <span className="text-secondary">{(msg.objTitle || "").length > 35 ? msg.objTitle.slice(0, 35) + "..." : msg.objTitle}</span></div>
+                      <div className="text-sm truncate" style={{ marginTop: 1 }}>{(msg.text || "").length > 70 ? msg.text.slice(0, 70) + "..." : msg.text}</div>
                     </div>
                     <span className="text-xs text-muted flex-shrink-0">{timeAgo(msg.ts)}</span>
                   </div>
