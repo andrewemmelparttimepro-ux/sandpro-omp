@@ -215,9 +215,8 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
           <div className="flex justify-between" style={{ alignItems: "flex-start", marginBottom: 12 }}>
             <div style={{ flex: 1, marginRight: 16 }}>
               <div className="flex gap-6 flex-wrap" style={{ marginBottom: 8 }}>
-                <Badge color={getStatusColor(localObj.status)}>{getStatusLabel(localObj.status)}</Badge>
+                <Badge color={localObj.blockerFlag ? getStatusColor("blocked") : getStatusColor(localObj.status)}>{localObj.blockerFlag ? getStatusLabel("blocked") : getStatusLabel(localObj.status)}</Badge>
                 <Badge color={getPriorityColor(localObj.priority)} outline>{localObj.priority}</Badge>
-                {localObj.blockerFlag && <Badge color="#EF4444">BLOCKED</Badge>}
                 {overdue && <Badge color="#F59E0B">OVERDUE</Badge>}
                 {!localObj.acknowledged && localObj.delegatedBy && <Badge color="#8B5CF6">Needs Acknowledgement</Badge>}
               </div>
@@ -338,13 +337,17 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
               <div style={{ marginBottom: 20 }}>
                 <label className="text-xs font-semibold text-muted" style={{ textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: 8 }}>Update Status</label>
                 <div className="flex gap-6 flex-wrap">
-                  {["not_started", "on_track", "at_risk", "blocked", "completed"].map(s => (
-                    <button key={s} onClick={() => updateStatus(s)} className="btn btn-xs" style={{
-                      border: `1px solid ${localObj.status === s ? getStatusColor(s) : "var(--accent-5)"}`,
-                      background: localObj.status === s ? getStatusBg(s) : "transparent",
-                      color: localObj.status === s ? getStatusColor(s) : "var(--accent-7)"
-                    }}>{getStatusLabel(s)}</button>
-                  ))}
+                  {["not_started", "on_track", "at_risk", "blocked", "completed"].map(s => {
+                    const effectiveStatus = localObj.blockerFlag ? "blocked" : localObj.status;
+                    const isActive = effectiveStatus === s;
+                    return (
+                      <button key={s} onClick={() => updateStatus(s)} className="btn btn-xs" style={{
+                        border: `1px solid ${isActive ? getStatusColor(s) : "var(--accent-5)"}`,
+                        background: isActive ? getStatusBg(s) : "transparent",
+                        color: isActive ? getStatusColor(s) : "var(--accent-7)"
+                      }}>{getStatusLabel(s)}</button>
+                    );
+                  })}
                 </div>
               </div>
               {/* Parent link */}
@@ -572,13 +575,15 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const [ownerId, setOwnerId] = useState(editObj?.ownerId || currentUser.id);
   const [parentId, setParentId] = useState(editObj?.parentId || "");
   const [department, setDepartment] = useState(editObj?.department || currentUser.department);
+  const [titleError, setTitleError] = useState(false);
 
   const isDelegation = ownerId !== currentUser.id;
   const allUsers = getProfiles();
   const availableOwners = currentUser.role === "executive" ? allUsers : currentUser.role === "manager" ? [currentUser, ...allUsers.filter(u => u.reports_to === currentUser.id)] : [currentUser];
 
   const handleSave = () => {
-    if (!title.trim()) return;
+    if (!title.trim()) { setTitleError(true); return; }
+    setTitleError(false);
     const obj = {
       ...(editObj ? { id: editObj.id } : {}),
       title: title.trim(),
@@ -598,6 +603,8 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
       nextAction: editObj?.nextAction || "",
       type: editObj?.type || "simple",
       startDate: editObj?.startDate || null,
+      messages: editObj?.messages || [],
+      updates: editObj?.updates || (editObj ? [] : [{ ts: new Date().toISOString(), status: "not_started", progress: 0, note: "Objective created" }]),
     };
     onSave(obj);
   };
@@ -614,7 +621,8 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
         <div style={{ padding: 24, overflowY: "auto", flex: 1 }} className="flex flex-col gap-16">
           <div>
             <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Title *</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="What needs to be done?" style={{ width: "100%" }} autoFocus />
+            <input value={title} onChange={e => { setTitle(e.target.value); if (e.target.value.trim()) setTitleError(false); }} placeholder="What needs to be done?" style={{ width: "100%", borderColor: titleError ? "#EF4444" : undefined, boxShadow: titleError ? "0 0 0 1px #EF4444" : undefined }} autoFocus />
+            {titleError && <div style={{ color: "#EF4444", fontSize: 12, marginTop: 4 }}>Title is required</div>}
           </div>
           <div>
             <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Description</label>
@@ -659,7 +667,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
         </div>
         <div style={{ padding: "16px 24px", borderTop: "1px solid var(--accent-5)" }} className="flex justify-between">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={!title.trim()}>
+          <button className="btn btn-primary" onClick={handleSave}>
             {editObj ? "Save Changes" : isDelegation ? "Delegate Objective" : "Create Objective"}
           </button>
         </div>
