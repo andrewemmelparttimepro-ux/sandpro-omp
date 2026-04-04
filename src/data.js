@@ -1,6 +1,6 @@
 // ============================================================================
-// UTILITIES — Status/priority configs, formatting, helpers
-// Seed data removed — now served from Supabase
+// UTILITIES â Status/priority configs, formatting, helpers
+// Seed data removed â now served from Supabase
 // ============================================================================
 
 export const STATUS_CONFIG = {
@@ -27,9 +27,13 @@ export const getStatusBg = (s) => STATUS_CONFIG[s]?.bg || "rgba(107,114,128,0.1)
 export const getPriorityColor = (p) => PRIORITY_CONFIG[p]?.color || "#6B7280";
 
 export const formatDate = (d) => {
-  if (!d) return "—";
-  const dt = new Date(d);
+  if (!d) return "â";
+  // Fix timezone: date-only strings like "2026-09-30" are parsed as UTC midnight,
+  // which shifts back one day in US timezones. Append T12:00:00 to force midday.
+  const dateStr = typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d + "T12:00:00" : d;
+  const dt = new Date(dateStr);
   const n = new Date();
+  n.setHours(12, 0, 0, 0); // normalize "now" to midday for consistent day-diff
   const diff = Math.floor((dt - n) / 86400000);
   if (diff === 0) return "Today";
   if (diff === 1) return "Tomorrow";
@@ -48,12 +52,16 @@ export const timeAgo = (ts) => {
   return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
-export const isOverdue = (obj) => obj.dueDate && new Date(obj.dueDate) < new Date() && obj.status !== "completed" && obj.status !== "cancelled";
+export const isOverdue = (obj) => {
+  if (!obj.dueDate || obj.status === "completed" || obj.status === "cancelled") return false;
+  const ds = typeof obj.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(obj.dueDate) ? obj.dueDate + "T23:59:59" : obj.dueDate;
+  return new Date(ds) < new Date();
+};
 
 export const generateId = () => `id_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
 // ============================================================================
-// USER HELPERS — work with profiles from Supabase
+// USER HELPERS â work with profiles from Supabase
 // These are used throughout the UI. They need a profiles array to be set.
 // ============================================================================
 let _profiles = [];
@@ -63,7 +71,7 @@ export const setProfiles = (profiles) => { _profiles = profiles; };
 export const getUser = (id) => {
   const u = _profiles.find(p => p.id === id);
   if (u) return u;
-  return { id: id || "unknown", name: "Unknown", initials: "??", color: "#666", role: "contributor", department: "—", title: "—" };
+  return { id: id || "unknown", name: "Unknown", initials: "??", color: "#666", role: "contributor", department: "â", title: "â" };
 };
 
 export const getDirectReports = (userId) => _profiles.filter(u => u.reports_to === userId);
