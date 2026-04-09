@@ -184,7 +184,10 @@ export function useObjectives() {
     const channel = supabase
       .channel('objectives-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => fetchObjectives())
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subtasks' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_updates' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'files' }, () => fetchObjectives())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [fetchObjectives]);

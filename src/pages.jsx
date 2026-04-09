@@ -379,7 +379,7 @@ export const OrgPage = ({ objectives, onOpenCard }) => {
           <div className="flex items-center gap-8">
             <Network size={14} color="var(--brand)" />
             <span className="text-md font-bold">Organization</span>
-            <span className="text-xs text-muted">({getProfiles().length} people)</span>
+            <span className="text-xs text-muted">({getProfiles().length} {getProfiles().length === 1 ? 'person' : 'people'})</span>
           </div>
           <div style={{ position: "relative" }}>
             <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--accent-7)" }} />
@@ -525,7 +525,7 @@ const SettingsPanel = () => {
               <pre style={{ marginTop: 8, padding: 8, background: "var(--accent-4)", borderRadius: 6, fontSize: 10, color: "var(--accent-8)", overflowX: "auto", whiteSpace: "pre-wrap" }}>
 {csvData.rows.map(r => `supabase.auth.admin.createUser({
   email: "${r.email || ''}",
-  password: "BoredRoom2025!",
+  password: "<set-secure-password>",
   email_confirm: true,
   user_metadata: {
     name: "${r.name || r.full_name || ''}",
@@ -624,7 +624,7 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
             <div key={d} className="card" style={{ marginBottom: 8, padding: "10px 12px" }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
                 <span className="text-md font-semibold">{d}</span>
-                <span className="text-xs text-muted">{deptUsers.length} people · {deptObjs.length} obj</span>
+                <span className="text-xs text-muted">{deptUsers.length} {deptUsers.length === 1 ? 'person' : 'people'} · {deptObjs.length} obj</span>
               </div>
               <div className="flex">
                 {deptUsers.slice(0, 5).map((u, i) => <div key={u.id} style={{ marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i }}><Avatar user={u} size={22} /></div>)}
