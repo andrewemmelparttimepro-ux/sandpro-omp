@@ -5,7 +5,13 @@ import {
 } from 'lucide-react';
 import { setProfiles, getUser, generateId } from './data';
 import { useAuth, useProfiles, useObjectives, useNotifications } from './hooks/useSupabase';
-import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer, DailyBrief } from './components';
+import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer, DailyBrief, BriefErrorBoundary } from './components';
+
+// Safe localStorage — fails gracefully in incognito / strict privacy modes
+const safeStorage = {
+  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* noop */ } },
+};
 import { DashboardPage, ObjectivesPage, OrgPage, AdminSidebar } from './pages';
 import './index.css';
 
@@ -201,7 +207,7 @@ function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [editingObj, setEditingObj] = useState(null);
-  const [theme, setTheme] = useState(() => localStorage.getItem('sandpro-theme') || 'light');
+  const [theme, setTheme] = useState(() => safeStorage.get('sandpro-theme') || 'light');
   const [showDailyBrief, setShowDailyBrief] = useState(false);
   const [highlightDept, setHighlightDept] = useState(null);
 
@@ -213,7 +219,7 @@ function App() {
   // Theme
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('sandpro-theme', theme);
+    safeStorage.set('sandpro-theme', theme);
   }, [theme]);
 
   // Set profiles for utility lookups
@@ -223,7 +229,7 @@ function App() {
   useEffect(() => {
     if (!profile || objectives.length === 0) return;
     const todayKey = `sandpro-brief-seen-${profile.id}-${new Date().toISOString().slice(0, 10)}`;
-    if (!localStorage.getItem(todayKey)) {
+    if (!safeStorage.get(todayKey)) {
       setShowDailyBrief(true);
     }
   }, [profile, objectives.length]);
@@ -231,7 +237,7 @@ function App() {
   const dismissBrief = useCallback(() => {
     if (profile) {
       const todayKey = `sandpro-brief-seen-${profile.id}-${new Date().toISOString().slice(0, 10)}`;
-      localStorage.setItem(todayKey, '1');
+      safeStorage.set(todayKey, '1');
     }
     setShowDailyBrief(false);
   }, [profile]);
@@ -250,7 +256,7 @@ function App() {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
       if (e.key === "c" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setShowCreateForm(true); }
       if (e.key === "/" && !e.metaKey) { e.preventDefault(); setCurrentPage(1); setTimeout(() => { const el = document.querySelector('input[placeholder*="Search"]'); if (el) el.focus(); }, 100); }
-      if (e.key === "Escape") { setOpenCard(null); setShowCreateForm(false); setShowNotifications(false); setShowUserMenu(false); }
+      if (e.key === "Escape") { setOpenCard(null); setShowCreateForm(false); setShowNotifications(false); setShowUserMenu(false); setShowDailyBrief(false); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -466,7 +472,11 @@ function App() {
         onEdit={(obj) => { setEditingObj(obj); setOpenCard(null); }} />}
       {(showCreateForm || editingObj) && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={(obj) => { handleSaveObjective(obj); setEditingObj(null); }} onClose={() => { setShowCreateForm(false); setEditingObj(null); }} />}
 
-      {showDailyBrief && <DailyBrief objectives={objectives} currentUser={currentUser} onDismiss={dismissBrief} />}
+      {showDailyBrief && (
+        <BriefErrorBoundary onDismiss={dismissBrief}>
+          <DailyBrief objectives={objectives} currentUser={currentUser} onDismiss={dismissBrief} />
+        </BriefErrorBoundary>
+      )}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}
     </>

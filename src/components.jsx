@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Component } from 'react';
 import {
   X, Send, Paperclip, Check, AlertTriangle, Clock, MessageSquare,
   Activity, Zap, Calendar, ChevronDown, Download, Upload, FileText,
@@ -682,34 +682,77 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
 };
 
 // ============================================================================
+// ERROR BOUNDARY — catches render crashes so we never black-screen
+// ============================================================================
+export class BriefErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    console.error('[DailyBrief] render error:', error, info);
+    // Auto-dismiss after a short beat so the user always has an exit
+    if (this.props.onDismiss) {
+      setTimeout(() => this.props.onDismiss(), 50);
+    }
+  }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
+
+// ============================================================================
 // DAILY BRIEF — "The SandPro Daily" newspaper overlay
 // ============================================================================
+const safeUser = (id) => {
+  try {
+    const u = getUser(id);
+    if (u && u.name) return u;
+  } catch { /* noop */ }
+  return { id: id || 'unknown', name: 'Unassigned', initials: '—', color: '#94A3B8' };
+};
+
 export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
   const [aiInsight, setAiInsight] = useState(null);
   const [aiLoading, setAiLoading] = useState(true);
+
+  // Guarantee escape works even if something deeper fails
+  useEffect(() => {
+    const esc = (e) => { if (e.key === 'Escape') onDismiss(); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onDismiss]);
+
+  // Defensive defaults — never let a missing prop crash the overlay
+  const objs = Array.isArray(objectives) ? objectives : [];
+  const me = currentUser || {};
 
   const today = new Date();
   const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const editionNum = Math.floor((today - new Date(today.getFullYear(), 0, 1)) / 86400000) + 1;
 
   // Computed data for the brief
-  const myObjectives = objectives.filter(o => o.ownerId === currentUser.id && o.status !== 'completed' && o.status !== 'cancelled');
-  const allActive = objectives.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
-  const overdue = allActive.filter(o => isOverdue(o));
+  const myObjectives = objs.filter(o => o && o.ownerId === me.id && o.status !== 'completed' && o.status !== 'cancelled');
+  const allActive = objs.filter(o => o && o.status !== 'completed' && o.status !== 'cancelled');
+  const overdue = allActive.filter(o => { try { return isOverdue(o); } catch { return false; } });
   const blocked = allActive.filter(o => o.blockerFlag || o.status === 'blocked');
   const dueSoon = allActive.filter(o => {
     if (!o.dueDate) return false;
     const d = new Date(o.dueDate);
+    if (isNaN(d.getTime())) return false;
     const n = new Date();
     return d > n && d < new Date(n.getTime() + 7 * 86400000);
   });
   const onTrack = allActive.filter(o => o.status === 'on_track').length;
-  const completed = objectives.filter(o => o.status === 'completed').length;
 
-  const isExec = currentUser.role === 'executive';
-  const isManager = currentUser.role === 'manager';
-  const directReports = getDirectReports(currentUser.id);
-  const teamObjectives = objectives.filter(o => directReports.some(r => r.id === o.ownerId) && o.status !== 'completed');
+  const isExec = me.role === 'executive';
+  const isManager = me.role === 'manager';
+  let directReports = [];
+  try { directReports = getDirectReports(me.id) || []; } catch { directReports = []; }
 
   // Lead story — most critical item
   const leadItem = blocked[0] || overdue[0] || dueSoon[0] || myObjectives[0];
@@ -717,44 +760,56 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
   // Priorities — user's objectives sorted by urgency
   const priorities = [...myObjectives].sort((a, b) => {
     const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-    const aOverdue = isOverdue(a) ? -10 : 0;
-    const bOverdue = isOverdue(b) ? -10 : 0;
+    const aOverdue = (() => { try { return isOverdue(a) ? -10 : 0; } catch { return 0; } })();
+    const bOverdue = (() => { try { return isOverdue(b) ? -10 : 0; } catch { return 0; } })();
     return (aOverdue + (priorityOrder[a.priority] || 3)) - (bOverdue + (priorityOrder[b.priority] || 3));
   }).slice(0, 5);
 
-  // Fetch AI insight
+  // Fetch AI insight — with timeout so we never hang
   const fetchAiInsight = useCallback(async () => {
     setAiLoading(true);
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; setAiLoading(false); }, 8000);
     try {
       const summary = {
-        userName: currentUser.name,
-        role: currentUser.role,
-        department: currentUser.department,
+        userName: me.name,
+        role: me.role,
+        department: me.department,
         myObjectives: myObjectives.map(o => ({ title: o.title, status: o.status, progress: o.progress, priority: o.priority, dueDate: o.dueDate, blockerFlag: o.blockerFlag })),
         orgStats: { total: allActive.length, onTrack, blocked: blocked.length, overdue: overdue.length, dueSoon: dueSoon.length },
         teamSize: directReports.length,
       };
       const { data, error } = await supabase.functions.invoke('daily-brief', { body: summary });
+      if (timedOut) return;
       if (error) throw error;
       setAiInsight(data?.insight || null);
-    } catch {
+    } catch (err) {
+      console.warn('[DailyBrief] AI insight unavailable, using fallback:', err?.message);
       setAiInsight(null);
+    } finally {
+      clearTimeout(timer);
+      if (!timedOut) setAiLoading(false);
     }
-    setAiLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchAiInsight(); }, [fetchAiInsight]);
 
   const getLeadText = () => {
     if (!leadItem) return "All objectives are progressing smoothly across the organization. No immediate action items require your attention this morning.";
+    const owner = safeUser(leadItem.ownerId);
     if (leadItem.blockerFlag || leadItem.status === 'blocked') {
-      return `${leadItem.title} has been flagged as blocked${leadItem.blockerReason ? ` — "${leadItem.blockerReason}"` : ''}. This ${leadItem.priority}-priority objective requires immediate attention to clear the path forward. Owner: ${getUser(leadItem.ownerId).name}.`;
+      return `${leadItem.title} has been flagged as blocked${leadItem.blockerReason ? ` — "${leadItem.blockerReason}"` : ''}. This ${leadItem.priority || 'active'}-priority objective requires immediate attention to clear the path forward. Owner: ${owner.name}.`;
     }
-    if (isOverdue(leadItem)) {
+    let itemIsOverdue = false;
+    try { itemIsOverdue = isOverdue(leadItem); } catch { /* noop */ }
+    if (itemIsOverdue && leadItem.dueDate) {
       const days = Math.abs(Math.floor((new Date(leadItem.dueDate) - new Date()) / 86400000));
-      return `${leadItem.title} is now ${days} day${days !== 1 ? 's' : ''} past its target date with ${leadItem.progress}% completion. This ${leadItem.priority}-priority objective needs a status review and updated timeline.`;
+      return `${leadItem.title} is now ${days} day${days !== 1 ? 's' : ''} past its target date with ${leadItem.progress || 0}% completion. This ${leadItem.priority || 'active'}-priority objective needs a status review and updated timeline.`;
     }
-    return `${leadItem.title} is currently ${getStatusLabel(leadItem.status).toLowerCase()} at ${leadItem.progress}% completion. ${leadItem.priority === 'critical' ? 'As a critical-priority objective, it warrants close monitoring today.' : 'Steady progress continues toward the target date.'}`;
+    let statusLabel = 'in progress';
+    try { statusLabel = getStatusLabel(leadItem.status).toLowerCase(); } catch { /* noop */ }
+    return `${leadItem.title} is currently ${statusLabel} at ${leadItem.progress || 0}% completion. ${leadItem.priority === 'critical' ? 'As a critical-priority objective, it warrants close monitoring today.' : 'Steady progress continues toward the target date.'}`;
   };
 
   return (
@@ -766,7 +821,7 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
         <div className="brief-masthead">
           <div className="brief-flag">The SandPro Daily</div>
           <div className="brief-dateline">{dateStr}</div>
-          <div className="brief-edition">Vol. 1 &middot; No. {editionNum} &middot; {currentUser.department} Edition &middot; Prepared for {currentUser.name}</div>
+          <div className="brief-edition">Vol. 1 &middot; No. {editionNum} &middot; {me.department || 'Company'} Edition &middot; Prepared for {me.name || 'You'}</div>
         </div>
 
         {/* Stats strip */}
@@ -808,7 +863,7 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
                 ) : "All Systems Operational"}
               </h2>
               <div className="brief-byline">
-                {isExec ? 'Organization-Wide Report' : isManager ? `${currentUser.department} Team Report` : `${currentUser.department} Contributor Report`} &middot; {today.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                {isExec ? 'Organization-Wide Report' : isManager ? `${me.department || 'Team'} Team Report` : `${me.department || 'Contributor'} Contributor Report`} &middot; {today.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
               </div>
               <p className="brief-body-text">{getLeadText()}</p>
 
@@ -816,17 +871,23 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
               {priorities.length > 0 && (
                 <div style={{ marginTop: 20 }}>
                   <div className="brief-section-head">Your Priorities Today</div>
-                  {priorities.map(obj => (
-                    <div key={obj.id} className="brief-item">
-                      <div className="brief-item-dot" style={{ background: getStatusColor(obj.status) }} />
-                      <div className="brief-item-body">
-                        <div className="brief-item-title">{obj.title}</div>
-                        <div className="brief-item-meta">
-                          {getStatusLabel(obj.status)} &middot; {obj.progress}% &middot; {obj.dueDate ? formatDate(obj.dueDate) : 'No due date'}
+                  {priorities.map(obj => {
+                    let color = 'var(--accent-7)', label = obj.status || '—', date = 'No due date';
+                    try { color = getStatusColor(obj.status); } catch {}
+                    try { label = getStatusLabel(obj.status); } catch {}
+                    try { date = obj.dueDate ? formatDate(obj.dueDate) : 'No due date'; } catch {}
+                    return (
+                      <div key={obj.id} className="brief-item">
+                        <div className="brief-item-dot" style={{ background: color }} />
+                        <div className="brief-item-body">
+                          <div className="brief-item-title">{obj.title}</div>
+                          <div className="brief-item-meta">
+                            {label} &middot; {obj.progress || 0}% &middot; {date}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -838,24 +899,34 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
               {dueSoon.length === 0 ? (
                 <p className="brief-body-text" style={{ fontSize: 12, fontStyle: 'italic' }}>No deadlines in the next 7 days.</p>
               ) : (
-                dueSoon.slice(0, 4).map(obj => (
-                  <div key={obj.id} className="brief-item">
-                    <div className="brief-item-dot" style={{ background: 'var(--warning)' }} />
-                    <div className="brief-item-body">
-                      <div className="brief-item-title">{obj.title}</div>
-                      <div className="brief-item-meta">{formatDate(obj.dueDate)} &middot; {getUser(obj.ownerId).name}</div>
+                dueSoon.slice(0, 4).map(obj => {
+                  let date = '—';
+                  try { date = formatDate(obj.dueDate); } catch {}
+                  return (
+                    <div key={obj.id} className="brief-item">
+                      <div className="brief-item-dot" style={{ background: 'var(--warning)' }} />
+                      <div className="brief-item-body">
+                        <div className="brief-item-title">{obj.title}</div>
+                        <div className="brief-item-meta">{date} &middot; {safeUser(obj.ownerId).name}</div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
 
               {/* Team Pulse (manager/exec) */}
               {(isExec || isManager) && directReports.length > 0 && (
                 <div style={{ marginTop: 16 }}>
                   <div className="brief-section-head">{isExec ? 'Organization Pulse' : 'Team Pulse'}</div>
-                  {(isExec ? getProfiles().filter(u => u.role === 'manager') : directReports).slice(0, 5).map(person => {
-                    const pObjs = objectives.filter(o => o.ownerId === person.id && o.status !== 'completed');
-                    const pIssues = pObjs.filter(o => o.status === 'at_risk' || o.status === 'blocked' || isOverdue(o)).length;
+                  {(() => {
+                    let pool = [];
+                    try { pool = isExec ? (getProfiles() || []).filter(u => u.role === 'manager') : directReports; } catch { pool = directReports; }
+                    return pool.slice(0, 5);
+                  })().map(person => {
+                    const pObjs = objs.filter(o => o.ownerId === person.id && o.status !== 'completed');
+                    const pIssues = pObjs.filter(o => {
+                      try { return o.status === 'at_risk' || o.status === 'blocked' || isOverdue(o); } catch { return false; }
+                    }).length;
                     return (
                       <div key={person.id} className="brief-item">
                         <Avatar user={person} size={22} />
@@ -888,7 +959,7 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
                   <div className="brief-ai-text">
                     {myObjectives.length === 0
                       ? "No active objectives assigned. Consider reviewing the team board for delegation opportunities or creating your first objective today."
-                      : `You have ${myObjectives.length} active objective${myObjectives.length !== 1 ? 's' : ''} across ${[...new Set(myObjectives.map(o => o.department))].length} department${[...new Set(myObjectives.map(o => o.department))].length !== 1 ? 's' : ''}. ${blocked.filter(o => o.ownerId === currentUser.id).length > 0 ? 'Clear your blockers first — they cascade.' : overdue.filter(o => o.ownerId === currentUser.id).length > 0 ? 'Address overdue items before they become blockers.' : 'Maintain momentum on your critical-priority items today.'}`
+                      : `You have ${myObjectives.length} active objective${myObjectives.length !== 1 ? 's' : ''} across ${[...new Set(myObjectives.map(o => o.department).filter(Boolean))].length || 1} department${[...new Set(myObjectives.map(o => o.department).filter(Boolean))].length !== 1 ? 's' : ''}. ${blocked.filter(o => o.ownerId === me.id).length > 0 ? 'Clear your blockers first — they cascade.' : overdue.filter(o => o.ownerId === me.id).length > 0 ? 'Address overdue items before they become blockers.' : 'Maintain momentum on your critical-priority items today.'}`
                     }
                   </div>
                 )}
