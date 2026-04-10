@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X, Send, Paperclip, Check, AlertTriangle, Clock, MessageSquare,
   Activity, Zap, Calendar, ChevronDown, Download, Upload, FileText,
   Image, File, Film, Music, Archive, TrendingUp, Layers, ArrowLeft,
-  Target, CheckCircle2, Building2, Plus, Edit3, Trash2, Flag, Loader2
+  Target, CheckCircle2, Building2, Plus, Edit3, Trash2, Flag, Loader2,
+  Sparkles, AlertCircle
 } from 'lucide-react';
 import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, STATUS_CONFIG, generateId } from './data';
 import { supabase } from './lib/supabase';
@@ -669,6 +670,231 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSave}>
             {editObj ? "Save Changes" : isDelegation ? "Delegate Objective" : "Create Objective"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// DAILY BRIEF — "The SandPro Daily" newspaper overlay
+// ============================================================================
+export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
+  const [aiInsight, setAiInsight] = useState(null);
+  const [aiLoading, setAiLoading] = useState(true);
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const editionNum = Math.floor((today - new Date(today.getFullYear(), 0, 1)) / 86400000) + 1;
+
+  // Computed data for the brief
+  const myObjectives = objectives.filter(o => o.ownerId === currentUser.id && o.status !== 'completed' && o.status !== 'cancelled');
+  const allActive = objectives.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
+  const overdue = allActive.filter(o => isOverdue(o));
+  const blocked = allActive.filter(o => o.blockerFlag || o.status === 'blocked');
+  const dueSoon = allActive.filter(o => {
+    if (!o.dueDate) return false;
+    const d = new Date(o.dueDate);
+    const n = new Date();
+    return d > n && d < new Date(n.getTime() + 7 * 86400000);
+  });
+  const onTrack = allActive.filter(o => o.status === 'on_track').length;
+  const completed = objectives.filter(o => o.status === 'completed').length;
+
+  const isExec = currentUser.role === 'executive';
+  const isManager = currentUser.role === 'manager';
+  const directReports = getDirectReports(currentUser.id);
+  const teamObjectives = objectives.filter(o => directReports.some(r => r.id === o.ownerId) && o.status !== 'completed');
+
+  // Lead story — most critical item
+  const leadItem = blocked[0] || overdue[0] || dueSoon[0] || myObjectives[0];
+
+  // Priorities — user's objectives sorted by urgency
+  const priorities = [...myObjectives].sort((a, b) => {
+    const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+    const aOverdue = isOverdue(a) ? -10 : 0;
+    const bOverdue = isOverdue(b) ? -10 : 0;
+    return (aOverdue + (priorityOrder[a.priority] || 3)) - (bOverdue + (priorityOrder[b.priority] || 3));
+  }).slice(0, 5);
+
+  // Fetch AI insight
+  const fetchAiInsight = useCallback(async () => {
+    setAiLoading(true);
+    try {
+      const summary = {
+        userName: currentUser.name,
+        role: currentUser.role,
+        department: currentUser.department,
+        myObjectives: myObjectives.map(o => ({ title: o.title, status: o.status, progress: o.progress, priority: o.priority, dueDate: o.dueDate, blockerFlag: o.blockerFlag })),
+        orgStats: { total: allActive.length, onTrack, blocked: blocked.length, overdue: overdue.length, dueSoon: dueSoon.length },
+        teamSize: directReports.length,
+      };
+      const { data, error } = await supabase.functions.invoke('daily-brief', { body: summary });
+      if (error) throw error;
+      setAiInsight(data?.insight || null);
+    } catch {
+      setAiInsight(null);
+    }
+    setAiLoading(false);
+  }, []);
+
+  useEffect(() => { fetchAiInsight(); }, [fetchAiInsight]);
+
+  const getLeadText = () => {
+    if (!leadItem) return "All objectives are progressing smoothly across the organization. No immediate action items require your attention this morning.";
+    if (leadItem.blockerFlag || leadItem.status === 'blocked') {
+      return `${leadItem.title} has been flagged as blocked${leadItem.blockerReason ? ` — "${leadItem.blockerReason}"` : ''}. This ${leadItem.priority}-priority objective requires immediate attention to clear the path forward. Owner: ${getUser(leadItem.ownerId).name}.`;
+    }
+    if (isOverdue(leadItem)) {
+      const days = Math.abs(Math.floor((new Date(leadItem.dueDate) - new Date()) / 86400000));
+      return `${leadItem.title} is now ${days} day${days !== 1 ? 's' : ''} past its target date with ${leadItem.progress}% completion. This ${leadItem.priority}-priority objective needs a status review and updated timeline.`;
+    }
+    return `${leadItem.title} is currently ${getStatusLabel(leadItem.status).toLowerCase()} at ${leadItem.progress}% completion. ${leadItem.priority === 'critical' ? 'As a critical-priority objective, it warrants close monitoring today.' : 'Steady progress continues toward the target date.'}`;
+  };
+
+  return (
+    <div className="brief-overlay" onClick={e => { if (e.target === e.currentTarget) onDismiss(); }}>
+      <div className="brief-paper">
+        <button className="brief-close" onClick={onDismiss}><X size={16} /></button>
+
+        {/* Masthead */}
+        <div className="brief-masthead">
+          <div className="brief-flag">The SandPro Daily</div>
+          <div className="brief-dateline">{dateStr}</div>
+          <div className="brief-edition">Vol. 1 &middot; No. {editionNum} &middot; {currentUser.department} Edition &middot; Prepared for {currentUser.name}</div>
+        </div>
+
+        {/* Stats strip */}
+        <div style={{ padding: '0 28px' }}>
+          <div className="brief-stats">
+            <div className="brief-stat">
+              <div className="brief-stat-val">{allActive.length}</div>
+              <div className="brief-stat-label">Active</div>
+            </div>
+            <div className="brief-stat">
+              <div className="brief-stat-val" style={{ color: 'var(--success)' }}>{onTrack}</div>
+              <div className="brief-stat-label">On Track</div>
+            </div>
+            <div className="brief-stat">
+              <div className="brief-stat-val" style={{ color: 'var(--error)' }}>{blocked.length}</div>
+              <div className="brief-stat-label">Blocked</div>
+            </div>
+            <div className="brief-stat">
+              <div className="brief-stat-val" style={{ color: 'var(--warning)' }}>{overdue.length}</div>
+              <div className="brief-stat-label">Overdue</div>
+            </div>
+          </div>
+        </div>
+
+        <hr className="brief-rule-thick" />
+
+        {/* Body */}
+        <div className="brief-body">
+          <div className="brief-columns">
+            {/* Main column */}
+            <div className="brief-col-main">
+              {/* Lead Story */}
+              <div className="brief-section-head">Lead Story</div>
+              <h2 className="brief-headline">
+                {leadItem ? (
+                  leadItem.blockerFlag ? `Blocker Alert: ${leadItem.title}` :
+                  isOverdue(leadItem) ? `Overdue: ${leadItem.title}` :
+                  leadItem.title
+                ) : "All Systems Operational"}
+              </h2>
+              <div className="brief-byline">
+                {isExec ? 'Organization-Wide Report' : isManager ? `${currentUser.department} Team Report` : `${currentUser.department} Contributor Report`} &middot; {today.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+              </div>
+              <p className="brief-body-text">{getLeadText()}</p>
+
+              {/* Your Priorities */}
+              {priorities.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <div className="brief-section-head">Your Priorities Today</div>
+                  {priorities.map(obj => (
+                    <div key={obj.id} className="brief-item">
+                      <div className="brief-item-dot" style={{ background: getStatusColor(obj.status) }} />
+                      <div className="brief-item-body">
+                        <div className="brief-item-title">{obj.title}</div>
+                        <div className="brief-item-meta">
+                          {getStatusLabel(obj.status)} &middot; {obj.progress}% &middot; {obj.dueDate ? formatDate(obj.dueDate) : 'No due date'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Side column */}
+            <div className="brief-col-side">
+              {/* Deadlines This Week */}
+              <div className="brief-section-head">Deadlines This Week</div>
+              {dueSoon.length === 0 ? (
+                <p className="brief-body-text" style={{ fontSize: 12, fontStyle: 'italic' }}>No deadlines in the next 7 days.</p>
+              ) : (
+                dueSoon.slice(0, 4).map(obj => (
+                  <div key={obj.id} className="brief-item">
+                    <div className="brief-item-dot" style={{ background: 'var(--warning)' }} />
+                    <div className="brief-item-body">
+                      <div className="brief-item-title">{obj.title}</div>
+                      <div className="brief-item-meta">{formatDate(obj.dueDate)} &middot; {getUser(obj.ownerId).name}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+
+              {/* Team Pulse (manager/exec) */}
+              {(isExec || isManager) && directReports.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <div className="brief-section-head">{isExec ? 'Organization Pulse' : 'Team Pulse'}</div>
+                  {(isExec ? getProfiles().filter(u => u.role === 'manager') : directReports).slice(0, 5).map(person => {
+                    const pObjs = objectives.filter(o => o.ownerId === person.id && o.status !== 'completed');
+                    const pIssues = pObjs.filter(o => o.status === 'at_risk' || o.status === 'blocked' || isOverdue(o)).length;
+                    return (
+                      <div key={person.id} className="brief-item">
+                        <Avatar user={person} size={22} />
+                        <div className="brief-item-body">
+                          <div className="brief-item-title">{person.name}</div>
+                          <div className="brief-item-meta">
+                            {pObjs.length} active{pIssues > 0 ? ` · ${pIssues} need${pIssues === 1 ? 's' : ''} attention` : ' · all clear'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* AI Insight */}
+              <div className="brief-ai-box" style={{ marginTop: 16 }}>
+                <div className="brief-ai-label">
+                  <Sparkles size={12} />
+                  AI Briefing
+                </div>
+                {aiLoading ? (
+                  <div className="flex items-center gap-8">
+                    <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: 'var(--brand)' }} />
+                    <span style={{ fontSize: 12, color: 'var(--accent-7)' }}>Analyzing your objectives...</span>
+                  </div>
+                ) : aiInsight ? (
+                  <div className="brief-ai-text">{aiInsight}</div>
+                ) : (
+                  <div className="brief-ai-text">
+                    {myObjectives.length === 0
+                      ? "No active objectives assigned. Consider reviewing the team board for delegation opportunities or creating your first objective today."
+                      : `You have ${myObjectives.length} active objective${myObjectives.length !== 1 ? 's' : ''} across ${[...new Set(myObjectives.map(o => o.department))].length} department${[...new Set(myObjectives.map(o => o.department))].length !== 1 ? 's' : ''}. ${blocked.filter(o => o.ownerId === currentUser.id).length > 0 ? 'Clear your blockers first — they cascade.' : overdue.filter(o => o.ownerId === currentUser.id).length > 0 ? 'Address overdue items before they become blockers.' : 'Maintain momentum on your critical-priority items today.'}`
+                    }
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <button className="brief-cta" onClick={onDismiss}>
+            Begin Your Day
           </button>
         </div>
       </div>

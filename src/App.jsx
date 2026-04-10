@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { setProfiles, getUser, generateId } from './data';
 import { useAuth, useProfiles, useObjectives, useNotifications } from './hooks/useSupabase';
-import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer } from './components';
+import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer, DailyBrief } from './components';
 import { DashboardPage, ObjectivesPage, OrgPage, AdminSidebar } from './pages';
 import './index.css';
 
@@ -202,6 +202,7 @@ function App() {
   const [toasts, setToasts] = useState([]);
   const [editingObj, setEditingObj] = useState(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('sandpro-theme') || 'dark');
+  const [showDailyBrief, setShowDailyBrief] = useState(false);
 
   // Refetch data once user is authenticated (initial fetch happens before auth, RLS blocks it)
   useEffect(() => {
@@ -216,6 +217,23 @@ function App() {
 
   // Set profiles for utility lookups
   useEffect(() => { if (profiles.length > 0) setProfiles(profiles); }, [profiles]);
+
+  // Show Daily Brief on first login of the day
+  useEffect(() => {
+    if (!profile || objectives.length === 0) return;
+    const todayKey = `sandpro-brief-seen-${profile.id}-${new Date().toISOString().slice(0, 10)}`;
+    if (!localStorage.getItem(todayKey)) {
+      setShowDailyBrief(true);
+    }
+  }, [profile, objectives.length]);
+
+  const dismissBrief = useCallback(() => {
+    if (profile) {
+      const todayKey = `sandpro-brief-seen-${profile.id}-${new Date().toISOString().slice(0, 10)}`;
+      localStorage.setItem(todayKey, '1');
+    }
+    setShowDailyBrief(false);
+  }, [profile]);
 
   // Toast helpers
   const addToast = useCallback((toast) => {
@@ -442,6 +460,7 @@ function App() {
         onEdit={(obj) => { setEditingObj(obj); setOpenCard(null); }} />}
       {(showCreateForm || editingObj) && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={(obj) => { handleSaveObjective(obj); setEditingObj(null); }} onClose={() => { setShowCreateForm(false); setEditingObj(null); }} />}
 
+      {showDailyBrief && <DailyBrief objectives={objectives} currentUser={currentUser} onDismiss={dismissBrief} />}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 150 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}
     </>
