@@ -13,9 +13,13 @@ import { supabase } from './lib/supabase';
 // AVATAR
 // ============================================================================
 export const Avatar = ({ user, size = 32 }) => (
-  <div className="avatar" style={{ width: size, height: size, background: user?.color || "#F97316", fontSize: size * 0.35 }}>
-    {user?.initials || "??"}
-  </div>
+  user?.avatar_url ? (
+    <img src={user.avatar_url} alt={user.name || ''} className="avatar" style={{ width: size, height: size, objectFit: 'cover', background: user?.color || '#F97316' }} />
+  ) : (
+    <div className="avatar" style={{ width: size, height: size, background: user?.color || "#F97316", fontSize: size * 0.35 }}>
+      {user?.initials || "??"}
+    </div>
+  )
 );
 
 // ============================================================================
