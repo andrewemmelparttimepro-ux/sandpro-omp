@@ -201,7 +201,7 @@ function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [editingObj, setEditingObj] = useState(null);
-  const [theme, setTheme] = useState(() => localStorage.getItem('sandpro-theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('sandpro-theme') || 'light');
   const [showDailyBrief, setShowDailyBrief] = useState(false);
   const [highlightDept, setHighlightDept] = useState(null);
 
