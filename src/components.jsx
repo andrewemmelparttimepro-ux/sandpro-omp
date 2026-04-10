@@ -6,7 +6,7 @@ import {
   Target, CheckCircle2, Building2, Plus, Edit3, Trash2, Flag, Loader2,
   Sparkles, AlertCircle
 } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, STATUS_CONFIG, generateId } from './data';
+import { getUser, getProfiles, getDirectReports, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, STATUS_CONFIG, generateId } from './data';
 import { supabase } from './lib/supabase';
 
 // ============================================================================
