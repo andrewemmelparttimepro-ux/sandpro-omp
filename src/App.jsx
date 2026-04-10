@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Target, Bell, Plus, LayoutDashboard, Network, ChevronDown, X,
-  LogOut, Loader2, Sun, Moon
+  LogOut, Loader2, Sun, Moon, Newspaper
 } from 'lucide-react';
 import { setProfiles, getUser, generateId } from './data';
 import { useAuth, useProfiles, useObjectives, useNotifications } from './hooks/useSupabase';
@@ -390,6 +390,11 @@ function App() {
           <Plus size={14} /> New
         </button>
 
+        {/* Daily Brief Recall */}
+        <button className="icon-btn" onClick={() => setShowDailyBrief(true)} title="Daily Brief">
+          <Newspaper size={18} />
+        </button>
+
         {/* Theme Toggle */}
         <button className="icon-btn" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} title="Toggle theme">
           {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -462,7 +467,7 @@ function App() {
 
       {showDailyBrief && <DailyBrief objectives={objectives} currentUser={currentUser} onDismiss={dismissBrief} />}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 150 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}
+      {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}
     </>
   );
 }
