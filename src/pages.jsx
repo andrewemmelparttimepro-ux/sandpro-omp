@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search, ChevronDown, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle,
   Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3,
@@ -11,7 +11,7 @@ import { Avatar, Badge, ProgressBar, KPICard, ObjectiveCard, EmptyState } from '
 // ============================================================================
 // DASHBOARD PAGE — Role-adaptive
 // ============================================================================
-export const DashboardPage = ({ objectives, currentUser, onOpenCard }) => {
+export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick }) => {
   const myObjectives = objectives.filter(o => o.ownerId === currentUser.id);
   const allActive = objectives.filter(o => o.status !== "completed" && o.status !== "cancelled");
   const onTrack = allActive.filter(o => o.status === "on_track").length;
@@ -140,7 +140,8 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard }) => {
                   const healthPct = stats.total > 0 ? Math.round(((stats.onTrack + stats.completed) / stats.total) * 100) : 100;
                   const healthColor = healthPct >= 70 ? "var(--success)" : healthPct >= 40 ? "var(--warning)" : "var(--error)";
                   return (
-                    <div key={dept} className="flex items-center gap-10" style={{ padding: "8px 4px", borderBottom: "1px solid var(--accent-4)" }}>
+                    <div key={dept} className="flex items-center gap-10 cursor-pointer" onClick={() => onDeptClick && onDeptClick(dept)} style={{ padding: "8px 4px", borderBottom: "1px solid var(--accent-4)", borderRadius: 6, transition: "all 0.15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "var(--accent-4)"; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
                       <div style={{ width: 32, height: 32, borderRadius: 8, background: healthColor + "18", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <span className="text-xs font-bold" style={{ color: healthColor }}>{healthPct}%</span>
                       </div>
@@ -152,7 +153,7 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard }) => {
                           {stats.blocked > 0 && <span className="text-xs text-error">{stats.blocked} blocked</span>}
                         </div>
                       </div>
-                      <span className="text-xs text-muted">{stats.total} obj</span>
+                      <span className="text-xs font-semibold" style={{ color: "var(--brand)", background: "var(--brand-bg)", padding: "2px 8px", borderRadius: 6 }}>{stats.total} obj</span>
                     </div>
                   );
                 }) : directReports.map(report => {
@@ -205,11 +206,21 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard }) => {
 // ============================================================================
 // OBJECTIVES PAGE — Grid + Kanban + List views
 // ============================================================================
-export const ObjectivesPage = ({ objectives, onOpenCard, currentUser }) => {
+export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, highlightDept, onClearHighlight }) => {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("priority");
   const [viewMode, setViewMode] = useState("grid"); // grid, kanban
+  const [glowActive, setGlowActive] = useState(false);
+
+  // When a department highlight comes in, activate the glow then fade it after 2.5s
+  useEffect(() => {
+    if (highlightDept) {
+      setGlowActive(true);
+      const timer = setTimeout(() => setGlowActive(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightDept]);
 
   const statusFilters = [
     { id: "all", label: "All" }, { id: "on_track", label: "On Track" }, { id: "at_risk", label: "At Risk" },
@@ -252,6 +263,11 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser }) => {
             </button>
           ))}
         </div>
+        {highlightDept && (
+          <button onClick={() => onClearHighlight && onClearHighlight()} className="btn btn-xs flex items-center gap-4" style={{ border: "1px solid var(--brand)", background: "var(--brand-bg-strong)", color: "var(--brand)" }}>
+            <Building2 size={12} /> {highlightDept} <X size={12} style={{ marginLeft: 2, opacity: 0.6 }} />
+          </button>
+        )}
         <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ padding: "5px 10px", fontSize: 12 }}>
           <option value="priority">Sort: Priority</option>
           <option value="due">Sort: Due Date</option>
@@ -268,7 +284,21 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser }) => {
         {viewMode === "grid" && (
           <div style={{ height: "100%", overflowY: "auto" }}>
             <div className="objectives-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
-              {filtered.map(obj => <ObjectiveCard key={obj.id} obj={obj} onClick={() => onOpenCard(obj)} />)}
+              {filtered.map(obj => {
+                const isDeptMatch = highlightDept && obj.department === highlightDept;
+                const isDimmed = highlightDept && !isDeptMatch;
+                return (
+                  <div key={obj.id} style={{
+                    transform: isDeptMatch && glowActive ? "translateY(-4px)" : "none",
+                    boxShadow: isDeptMatch && glowActive ? "0 8px 24px rgba(249,115,22,0.25), 0 0 0 1px rgba(249,115,22,0.3)" : "none",
+                    opacity: isDimmed ? 0.4 : 1,
+                    borderRadius: 'var(--radius-lg)',
+                    transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+                  }}>
+                    <ObjectiveCard obj={obj} onClick={() => onOpenCard(obj)} />
+                  </div>
+                );
+              })}
             </div>
             {filtered.length === 0 && <EmptyState icon={Target} text="No objectives match your filters." />}
           </div>

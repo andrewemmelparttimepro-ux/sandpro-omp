@@ -203,6 +203,7 @@ function App() {
   const [editingObj, setEditingObj] = useState(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('sandpro-theme') || 'dark');
   const [showDailyBrief, setShowDailyBrief] = useState(false);
+  const [highlightDept, setHighlightDept] = useState(null);
 
   // Refetch data once user is authenticated (initial fetch happens before auth, RLS blocks it)
   useEffect(() => {
@@ -443,8 +444,8 @@ function App() {
       {/* MAIN LAYOUT */}
       <div className="layout">
         <main className="main-content">
-          {currentPage === 0 && <DashboardPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} />}
-          {currentPage === 1 && <ObjectivesPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} />}
+          {currentPage === 0 && <DashboardPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onDeptClick={(dept) => { setHighlightDept(dept); setCurrentPage(1); }} />}
+          {currentPage === 1 && <ObjectivesPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} highlightDept={highlightDept} onClearHighlight={() => setHighlightDept(null)} />}
           {currentPage === 2 && <OrgPage objectives={objectives} onOpenCard={handleOpenCard} />}
         </main>
         <AdminSidebar isOpen={adminOpen} onToggle={() => setAdminOpen(!adminOpen)} objectives={objectives} />
