@@ -1,5 +1,42 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+
+const ATTACHMENT_MARKER = '\n__SANDPRO_ATTACHMENTS__';
+
+const formatSize = (bytes) => {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+};
+
+const getFileType = (mime = '') => {
+  if (mime.startsWith('image/')) return 'image';
+  if (mime === 'application/pdf') return 'pdf';
+  if (mime.startsWith('video/')) return 'video';
+  if (mime.startsWith('audio/')) return 'audio';
+  if (mime.includes('spreadsheet') || mime.includes('csv') || mime.includes('excel')) return 'spreadsheet';
+  if (mime.includes('zip') || mime.includes('tar') || mime.includes('rar')) return 'archive';
+  return 'file';
+};
+
+const splitMessageAttachments = (text = '') => {
+  const markerIndex = text.indexOf(ATTACHMENT_MARKER);
+  if (markerIndex === -1) return { text, attachments: [] };
+  const cleanText = text.slice(0, markerIndex).trim();
+  const raw = text.slice(markerIndex + ATTACHMENT_MARKER.length).trim();
+  try {
+    const attachments = JSON.parse(raw);
+    return { text: cleanText, attachments: Array.isArray(attachments) ? attachments : [] };
+  } catch {
+    return { text: cleanText || text, attachments: [] };
+  }
+};
+
+const withAttachmentMarker = (text, attachments) => {
+  if (!attachments?.length) return text;
+  const payload = attachments.map(({ name, type, size, url }) => ({ name, type, size, url }));
+  return `${text.trim()}${ATTACHMENT_MARKER}${JSON.stringify(payload)}`;
+};
 
 // ============================================================================
 // AUTH HOOK
@@ -28,7 +65,7 @@ export function useAuth() {
   }, []);
 
   const fetchProfile = async (userId) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -66,7 +103,17 @@ export function useAuth() {
     if (error) throw error;
   };
 
-  return { user, profile, loading, signIn, signUp, signOut, resetPassword, refetchProfile: () => user && fetchProfile(user.id) };
+  const updatePassword = async (password) => {
+    const { data, error } = await supabase.auth.updateUser({
+      password,
+      data: { must_change_password: false, password_changed_at: new Date().toISOString() },
+    });
+    if (error) throw error;
+    setUser(data.user);
+    return data;
+  };
+
+  return { user, profile, loading, signIn, signUp, signOut, resetPassword, updatePassword, refetchProfile: () => user && fetchProfile(user.id) };
 }
 
 // ============================================================================
@@ -81,7 +128,7 @@ export function useProfiles() {
   }, []);
 
   const fetchProfiles = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .order('name');
@@ -109,6 +156,11 @@ export function useObjectives() {
 
     // Fetch related data in parallel
     const ids = objs.map(o => o.id);
+    if (ids.length === 0) {
+      setObjectives([]);
+      setLoading(false);
+      return;
+    }
     const [messagesRes, subtasksRes, updatesRes, filesRes] = await Promise.all([
       supabase.from('messages').select('*').in('objective_id', ids).order('created_at'),
       supabase.from('subtasks').select('*').in('objective_id', ids),
@@ -147,9 +199,8 @@ export function useObjectives() {
       messages: (messagesByObj[o.id] || []).map(m => ({
         id: m.id,
         userId: m.user_id,
-        text: m.text,
         ts: m.created_at,
-        attachments: [],
+        ...splitMessageAttachments(m.text),
       })),
       subtasks: (subtasksByObj[o.id] || []).map(s => ({
         id: s.id,
@@ -165,6 +216,7 @@ export function useObjectives() {
         note: u.note,
       })),
       files: (filesByObj[o.id] || []).map(f => ({
+        id: f.id,
         name: f.name,
         type: f.type,
         size: f.size,
@@ -175,6 +227,7 @@ export function useObjectives() {
 
     setObjectives(rich);
     setLoading(false);
+    return rich;
   }, []);
 
   useEffect(() => { fetchObjectives(); }, [fetchObjectives]);
@@ -231,6 +284,37 @@ export function useObjectives() {
     return data;
   };
 
+  const uploadObjectiveFile = async (objectiveId, file) => {
+    const ts = Date.now();
+    const safeName = file.name.replace(/[^\w.!@()+,=\-\s]/g, '_');
+    const path = `${objectiveId}/${ts}_${safeName}`;
+    const { error: uploadError } = await supabase.storage.from('objective-files').upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || 'application/octet-stream',
+    });
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage.from('objective-files').getPublicUrl(path);
+    const record = {
+      objective_id: objectiveId,
+      name: file.name,
+      type: getFileType(file.type),
+      size: formatSize(file.size),
+      url: urlData.publicUrl,
+    };
+    const { data, error } = await supabase.from('files').insert(record).select().single();
+    if (error) throw error;
+    return {
+      id: data?.id,
+      name: record.name,
+      type: record.type,
+      size: record.size,
+      url: record.url,
+      ts: data?.created_at || new Date().toISOString(),
+    };
+  };
+
   // UPDATE
   const updateObjective = async (id, changes) => {
     const dbChanges = {};
@@ -261,8 +345,8 @@ export function useObjectives() {
     if (changes.status !== undefined || changes.progress !== undefined) {
       await supabase.from('objective_updates').insert({
         objective_id: id,
-        status: changes.status || 'on_track',
-        progress: changes.progress ?? 0,
+        status: changes.status || changes.currentStatus || 'on_track',
+        progress: changes.progress ?? changes.currentProgress ?? 0,
         note: changes.updateNote || `Updated`,
       });
     }
@@ -278,17 +362,23 @@ export function useObjectives() {
   };
 
   // SEND MESSAGE
-  const sendMessage = async (objectiveId, userId, text) => {
+  const sendMessage = async (objectiveId, userId, text, attachments = []) => {
+    const uploadedAttachments = [];
+    for (const attachment of attachments) {
+      if (attachment.file) {
+        uploadedAttachments.push(await uploadObjectiveFile(objectiveId, attachment.file));
+      }
+    }
     const { error } = await supabase.from('messages').insert({
       objective_id: objectiveId,
       user_id: userId,
-      text,
+      text: withAttachmentMarker(text, uploadedAttachments),
     });
     if (error) throw error;
     await fetchObjectives();
   };
 
-  return { objectives, loading, createObjective, updateObjective, deleteObjective, sendMessage, refetch: fetchObjectives };
+  return { objectives, loading, createObjective, updateObjective, deleteObjective, sendMessage, uploadObjectiveFile, refetch: fetchObjectives };
 }
 
 // ============================================================================
@@ -300,7 +390,7 @@ export function useNotifications(userId) {
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) { setLoading(false); return; }
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('notifications')
       .select('*')
       .eq('user_id', userId)

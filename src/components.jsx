@@ -130,7 +130,7 @@ export const EmptyState = ({ icon: Icon, text }) => (
 // ============================================================================
 // SUPER CARD MODAL — Full objective detail
 // ============================================================================
-export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, currentUser, addToast, onEdit }) => {
+export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, currentUser, addToast, onEdit, uploadObjectiveFile }) => {
   const [activeTab, setActiveTab] = useState("messages");
   const [newMessage, setNewMessage] = useState("");
   const [editingProgress, setEditingProgress] = useState(false);
@@ -138,7 +138,9 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
   const [editingNextAction, setEditingNextAction] = useState(false);
   const [nextActionValue, setNextActionValue] = useState(obj.nextAction || "");
   const messagesEndRef = useRef(null);
+  const messageFileRef = useRef(null);
   const [localObj, setLocalObj] = useState(obj);
+  const [messageAttachments, setMessageAttachments] = useState([]);
 
   useEffect(() => { setLocalObj(obj); setProgressValue(obj.progress); setNextActionValue(obj.nextAction || ""); }, [obj]);
   useEffect(() => { if (messagesEndRef.current && activeTab === "messages") messagesEndRef.current.scrollIntoView({ behavior: "smooth" }); }, [localObj.messages, activeTab]);
@@ -147,7 +149,15 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
   const creator = getUser(localObj.createdBy);
   const delegator = localObj.delegatedBy ? getUser(localObj.delegatedBy) : null;
   const overdue = isOverdue(localObj);
-  const getFileIcon = (type) => ({ pdf: FileText, image: Image, spreadsheet: FileText, video: Film, audio: Music, archive: Archive }[type] || File);
+  const getMessageFileType = (mime = "") => {
+    if (mime.startsWith("image/")) return "image";
+    if (mime === "application/pdf") return "pdf";
+    if (mime.startsWith("video/")) return "video";
+    if (mime.startsWith("audio/")) return "audio";
+    if (mime.includes("spreadsheet") || mime.includes("csv") || mime.includes("excel")) return "spreadsheet";
+    if (mime.includes("zip") || mime.includes("tar") || mime.includes("rar")) return "archive";
+    return "file";
+  };
 
   const doUpdate = (changes) => {
     const updated = { ...localObj, ...changes };
@@ -156,9 +166,19 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
   };
 
   const sendMessage = () => {
-    if (!newMessage.trim()) return;
-    doUpdate({ messages: [...localObj.messages, { id: generateId(), userId: currentUser.id, text: newMessage.trim(), ts: new Date().toISOString(), attachments: [] }] });
+    if (!newMessage.trim() && messageAttachments.length === 0) return;
+    doUpdate({
+      messages: [...localObj.messages, {
+        id: generateId(),
+        userId: currentUser.id,
+        text: newMessage.trim() || "Attached file",
+        ts: new Date().toISOString(),
+        attachments: messageAttachments,
+      }]
+    });
     setNewMessage("");
+    setMessageAttachments([]);
+    if (messageFileRef.current) messageFileRef.current.value = "";
   };
 
   const updateStatus = (newStatus) => {
@@ -233,6 +253,7 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
                 <Flag size={16} color={localObj.blockerFlag ? "#EF4444" : undefined} />
               </button>
               {onDelete && <button className="icon-btn" onClick={() => { if(confirm("Delete this objective?")) onDelete(localObj.id); }} title="Delete"><Trash2 size={16} /></button>}
+              <button onClick={onClose} className="btn btn-xs btn-secondary mobile-only"><ArrowLeft size={12} /> Back</button>
               <button onClick={onClose} className="icon-btn"><X size={20} /></button>
             </div>
           </div>
@@ -295,9 +316,9 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
                           {msg.attachments?.length > 0 && (
                             <div className="flex gap-6 flex-wrap" style={{ marginTop: 8 }}>
                               {msg.attachments.map((att, j) => (
-                                <div key={j} className="flex items-center gap-4 text-xs text-muted" style={{ padding: "4px 8px", borderRadius: 6, background: "var(--accent-1)" }}>
+                                <a key={j} href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-xs text-muted" style={{ padding: "4px 8px", borderRadius: 6, background: "var(--accent-1)" }}>
                                   <Paperclip size={10} />{att.name}
-                                </div>
+                                </a>
                               ))}
                             </div>
                           )}
@@ -437,7 +458,7 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
           )}
 
           {/* FILES */}
-          {activeTab === "files" && <FilesTab objectiveId={localObj.id} files={localObj.files} addToast={addToast} onFileChange={() => onUpdate({ ...localObj, _refresh: true })} />}
+          {activeTab === "files" && <FilesTab objectiveId={localObj.id} files={localObj.files} addToast={addToast} uploadObjectiveFile={uploadObjectiveFile} onFileChange={() => onUpdate({ ...localObj, _refresh: true })} />}
 
           {/* ACTIVITY */}
           {activeTab === "activity" && (
@@ -465,15 +486,26 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
         {/* Message Input */}
         {activeTab === "messages" && (
           <div style={{ padding: "12px 24px 16px", borderTop: "1px solid var(--accent-5)", background: "var(--accent-2)" }}>
+            {messageAttachments.length > 0 && (
+              <div className="flex gap-6 flex-wrap" style={{ marginBottom: 8 }}>
+                {messageAttachments.map((att, i) => (
+                  <div key={i} className="badge" style={{ background: "var(--accent-4)", color: "var(--accent-9)", border: "1px solid var(--accent-5)" }}>
+                    <Paperclip size={10} /> {att.name}
+                    <button onClick={() => setMessageAttachments(prev => prev.filter((_, j) => j !== i))} style={{ marginLeft: 4 }}><X size={10} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex gap-8" style={{ alignItems: "flex-end" }}>
-              <button className="icon-btn" style={{ width: 36, height: 36, border: "1px solid var(--accent-5)" }}><Paperclip size={16} /></button>
+              <input ref={messageFileRef} type="file" multiple hidden onChange={e => setMessageAttachments(Array.from(e.target.files || []).map(file => ({ name: file.name, size: file.size, type: getMessageFileType(file.type), file })))} />
+              <button className="icon-btn" onClick={() => messageFileRef.current?.click()} style={{ width: 36, height: 36, border: "1px solid var(--accent-5)" }} title="Attach files"><Paperclip size={16} /></button>
               <div style={{ flex: 1 }}>
                 <textarea value={newMessage} onChange={e => setNewMessage(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                   placeholder="Type a message... (Enter to send)" rows={1}
                   style={{ width: "100%", borderRadius: 10, padding: "10px 14px" }} />
               </div>
-              <button onClick={sendMessage} style={{ width: 36, height: 36, borderRadius: 8, background: newMessage.trim() ? "var(--brand)" : "var(--accent-5)", color: newMessage.trim() ? "#fff" : "var(--accent-7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <button onClick={sendMessage} style={{ width: 36, height: 36, borderRadius: 8, background: newMessage.trim() || messageAttachments.length ? "var(--brand)" : "var(--accent-5)", color: newMessage.trim() || messageAttachments.length ? "#fff" : "var(--accent-7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Send size={16} />
               </button>
             </div>
@@ -487,9 +519,10 @@ export const SuperCard = ({ obj, objectives, onClose, onUpdate, onDelete, curren
 // ============================================================================
 // FILES TAB — Real Supabase Storage upload
 // ============================================================================
-const FilesTab = ({ objectiveId, files, addToast, onFileChange }) => {
+const FilesTab = ({ objectiveId, files, addToast, onFileChange, uploadObjectiveFile }) => {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
   const fileInputRef = useRef(null);
   const getFileIcon = (type) => ({ pdf: FileText, image: Image, spreadsheet: FileText, video: Film, audio: Music, archive: Archive }[type] || File);
 
@@ -512,28 +545,32 @@ const FilesTab = ({ objectiveId, files, addToast, onFileChange }) => {
   const uploadFile = async (file) => {
     setUploading(true);
     try {
-      const ts = Date.now();
-      const path = `${objectiveId}/${ts}_${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('objective-files').upload(path, file);
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from('objective-files').getPublicUrl(path);
-      const { error: dbError } = await supabase.from('files').insert({
-        objective_id: objectiveId,
-        name: file.name,
-        type: getFileType(file.type),
-        size: formatSize(file.size),
-        url: urlData.publicUrl,
-      });
-      if (dbError) throw dbError;
+      if (uploadObjectiveFile) await uploadObjectiveFile(objectiveId, file);
+      else {
+        const ts = Date.now();
+        const path = `${objectiveId}/${ts}_${file.name}`;
+        const { error: uploadError } = await supabase.storage.from('objective-files').upload(path, file);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from('objective-files').getPublicUrl(path);
+        const { error: dbError } = await supabase.from('files').insert({
+          objective_id: objectiveId,
+          name: file.name,
+          type: getFileType(file.type),
+          size: formatSize(file.size),
+          url: urlData.publicUrl,
+        });
+        if (dbError) throw dbError;
+      }
       addToast({ type: 'success', message: `"${file.name}" uploaded` });
       onFileChange();
     } catch (err) {
       addToast({ type: 'error', message: `Upload failed: ${err.message}` });
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
-  const handleFiles = (fileList) => { for (const f of fileList) uploadFile(f); };
+  const handleFiles = (fileList) => { for (const f of fileList || []) uploadFile(f); };
   const handleDrop = (e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); };
 
   return (
@@ -542,12 +579,12 @@ const FilesTab = ({ objectiveId, files, addToast, onFileChange }) => {
         files.map((f, i) => {
           const FIcon = getFileIcon(f.type);
           return (
-            <div key={i} className="flex items-center gap-12 card" style={{ padding: "10px 12px", marginBottom: 8 }}>
+            <div key={f.id || i} className="flex items-center gap-12 card card-hover" style={{ padding: "10px 12px", marginBottom: 8 }}>
               <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--brand-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}><FIcon size={16} color="var(--brand)" /></div>
-              <div style={{ flex: 1 }}>
+              <button onClick={() => setPreviewFile(f)} style={{ flex: 1, textAlign: "left" }}>
                 <div className="text-md font-medium">{f.name}</div>
                 <div className="text-xs text-muted">{f.size} · {timeAgo(f.ts)}</div>
-              </div>
+              </button>
               {f.url && <a href={f.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-7)' }}><Download size={14} /></a>}
             </div>
           );
@@ -564,6 +601,31 @@ const FilesTab = ({ objectiveId, files, addToast, onFileChange }) => {
         {uploading ? <><Loader2 size={18} style={{ margin: '0 auto 6px', animation: 'spin 1s linear infinite' }} /><div className="text-sm">Uploading...</div></>
           : <><Upload size={18} style={{ margin: "0 auto 6px" }} /><div className="text-sm">Drop files here or click to attach</div></>}
       </div>
+      {previewFile && (
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setPreviewFile(null); }}>
+          <div className="modal-content" style={{ width: "min(92vw, 900px)", height: "min(86vh, 720px)" }}>
+            <div className="card-header">
+              <FileText size={16} color="var(--brand)" />
+              <span className="text-md font-bold" style={{ flex: 1 }}>{previewFile.name}</span>
+              {previewFile.url && <a href={previewFile.url} target="_blank" rel="noopener noreferrer" className="btn btn-xs btn-secondary"><Download size={12} /> Download</a>}
+              <button className="icon-btn" onClick={() => setPreviewFile(null)}><X size={16} /></button>
+            </div>
+            <div style={{ flex: 1, minHeight: 0, background: "var(--accent-1)", display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
+              {previewFile.type === "image" ? (
+                <img src={previewFile.url} alt={previewFile.name} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+              ) : previewFile.type === "pdf" ? (
+                <iframe src={previewFile.url} title={previewFile.name} style={{ width: "100%", height: "100%", border: 0, borderRadius: 8, background: "#fff" }} />
+              ) : (
+                <div className="empty-state">
+                  <File size={32} />
+                  <p>Preview is not available for this file type.</p>
+                  {previewFile.url && <a href={previewFile.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary"><Download size={14} /> Open File</a>}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -873,9 +935,9 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
                   <div className="brief-section-head">Your Priorities Today</div>
                   {priorities.map(obj => {
                     let color = 'var(--accent-7)', label = obj.status || '—', date = 'No due date';
-                    try { color = getStatusColor(obj.status); } catch {}
-                    try { label = getStatusLabel(obj.status); } catch {}
-                    try { date = obj.dueDate ? formatDate(obj.dueDate) : 'No due date'; } catch {}
+                    try { color = getStatusColor(obj.status); } catch { color = 'var(--accent-7)'; }
+                    try { label = getStatusLabel(obj.status); } catch { label = obj.status || '—'; }
+                    try { date = obj.dueDate ? formatDate(obj.dueDate) : 'No due date'; } catch { date = 'No due date'; }
                     return (
                       <div key={obj.id} className="brief-item">
                         <div className="brief-item-dot" style={{ background: color }} />
@@ -901,7 +963,7 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss }) => {
               ) : (
                 dueSoon.slice(0, 4).map(obj => {
                   let date = '—';
-                  try { date = formatDate(obj.dueDate); } catch {}
+                  try { date = formatDate(obj.dueDate); } catch { date = '—'; }
                   return (
                     <div key={obj.id} className="brief-item">
                       <div className="brief-item-dot" style={{ background: 'var(--warning)' }} />

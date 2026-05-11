@@ -1,36 +1,52 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
   Search, ChevronDown, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle,
   Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3,
   Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText,
-  Globe, Mail, Bell, Star
+  Globe, Mail, Bell, Star, List
 } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, timeAgo, isOverdue, DEPARTMENTS, getDirectReports } from './data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getPriorityColor, formatDate, timeAgo, isOverdue, DEPARTMENTS, getDirectReports } from './data';
 import { Avatar, Badge, ProgressBar, KPICard, ObjectiveCard, EmptyState } from './components';
+
+const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 
 // ============================================================================
 // DASHBOARD PAGE — Role-adaptive
 // ============================================================================
-export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick }) => {
-  const myObjectives = objectives.filter(o => o.ownerId === currentUser.id);
-  const allActive = objectives.filter(o => o.status !== "completed" && o.status !== "cancelled");
-  const onTrack = allActive.filter(o => o.status === "on_track").length;
+export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick, onKpiClick }) => {
+  const [scope, setScope] = useState(currentUser.role === "executive" ? "company" : currentUser.role === "manager" ? "team" : "individual");
+  const directReports = getDirectReports(currentUser.id);
+  const scopedObjectives = scope === "individual"
+    ? objectives.filter(o => o.ownerId === currentUser.id)
+    : scope === "team"
+      ? objectives.filter(o => o.ownerId === currentUser.id || directReports.some(r => r.id === o.ownerId) || o.delegatedBy === currentUser.id)
+      : objectives;
+  const allActive = scopedObjectives.filter(o => o.status !== "completed" && o.status !== "cancelled");
   const atRisk = allActive.filter(o => o.status === "at_risk").length;
   const blocked = allActive.filter(o => o.status === "blocked").length;
-  const completed = objectives.filter(o => o.status === "completed").length;
+  const completed = scopedObjectives.filter(o => o.status === "completed").length;
   const overdue = allActive.filter(o => isOverdue(o)).length;
-  const dueSoon = allActive.filter(o => { const d = new Date(o.dueDate); const n = new Date(); return d > n && d < new Date(n.getTime() + 7 * 86400000); }).length;
+  const dueWithin = (days) => allActive.filter(o => {
+    if (!o.dueDate) return false;
+    const d = new Date(o.dueDate);
+    const n = new Date();
+    return d >= new Date(n.getFullYear(), n.getMonth(), n.getDate()) && d < new Date(n.getTime() + days * 86400000);
+  }).length;
+  const dueToday = allActive.filter(o => {
+    if (!o.dueDate) return false;
+    const d = new Date(o.dueDate);
+    const n = new Date();
+    return d.toDateString() === n.toDateString();
+  }).length;
+  const dueSoon = dueWithin(7);
 
   // "My Work" for manager/contributor
-  const myDelegated = objectives.filter(o => o.delegatedBy === currentUser.id);
-  const delegatedToMe = objectives.filter(o => o.ownerId === currentUser.id && o.delegatedBy && o.delegatedBy !== currentUser.id);
+  const delegatedToMe = scopedObjectives.filter(o => o.ownerId === currentUser.id && o.delegatedBy && o.delegatedBy !== currentUser.id);
   const needsAck = delegatedToMe.filter(o => !o.acknowledged);
-  const directReports = getDirectReports(currentUser.id);
-  const teamObjectives = objectives.filter(o => directReports.some(r => r.id === o.ownerId));
 
   // Departments health
   const departments = {};
-  objectives.forEach(o => {
+  scopedObjectives.forEach(o => {
     if (!departments[o.department]) departments[o.department] = { total: 0, onTrack: 0, atRisk: 0, blocked: 0, completed: 0 };
     departments[o.department].total++;
     if (o.status === "on_track") departments[o.department].onTrack++;
@@ -41,10 +57,10 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick
   const sortedDepts = Object.entries(departments).sort((a, b) => (b[1].blocked + b[1].atRisk) - (a[1].blocked + a[1].atRisk));
 
   // Attention items
-  const attentionItems = objectives.filter(o => o.blockerFlag || isOverdue(o) || o.status === "at_risk").sort((a, b) => (b.blockerFlag ? 2 : 0) - (a.blockerFlag ? 2 : 0));
+  const attentionItems = scopedObjectives.filter(o => o.blockerFlag || isOverdue(o) || o.status === "at_risk").sort((a, b) => (b.blockerFlag ? 2 : 0) - (a.blockerFlag ? 2 : 0));
 
   // Recent activity
-  const recentActivity = objectives.flatMap(o => o.messages.map(m => ({ ...m, objTitle: o.title, objId: o.id }))).sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 8);
+  const recentActivity = scopedObjectives.flatMap(o => o.messages.map(m => ({ ...m, objTitle: o.title, objId: o.id }))).sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 8);
 
   const isExecutive = currentUser.role === "executive";
   const isManager = currentUser.role === "manager";
@@ -52,25 +68,22 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       {/* KPI Strip */}
-      <div className="kpi-grid flex gap-10 flex-shrink-0" style={{ paddingBottom: 16, overflowX: "auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
-        {isExecutive && <>
-          <KPICard icon={Target} label="Active" value={allActive.length} sub={`${completed} completed`} color="#3B82F6" />
-          <KPICard icon={CheckCircle2} label="On Track" value={onTrack} sub={`${Math.round((onTrack / Math.max(1, allActive.length)) * 100)}% of active`} color="#10B981" />
-          <KPICard icon={AlertTriangle} label="Needs Attention" value={atRisk + blocked} sub={`${atRisk} at risk · ${blocked} blocked`} color="#EF4444" />
-          <KPICard icon={Clock} label="Overdue" value={overdue} sub={`${dueSoon} due this week`} color="#F59E0B" />
-        </>}
-        {isManager && <>
-          <KPICard icon={Target} label="My Objectives" value={myObjectives.filter(o => o.status !== "completed").length} color="#3B82F6" />
-          <KPICard icon={Users} label="Team" value={teamObjectives.filter(o => o.status !== "completed").length} sub={`${directReports.length} reports`} color="#10B981" />
-          <KPICard icon={AlertTriangle} label="Attention" value={attentionItems.filter(o => o.ownerId === currentUser.id || directReports.some(r => r.id === o.ownerId)).length} color="#EF4444" />
-          <KPICard icon={Clock} label="Delegated" value={myDelegated.filter(o => o.status !== "completed").length} sub={`${myDelegated.filter(o => !o.acknowledged).length} unack`} color="#F59E0B" />
-        </>}
-        {!isExecutive && !isManager && <>
-          <KPICard icon={Target} label="My Work" value={myObjectives.filter(o => o.status !== "completed").length} color="#3B82F6" />
-          <KPICard icon={CheckCircle2} label="Completed" value={myObjectives.filter(o => o.status === "completed").length} color="#10B981" />
-          <KPICard icon={AlertTriangle} label="Needs Action" value={needsAck.length + myObjectives.filter(o => isOverdue(o)).length} color="#EF4444" />
-          <KPICard icon={Clock} label="Due Soon" value={myObjectives.filter(o => { const d = new Date(o.dueDate); const n = new Date(); return d > n && d < new Date(n.getTime() + 7 * 86400000) && o.status !== "completed"; }).length} color="#F59E0B" />
-        </>}
+      <div className="flex gap-4 flex-shrink-0" style={{ marginBottom: 12, overflowX: "auto" }}>
+        {[
+          { id: "company", label: "Company" },
+          { id: "team", label: "My Team", disabled: !isExecutive && !isManager },
+          { id: "individual", label: "Individual" },
+        ].filter(s => !s.disabled).map(s => (
+          <button key={s.id} className={`btn btn-xs ${scope === s.id ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setScope(s.id)}>{s.label}</button>
+        ))}
+      </div>
+      <div className="kpi-grid flex gap-10 flex-shrink-0" style={{ paddingBottom: 16, overflowX: "auto", display: "grid", gridTemplateColumns: "repeat(6, minmax(130px, 1fr))", gap: 10 }}>
+        <KPICard icon={Target} label="Open" value={allActive.length} sub={`${completed} completed`} color="#3B82F6" onClick={() => onKpiClick?.({ label: "Open", activeOnly: true, scope })} />
+        <KPICard icon={AlertTriangle} label="Overdue" value={overdue} sub={`${atRisk} at risk · ${blocked} blocked`} color="#EF4444" onClick={() => onKpiClick?.({ label: "Overdue", overdue: true, scope })} />
+        <KPICard icon={Clock} label="Due Today" value={dueToday} color="#F59E0B" onClick={() => onKpiClick?.({ label: "Due Today", dueWindow: "today", scope })} />
+        <KPICard icon={Clock} label="Due 7 Days" value={dueSoon} color="#F59E0B" onClick={() => onKpiClick?.({ label: "Due 7 Days", dueWindow: 7, scope })} />
+        <KPICard icon={Clock} label="Due 14 Days" value={dueWithin(14)} color="#8B5CF6" onClick={() => onKpiClick?.({ label: "Due 14 Days", dueWindow: 14, scope })} />
+        <KPICard icon={Clock} label="Due 28 Days" value={dueWithin(28)} color="#10B981" onClick={() => onKpiClick?.({ label: "Due 28 Days", dueWindow: 28, scope })} />
       </div>
 
       {/* Delegated-to-me needing acknowledgement */}
@@ -206,11 +219,15 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick
 // ============================================================================
 // OBJECTIVES PAGE — Grid + Kanban + List views
 // ============================================================================
-export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, highlightDept, onClearHighlight }) => {
+export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, quickFilter, highlightDept, onClearHighlight }) => {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("priority");
-  const [viewMode, setViewMode] = useState("grid"); // grid, kanban
+  const [sortBy, setSortBy] = useState("due");
+  const [viewMode, setViewMode] = useState("list"); // list, grid, kanban
+  const [ownerFilter, setOwnerFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [dueFilter, setDueFilter] = useState("all");
   const [glowActive, setGlowActive] = useState(false);
 
   // When a department highlight comes in, activate the glow then fade it after 2.5s
@@ -222,24 +239,59 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, highlightD
     }
   }, [highlightDept]);
 
+  useEffect(() => {
+    if (!quickFilter) return;
+    setFilter(quickFilter.status || "all");
+    setOwnerFilter(quickFilter.scope === "individual" ? currentUser.id : "all");
+    setDepartmentFilter(quickFilter.department || "all");
+    setDueFilter(quickFilter.overdue ? "overdue" : quickFilter.dueWindow || "all");
+    setSortBy("due");
+    setViewMode("list");
+  }, [quickFilter, currentUser.id]);
+
   const statusFilters = [
     { id: "all", label: "All" }, { id: "on_track", label: "On Track" }, { id: "at_risk", label: "At Risk" },
     { id: "blocked", label: "Blocked" }, { id: "not_started", label: "Not Started" }, { id: "completed", label: "Completed" },
   ];
-  const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+  const allDepartments = [...new Set(objectives.map(o => o.department).filter(Boolean))].sort();
+  const allOwners = getProfiles().filter(u => objectives.some(o => o.ownerId === u.id)).sort((a, b) => a.name.localeCompare(b.name));
+  const isInDueWindow = (o, dueWindow) => {
+    if (dueWindow === "all") return true;
+    if (!o.dueDate) return false;
+    if (dueWindow === "overdue") return isOverdue(o);
+    const due = new Date(o.dueDate);
+    const now = new Date();
+    if (dueWindow === "today") return due.toDateString() === now.toDateString();
+    return due >= new Date(now.getFullYear(), now.getMonth(), now.getDate()) && due < new Date(now.getTime() + Number(dueWindow) * 86400000);
+  };
+  const isInScope = useCallback((o) => {
+    if (quickFilter?.scope === "individual") return o.ownerId === currentUser.id;
+    if (quickFilter?.scope === "team") {
+      const reports = getDirectReports(currentUser.id);
+      return o.ownerId === currentUser.id || reports.some(r => r.id === o.ownerId) || o.delegatedBy === currentUser.id;
+    }
+    return true;
+  }, [quickFilter, currentUser.id]);
 
   const filtered = useMemo(() => {
     return objectives.filter(o => {
+      if (!isInScope(o)) return false;
       if (filter !== "all" && o.status !== filter) return false;
+      if (quickFilter?.activeOnly && (o.status === "completed" || o.status === "cancelled")) return false;
       if (search && !o.title.toLowerCase().includes(search.toLowerCase()) && !o.description?.toLowerCase().includes(search.toLowerCase())) return false;
+      if (ownerFilter !== "all" && o.ownerId !== ownerFilter) return false;
+      if (departmentFilter !== "all" && o.department !== departmentFilter) return false;
+      if (priorityFilter !== "all" && o.priority !== priorityFilter) return false;
+      if (!isInDueWindow(o, dueFilter)) return false;
       return true;
     }).sort((a, b) => {
-      if (sortBy === "priority") return (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3);
+      if (sortBy === "priority") return (PRIORITY_ORDER[a.priority] || 3) - (PRIORITY_ORDER[b.priority] || 3);
       if (sortBy === "due") return new Date(a.dueDate || "9999") - new Date(b.dueDate || "9999");
       if (sortBy === "progress") return b.progress - a.progress;
+      if (sortBy === "owner") return getUser(a.ownerId).name.localeCompare(getUser(b.ownerId).name);
       return 0;
     });
-  }, [objectives, filter, search, sortBy]);
+  }, [objectives, filter, search, sortBy, ownerFilter, departmentFilter, priorityFilter, dueFilter, quickFilter, isInScope]);
 
   const kanbanStatuses = ["not_started", "on_track", "at_risk", "blocked", "completed"];
 
@@ -268,19 +320,88 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, highlightD
             <Building2 size={12} /> {highlightDept} <X size={12} style={{ marginLeft: 2, opacity: 0.6 }} />
           </button>
         )}
+        {quickFilter?.label && (
+          <button onClick={() => onClearHighlight && onClearHighlight()} className="btn btn-xs flex items-center gap-4" style={{ border: "1px solid var(--brand)", background: "var(--brand-bg-strong)", color: "var(--brand)" }}>
+            <Filter size={12} /> {quickFilter.label} <X size={12} style={{ marginLeft: 2, opacity: 0.6 }} />
+          </button>
+        )}
         <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ padding: "5px 10px", fontSize: 12 }}>
-          <option value="priority">Sort: Priority</option>
           <option value="due">Sort: Due Date</option>
+          <option value="priority">Sort: Priority</option>
           <option value="progress">Sort: Progress</option>
+          <option value="owner">Sort: Owner</option>
         </select>
         <div className="flex gap-4">
+          <button className={`icon-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="List View"><List size={16} /></button>
           <button className={`icon-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')} title="Grid View"><LayoutGrid size={16} /></button>
           <button className={`icon-btn ${viewMode === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')} title="Kanban View"><Columns3 size={16} /></button>
         </div>
       </div>
+      <div className="flex gap-8 flex-wrap flex-shrink-0" style={{ marginBottom: 12 }}>
+        <select value={ownerFilter} onChange={e => setOwnerFilter(e.target.value)} style={{ fontSize: 12 }}>
+          <option value="all">All Owners</option>
+          {allOwners.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+        </select>
+        <select value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value)} style={{ fontSize: 12 }}>
+          <option value="all">All Departments</option>
+          {allDepartments.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} style={{ fontSize: 12 }}>
+          <option value="all">All Priorities</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select value={dueFilter} onChange={e => setDueFilter(e.target.value)} style={{ fontSize: 12 }}>
+          <option value="all">All Due Dates</option>
+          <option value="overdue">Overdue</option>
+          <option value="today">Due Today</option>
+          <option value="7">Due in 7 Days</option>
+          <option value="14">Due in 14 Days</option>
+          <option value="28">Due in 28 Days</option>
+        </select>
+      </div>
 
       {/* Content */}
       <div style={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
+        {viewMode === "list" && (
+          <div className="card" style={{ height: "100%", overflow: "auto" }}>
+            <table className="objectives-table">
+              <thead>
+                <tr>
+                  <th>Objective</th>
+                  <th>Owner</th>
+                  <th>Dept</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Progress</th>
+                  <th>Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(obj => {
+                  const owner = getUser(obj.ownerId);
+                  return (
+                    <tr key={obj.id} onClick={() => onOpenCard(obj)}>
+                      <td>
+                        <div className="text-sm font-semibold">{obj.title}</div>
+                        <div className="text-xs text-muted">{obj.nextAction || obj.description?.slice(0, 90)}</div>
+                      </td>
+                      <td><div className="flex items-center gap-6"><Avatar user={owner} size={20} /><span>{owner.name}</span></div></td>
+                      <td>{obj.department}</td>
+                      <td><Badge color={getStatusColor(obj.status)}>{getStatusLabel(obj.status)}</Badge></td>
+                      <td><Badge color={getPriorityColor(obj.priority)} outline>{obj.priority}</Badge></td>
+                      <td><div style={{ minWidth: 90 }}><ProgressBar value={obj.progress} color={getStatusColor(obj.status)} height={4} /></div></td>
+                      <td className={isOverdue(obj) ? "text-warning font-semibold" : ""}>{formatDate(obj.dueDate)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {filtered.length === 0 && <EmptyState icon={Target} text="No objectives match your filters." />}
+          </div>
+        )}
         {viewMode === "grid" && (
           <div style={{ height: "100%", overflowY: "auto" }}>
             <div className="objectives-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
@@ -450,10 +571,11 @@ export const OrgPage = ({ objectives, onOpenCard }) => {
 // ============================================================================
 // SETTINGS PANEL — CSV Import + Email Notification Preferences
 // ============================================================================
-const SettingsPanel = () => {
+const SettingsPanel = ({ currentUser, objectives, createNotification }) => {
   const [csvData, setCsvData] = useState(null);
   const [showSQL, setShowSQL] = useState(false);
   const csvInputRef = useRef(null);
+  const [testStatus, setTestStatus] = useState("");
   const [prefs, setPrefs] = useState(() => {
     try { return JSON.parse(localStorage.getItem('sandpro-notif-prefs') || '{}'); } catch { return {}; }
   });
@@ -483,16 +605,23 @@ const SettingsPanel = () => {
     reader.readAsText(file);
   };
 
-  const generateSQL = () => {
-    if (!csvData) return '';
-    return csvData.rows.map(r => {
-      const name = r.name || r.full_name || '';
-      const email = r.email || '';
-      const title = r.title || r.job_title || '';
-      const dept = r.department || r.dept || '';
-      const role = r.role || 'contributor';
-      return `-- Create user: ${name} <${email}>\\n-- Run via Supabase Admin API or seed script`;
-    }).join('\\n\\n');
+  const sendTestNotification = async (type) => {
+    if (!currentUser || !createNotification) return;
+    const obj = objectives.find(o => o.ownerId === currentUser.id) || objectives[0];
+    if (!obj) { setTestStatus("Create an objective before sending test notifications."); return; }
+    const labels = {
+      assignment: "Test assignment notification",
+      due_soon: "Test due-soon reminder",
+      overdue: "Test overdue reminder",
+      blocker: "Test blocked/at-risk alert",
+    };
+    setTestStatus("Sending test notification...");
+    try {
+      await createNotification(currentUser.id, type, obj.id, `${labels[type]}: ${obj.title}`);
+      setTestStatus("Test notification sent. Open the bell to confirm the direct objective link.");
+    } catch (err) {
+      setTestStatus(err.message || "Could not send test notification.");
+    }
   };
 
   const Toggle = ({ checked, onChange, label, desc }) => (
@@ -570,6 +699,22 @@ const SettingsPanel = () => {
         )}
       </div>
 
+      {/* Notification Test Center */}
+      <div className="card" style={{ padding: 14, marginBottom: 12 }}>
+        <div className="flex items-center gap-6" style={{ marginBottom: 8 }}>
+          <Bell size={14} color="var(--brand)" />
+          <span className="text-sm font-bold">Notification Test Center</span>
+        </div>
+        <p className="text-xs text-muted" style={{ marginBottom: 8 }}>Generate test alerts with direct objective links. Email delivery still needs the production email service wired, but this validates routing and notification content.</p>
+        <div className="flex gap-6 flex-wrap">
+          <button className="btn btn-xs btn-secondary" onClick={() => sendTestNotification('assignment')}>Assignment</button>
+          <button className="btn btn-xs btn-secondary" onClick={() => sendTestNotification('due_soon')}>Due Soon</button>
+          <button className="btn btn-xs btn-secondary" onClick={() => sendTestNotification('overdue')}>Overdue</button>
+          <button className="btn btn-xs btn-secondary" onClick={() => sendTestNotification('blocker')}>Blocked</button>
+        </div>
+        {testStatus && <div className="text-xs text-muted" style={{ marginTop: 8 }}>{testStatus}</div>}
+      </div>
+
       {/* Role Permissions (informational) */}
       <div className="card" style={{ padding: 14 }}>
         <div className="flex items-center gap-6" style={{ marginBottom: 8 }}>
@@ -593,7 +738,7 @@ const SettingsPanel = () => {
 // ============================================================================
 // ADMIN SIDEBAR
 // ============================================================================
-export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
+export const AdminSidebar = ({ isOpen, onToggle, objectives, currentUser, createNotification }) => {
   const [activeSection, setActiveSection] = useState("users");
   const sections = [
     { id: "users", label: "Users", icon: Users },
@@ -602,6 +747,16 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
     { id: "export", label: "Export", icon: Download },
     { id: "settings", label: "Settings", icon: Settings },
   ];
+  const downloadCsv = (filename, rows) => {
+    const csv = rows.map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (!isOpen) {
     return (
@@ -705,10 +860,35 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
               <div key={i} className="card card-hover cursor-pointer flex items-center gap-10" style={{ padding: 12, marginBottom: 8 }}
                 onClick={() => {
                   if (i === 0) {
-                    const csv = "Title,Status,Priority,Owner,Progress,Due Date,Department\n" + objectives.map(o => `"${o.title}",${o.status},${o.priority},"${getUser(o.ownerId).name}",${o.progress}%,"${o.dueDate ? new Date(o.dueDate).toLocaleDateString() : ''}","${o.department}"`).join("\n");
-                    const blob = new Blob([csv], { type: "text/csv" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a"); a.href = url; a.download = "sandpro_objectives.csv"; a.click();
+                    downloadCsv("sandpro_objectives.csv", [
+                      ["Title", "Status", "Priority", "Owner", "Progress", "Due Date", "Department", "Next Action", "Objective ID"],
+                      ...objectives.map(o => [o.title, o.status, o.priority, getUser(o.ownerId).name, `${o.progress}%`, o.dueDate ? new Date(o.dueDate).toLocaleDateString() : '', o.department, o.nextAction || '', o.id])
+                    ]);
+                  } else if (i === 1) {
+                    downloadCsv("sandpro_users.csv", [
+                      ["Name", "Email", "Title", "Department", "Role", "Reports To", "User ID"],
+                      ...getProfiles().map(u => [u.name, u.email, u.title, u.department, u.role, u.reports_to ? getUser(u.reports_to).name : '', u.id])
+                    ]);
+                  } else if (i === 2) {
+                    downloadCsv("sandpro_activity_log.csv", [
+                      ["Date", "User", "Objective", "Action Type", "Old Value", "New Value", "Note", "Reference ID"],
+                      ...objectives.flatMap(o => (o.updates || []).map((u, index) => [
+                        u.ts ? new Date(u.ts).toLocaleString() : '',
+                        getUser(o.ownerId).name,
+                        o.title,
+                        u.status ? "status/progress_update" : "note",
+                        index > 0 ? `${o.updates[index - 1].status || ''} ${o.updates[index - 1].progress ?? ''}%` : '',
+                        `${u.status || ''} ${u.progress ?? ''}%`,
+                        u.note || '',
+                        `${o.id}:${index}`
+                      ]))
+                    ]);
+                  } else {
+                    downloadCsv("sandpro_powerbi_connection_note.csv", [
+                      ["Field", "Value"],
+                      ["Status", "Use Supabase project reporting/API credentials from the production dashboard."],
+                      ["Note", "Do not expose database service credentials in the client app."]
+                    ]);
                   }
                 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--brand-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}><item.icon size={16} color="var(--brand)" /></div>
@@ -717,7 +897,7 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives }) => {
             ))}
           </div>
         )}
-        {activeSection === "settings" && <SettingsPanel />}
+        {activeSection === "settings" && <SettingsPanel currentUser={currentUser} objectives={objectives} createNotification={createNotification} />}
       </div>
     </div>
   );

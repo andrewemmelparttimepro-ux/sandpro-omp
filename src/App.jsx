@@ -32,7 +32,12 @@ const LoginScreen = ({ onSignIn, onSignUp, onResetPassword }) => {
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    if (!email || !password) { setError("Email and password required"); return; }
+    if (mode === "reset") {
+      if (!email) { setError("Email required"); return; }
+    } else if (!email || !password) {
+      setError("Email and password required");
+      return;
+    }
     setError("");
     setLoading(true);
     try {
@@ -128,6 +133,55 @@ const LoginScreen = ({ onSignIn, onSignUp, onResetPassword }) => {
   );
 };
 
+const PasswordChangeModal = ({ onSave, userName }) => {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (password.length < 8) { setError("Use at least 8 characters."); return; }
+    if (password !== confirm) { setError("Passwords do not match."); return; }
+    setLoading(true);
+    setError("");
+    try {
+      await onSave(password);
+    } catch (err) {
+      setError(err.message || "Could not update password");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" style={{ zIndex: 3000 }}>
+      <form onSubmit={submit} className="modal-content" style={{ width: "min(92vw, 420px)" }}>
+        <div className="card-header">
+          <LogOut size={16} color="var(--brand)" />
+          <span className="text-md font-bold">Set Your Password</span>
+        </div>
+        <div style={{ padding: 24 }}>
+          <p className="text-sm text-secondary" style={{ lineHeight: 1.5, marginBottom: 16 }}>
+            {userName || "This account"} was issued a temporary password. Set a new password to continue.
+          </p>
+          <div style={{ marginBottom: 12 }}>
+            <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>New Password</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" style={{ width: "100%" }} autoFocus />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Confirm Password</label>
+            <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="new-password" style={{ width: "100%" }} />
+          </div>
+          {error && <div className="text-sm text-error" style={{ marginBottom: 12 }}>{error}</div>}
+          <button className="btn btn-primary w-full" style={{ justifyContent: "center" }} disabled={loading}>
+            {loading ? <Loader2 size={16} className="animate-spin" /> : "Save Password"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
 // ============================================================================
 // LOADING SCREEN
 // ============================================================================
@@ -144,7 +198,7 @@ const LoadingScreen = () => (
 // ============================================================================
 // NOTIFICATION PANEL
 // ============================================================================
-const NotificationPanel = ({ notifications, onMarkRead, onMarkAllRead, onClose, onClickNotif }) => {
+const NotificationPanel = ({ notifications, onMarkAllRead, onClose, onClickNotif }) => {
   const unread = notifications.filter(n => !n.isRead).length;
   const getColor = (type) => {
     const map = { assignment: "var(--info)", delegation: "var(--brand)", comment: "var(--accent-8)", status_change: "var(--warning)", due_soon: "var(--warning)", overdue: "var(--error)", blocker: "var(--error)", acknowledgement: "var(--success)" };
@@ -193,9 +247,9 @@ const NotificationPanel = ({ notifications, onMarkRead, onMarkAllRead, onClose, 
 // ============================================================================
 function App() {
   // Supabase hooks
-  const { user, profile, loading: authLoading, signIn, signUp, signOut, resetPassword } = useAuth();
+  const { user, profile, loading: authLoading, signIn, signUp, signOut, resetPassword, updatePassword } = useAuth();
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
-  const { objectives, loading: objLoading, createObjective, updateObjective, deleteObjective, sendMessage, refetch: refetchObjectives } = useObjectives();
+  const { objectives, loading: objLoading, createObjective, updateObjective, deleteObjective, sendMessage, uploadObjectiveFile, refetch: refetchObjectives } = useObjectives();
   const { notifications, markRead, markAllRead, createNotification } = useNotifications(profile?.id);
 
   // UI State
@@ -210,10 +264,12 @@ function App() {
   const [theme, setTheme] = useState(() => safeStorage.get('sandpro-theme') || 'light');
   const [showDailyBrief, setShowDailyBrief] = useState(false);
   const [highlightDept, setHighlightDept] = useState(null);
+  const [objectivePreset, setObjectivePreset] = useState(null);
 
   // Refetch data once user is authenticated (initial fetch happens before auth, RLS blocks it)
   useEffect(() => {
     if (user) { refetchProfiles(); refetchObjectives(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Theme
@@ -282,6 +338,12 @@ function App() {
 
   const handleUpdateCard = async (updated) => {
     try {
+      if (updated._refresh) {
+        const fresh = await refetchObjectives();
+        const refreshed = fresh?.find(o => o.id === updated.id);
+        if (refreshed) setOpenCard(refreshed);
+        return;
+      }
       // Determine what changed
       const changes = {};
       const orig = objectives.find(o => o.id === updated.id);
@@ -292,12 +354,14 @@ function App() {
       if (updated.acknowledged !== orig.acknowledged) changes.acknowledged = updated.acknowledged;
       if (updated.blockerFlag !== orig.blockerFlag) { changes.blockerFlag = updated.blockerFlag; changes.blockerReason = updated.blockerReason; if (updated.blockerFlag) changes.status = 'blocked'; }
       if (updated.nextAction !== orig.nextAction) changes.nextAction = updated.nextAction;
+      changes.currentStatus = orig.status;
+      changes.currentProgress = orig.progress;
 
       // Handle new messages
       if (updated.messages?.length > (orig.messages?.length || 0)) {
         const newMsgs = updated.messages.slice(orig.messages?.length || 0);
         for (const msg of newMsgs) {
-          await sendMessage(updated.id, msg.userId, msg.text);
+          await sendMessage(updated.id, msg.userId, msg.text, msg.attachments);
         }
       }
 
@@ -368,9 +432,11 @@ function App() {
     // Ensure camelCase compatibility
     reportsTo: profile.reports_to,
   };
+  const mustChangePassword = user?.user_metadata?.must_change_password === true;
 
   return (
     <>
+      {mustChangePassword && <PasswordChangeModal userName={profile?.name} onSave={updatePassword} />}
       {/* HEADER */}
       <header className="header">
         <div className="flex items-center gap-10" style={{ marginRight: 8 }}>
@@ -413,7 +479,7 @@ function App() {
             <Bell size={18} />
             {unreadCount > 0 && <span className="badge-count">{unreadCount > 9 ? "9+" : unreadCount}</span>}
           </button>
-          {showNotifications && <NotificationPanel notifications={notifications} onMarkRead={markRead} onMarkAllRead={markAllRead} onClose={() => setShowNotifications(false)}
+          {showNotifications && <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onClose={() => setShowNotifications(false)}
             onClickNotif={(n) => { markRead(n.id); if (n.objectiveId) { const obj = objectives.find(o => o.id === n.objectiveId); if (obj) handleOpenCard(obj); } setShowNotifications(false); }} />}
         </div>
 
@@ -450,11 +516,11 @@ function App() {
       {/* MAIN LAYOUT */}
       <div className="layout">
         <main className="main-content">
-          {currentPage === 0 && <DashboardPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onDeptClick={(dept) => { setHighlightDept(dept); setCurrentPage(1); }} />}
-          {currentPage === 1 && <ObjectivesPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} highlightDept={highlightDept} onClearHighlight={() => setHighlightDept(null)} />}
+          {currentPage === 0 && <DashboardPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onKpiClick={(preset) => { setObjectivePreset(preset); setCurrentPage(1); }} onDeptClick={(dept) => { setHighlightDept(dept); setObjectivePreset({ department: dept, label: dept }); setCurrentPage(1); }} />}
+          {currentPage === 1 && <ObjectivesPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} quickFilter={objectivePreset} highlightDept={highlightDept} onClearHighlight={() => { setHighlightDept(null); setObjectivePreset(null); }} />}
           {currentPage === 2 && <OrgPage objectives={objectives} onOpenCard={handleOpenCard} />}
         </main>
-        <AdminSidebar isOpen={adminOpen} onToggle={() => setAdminOpen(!adminOpen)} objectives={objectives} />
+        <AdminSidebar isOpen={adminOpen} onToggle={() => setAdminOpen(!adminOpen)} objectives={objectives} currentUser={currentUser} createNotification={createNotification} />
       </div>
 
       {/* MOBILE BOTTOM NAV */}
@@ -468,7 +534,7 @@ function App() {
       </nav>
 
       {/* MODALS */}
-      {openCard && <SuperCard obj={openCard} objectives={objectives} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast}
+      {openCard && <SuperCard obj={openCard} objectives={objectives} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} uploadObjectiveFile={uploadObjectiveFile}
         onEdit={(obj) => { setEditingObj(obj); setOpenCard(null); }} />}
       {(showCreateForm || editingObj) && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={(obj) => { handleSaveObjective(obj); setEditingObj(null); }} onClose={() => { setShowCreateForm(false); setEditingObj(null); }} />}
 
