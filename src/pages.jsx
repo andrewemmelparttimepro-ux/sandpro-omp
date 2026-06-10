@@ -3909,7 +3909,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           </div>
         </section>
 
-        <aside className="card ncr-detail-panel">
+        <aside key={selectedReport?.id || 'empty'} className="card ncr-detail-panel">
           {!selectedReport ? (
             <EmptyState icon={FileText} text="Select an NCR to review details." />
           ) : (
@@ -3930,6 +3930,19 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <div><span><DefinedTerm id="npt">NPT</DefinedTerm></span><strong>{selectedReport.nonProductiveTime || '-'}</strong></div>
               </div>
 
+              <div className="ncr-section">
+                <h3>Report Details</h3>
+                <div className="org-edit-grid">
+                  <label className={ncrRequiredFieldClass(selectedReport, 'reportNumber')}><NcrRequiredLabel>Report Number</NcrRequiredLabel><input required defaultValue={selectedReport.reportNumber || ''} onBlur={event => updateSelectedField({ reportNumber: event.target.value }, 'report number updated')} /></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'reportDate')}><NcrRequiredLabel>Report Date</NcrRequiredLabel><input required type="date" defaultValue={selectedReport.reportDate || ''} onBlur={event => updateSelectedField({ reportDate: event.target.value }, 'report date updated')} /></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'observer')}><NcrRequiredLabel>Observer</NcrRequiredLabel><input required defaultValue={selectedReport.observer || ''} onBlur={event => updateSelectedField({ observer: event.target.value }, 'observer updated')} /></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'author')}><NcrRequiredLabel>Author</NcrRequiredLabel><input required defaultValue={selectedReport.author || ''} onBlur={event => updateSelectedField({ author: event.target.value }, 'author updated')} /></label>
+                  <label><span>Source Sheet</span><input defaultValue={selectedReport.sourceSheet || ''} onBlur={event => updateSelectedField({ sourceSheet: event.target.value }, 'source sheet updated')} /></label>
+                  <label><span>Source Link</span><input defaultValue={selectedReport.sourceLink || ''} onBlur={event => updateSelectedField({ sourceLink: event.target.value }, 'source link updated')} placeholder="https://..." /></label>
+                  <label><span>Personnel Involved</span><input defaultValue={selectedReport.personnelInvolved || ''} onBlur={event => updateSelectedField({ personnelInvolved: event.target.value }, 'personnel involved updated')} /></label>
+                </div>
+              </div>
+
               <NcrEventPhotoStrip report={selectedReport} onUpload={uploadEvidenceWithPurpose} uploading={uploadingEvidence} />
 
               {isAdvancedNcrView && <div className="ncr-section">
@@ -3944,7 +3957,12 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                   <label className={ncrRequiredFieldClass(selectedReport, 'eventAt')}><NcrRequiredLabel>Date and Time Event</NcrRequiredLabel><input required type="datetime-local" defaultValue={selectedReport.eventAt ? String(selectedReport.eventAt).slice(0, 16) : ''} onBlur={event => updateSelectedField({ eventAt: event.target.value }, 'event time updated')} /></label>
                   <label className={ncrRequiredFieldClass(selectedReport, 'internalExternal')}><NcrRequiredLabel>Internal / External</NcrRequiredLabel><select required value={selectedReport.internalExternal || ''} onChange={event => updateSelectedField({ internalExternal: event.target.value }, 'source type updated')}><option value="">Unspecified</option>{NCR_INTERNAL_EXTERNAL.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                   <label className={ncrRequiredFieldClass(selectedReport, 'criticality')}><NcrRequiredLabel>Criticality</NcrRequiredLabel><select required value={selectedReport.criticality || selectedReport.severity || ''} onChange={event => updateSelectedField({ criticality: event.target.value }, 'criticality updated')}><option value="">Unspecified</option>{NCR_CRITICALITY.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                  <label><span>NPT</span><select value={selectedReport.nonProductiveTime || ''} onChange={event => updateSelectedField({ nonProductiveTime: event.target.value }, 'NPT updated')}><option value="">Unspecified</option><option value="No">No</option><option value="Yes">Yes</option></select></label>
+                  <label><span>NPT Amount</span><input type="number" min="0" step="0.1" defaultValue={selectedReport.nonProductiveTimeAmount ?? ''} onBlur={event => updateSelectedField({ nonProductiveTimeAmount: event.target.value }, 'NPT amount updated')} /></label>
                   <label><span>Estimated Cost</span><input type="number" min="0" step="0.01" defaultValue={selectedReport.estimatedCost ?? ''} onBlur={event => updateSelectedField({ estimatedCost: event.target.value }, 'estimated cost updated')} /></label>
+                  <label><span>Time Frame for Action</span><select value={selectedReport.timeFrameForAction || ''} onChange={event => updateSelectedField({ timeFrameForAction: event.target.value }, 'time frame for action updated')}><option value="">Unspecified</option>{NCR_ACTION_TIMEFRAMES.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                  <label><span>Follow-Up Count</span><input type="number" min="0" step="1" defaultValue={selectedReport.followUpCount ?? ''} onBlur={event => updateSelectedField({ followUpCount: event.target.value }, 'follow-up count updated')} /></label>
+                  <label><span>Follow-Up Due Date</span><input type="date" defaultValue={selectedReport.followUpDueDate || ''} onBlur={event => updateSelectedField({ followUpDueDate: event.target.value }, 'follow-up due date updated')} /></label>
                 </div>
                 <div className={`ncr-checkbox-cloud ncr-required-field${isNcrRequiredFieldMissing(selectedReport, 'eventType') ? ' ncr-required-missing' : ''}`}>
                   <NcrRequiredLabel>Type of Event</NcrRequiredLabel>
@@ -3984,6 +4002,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label className="ncr-checkbox-line"><input type="checkbox" checked={selectedReport.containmentRequired} onChange={event => updateSelectedField({ containmentRequired: event.target.checked, lifecycleStage: event.target.checked ? 'containment_required' : selectedReport.lifecycleStage }, 'containment updated')} /> Immediate quarantine</label>
                 <textarea rows={3} defaultValue={selectedReport.containmentSummary || ''} onBlur={event => updateSelectedField({ containmentSummary: event.target.value }, 'containment summary updated')} placeholder="Immediate quarantine, hold, communication, or customer protection steps..." />
                 <textarea rows={2} defaultValue={selectedReport.dispositionNotes || ''} onBlur={event => updateSelectedField({ dispositionNotes: event.target.value }, 'disposition notes updated')} placeholder="Disposition notes, approvals, customer concession notes..." />
+                <textarea rows={3} defaultValue={selectedReport.followUpDetails || ''} onBlur={event => updateSelectedField({ followUpDetails: event.target.value }, 'follow-up details updated')} placeholder="Follow-up details, open checks, owner notes, or customer updates..." />
               </div>
               <div className="ncr-section">
                 <h3>Root Cause</h3>
@@ -4006,8 +4025,13 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               </div>
               <div className="ncr-section">
                 <h3>Corrective Actions</h3>
+                <div className="org-edit-grid">
+                  <label><span>Date of Initial Corrective Action</span><input type="date" defaultValue={selectedReport.dateInitialCorrectiveAction || ''} onBlur={event => updateSelectedField({ dateInitialCorrectiveAction: event.target.value }, 'initial corrective action date updated')} /></label>
+                  <label><span>Permanent Action Completed</span><input type="date" defaultValue={selectedReport.datePermanentCorrectiveActionCompleted || ''} onBlur={event => updateSelectedField({ datePermanentCorrectiveActionCompleted: event.target.value }, 'permanent action completion date updated')} /></label>
+                </div>
                 <textarea rows={3} defaultValue={selectedReport.immediateAction || ''} onBlur={event => updateSelectedField({ immediateAction: event.target.value }, 'immediate action updated')} placeholder="Immediate correction or containment action..." />
                 <textarea rows={3} defaultValue={selectedReport.permanentAction || ''} onBlur={event => updateSelectedField({ permanentAction: event.target.value, lifecycleStage: selectedReport.lifecycleStage === 'root_cause' ? 'corrective_action' : selectedReport.lifecycleStage }, 'permanent action updated')} placeholder="Permanent corrective action to prevent recurrence..." />
+                <textarea rows={3} defaultValue={selectedReport.longTermFollowUp || ''} onBlur={event => updateSelectedField({ longTermFollowUp: event.target.value }, 'long-term follow-up updated')} placeholder="Long-term follow-up plan, inspection cadence, or verification window..." />
               </div>
               <div className="ncr-section">
                 <h3>Native NCR Action Items</h3>

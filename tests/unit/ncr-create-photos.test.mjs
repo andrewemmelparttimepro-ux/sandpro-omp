@@ -83,6 +83,29 @@ test('NCR intake requires primary group affected and highlights mandatory fields
   assert.match(glossary, /term: 'Primary Group Affected'/);
 });
 
+test('selected NCR detail panel mirrors create NCR fields and remounts by selected record', () => {
+  const pages = read('src/pages.jsx');
+
+  assert.match(pages, /<aside key=\{selectedReport\?\.id \|\| 'empty'\} className="card ncr-detail-panel">/);
+  assert.match(pages, /<h3>Report Details<\/h3>/);
+  assert.match(pages, /<NcrRequiredLabel>Report Number<\/NcrRequiredLabel>/);
+  assert.match(pages, /<NcrRequiredLabel>Report Date<\/NcrRequiredLabel>/);
+  assert.match(pages, /<NcrRequiredLabel>Observer<\/NcrRequiredLabel>/);
+  assert.match(pages, /<NcrRequiredLabel>Author<\/NcrRequiredLabel>/);
+  assert.match(pages, /<span>Source Sheet<\/span>/);
+  assert.match(pages, /<span>Source Link<\/span>/);
+  assert.match(pages, /<span>Personnel Involved<\/span>/);
+  assert.match(pages, /<span>NPT<\/span><select value=\{selectedReport\.nonProductiveTime/);
+  assert.match(pages, /<span>NPT Amount<\/span>/);
+  assert.match(pages, /<span>Time Frame for Action<\/span>/);
+  assert.match(pages, /<span>Follow-Up Count<\/span>/);
+  assert.match(pages, /<span>Follow-Up Due Date<\/span>/);
+  assert.match(pages, /follow-up details updated/);
+  assert.match(pages, /<span>Date of Initial Corrective Action<\/span>/);
+  assert.match(pages, /<span>Permanent Action Completed<\/span>/);
+  assert.match(pages, /long-term follow-up updated/);
+});
+
 test('manual NCR creation auto-sequences report numbers and keeps root cause as one dropdown', () => {
   const pages = read('src/pages.jsx');
   const styles = read('src/index.css');
