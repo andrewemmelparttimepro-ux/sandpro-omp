@@ -5456,6 +5456,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
   const orgTreeCanvasRef = useRef(null);
   const orgPanRef = useRef(null);
   const orgZoomRef = useRef(1);
+  const orgManualViewportRef = useRef(false);
   const [orgZoom, setOrgZoom] = useState(1);
   const [orgCanvasSize, setOrgCanvasSize] = useState({ width: WIDE_ORG_CANVAS_MIN_WIDTH, height: WIDE_ORG_CANVAS_MIN_HEIGHT });
   const [isOrgPanning, setIsOrgPanning] = useState(false);
@@ -5572,10 +5573,12 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
   }, [orgTreeOrientation]);
 
   const centerOrgRoot = useCallback(() => {
+    orgManualViewportRef.current = true;
     centerOrgElement('.org-root-drop', 'root');
   }, [centerOrgElement]);
 
   const centerSelectedOrgEntry = useCallback(() => {
+    orgManualViewportRef.current = true;
     if (!selectedUser?.id) {
       centerOrgRoot();
       return;
@@ -5588,6 +5591,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
     const scroller = orgTreeScrollRef.current;
     const canvas = orgTreeCanvasRef.current;
     if (!scroller || !canvas) return;
+    orgManualViewportRef.current = true;
     const width = Math.max(canvas.scrollWidth, canvas.offsetWidth, orgTreeOrientation === "vertical" ? 860 : 1200);
     const height = Math.max(canvas.scrollHeight, canvas.offsetHeight, 800);
     const minZoom = orgTreeOrientation === "vertical" ? 0.7 : 0.35;
@@ -5677,7 +5681,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
 
   useEffect(() => {
     const scroller = orgTreeScrollRef.current;
-    if (!scroller || orgSearch.trim()) return undefined;
+    if (!scroller || orgSearch.trim() || orgManualViewportRef.current) return undefined;
     const timer = setTimeout(() => {
       scroller.scrollLeft = orgTreeOrientation === "vertical" ? 0 : Math.max(0, (scroller.scrollWidth - scroller.clientWidth) / 2);
       scroller.scrollTop = orgTreeOrientation === "vertical" ? 0 : Math.max(0, (scroller.scrollHeight - scroller.clientHeight) / 3);
@@ -5693,6 +5697,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
 
   useEffect(() => {
     if (orgViewMode !== "tree") return;
+    orgManualViewportRef.current = false;
     zoomOrgCanvasAt(orgTreeOrientation === "vertical" ? 1 : Math.min(orgZoomRef.current, 0.75));
     window.requestAnimationFrame(() => centerOrgElement(null, orgTreeOrientation === "vertical" ? "root" : "center"));
   }, [centerOrgElement, orgTreeOrientation, orgViewMode, zoomOrgCanvasAt]);
