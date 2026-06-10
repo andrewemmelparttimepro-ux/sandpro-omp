@@ -5604,6 +5604,20 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       const padding = 24;
       scroller.scrollLeft = Math.max(0, scroller.scrollLeft + treeRect.left - scrollerRect.left - padding);
       scroller.scrollTop = Math.max(0, scroller.scrollTop + treeRect.top - scrollerRect.top - padding);
+
+      const visibleCards = [...tree.querySelectorAll('.org-person-card')]
+        .map(card => card.getBoundingClientRect())
+        .filter(rect => rect.width > 0 && rect.height > 0);
+      if (!visibleCards.length) return;
+
+      const leftMostCard = visibleCards.reduce((leftMost, rect) => (rect.left < leftMost.left ? rect : leftMost), visibleCards[0]);
+      const topMostCard = visibleCards.reduce((topMost, rect) => (rect.top < topMost.top ? rect : topMost), visibleCards[0]);
+      if (leftMostCard.left < scrollerRect.left + padding) {
+        scroller.scrollLeft = Math.max(0, scroller.scrollLeft + leftMostCard.left - scrollerRect.left - padding);
+      }
+      if (topMostCard.top < scrollerRect.top + padding) {
+        scroller.scrollTop = Math.max(0, scroller.scrollTop + topMostCard.top - scrollerRect.top - padding);
+      }
     };
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
       alignTreeToViewport();
@@ -5669,7 +5683,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       scroller.scrollTop = orgTreeOrientation === "vertical" ? 0 : Math.max(0, (scroller.scrollHeight - scroller.clientHeight) / 3);
     }, 0);
     return () => clearTimeout(timer);
-  }, [orgEntries.length, orgSearch, orgTreeOrientation, orgZoom]);
+  }, [orgEntries.length, orgSearch, orgTreeOrientation]);
 
   useEffect(() => {
     measureOrgCanvas();
