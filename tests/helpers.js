@@ -24,28 +24,148 @@ export const requireCredentials = (email, password, label = 'credentials') => {
   test.skip(!email || !password, `Set ${label} environment variables to run this credentialed check.`);
 };
 
+const supabaseAuthStorageKey = (() => {
+  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+  try {
+    const ref = new URL(url).hostname.split('.')[0];
+    return ref ? `sb-${ref}-auth-token` : null;
+  } catch {
+    return null;
+  }
+})();
+
+const supabaseAuthUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
+
+const createSupabasePasswordSession = async (email, password) => {
+  if (!supabaseAuthUrl || !supabaseAnonKey || !email || !password) return null;
+  const response = await fetch(`${supabaseAuthUrl}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: {
+      apikey: supabaseAnonKey,
+      authorization: `Bearer ${supabaseAnonKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  }).catch(() => null);
+  if (!response?.ok) return null;
+  return response.json().catch(() => null);
+};
+
+const buildSupabaseStoredSession = (payload) => ({
+  access_token: payload.access_token,
+  token_type: payload.token_type || 'bearer',
+  expires_in: payload.expires_in,
+  expires_at: payload.expires_at || Math.floor(Date.now() / 1000) + (payload.expires_in || 3600),
+  refresh_token: payload.refresh_token,
+  user: payload.user,
+});
+
+const setSupabaseSession = ({ key, session }) => {
+  Object.keys(localStorage).forEach(existingKey => {
+    if (existingKey.startsWith('sb-') && existingKey.endsWith('-auth-token') && existingKey !== key) {
+      localStorage.removeItem(existingKey);
+    }
+  });
+  localStorage.setItem(key, JSON.stringify(session));
+};
+
+const installSupabaseSession = async (page, authPayload) => {
+  if (!supabaseAuthStorageKey || !authPayload?.access_token || !authPayload?.refresh_token) return false;
+  const session = buildSupabaseStoredSession(authPayload);
+  const payload = { key: supabaseAuthStorageKey, session };
+  await page.context().addInitScript(setSupabaseSession, payload);
+  await page.evaluate(setSupabaseSession, payload).catch(() => null);
+  return true;
+};
+
+const persistSupabaseSessionIfNeeded = async (page, authPayload) => {
+  if (!supabaseAuthStorageKey || !authPayload?.access_token || !authPayload?.refresh_token) return;
+  await page.evaluate(({ key, payload }) => {
+    localStorage.setItem(key, JSON.stringify({
+      access_token: payload.access_token,
+      token_type: payload.token_type || 'bearer',
+      expires_in: payload.expires_in,
+      expires_at: payload.expires_at || Math.floor(Date.now() / 1000) + (payload.expires_in || 3600),
+      refresh_token: payload.refresh_token,
+      user: payload.user,
+    }));
+  }, { key: supabaseAuthStorageKey, payload: authPayload });
+};
+
 export const navItem = (page, name) => page.getByRole('link', { name, exact: true })
   .or(page.getByRole('button', { name, exact: true }))
   .first();
 
+const waitForVisible = async (locator, timeout = 12000) => {
+  await locator.waitFor({ state: 'visible', timeout });
+  return true;
+};
+
+const isSignedInShellVisible = async (page, timeout = 12000) => Promise.any([
+  waitForVisible(navItem(page, 'Dashboard'), timeout),
+  waitForVisible(page.locator('.brief-overlay, .brief-paper, .mobile-topbar, .dashboard-page').first(), timeout),
+  waitForVisible(page.getByRole('button', { name: 'User settings' }), timeout),
+]).then(() => true).catch(() => false);
+
+const finishLoginIfSignedIn = async (page, timeout = 12000) => {
+  if (await isSignedInShellVisible(page, timeout)) {
+    await dismissDailyBrief(page);
+    await dismissGuidance(page);
+    return true;
+  }
+  if (await waitForVisible(page.locator('.brief-overlay'), 500).catch(() => false)) {
+    await dismissDailyBrief(page);
+    if (await isSignedInShellVisible(page, 2500)) {
+      await dismissGuidance(page);
+      return true;
+    }
+  }
+  return false;
+};
+
 export const login = async (page, email, password) => {
+  const authPayload = await createSupabasePasswordSession(email, password);
+  if (authPayload?.access_token && await installSupabaseSession(page, authPayload)) {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    if (await finishLoginIfSignedIn(page, 15000)) return;
+  }
+
+  const fillStable = async (locator, value) => {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      await locator.fill(value);
+      await page.waitForTimeout(250);
+      if (await locator.inputValue().then(current => current === value).catch(() => false)) return;
+    }
+    await expect(locator).toHaveValue(value);
+  };
+
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await page.goto('/');
+    if (await finishLoginIfSignedIn(page, 2500)) return;
     await expect(page.getByText('Objective Management Platform')).toBeVisible();
+    await page.waitForTimeout(1000);
     const emailInput = page.locator('input[placeholder="you@sandpro.com"]').filter({ visible: true }).first();
     const passwordInput = page.locator('input[placeholder="Min 6 characters"]').filter({ visible: true }).first();
-    await emailInput.fill('');
-    await emailInput.pressSequentially(email, { delay: 1 });
-    await passwordInput.fill('');
-    await passwordInput.pressSequentially(password, { delay: 1 });
-    await expect(emailInput).toHaveValue(email);
-    await expect(passwordInput).toHaveValue(password);
+    await expect(emailInput).toBeEditable();
+    await expect(passwordInput).toBeEditable();
+    await fillStable(emailInput, email);
+    await fillStable(passwordInput, password);
     const authResponse = page.waitForResponse(response => (
       response.url().includes('/auth/v1/token') && response.request().method() === 'POST'
     ), { timeout: 8000 }).catch(() => null);
     await page.locator('form button[type="submit"]').filter({ visible: true }).first().click();
-    await authResponse;
-    if (await navItem(page, 'Dashboard').isVisible({ timeout: 12000 }).catch(() => false)) break;
+    const authResult = await authResponse;
+    const authPayload = authResult?.ok?.() ? await authResult.json().catch(() => null) : null;
+    if (await isSignedInShellVisible(page, 12000)) {
+      if (!(await installSupabaseSession(page, authPayload))) {
+        await persistSupabaseSessionIfNeeded(page, authPayload);
+      }
+      await page.waitForFunction(() => (
+        Object.keys(localStorage).some(key => key.startsWith('sb-') && key.endsWith('-auth-token'))
+      ), null, { timeout: 5000 }).catch(() => null);
+      break;
+    }
     if (attempt === 2) await expect(navItem(page, 'Dashboard')).toBeVisible();
     await page.context().clearCookies();
     await page.evaluate(() => {
@@ -59,9 +179,9 @@ export const login = async (page, email, password) => {
 
 export const dismissDailyBrief = async (page) => {
   const overlay = page.locator('.brief-overlay');
-  if (await overlay.isVisible({ timeout: 2500 }).catch(() => false)) {
+  if (await waitForVisible(overlay, 2500).catch(() => false)) {
     const closeButton = page.locator('.brief-close');
-    if (await closeButton.isVisible().catch(() => false)) {
+    if (await waitForVisible(closeButton, 500).catch(() => false)) {
       await closeButton.click({ force: true });
     } else {
       await page.keyboard.press('Escape');

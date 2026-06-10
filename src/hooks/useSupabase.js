@@ -78,12 +78,13 @@ const createSignedUrlSafe = async (bucket, path, expiresIn = 60 * 60) => {
 
 const getFreshSession = async () => {
   const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) return null;
   const expiresSoon = session?.expires_at ? session.expires_at * 1000 < Date.now() + 60000 : false;
-  if (session?.access_token && !expiresSoon) return session;
+  if (!expiresSoon) return session;
   const { data, error } = await supabase.auth.refreshSession();
   if (!error && data?.session?.access_token) return data.session;
-  await supabase.auth.signOut();
-  return null;
+  console.warn('[Supabase] session refresh skipped:', error?.message || 'No refreshed session returned');
+  return session;
 };
 
 const getAuthRedirectOrigin = () => {
@@ -91,6 +92,16 @@ const getAuthRedirectOrigin = () => {
   if (hostname === 'localhost' || hostname === '127.0.0.1') return origin;
   return 'https://objectivetracker.net';
 };
+
+const profileFromAuthUser = (authUser) => ({
+  id: authUser.id,
+  email: authUser.email || '',
+  name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'SandPro User',
+  title: authUser.user_metadata?.title || '',
+  department: authUser.user_metadata?.department || '',
+  role: authUser.user_metadata?.role || 'contributor',
+  color: authUser.user_metadata?.color || '#ff7900',
+});
 
 const isStandalonePwa = () => (
   typeof window !== 'undefined'
@@ -318,11 +329,22 @@ export function useAuth() {
     )
   ));
 
+  const fetchProfile = useCallback(async (userId, authUser = null) => {
+    const { data, error } = await timedQuery(supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single(), 'profile fetch', null);
+    if (data) setProfile(data);
+    else if (authUser && error) setProfile(profileFromAuthUser(authUser));
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     // Check existing session
     getFreshSession().then((session) => {
       setUser(session?.user || null);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) fetchProfile(session.user.id, session.user);
       else setLoading(false);
     });
 
@@ -330,22 +352,12 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       setUser(session?.user || null);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) fetchProfile(session.user.id, session.user);
       else { setProfile(null); setLoading(false); }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchProfile = async (userId) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    if (data) setProfile(data);
-    setLoading(false);
-  };
+  }, [fetchProfile]);
 
   const signIn = async (email, password) => {
     setPasswordRecovery(false);
@@ -392,7 +404,7 @@ export function useAuth() {
     return data;
   };
 
-  return { user, profile, loading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, refetchProfile: () => user && fetchProfile(user.id) };
+  return { user, profile, loading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, refetchProfile: () => user && fetchProfile(user.id, user) };
 }
 
 // ============================================================================
@@ -407,10 +419,10 @@ export function useProfiles() {
   }, []);
 
   const fetchProfiles = async () => {
-    const { data } = await supabase
+    const { data } = await timedQuery(supabase
       .from('profiles')
       .select('*')
-      .order('name');
+      .order('name'), 'profiles fetch');
     if (data) setProfiles(data);
     setLoading(false);
   };
