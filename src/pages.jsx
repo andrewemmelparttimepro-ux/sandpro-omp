@@ -5627,6 +5627,8 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       alignTreeToViewport();
       window.requestAnimationFrame(alignTreeToViewport);
     }));
+    window.setTimeout(alignTreeToViewport, 120);
+    window.setTimeout(alignTreeToViewport, 360);
   }, [centerOrgElement, orgTreeOrientation, setBoundedOrgZoom]);
 
   // Wheel zoom removed per Tim Dibben (2026-06-09): wheel now scrolls the page
