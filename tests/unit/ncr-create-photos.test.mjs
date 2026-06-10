@@ -56,6 +56,28 @@ test('NCR header section is not branded as KPA-only', () => {
   assert.doesNotMatch(pages, /KPA Header \+ Classification/);
 });
 
+test('NCR intake requires primary group affected and highlights mandatory fields', () => {
+  const pages = read('src/pages.jsx');
+  const styles = read('src/index.css');
+  const glossary = read('src/glossaryData.js');
+
+  assert.match(pages, /const NCR_CREATE_REQUIRED_FIELDS = \[/);
+  assert.match(pages, /Primary group affected/);
+  assert.match(pages, /Primary Group Affected/);
+  assert.match(pages, /getMissingNcrRequiredFields/);
+  assert.match(pages, /getNcrPrimaryGroupValue/);
+  assert.match(pages, /mergeNcrPrimaryGroup/);
+  assert.match(pages, /Complete required NCR fields/);
+  assert.match(pages, /Complete required fields before creating:/);
+  assert.match(pages, /disabled=\{creating \|\| createMissingRequiredFields\.length > 0\}/);
+  assert.match(pages, /\.\.\.getMissingNcrRequiredFields\(report\)\.map\(field => `\$\{field\.label\} is required\.`\)/);
+  assert.match(styles, /\.ncr-required-label/);
+  assert.match(styles, /\.ncr-required-field/);
+  assert.match(styles, /\.ncr-required-missing/);
+  assert.match(styles, /\.ncr-required-summary/);
+  assert.match(glossary, /term: 'Primary Group Affected'/);
+});
+
 test('manual NCR creation auto-sequences report numbers and keeps root cause as one dropdown', () => {
   const pages = read('src/pages.jsx');
   const styles = read('src/index.css');

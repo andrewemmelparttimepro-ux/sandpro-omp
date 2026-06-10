@@ -1377,6 +1377,43 @@ select:focus-visible,
   text-transform: uppercase;
 }
 
+.org-edit-grid label span.ncr-required-label,
+.ncr-required-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--accent-9);
+}
+
+.ncr-required-label strong {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border: 1px solid rgba(var(--sandpro-orange-rgb), 0.32);
+  border-radius: 999px;
+  background: rgba(var(--sandpro-orange-rgb), 0.08);
+  color: var(--brand);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.ncr-required-field input,
+.ncr-required-field select,
+.ncr-required-field textarea {
+  border-color: rgba(var(--sandpro-orange-rgb), 0.38);
+  background: linear-gradient(180deg, rgba(var(--sandpro-orange-rgb), 0.045), rgba(255, 255, 255, 0.92));
+}
+
+.ncr-required-field.ncr-required-missing input,
+.ncr-required-field.ncr-required-missing select,
+.ncr-required-field.ncr-required-missing textarea {
+  border-color: rgba(var(--sandpro-orange-rgb), 0.78);
+  box-shadow: 0 0 0 2px rgba(var(--sandpro-orange-rgb), 0.12);
+}
+
 .org-edit-grid input,
 .org-edit-grid select {
   width: 100%;
@@ -5205,6 +5242,18 @@ select:focus-visible,
   margin-top: 10px;
 }
 
+.ncr-checkbox-cloud.ncr-required-field {
+  padding: 10px;
+  border: 1px solid rgba(var(--sandpro-orange-rgb), 0.2);
+  border-radius: 8px;
+  background: rgba(var(--sandpro-orange-rgb), 0.035);
+}
+
+.ncr-checkbox-cloud.ncr-required-missing {
+  border-color: rgba(var(--sandpro-orange-rgb), 0.52);
+  box-shadow: 0 0 0 2px rgba(var(--sandpro-orange-rgb), 0.08);
+}
+
 .ncr-checkbox-cloud > span {
   flex: 0 0 100%;
   color: var(--accent-7);
@@ -5226,6 +5275,31 @@ select:focus-visible,
   color: var(--accent-8);
   font-size: 12px;
   font-weight: 800;
+}
+
+.ncr-checkbox-cloud > span.ncr-required-label {
+  color: var(--accent-9);
+}
+
+.ncr-required-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 9px 10px;
+  border: 1px solid rgba(var(--sandpro-orange-rgb), 0.34);
+  border-radius: 8px;
+  background: rgba(var(--sandpro-orange-rgb), 0.07);
+  color: var(--accent-9);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.ncr-required-summary svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--brand);
 }
 
 .ncr-closure-readiness {

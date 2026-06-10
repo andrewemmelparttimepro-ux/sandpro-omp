@@ -2019,6 +2019,12 @@ const getNcrDepartmentList = (report = {}) => {
   return sanitizeNcrDepartmentList(values);
 };
 
+const getNcrPrimaryGroupValue = (report = {}) => {
+  const group = String(report.departmentGroup || '').trim();
+  if (group && !NCR_IGNORED_DEPARTMENT_GROUPS.has(normalizeNcr(group))) return group;
+  return getNcrDepartmentList(report)[0] || '';
+};
+
 const getNcrDepartmentValue = (report = {}) => {
   const departments = getNcrDepartmentList(report);
   if (departments.length) return departments.join(', ');
@@ -2026,8 +2032,61 @@ const getNcrDepartmentValue = (report = {}) => {
   return group && !NCR_IGNORED_DEPARTMENT_GROUPS.has(normalizeNcr(group)) ? group : 'Unassigned';
 };
 
+const getNcrDepartmentGroupOptions = (currentValue = '') => {
+  const value = String(currentValue || '').trim();
+  return value && !NCR_DEPARTMENT_GROUPS.includes(value)
+    ? [value, ...NCR_DEPARTMENT_GROUPS]
+    : NCR_DEPARTMENT_GROUPS;
+};
+
+const mergeNcrPrimaryGroup = (primaryGroup, affectedDepartments = []) => {
+  const primary = sanitizeNcrDepartmentList([primaryGroup])[0] || '';
+  const rest = sanitizeNcrDepartmentList(affectedDepartments).filter(item => item !== primary);
+  return primary ? [primary, ...rest] : rest;
+};
+
+const getDefaultNcrDepartment = (currentUser) => {
+  const department = sanitizeNcrDepartmentList([currentUser?.department])[0] || '';
+  return NCR_DEPARTMENT_GROUPS.includes(department) ? department : '';
+};
+
 const toggleArrayValue = (items = [], value) => (
   items.includes(value) ? items.filter(item => item !== value) : [...items, value]
+);
+
+const hasNcrEventType = (report = {}) => Boolean((report.eventTypes || []).length || String(report.eventType || '').trim());
+
+const hasNcrCriticality = (report = {}) => Boolean(String(report.criticality || report.severity || '').trim());
+
+const NCR_CREATE_REQUIRED_FIELDS = [
+  { id: 'reportNumber', label: 'Report number', isPresent: report => Boolean(String(report.reportNumber || '').trim()) },
+  { id: 'reportDate', label: 'Report date', isPresent: report => Boolean(String(report.reportDate || '').trim()) },
+  { id: 'observer', label: 'Observer', isPresent: report => Boolean(String(report.observer || '').trim()) },
+  { id: 'author', label: 'Author', isPresent: report => Boolean(String(report.author || '').trim()) },
+  { id: 'primaryGroupAffected', label: 'Primary group affected', isPresent: report => Boolean(getNcrPrimaryGroupValue(report)) },
+  { id: 'eventType', label: 'Type of event', isPresent: hasNcrEventType },
+  { id: 'criticality', label: 'Criticality', isPresent: hasNcrCriticality },
+  { id: 'internalExternal', label: 'Internal / external', isPresent: report => Boolean(String(report.internalExternal || '').trim()) },
+  { id: 'worksiteArea', label: 'Worksite / area', isPresent: report => Boolean(String(report.worksiteArea || '').trim()) },
+  { id: 'operatorLocation', label: 'Operator and location', isPresent: report => Boolean(String(report.operatorLocation || '').trim()) },
+  { id: 'eventAt', label: 'Date and time event', isPresent: report => Boolean(String(report.eventAt || '').trim()) },
+  { id: 'eventDescription', label: 'Event description', isPresent: report => Boolean(String(report.eventDescription || '').trim()) },
+];
+
+const getMissingNcrRequiredFields = (report = {}) => (
+  NCR_CREATE_REQUIRED_FIELDS.filter(field => !field.isPresent(report))
+);
+
+const isNcrRequiredFieldMissing = (report, fieldId) => (
+  getMissingNcrRequiredFields(report).some(field => field.id === fieldId)
+);
+
+const ncrRequiredFieldClass = (report, fieldId) => (
+  `ncr-required-field${isNcrRequiredFieldMissing(report, fieldId) ? ' ncr-required-missing' : ''}`
+);
+
+const NcrRequiredLabel = ({ children }) => (
+  <span className="ncr-required-label">{children}<strong>Required</strong></span>
 );
 
 const normalizeFailureText = (text = '') => String(text || '')
@@ -2449,7 +2508,7 @@ const getNcrRootCauseOptions = (currentValue = '') => {
 };
 
 const buildDefaultNcrDraft = (currentUser, reports = []) => {
-  const defaultDepartment = sanitizeNcrDepartmentList([currentUser?.department])[0] || '';
+  const defaultDepartment = getDefaultNcrDepartment(currentUser);
   return ({
     reportNumber: getNextNcrReportNumber(reports),
     sourceSheet: '',
@@ -2823,7 +2882,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   useEffect(() => {
     setCreateDraft(prev => {
       if ((prev.observer && prev.author) || !currentUser) return prev;
-      const defaultDepartment = sanitizeNcrDepartmentList([currentUser.department])[0] || '';
+      const defaultDepartment = getDefaultNcrDepartment(currentUser);
       return {
         ...prev,
         observer: prev.observer || currentUser.name || '',
@@ -3018,6 +3077,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     const signatures = report.signatures || [];
     const actionEffective = normalizeNcrYesNo(report.actionEffective);
     return [
+      ...getMissingNcrRequiredFields(report).map(field => `${field.label} is required.`),
       !report.ownerId && 'NCR owner is required.',
       !report.reviewerId && 'Reviewer / approver is required.',
       !report.verifierId && 'Effectiveness verifier is required.',
@@ -3591,16 +3651,20 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     setCreateModalPhotoFirst(false);
   };
 
+  const createMissingRequiredFields = getMissingNcrRequiredFields(createDraft);
+
   const createReport = async () => {
     if (!onCreateReport || creating) return;
-    if (!createDraft.reportNumber.trim()) {
-      addToast?.({ type: 'error', message: 'Report number is required' });
+    const missingRequiredFields = getMissingNcrRequiredFields(createDraft);
+    if (missingRequiredFields.length) {
+      addToast?.({ type: 'error', message: `Complete required NCR fields: ${missingRequiredFields.slice(0, 3).map(field => field.label).join(', ')}${missingRequiredFields.length > 3 ? '...' : ''}` });
       return;
     }
     setCreating(true);
     try {
       const classification = classifyNcrFailure(createDraft);
-      const affectedDepartmentList = sanitizeNcrDepartmentList(createDraft.affectedDepartmentList || []);
+      const primaryGroupAffected = getNcrPrimaryGroupValue(createDraft);
+      const affectedDepartmentList = mergeNcrPrimaryGroup(primaryGroupAffected, createDraft.affectedDepartmentList || []);
       const queuedEvidenceFiles = createEvidenceFiles;
       const selectedRootCause = getNcrRootCauseValue(createDraft);
       const actionEffective = normalizeNcrYesNo(createDraft.actionEffective);
@@ -3616,7 +3680,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
         effectivenessCheckedBy: actionEffective ? currentUser?.id : createDraft.effectivenessCheckedBy,
         affectedDepartmentList,
         affectedDepartments: affectedDepartmentList.join(', ') || sanitizeNcrDepartmentList(splitMultiValue(createDraft.affectedDepartments)).join(', '),
-        departmentGroup: affectedDepartmentList[0] || sanitizeNcrDepartmentList([createDraft.departmentGroup])[0] || '',
+        departmentGroup: primaryGroupAffected,
         severity: createDraft.criticality || createDraft.severity,
         canonicalFailureCode: createDraft.canonicalFailureCode || classification.code,
         normalizedFailureSummary: createDraft.normalizedFailureSummary || classification.label,
@@ -3861,7 +3925,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
 
               <div className="ncr-detail-grid">
                 <div><span><DefinedTerm id="observer">Observer</DefinedTerm></span><strong>{selectedReport.observer || '-'}</strong></div>
-                <div><span><DefinedTerm id="group">Group</DefinedTerm></span><strong>{getNcrDepartmentValue(selectedReport)}</strong></div>
+                <div><span><DefinedTerm id="group">Primary group affected</DefinedTerm></span><strong>{getNcrPrimaryGroupValue(selectedReport) || '-'}</strong></div>
                 <div><span><DefinedTerm id="internal_external">Internal/External</DefinedTerm></span><strong>{selectedReport.internalExternal || '-'}</strong></div>
                 <div><span><DefinedTerm id="npt">NPT</DefinedTerm></span><strong>{selectedReport.nonProductiveTime || '-'}</strong></div>
               </div>
@@ -3871,16 +3935,20 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               {isAdvancedNcrView && <div className="ncr-section">
                 <h3>Header + Classification</h3>
                 <div className="org-edit-grid">
-                  <label><span>Worksite / Area</span><select value={selectedReport.worksiteArea || ''} onChange={event => updateSelectedField({ worksiteArea: event.target.value }, 'worksite updated')}><option value="">Unspecified</option>{NCR_WORKSITE_AREAS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-                  <label><span>Operator and Location</span><input defaultValue={selectedReport.operatorLocation || ''} onBlur={event => updateSelectedField({ operatorLocation: event.target.value }, 'operator/location updated')} /></label>
-                  <label><span>Date and Time Event</span><input type="datetime-local" defaultValue={selectedReport.eventAt ? String(selectedReport.eventAt).slice(0, 16) : ''} onBlur={event => updateSelectedField({ eventAt: event.target.value }, 'event time updated')} /></label>
-                  <label><span>Internal / External</span><select value={selectedReport.internalExternal || ''} onChange={event => updateSelectedField({ internalExternal: event.target.value }, 'source type updated')}><option value="">Unspecified</option>{NCR_INTERNAL_EXTERNAL.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-                  <label><span>Criticality</span><select value={selectedReport.criticality || selectedReport.severity || ''} onChange={event => updateSelectedField({ criticality: event.target.value }, 'criticality updated')}><option value="">Unspecified</option>{NCR_CRITICALITY.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'primaryGroupAffected')}><NcrRequiredLabel>Primary Group Affected</NcrRequiredLabel><select required value={getNcrPrimaryGroupValue(selectedReport)} onChange={event => {
+                    const nextDepartments = mergeNcrPrimaryGroup(event.target.value, getNcrDepartmentList(selectedReport));
+                    updateSelectedField({ departmentGroup: event.target.value, affectedDepartmentList: nextDepartments, affectedDepartments: nextDepartments.join(', ') }, 'primary group affected updated');
+                  }}><option value="">Unspecified</option>{getNcrDepartmentGroupOptions(getNcrPrimaryGroupValue(selectedReport)).map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'worksiteArea')}><NcrRequiredLabel>Worksite / Area</NcrRequiredLabel><select required value={selectedReport.worksiteArea || ''} onChange={event => updateSelectedField({ worksiteArea: event.target.value }, 'worksite updated')}><option value="">Unspecified</option>{NCR_WORKSITE_AREAS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'operatorLocation')}><NcrRequiredLabel>Operator and Location</NcrRequiredLabel><input required defaultValue={selectedReport.operatorLocation || ''} onBlur={event => updateSelectedField({ operatorLocation: event.target.value }, 'operator/location updated')} /></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'eventAt')}><NcrRequiredLabel>Date and Time Event</NcrRequiredLabel><input required type="datetime-local" defaultValue={selectedReport.eventAt ? String(selectedReport.eventAt).slice(0, 16) : ''} onBlur={event => updateSelectedField({ eventAt: event.target.value }, 'event time updated')} /></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'internalExternal')}><NcrRequiredLabel>Internal / External</NcrRequiredLabel><select required value={selectedReport.internalExternal || ''} onChange={event => updateSelectedField({ internalExternal: event.target.value }, 'source type updated')}><option value="">Unspecified</option>{NCR_INTERNAL_EXTERNAL.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                  <label className={ncrRequiredFieldClass(selectedReport, 'criticality')}><NcrRequiredLabel>Criticality</NcrRequiredLabel><select required value={selectedReport.criticality || selectedReport.severity || ''} onChange={event => updateSelectedField({ criticality: event.target.value }, 'criticality updated')}><option value="">Unspecified</option>{NCR_CRITICALITY.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                   <label><span>Estimated Cost</span><input type="number" min="0" step="0.01" defaultValue={selectedReport.estimatedCost ?? ''} onBlur={event => updateSelectedField({ estimatedCost: event.target.value }, 'estimated cost updated')} /></label>
                   <label><span>Failure Taxonomy</span><input defaultValue={selectedReport.normalizedFailureSummary || classifyNcrFailure(selectedReport).label} onBlur={event => updateSelectedField({ normalizedFailureSummary: event.target.value }, 'failure taxonomy updated')} /></label>
                 </div>
-                <div className="ncr-checkbox-cloud">
-                  <span>Type of Event</span>
+                <div className={`ncr-checkbox-cloud ncr-required-field${isNcrRequiredFieldMissing(selectedReport, 'eventType') ? ' ncr-required-missing' : ''}`}>
+                  <NcrRequiredLabel>Type of Event</NcrRequiredLabel>
                   {NCR_EVENT_TYPES.map(value => (
                     <label key={value}><input type="checkbox" checked={(selectedReport.eventTypes || []).includes(value) || selectedReport.eventType === value} onChange={() => {
                       const next = toggleArrayValue(selectedReport.eventTypes?.length ? selectedReport.eventTypes : (selectedReport.eventType ? [selectedReport.eventType] : []), value);
@@ -3894,12 +3962,17 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                     <label key={value}><input type="checkbox" checked={getNcrDepartmentList(selectedReport).includes(value)} onChange={() => {
                       const current = getNcrDepartmentList(selectedReport);
                       const next = toggleArrayValue(current, value);
-                      updateSelectedField({ affectedDepartmentList: next, affectedDepartments: next.join(', '), departmentGroup: next[0] || '' }, 'affected departments updated');
+                      const nextPrimary = next.includes(getNcrPrimaryGroupValue(selectedReport)) ? getNcrPrimaryGroupValue(selectedReport) : next[0] || '';
+                      const nextDepartments = mergeNcrPrimaryGroup(nextPrimary, next);
+                      updateSelectedField({ affectedDepartmentList: nextDepartments, affectedDepartments: nextDepartments.join(', '), departmentGroup: nextPrimary }, 'affected departments updated');
                     }} /> {value}</label>
                   ))}
                 </div>
               </div>}
-              <div className="ncr-section"><h3>Event Description</h3><p>{selectedReport.eventDescription || 'No event description entered.'}</p></div>
+              <div className={`ncr-section ${ncrRequiredFieldClass(selectedReport, 'eventDescription')}`}>
+                <h3><NcrRequiredLabel>Event Description</NcrRequiredLabel></h3>
+                <textarea required rows={3} defaultValue={selectedReport.eventDescription || ''} onBlur={event => updateSelectedField({ eventDescription: event.target.value }, 'event description updated')} placeholder="Describe what happened, what was affected, and how it was discovered." />
+              </div>
               <NcrEvidencePanel report={selectedReport} onUpload={uploadEvidenceWithPurpose} uploading={uploadingEvidence} />
               <div className="ncr-section">
                 <h3>Containment / Disposition</h3>
@@ -4379,9 +4452,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
             <div style={{ padding: 16 }}>
               <div className="org-edit-grid">
                 <div className="ncr-report-number-field">
-                  <label>
-                    <span>Report Number</span>
+                  <label className={ncrRequiredFieldClass(createDraft, 'reportNumber')}>
+                    <NcrRequiredLabel>Report Number</NcrRequiredLabel>
                     <input
+                      required
                       value={createDraft.reportNumber}
                       onChange={event => setCreateDraft(prev => ({ ...prev, reportNumber: event.target.value }))}
                       placeholder={getNextNcrReportNumber(reports)}
@@ -4392,20 +4466,23 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                     <RefreshCw size={12} /> Auto #
                   </button>
                 </div>
-                <label><span>Report Date</span><input type="date" value={createDraft.reportDate} onChange={event => setCreateDraft(prev => ({ ...prev, reportDate: event.target.value }))} /></label>
-                <label><span>Observer</span><input value={createDraft.observer} onChange={event => setCreateDraft(prev => ({ ...prev, observer: event.target.value }))} /></label>
-                <label><span>Author</span><input value={createDraft.author} onChange={event => setCreateDraft(prev => ({ ...prev, author: event.target.value }))} /></label>
-                <label><span>Primary Group</span><select value={createDraft.departmentGroup} onChange={event => setCreateDraft(prev => ({ ...prev, departmentGroup: event.target.value }))}><option value="">Unspecified</option>{NCR_DEPARTMENT_GROUPS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-                <label><span>Type of Event</span><select value={createDraft.eventType} onChange={event => setCreateDraft(prev => ({ ...prev, eventType: event.target.value, eventTypes: event.target.value ? [event.target.value] : [] }))}><option value="">Unspecified</option>{NCR_EVENT_TYPES.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-                <label><span>Criticality</span><select value={createDraft.criticality} onChange={event => setCreateDraft(prev => ({ ...prev, criticality: event.target.value, severity: event.target.value }))}><option value="">Unspecified</option>{NCR_CRITICALITY.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-                <label><span>Internal / External</span><select value={createDraft.internalExternal} onChange={event => setCreateDraft(prev => ({ ...prev, internalExternal: event.target.value }))}><option value="">Unspecified</option>{NCR_INTERNAL_EXTERNAL.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'reportDate')}><NcrRequiredLabel>Report Date</NcrRequiredLabel><input required type="date" value={createDraft.reportDate} onChange={event => setCreateDraft(prev => ({ ...prev, reportDate: event.target.value }))} /></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'observer')}><NcrRequiredLabel>Observer</NcrRequiredLabel><input required value={createDraft.observer} onChange={event => setCreateDraft(prev => ({ ...prev, observer: event.target.value }))} /></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'author')}><NcrRequiredLabel>Author</NcrRequiredLabel><input required value={createDraft.author} onChange={event => setCreateDraft(prev => ({ ...prev, author: event.target.value }))} /></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'primaryGroupAffected')}><NcrRequiredLabel>Primary Group Affected</NcrRequiredLabel><select required value={createDraft.departmentGroup} onChange={event => setCreateDraft(prev => {
+                  const nextDepartments = mergeNcrPrimaryGroup(event.target.value, prev.affectedDepartmentList || []);
+                  return { ...prev, departmentGroup: event.target.value, affectedDepartmentList: nextDepartments, affectedDepartments: nextDepartments.join(', ') };
+                })}><option value="">Unspecified</option>{NCR_DEPARTMENT_GROUPS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'eventType')}><NcrRequiredLabel>Type of Event</NcrRequiredLabel><select required value={createDraft.eventType} onChange={event => setCreateDraft(prev => ({ ...prev, eventType: event.target.value, eventTypes: event.target.value ? [event.target.value] : [] }))}><option value="">Unspecified</option>{NCR_EVENT_TYPES.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'criticality')}><NcrRequiredLabel>Criticality</NcrRequiredLabel><select required value={createDraft.criticality} onChange={event => setCreateDraft(prev => ({ ...prev, criticality: event.target.value, severity: event.target.value }))}><option value="">Unspecified</option>{NCR_CRITICALITY.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'internalExternal')}><NcrRequiredLabel>Internal / External</NcrRequiredLabel><select required value={createDraft.internalExternal} onChange={event => setCreateDraft(prev => ({ ...prev, internalExternal: event.target.value }))}><option value="">Unspecified</option>{NCR_INTERNAL_EXTERNAL.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                 <label><span>Lifecycle Stage</span><select value={createDraft.lifecycleStage} onChange={event => setCreateDraft(prev => ({ ...prev, lifecycleStage: event.target.value, status: event.target.value === 'closed' ? 'closed' : event.target.value === 'draft' || event.target.value === 'submitted' ? 'open' : 'in_progress' }))}>{NCR_LIFECYCLE_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}</select></label>
                 <label><span>NCR Owner</span><select value={createDraft.ownerId} onChange={event => setCreateDraft(prev => ({ ...prev, ownerId: event.target.value }))}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
                 <label><span>Reviewer</span><select value={createDraft.reviewerId} onChange={event => setCreateDraft(prev => ({ ...prev, reviewerId: event.target.value }))}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
                 <label><span>Verifier</span><select value={createDraft.verifierId} onChange={event => setCreateDraft(prev => ({ ...prev, verifierId: event.target.value }))}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
-                <label><span>Operator Location</span><input value={createDraft.operatorLocation} onChange={event => setCreateDraft(prev => ({ ...prev, operatorLocation: event.target.value }))} /></label>
-                <label><span>Worksite Area</span><select value={createDraft.worksiteArea} onChange={event => setCreateDraft(prev => ({ ...prev, worksiteArea: event.target.value }))}><option value="">Unspecified</option>{NCR_WORKSITE_AREAS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-                <label><span>Event Time</span><input type="datetime-local" value={createDraft.eventAt} onChange={event => setCreateDraft(prev => ({ ...prev, eventAt: event.target.value }))} /></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'operatorLocation')}><NcrRequiredLabel>Operator and Location</NcrRequiredLabel><input required value={createDraft.operatorLocation} onChange={event => setCreateDraft(prev => ({ ...prev, operatorLocation: event.target.value }))} /></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'worksiteArea')}><NcrRequiredLabel>Worksite / Area</NcrRequiredLabel><select required value={createDraft.worksiteArea} onChange={event => setCreateDraft(prev => ({ ...prev, worksiteArea: event.target.value }))}><option value="">Unspecified</option>{NCR_WORKSITE_AREAS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'eventAt')}><NcrRequiredLabel>Date and Time Event</NcrRequiredLabel><input required type="datetime-local" value={createDraft.eventAt} onChange={event => setCreateDraft(prev => ({ ...prev, eventAt: event.target.value }))} /></label>
                 <label><span>NPT</span><select value={createDraft.nonProductiveTime} onChange={event => setCreateDraft(prev => ({ ...prev, nonProductiveTime: event.target.value }))}><option value="">Unspecified</option><option value="No">No</option><option value="Yes">Yes</option></select></label>
                 <label><span>NPT Amount</span><input type="number" min="0" step="0.1" value={createDraft.nonProductiveTimeAmount} onChange={event => setCreateDraft(prev => ({ ...prev, nonProductiveTimeAmount: event.target.value }))} /></label>
                 <label><span>Estimated Cost</span><input type="number" min="0" step="0.01" value={createDraft.estimatedCost} onChange={event => setCreateDraft(prev => ({ ...prev, estimatedCost: event.target.value }))} /></label>
@@ -4506,8 +4583,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                   </div>
                 )}
               </div>
-              <div className="ncr-checkbox-cloud">
-                <span>Type of Event</span>
+              <div className={`ncr-checkbox-cloud ncr-required-field${isNcrRequiredFieldMissing(createDraft, 'eventType') ? ' ncr-required-missing' : ''}`}>
+                <NcrRequiredLabel>Type of Event</NcrRequiredLabel>
                 {NCR_EVENT_TYPES.map(value => (
                   <label key={value}><input type="checkbox" checked={(createDraft.eventTypes || []).includes(value)} onChange={() => setCreateDraft(prev => {
                     const next = toggleArrayValue(prev.eventTypes || [], value);
@@ -4520,12 +4597,14 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 {NCR_DEPARTMENT_GROUPS.map(value => (
                   <label key={value}><input type="checkbox" checked={(createDraft.affectedDepartmentList || []).includes(value)} onChange={() => setCreateDraft(prev => {
                     const next = toggleArrayValue(sanitizeNcrDepartmentList(prev.affectedDepartmentList || []), value);
-                    return { ...prev, affectedDepartmentList: next, affectedDepartments: next.join(', '), departmentGroup: next[0] || prev.departmentGroup };
+                    const nextPrimary = next.includes(prev.departmentGroup) ? prev.departmentGroup : next[0] || '';
+                    const nextDepartments = mergeNcrPrimaryGroup(nextPrimary, next);
+                    return { ...prev, affectedDepartmentList: nextDepartments, affectedDepartments: nextDepartments.join(', '), departmentGroup: nextPrimary };
                   })} /> {value}</label>
                 ))}
               </div>
               <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
-                <label><span className="text-xs text-muted">Event Description</span><textarea rows={3} value={createDraft.eventDescription} onChange={event => setCreateDraft(prev => ({ ...prev, eventDescription: event.target.value }))} /></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'eventDescription')}><NcrRequiredLabel>Event Description</NcrRequiredLabel><textarea required rows={3} value={createDraft.eventDescription} onChange={event => setCreateDraft(prev => ({ ...prev, eventDescription: event.target.value }))} /></label>
                 <label className="ncr-checkbox-line"><input type="checkbox" checked={createDraft.containmentRequired} onChange={event => setCreateDraft(prev => ({ ...prev, containmentRequired: event.target.checked, lifecycleStage: event.target.checked ? 'containment_required' : prev.lifecycleStage }))} /> Immediate quarantine</label>
                 <label><span className="text-xs text-muted">Containment Summary</span><textarea rows={3} value={createDraft.containmentSummary} onChange={event => setCreateDraft(prev => ({ ...prev, containmentSummary: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Disposition Notes</span><textarea rows={2} value={createDraft.dispositionNotes} onChange={event => setCreateDraft(prev => ({ ...prev, dispositionNotes: event.target.value }))} /></label>
@@ -4535,9 +4614,15 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label><span className="text-xs text-muted">Long-Term Follow-Up</span><textarea rows={3} value={createDraft.longTermFollowUp} onChange={event => setCreateDraft(prev => ({ ...prev, longTermFollowUp: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Effectiveness Verification</span><textarea rows={3} value={createDraft.effectivenessSummary} onChange={event => setCreateDraft(prev => ({ ...prev, effectivenessSummary: event.target.value }))} placeholder="Verification evidence, sample checked, date range, reviewed records, or customer confirmation..." /></label>
               </div>
+              {createMissingRequiredFields.length > 0 && (
+                <div className="ncr-required-summary">
+                  <AlertCircle size={14} />
+                  <span>Complete required fields before creating: {createMissingRequiredFields.slice(0, 5).map(field => field.label).join(', ')}{createMissingRequiredFields.length > 5 ? `, +${createMissingRequiredFields.length - 5} more` : ''}.</span>
+                </div>
+              )}
               <div className="flex gap-8 justify-between" style={{ marginTop: 14 }}>
                 <button className="btn btn-secondary" onClick={closeCreateModal} disabled={creating}>Cancel</button>
-                <button className="btn btn-primary" onClick={createReport} disabled={creating || !createDraft.reportNumber.trim()}>
+                <button className="btn btn-primary" onClick={createReport} disabled={creating || createMissingRequiredFields.length > 0}>
                   {creating ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} {creating ? 'Creating...' : 'Create NCR'}
                 </button>
               </div>
