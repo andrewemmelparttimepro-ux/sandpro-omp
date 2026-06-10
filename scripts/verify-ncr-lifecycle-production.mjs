@@ -280,16 +280,16 @@ try {
     await wait(500);
   }
   let signatureSection = page.locator('.ncr-section').filter({ hasText: 'Signatures / Approvals' });
-  await signatureSection.locator('select').first().selectOption('management');
-  await signatureSection.locator('input[placeholder="Typed signature name"]').fill('Production NCR QA Management');
+  await signatureSection.locator('select').first().selectOption('department_manager');
+  await signatureSection.locator('input[placeholder="Typed signature name"]').fill('Production NCR QA Department Manager');
   await signatureSection.getByRole('button', { name: /Capture signoff/i }).click();
-  await signatureSection.locator('.ncr-signature-row').filter({ hasText: 'management' }).waitFor({ timeout: 15000 });
+  await signatureSection.locator('.ncr-signature-row').filter({ hasText: 'Department manager signoff' }).waitFor({ timeout: 15000 });
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const { count } = await admin
       .from('ncr_signatures')
       .select('id', { count: 'exact', head: true })
       .eq('ncr_id', reportId)
-      .eq('role', 'management');
+      .eq('role', 'department_manager');
     if ((count || 0) >= 1) break;
     await wait(500);
   }
@@ -301,8 +301,8 @@ try {
   signatureSection = page.locator('.ncr-section').filter({ hasText: 'Signatures / Approvals' });
   await signatureSection.scrollIntoViewIfNeeded();
   await signatureSection.locator('select').first().waitFor({ state: 'visible', timeout: 30000 });
-  await signatureSection.locator('select').first().selectOption('reviewer');
-  await signatureSection.locator('input[placeholder="Typed signature name"]').fill('Production NCR QA Reviewer');
+  await signatureSection.locator('select').first().selectOption('executive');
+  await signatureSection.locator('input[placeholder="Typed signature name"]').fill('Production NCR QA Executive');
   await signatureSection.getByRole('button', { name: /Capture signoff/i }).click();
   let savedSignatureRoles = new Set();
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -310,20 +310,20 @@ try {
       .from('ncr_signatures')
       .select('role')
       .eq('ncr_id', reportId)
-      .in('role', ['management', 'reviewer']);
+      .in('role', ['department_manager', 'executive']);
     savedSignatureRoles = new Set(data.map(signature => signature.role));
-    if (savedSignatureRoles.has('management') && savedSignatureRoles.has('reviewer')) break;
+    if (savedSignatureRoles.has('department_manager') && savedSignatureRoles.has('executive')) break;
     await wait(500);
   }
-  assertOk(savedSignatureRoles.has('management') && savedSignatureRoles.has('reviewer'), `Reviewer/management signatures were not both saved. Roles: ${JSON.stringify([...savedSignatureRoles])}`);
+  assertOk(savedSignatureRoles.has('department_manager') && savedSignatureRoles.has('executive'), `Department manager/executive signatures were not both saved. Roles: ${JSON.stringify([...savedSignatureRoles])}`);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'NCR Tracker' }).waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('.ncr-toolbar select').first().selectOption('all');
   await page.getByPlaceholder('Search NCRs...').fill(reportNumber);
   await page.locator('.ncr-detail-panel').getByText(reportNumber).waitFor({ timeout: 30000 });
   await page.locator('.ncr-action-row').filter({ hasText: 'Verify supplier paperwork' }).waitFor({ timeout: 30000 });
-  await page.locator('.ncr-signature-row').filter({ hasText: 'management' }).waitFor({ state: 'attached', timeout: 30000 });
-  await page.locator('.ncr-signature-row').filter({ hasText: 'reviewer' }).waitFor({ state: 'attached', timeout: 30000 });
+  await page.locator('.ncr-signature-row').filter({ hasText: 'Department manager signoff' }).waitFor({ state: 'attached', timeout: 30000 });
+  await page.locator('.ncr-signature-row').filter({ hasText: 'Executive signoff' }).waitFor({ state: 'attached', timeout: 30000 });
   await page.getByRole('button', { name: /Approve closure/i }).click();
 
   let closureState = null;
@@ -409,7 +409,7 @@ try {
   assertOk(Boolean(report?.normalized_failure_summary), 'NCR failure taxonomy summary missing.');
   assertOk((actionCount || 0) >= 1, 'Native NCR action item was not saved.');
   assertOk((attachments.length || 0) >= 1, 'NCR evidence attachment was not saved.');
-  assertOk((signatureCount || 0) >= 2, 'NCR management and reviewer signatures were not both saved.');
+  assertOk((signatureCount || 0) >= 2, 'NCR department manager and executive signatures were not both saved.');
   assertOk((auditCount || 0) >= 4, 'NCR audit trail did not capture enough events.');
 
   await cleanup();

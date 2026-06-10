@@ -1823,7 +1823,7 @@ const buildNcrDetailExportHtml = ({ report, profiles = [] }) => {
   `).join('');
   const signatureRows = (report.signatures || []).map(signature => `
     <tr>
-      <td>${escapeExportHtml((signature.role || '').replaceAll('_', ' '))}</td>
+      <td>${escapeExportHtml(getNcrSignatureRoleLabel(signature.role))}</td>
       <td>${escapeExportHtml(signature.signedByName || personName(signature.signedBy) || 'Signed')}</td>
       <td>${escapeExportHtml(signature.signedAt ? formatDate(signature.signedAt) : '')}</td>
     </tr>
@@ -2478,6 +2478,29 @@ const isNcrImageAttachment = (file = {}) => (
 
 const NCR_PHOTO_ACCEPT = 'image/*,.heic,.heif';
 
+const NCR_DEPARTMENT_MANAGER_SIGNATURE_ROLES = ['department_manager', 'management'];
+const NCR_EXECUTIVE_SIGNATURE_ROLES = ['executive', 'final_management'];
+const NCR_SIGNATURE_ROLE_LABELS = {
+  author: 'Author signoff',
+  department_manager: 'Department manager signoff',
+  management: 'Department manager signoff',
+  reviewer: 'Reviewer signoff',
+  executive: 'Executive signoff',
+  final_management: 'Executive signoff',
+};
+
+const getNcrSignatureRoleLabel = (role = '') => (
+  NCR_SIGNATURE_ROLE_LABELS[role] || String(role || 'Signature').replaceAll('_', ' ')
+);
+
+const hasNcrSignatureRole = (signatures = [], roles = []) => (
+  signatures.some(signature => roles.includes(signature.role))
+);
+
+const getNcrSignatureForRoles = (signatures = [], roles = []) => (
+  signatures.find(signature => roles.includes(signature.role)) || null
+);
+
 const normalizeNcrPhotoFile = (file, index = 0) => {
   if (file?.name) return file;
   const extension = extensionForMime(file?.type || '');
@@ -2568,6 +2591,48 @@ const NcrEvidencePanel = ({ report, onUpload, uploading }) => {
   );
 };
 
+const NcrSignatureLevels = ({ report, people = [] }) => {
+  const signatures = report?.signatures || [];
+  const levels = [
+    {
+      key: 'department_manager',
+      label: 'Department manager signoff',
+      roles: NCR_DEPARTMENT_MANAGER_SIGNATURE_ROLES,
+      fallbackId: report?.signedOffByManagementId,
+    },
+    {
+      key: 'executive',
+      label: 'Executive signoff',
+      roles: NCR_EXECUTIVE_SIGNATURE_ROLES,
+      fallbackId: report?.finalManagementSignoffId,
+    },
+  ];
+  return (
+    <div className="ncr-signature-levels">
+      {levels.map(level => {
+        const signature = getNcrSignatureForRoles(signatures, level.roles);
+        const fallbackPerson = people.find(person => person.id === level.fallbackId);
+        const signedBy = signature?.signedByName
+          || people.find(person => person.id === signature?.signedBy)?.name
+          || fallbackPerson?.name
+          || '';
+        const signedAt = signature?.signedAt || '';
+        return (
+          <div key={level.key} className={`ncr-signature-level ${signature || fallbackPerson ? 'complete' : ''}`}>
+            <div>
+              <strong>{level.label}</strong>
+              <span>{signedBy ? `${signedBy}${signedAt ? ` · ${formatDate(signedAt)}` : ''}` : 'Pending'}</span>
+            </div>
+            <Badge color={signature || fallbackPerson ? 'var(--success)' : 'var(--accent-7)'}>
+              {signature || fallbackPerson ? 'Signed' : 'Needed'}
+            </Badge>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const NcrParticipationCard = ({ observerRows = [], employeeRows = [] }) => {
   const renderRows = (rows) => (
     <div className="ncr-participation-list">
@@ -2624,7 +2689,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   const [creating, setCreating] = useState(false);
   const [createDraft, setCreateDraft] = useState(() => buildDefaultNcrDraft(currentUser));
   const [actionDraft, setActionDraft] = useState({ title: '', ownerId: '', dueDate: '' });
-  const [signatureDraft, setSignatureDraft] = useState({ role: 'author', signedBy: currentUser?.id || '', signedByName: currentUser?.name || '', signatureDataUrl: '' });
+  const [signatureDraft, setSignatureDraft] = useState({ role: 'department_manager', signedBy: currentUser?.id || '', signedByName: currentUser?.name || '', signatureDataUrl: '' });
   const [importPreview, setImportPreview] = useState([]);
   const [importFileName, setImportFileName] = useState('');
   const [importing, setImporting] = useState(false);
@@ -2824,7 +2889,6 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     if (!report) return ['Select an NCR first.'];
     const openActions = (report.actionItems || []).filter(action => action.status !== 'complete');
     const signatures = report.signatures || [];
-    const hasSignature = (role) => signatures.some(signature => signature.role === role);
     return [
       !report.ownerId && 'NCR owner is required.',
       !report.reviewerId && 'Reviewer / approver is required.',
@@ -2833,8 +2897,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       !report.permanentAction?.trim() && 'Permanent corrective action is required.',
       openActions.length > 0 && `${openActions.length} corrective action item${openActions.length === 1 ? '' : 's'} still open.`,
       !report.effectivenessSummary?.trim() && 'Effectiveness verification summary is required.',
-      !hasSignature('management') && 'Management signoff signature is required.',
-      !hasSignature('reviewer') && 'Reviewer signoff signature is required.',
+      !hasNcrSignatureRole(signatures, NCR_DEPARTMENT_MANAGER_SIGNATURE_ROLES) && 'Department manager signoff is required.',
+      !hasNcrSignatureRole(signatures, NCR_EXECUTIVE_SIGNATURE_ROLES) && 'Executive signoff is required.',
     ].filter(Boolean);
   };
 
@@ -2964,7 +3028,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
         ...signatureDraft,
         signedByName: signatureDraft.signedByName.trim(),
       }, currentUser.id);
-      setSignatureDraft({ role: 'author', signedBy: currentUser?.id || '', signedByName: currentUser?.name || '', signatureDataUrl: '' });
+      setSignatureDraft({ role: 'department_manager', signedBy: currentUser?.id || '', signedByName: currentUser?.name || '', signatureDataUrl: '' });
       addToast?.({ type: 'success', message: 'NCR signature captured' });
     } catch (error) {
       addToast?.({ type: 'error', message: error.message || 'Could not capture signature' });
@@ -3727,11 +3791,12 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               </div>
               {isAdvancedNcrView && <div className="ncr-section">
                 <h3>Signatures / Approvals</h3>
+                <NcrSignatureLevels report={selectedReport} people={people} />
                 <div className="ncr-signature-list">
                   {(selectedReport.signatures || []).map(signature => (
                     <div key={signature.id} className="ncr-signature-row">
                       <div>
-                        <strong>{signature.role?.replaceAll('_', ' ')}</strong>
+                        <strong>{getNcrSignatureRoleLabel(signature.role)}</strong>
                         <span>{signature.signedByName || people.find(person => person.id === signature.signedBy)?.name || 'Signed'} · {signature.signedAt ? formatDate(signature.signedAt) : ''}</span>
                       </div>
                       {signature.signatureDataUrl ? <img src={signature.signatureDataUrl} alt={`${signature.role} signature`} /> : <Badge color="var(--success)">captured</Badge>}
@@ -3741,10 +3806,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 </div>
                 <div className="ncr-signature-create">
                   <select value={signatureDraft.role} onChange={event => setSignatureDraft(prev => ({ ...prev, role: event.target.value }))}>
+                    <option value="department_manager">Department manager signoff</option>
+                    <option value="executive">Executive signoff</option>
                     <option value="author">Author signoff</option>
-                    <option value="management">Management signoff</option>
                     <option value="reviewer">Reviewer signoff</option>
-                    <option value="final_management">Final management signoff</option>
                   </select>
                   <select value={signatureDraft.signedBy} onChange={event => {
                     const person = people.find(profile => profile.id === event.target.value);

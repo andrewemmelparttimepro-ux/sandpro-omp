@@ -1720,6 +1720,23 @@ export function useNcrReports(enabled = false) {
       .select('*')
       .single();
     if (error) throw error;
+    const reportPatch = {};
+    if (payload.signed_by && ['department_manager', 'management'].includes(payload.role)) {
+      reportPatch.signed_off_by_management_id = payload.signed_by;
+    }
+    if (payload.signed_by && payload.role === 'reviewer') {
+      reportPatch.reviewed_by_id = payload.signed_by;
+    }
+    if (payload.signed_by && ['executive', 'final_management'].includes(payload.role)) {
+      reportPatch.final_management_signoff_id = payload.signed_by;
+    }
+    if (Object.keys(reportPatch).length > 0) {
+      const { error: reportPatchError } = await supabase
+        .from('ncr_reports')
+        .update(reportPatch)
+        .eq('id', ncrId);
+      if (reportPatchError) throw reportPatchError;
+    }
     await supabase.from('ncr_audit_events').insert({
       ncr_id: ncrId,
       actor_id: userId,
