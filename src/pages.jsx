@@ -4695,6 +4695,9 @@ const ORG_BRANCH_PALETTE = [
   "71, 85, 105",
 ];
 
+const WIDE_ORG_CANVAS_MIN_WIDTH = 2000;
+const WIDE_ORG_CANVAS_MIN_HEIGHT = 1200;
+
 const getOrgBranchPath = (entry, entries = []) => {
   if (!entry) return [];
   const byId = new Map(entries.map(item => [item.id, item]));
@@ -5454,7 +5457,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
   const orgPanRef = useRef(null);
   const orgZoomRef = useRef(1);
   const [orgZoom, setOrgZoom] = useState(1);
-  const [orgCanvasSize, setOrgCanvasSize] = useState({ width: 3200, height: 1800 });
+  const [orgCanvasSize, setOrgCanvasSize] = useState({ width: WIDE_ORG_CANVAS_MIN_WIDTH, height: WIDE_ORG_CANVAS_MIN_HEIGHT });
   const [isOrgPanning, setIsOrgPanning] = useState(false);
   const profileUsers = getProfiles();
   const canEditOrg = canManageOrgChart(currentUser);
@@ -5516,10 +5519,10 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
     const isVerticalTree = orgTreeOrientation === "vertical";
     const width = isVerticalTree
       ? Math.max(canvas.scrollWidth, scroller.clientWidth, 980)
-      : Math.max(canvas.scrollWidth, scroller.clientWidth * 3, 3200);
+      : Math.max(canvas.scrollWidth, scroller.clientWidth, WIDE_ORG_CANVAS_MIN_WIDTH);
     const height = isVerticalTree
       ? Math.max(canvas.scrollHeight, scroller.clientHeight * 2, 1600)
-      : Math.max(canvas.scrollHeight, scroller.clientHeight * 3, 1800);
+      : Math.max(canvas.scrollHeight, scroller.clientHeight, WIDE_ORG_CANVAS_MIN_HEIGHT);
     setOrgCanvasSize(current => (
       Math.abs(current.width - width) > 2 || Math.abs(current.height - height) > 2
         ? { width, height }
@@ -6422,8 +6425,8 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
           ) : <div
             className={`org-tree-canvas-viewport ${orgTreeOrientation === "vertical" ? "vertical-tree" : "wide-tree"}`}
             style={{
-              width: `${Math.max(orgCanvasSize.width * orgZoom, orgTreeOrientation === "vertical" ? 980 : 3200)}px`,
-              height: `${Math.max(orgCanvasSize.height * orgZoom, orgTreeOrientation === "vertical" ? 1600 : 1800)}px`,
+              width: `${Math.max(orgCanvasSize.width * orgZoom, orgTreeOrientation === "vertical" ? 980 : WIDE_ORG_CANVAS_MIN_WIDTH)}px`,
+              height: `${Math.max(orgCanvasSize.height * orgZoom, orgTreeOrientation === "vertical" ? 1600 : WIDE_ORG_CANVAS_MIN_HEIGHT)}px`,
             }}
           >
             <div
