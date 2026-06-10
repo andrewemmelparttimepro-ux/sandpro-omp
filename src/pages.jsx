@@ -2111,7 +2111,7 @@ const classifyNcrFailure = (report = {}) => {
       code: matched.code,
       label: matched.label,
       confidence: matched.code.includes('VALVE') || matched.code === 'HRU' ? 0.9 : 0.72,
-      reason: 'Matched Tim provisional taxonomy alias.',
+      reason: 'Matched Tim provisional failure grouping.',
     };
   }
   const fallback = report.rootCauseCodes || report.eventType || 'Unclassified';
@@ -2119,7 +2119,7 @@ const classifyNcrFailure = (report = {}) => {
     code: normalizeFailureText(fallback).replace(/\s+/g, '_').toUpperCase().slice(0, 40) || 'UNCLASSIFIED',
     label: fallback,
     confidence: fallback === 'Unclassified' ? 0.25 : 0.55,
-    reason: 'Needs Tim taxonomy review.',
+    reason: 'Needs Tim failure grouping review.',
   };
 };
 
@@ -3945,7 +3945,6 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                   <label className={ncrRequiredFieldClass(selectedReport, 'internalExternal')}><NcrRequiredLabel>Internal / External</NcrRequiredLabel><select required value={selectedReport.internalExternal || ''} onChange={event => updateSelectedField({ internalExternal: event.target.value }, 'source type updated')}><option value="">Unspecified</option>{NCR_INTERNAL_EXTERNAL.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                   <label className={ncrRequiredFieldClass(selectedReport, 'criticality')}><NcrRequiredLabel>Criticality</NcrRequiredLabel><select required value={selectedReport.criticality || selectedReport.severity || ''} onChange={event => updateSelectedField({ criticality: event.target.value }, 'criticality updated')}><option value="">Unspecified</option>{NCR_CRITICALITY.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                   <label><span>Estimated Cost</span><input type="number" min="0" step="0.01" defaultValue={selectedReport.estimatedCost ?? ''} onBlur={event => updateSelectedField({ estimatedCost: event.target.value }, 'estimated cost updated')} /></label>
-                  <label><span>Failure Taxonomy</span><input defaultValue={selectedReport.normalizedFailureSummary || classifyNcrFailure(selectedReport).label} onBlur={event => updateSelectedField({ normalizedFailureSummary: event.target.value }, 'failure taxonomy updated')} /></label>
                 </div>
                 <div className={`ncr-checkbox-cloud ncr-required-field${isNcrRequiredFieldMissing(selectedReport, 'eventType') ? ' ncr-required-missing' : ''}`}>
                   <NcrRequiredLabel>Type of Event</NcrRequiredLabel>
@@ -4275,7 +4274,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                     ))}
                   </div>
                   {(analyticsAiResult.caveats || []).length > 0 && <small className="ncr-ai-caveat">{analyticsAiResult.caveats[0]}</small>}
-                  <small className="ncr-ai-mode">{analyticsAiResult.mode === 'openai' ? 'Answered by NCR AI from the live report set.' : 'Answered by the built-in failure taxonomy (AI unavailable).'}</small>
+                  <small className="ncr-ai-mode">{analyticsAiResult.mode === 'openai' ? 'Answered by NCR AI from the live report set.' : 'Answered by the built-in failure grouping (AI unavailable).'}</small>
                 </>
               ) : (
                 <>

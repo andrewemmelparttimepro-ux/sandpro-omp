@@ -62,7 +62,7 @@ export const NCR_GLOSSARY = [
       { id: 'npt_amount', term: 'NPT Amount', def: 'How much downtime, in hours. Feeds the NPT Amount analytics buckets.' },
       { id: 'estimated_cost', term: 'Estimated Cost', def: 'Best estimate of the dollar impact (parts, labor, downtime, concessions).' },
       { id: 'root_cause_codes', term: 'Root Cause Codes', def: 'The standardized cause category (Not Following SOP, Faulty Equipment, Inadequate Training, ...) so causes can be trended across NCRs. "Unknown / Pending RCA" means analysis isn’t done.' },
-      { id: 'failure_taxonomy', term: 'Failure Taxonomy', aka: ['Normalized Failure', 'Failure Group'], def: 'OMP’s normalized failure language. Free-text descriptions get grouped into consistent failure families (e.g. "710 valve failure", "HRU failure") so the same failure is counted the same way every time, no matter how it was written up.' },
+      { id: 'failure_taxonomy', term: 'Failure Grouping', aka: ['Normalized Failure', 'Failure Group'], def: 'How OMP groups free-text issue descriptions into consistent failure families (e.g. "710 valve failure", "HRU failure") so repeated issues can be counted together.' },
       { id: 'disposition', term: 'Disposition', def: 'What was decided about the affected product: Use as-is, Rework, Repair, Scrap, Return, Hold, or Customer concession.' },
       { id: 'follow_ups', term: 'Follow-Ups', def: 'The count of follow-up actions recorded on the NCR, plus the next follow-up due date. Drives the Past Due and Due Within 7 Days flags.' },
     ],

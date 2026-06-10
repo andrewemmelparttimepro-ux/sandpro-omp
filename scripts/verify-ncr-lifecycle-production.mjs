@@ -406,7 +406,7 @@ try {
   assertOk(report?.criticality === 'Critical', 'KPA criticality field did not save.');
   assertOk(report?.root_cause_codes === 'Faulty Equipment', 'KPA root cause code did not save.');
   assertOk(Number(report?.estimated_cost) === 1250, 'KPA estimated cost did not save.');
-  assertOk(Boolean(report?.normalized_failure_summary), 'NCR failure taxonomy summary missing.');
+  assertOk(Boolean(report?.normalized_failure_summary), 'NCR failure grouping summary missing.');
   assertOk((actionCount || 0) >= 1, 'Native NCR action item was not saved.');
   assertOk((attachments.length || 0) >= 1, 'NCR evidence attachment was not saved.');
   assertOk((signatureCount || 0) >= 2, 'NCR department manager and executive signatures were not both saved.');

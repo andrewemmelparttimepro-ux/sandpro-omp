@@ -51,9 +51,14 @@ test('NCR detail rail exposes event photo thumbnails and picture upload', () => 
 
 test('NCR header section is not branded as KPA-only', () => {
   const pages = read('src/pages.jsx');
+  const glossary = read('src/glossaryData.js');
 
   assert.match(pages, /<h3>Header \+ Classification<\/h3>/);
   assert.doesNotMatch(pages, /KPA Header \+ Classification/);
+  assert.doesNotMatch(pages, /<span>Failure Taxonomy<\/span>/);
+  assert.doesNotMatch(pages, /failure taxonomy updated/);
+  assert.match(glossary, /term: 'Failure Grouping'/);
+  assert.doesNotMatch(glossary, /term: 'Failure Taxonomy'/);
 });
 
 test('NCR intake requires primary group affected and highlights mandatory fields', () => {
