@@ -2485,8 +2485,8 @@ const NCR_SIGNATURE_ROLE_LABELS = {
   department_manager: 'Department manager signoff',
   management: 'Department manager signoff',
   reviewer: 'Reviewer signoff',
-  executive: 'Executive signoff',
-  final_management: 'Executive signoff',
+  executive: 'Senior management agreement',
+  final_management: 'Senior management agreement',
 };
 
 const getNcrSignatureRoleLabel = (role = '') => (
@@ -2602,7 +2602,7 @@ const NcrSignatureLevels = ({ report, people = [] }) => {
     },
     {
       key: 'executive',
-      label: 'Executive signoff',
+      label: 'Senior management agreement',
       roles: NCR_EXECUTIVE_SIGNATURE_ROLES,
       fallbackId: report?.finalManagementSignoffId,
     },
@@ -2898,7 +2898,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       openActions.length > 0 && `${openActions.length} corrective action item${openActions.length === 1 ? '' : 's'} still open.`,
       !report.effectivenessSummary?.trim() && 'Effectiveness verification summary is required.',
       !hasNcrSignatureRole(signatures, NCR_DEPARTMENT_MANAGER_SIGNATURE_ROLES) && 'Department manager signoff is required.',
-      !hasNcrSignatureRole(signatures, NCR_EXECUTIVE_SIGNATURE_ROLES) && 'Executive signoff is required.',
+      !hasNcrSignatureRole(signatures, NCR_EXECUTIVE_SIGNATURE_ROLES) && 'Senior management review and agreement is required.',
     ].filter(Boolean);
   };
 
@@ -3807,7 +3807,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <div className="ncr-signature-create">
                   <select value={signatureDraft.role} onChange={event => setSignatureDraft(prev => ({ ...prev, role: event.target.value }))}>
                     <option value="department_manager">Department manager signoff</option>
-                    <option value="executive">Executive signoff</option>
+                    <option value="executive">Senior management agreement</option>
                     <option value="author">Author signoff</option>
                     <option value="reviewer">Reviewer signoff</option>
                   </select>

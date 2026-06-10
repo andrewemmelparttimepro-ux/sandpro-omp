@@ -302,7 +302,7 @@ try {
   await signatureSection.scrollIntoViewIfNeeded();
   await signatureSection.locator('select').first().waitFor({ state: 'visible', timeout: 30000 });
   await signatureSection.locator('select').first().selectOption('executive');
-  await signatureSection.locator('input[placeholder="Typed signature name"]').fill('Production NCR QA Executive');
+  await signatureSection.locator('input[placeholder="Typed signature name"]').fill('Production NCR QA Senior Management');
   await signatureSection.getByRole('button', { name: /Capture signoff/i }).click();
   let savedSignatureRoles = new Set();
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -323,7 +323,7 @@ try {
   await page.locator('.ncr-detail-panel').getByText(reportNumber).waitFor({ timeout: 30000 });
   await page.locator('.ncr-action-row').filter({ hasText: 'Verify supplier paperwork' }).waitFor({ timeout: 30000 });
   await page.locator('.ncr-signature-row').filter({ hasText: 'Department manager signoff' }).waitFor({ state: 'attached', timeout: 30000 });
-  await page.locator('.ncr-signature-row').filter({ hasText: 'Executive signoff' }).waitFor({ state: 'attached', timeout: 30000 });
+  await page.locator('.ncr-signature-row').filter({ hasText: 'Senior management agreement' }).waitFor({ state: 'attached', timeout: 30000 });
   await page.getByRole('button', { name: /Approve closure/i }).click();
 
   let closureState = null;
