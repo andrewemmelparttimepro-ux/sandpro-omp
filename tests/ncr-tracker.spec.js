@@ -40,7 +40,7 @@ test.describe('NCR tracker', () => {
       await page.locator('label:has-text("Follow-Up Count") input').fill('1');
       await page.locator('label:has-text("Follow-Up Due Date") input').fill(new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10));
       await page.locator('label:has-text("Event Description") textarea').fill('Temporary NCR UI creation validation event.');
-      await page.locator('label:has-text("Root Cause Analysis") textarea').fill('Temporary QA root cause.');
+      await page.locator('label:has-text("Root Cause Analysis") select').selectOption('Process Gap');
       await page.locator('label:has-text("Immediate Action") textarea').fill('Contain temporary test record.');
       await page.locator('label:has-text("Permanent Action") textarea').fill('Remove temporary record after validation.');
       await page.getByRole('button', { name: /^Create NCR$/i }).click();

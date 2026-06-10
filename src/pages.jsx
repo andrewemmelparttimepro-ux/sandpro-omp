@@ -2378,76 +2378,110 @@ const isNcrPastDue = (report) => {
   return new Date(`${report.followUpDueDate}T23:59:59`) < new Date();
 };
 
-const buildDefaultNcrDraft = (currentUser) => {
+const NCR_SEQUENCE_FALLBACK_START = 82000001;
+
+const getNcrReportSequenceParts = (value) => {
+  const match = String(value || '').trim().match(/^(\d+)$/);
+  if (!match) return null;
+  return {
+    number: Number(match[1]),
+    width: match[1].length,
+  };
+};
+
+const getNextNcrReportNumber = (reports = []) => {
+  const candidates = reports
+    .map(report => getNcrReportSequenceParts(report?.reportNumber))
+    .filter(parts => parts && Number.isSafeInteger(parts.number));
+
+  if (!candidates.length) return String(NCR_SEQUENCE_FALLBACK_START);
+
+  const latest = candidates.reduce((best, candidate) => (
+    candidate.number > best.number ? candidate : best
+  ), candidates[0]);
+
+  return String(latest.number + 1).padStart(latest.width, '0');
+};
+
+const getNcrRootCauseValue = (report = {}) => String(report.rootCauseCodes || report.rootCauseAnalysis || '').trim();
+
+const getNcrRootCauseOptions = (currentValue = '') => {
+  const value = String(currentValue || '').trim();
+  return value && !NCR_ROOT_CAUSE_CODES.includes(value)
+    ? [value, ...NCR_ROOT_CAUSE_CODES]
+    : NCR_ROOT_CAUSE_CODES;
+};
+
+const buildDefaultNcrDraft = (currentUser, reports = []) => {
   const defaultDepartment = sanitizeNcrDepartmentList([currentUser?.department])[0] || '';
   return ({
-  reportNumber: '',
-  sourceSheet: '',
-  sourceLink: '',
-  reportDate: new Date().toISOString().slice(0, 10),
-  observer: currentUser?.name || '',
-  followUpCount: 0,
-  followUpDetails: '',
-  followUpDueDate: '',
-  worksiteArea: '',
-  operatorLocation: '',
-  eventAt: '',
-  internalExternal: 'Internal',
-  eventType: '',
-  eventTypes: [],
-  nonProductiveTime: 'No',
-  nonProductiveTimeAmount: '',
-  estimatedCost: '',
-  author: currentUser?.name || '',
-  authorId: currentUser?.id || '',
-  personnelInvolved: '',
-  personnelInvolvedIds: [],
-  eventDescription: '',
-  severity: 'Non-Critical',
-  criticality: 'Non-Critical',
-  rootCauseCodes: '',
-  rootCauseAnalysis: '',
-  immediateAction: '',
-  timeFrameForAction: '',
-  permanentAction: '',
-  affectedDepartments: defaultDepartment,
-  affectedDepartmentList: defaultDepartment ? [defaultDepartment] : [],
-  departmentGroup: defaultDepartment,
-  longTermFollowUp: '',
-  actionEffective: '',
-  dateInitialCorrectiveAction: '',
-  datePermanentCorrectiveActionCompleted: '',
-  dateOfReview: '',
-  dateOfSignOff: '',
-  signedOffByManagementId: '',
-  reviewedById: '',
-  finalManagementSignoffId: '',
-  sourceSystem: 'OMP',
-  sourceRecordId: '',
-  sourceBatchId: '',
-  sourceRawRecord: {},
-  canonicalFailureCode: '',
-  normalizedFailureSummary: '',
-  aiConfidence: '',
-  aiClassificationReason: '',
-  lifecycleStage: 'draft',
-  ownerId: currentUser?.id || '',
-  reviewerId: '',
-  verifierId: '',
-  containmentRequired: false,
-  containmentSummary: '',
-  affectedProduct: '',
-  affectedEquipment: '',
-  affectedJob: '',
-  disposition: '',
-  dispositionNotes: '',
-  effectivenessSummary: '',
-  recurrencePrevented: '',
-  repeatIssue: '',
-  customerApprovalRequired: false,
-  customerApprovalStatus: '',
-  status: 'open',
-});
+    reportNumber: getNextNcrReportNumber(reports),
+    sourceSheet: '',
+    sourceLink: '',
+    reportDate: new Date().toISOString().slice(0, 10),
+    observer: currentUser?.name || '',
+    followUpCount: 0,
+    followUpDetails: '',
+    followUpDueDate: '',
+    worksiteArea: '',
+    operatorLocation: '',
+    eventAt: '',
+    internalExternal: 'Internal',
+    eventType: '',
+    eventTypes: [],
+    nonProductiveTime: 'No',
+    nonProductiveTimeAmount: '',
+    estimatedCost: '',
+    author: currentUser?.name || '',
+    authorId: currentUser?.id || '',
+    personnelInvolved: '',
+    personnelInvolvedIds: [],
+    eventDescription: '',
+    severity: 'Non-Critical',
+    criticality: 'Non-Critical',
+    rootCauseCodes: '',
+    rootCauseAnalysis: '',
+    immediateAction: '',
+    timeFrameForAction: '',
+    permanentAction: '',
+    affectedDepartments: defaultDepartment,
+    affectedDepartmentList: defaultDepartment ? [defaultDepartment] : [],
+    departmentGroup: defaultDepartment,
+    longTermFollowUp: '',
+    actionEffective: '',
+    dateInitialCorrectiveAction: '',
+    datePermanentCorrectiveActionCompleted: '',
+    dateOfReview: '',
+    dateOfSignOff: '',
+    signedOffByManagementId: '',
+    reviewedById: '',
+    finalManagementSignoffId: '',
+    sourceSystem: 'OMP',
+    sourceRecordId: '',
+    sourceBatchId: '',
+    sourceRawRecord: {},
+    canonicalFailureCode: '',
+    normalizedFailureSummary: '',
+    aiConfidence: '',
+    aiClassificationReason: '',
+    lifecycleStage: 'draft',
+    ownerId: currentUser?.id || '',
+    reviewerId: '',
+    verifierId: '',
+    containmentRequired: false,
+    containmentSummary: '',
+    affectedProduct: '',
+    affectedEquipment: '',
+    affectedJob: '',
+    disposition: '',
+    dispositionNotes: '',
+    effectivenessSummary: '',
+    recurrencePrevented: '',
+    repeatIssue: '',
+    customerApprovalRequired: false,
+    customerApprovalStatus: '',
+    status: 'open',
+  });
 };
 
 const NcrBreakdownCard = ({ icon: Icon, title, rows = [] }) => {
@@ -2530,7 +2564,7 @@ const NcrEventPhotoStrip = ({ report, onUpload, uploading }) => {
         </div>
         <label className="btn btn-secondary btn-xs ncr-event-photo-add">
           <Image size={12} /> {uploading ? 'Uploading...' : 'Add photos'}
-          <input type="file" accept={NCR_PHOTO_ACCEPT} multiple onChange={event => onUpload?.(event, 'pictures')} disabled={uploading} hidden />
+          <input type="file" accept={NCR_PHOTO_ACCEPT} capture="environment" multiple onChange={event => onUpload?.(event, 'pictures')} disabled={uploading} hidden />
         </label>
       </div>
       {imageFiles.length > 0 ? (
@@ -2583,7 +2617,7 @@ const NcrEvidencePanel = ({ report, onUpload, uploading }) => {
         {NCR_EVIDENCE_PURPOSES.map(purpose => (
           <label key={purpose} className="btn btn-secondary btn-xs ncr-upload-button">
             <Upload size={12} /> {uploading ? 'Uploading...' : purpose.replaceAll('_', ' ')}
-            <input type="file" accept={purpose === 'pictures' ? NCR_PHOTO_ACCEPT : undefined} multiple onChange={event => onUpload?.(event, purpose)} disabled={uploading} hidden />
+            <input type="file" accept={purpose === 'pictures' ? NCR_PHOTO_ACCEPT : undefined} capture={purpose === 'pictures' ? 'environment' : undefined} multiple onChange={event => onUpload?.(event, purpose)} disabled={uploading} hidden />
           </label>
         ))}
       </div>
@@ -2687,7 +2721,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   const [saving, setSaving] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [createDraft, setCreateDraft] = useState(() => buildDefaultNcrDraft(currentUser));
+  const [createDraft, setCreateDraft] = useState(() => buildDefaultNcrDraft(currentUser, reports));
   const [actionDraft, setActionDraft] = useState({ title: '', ownerId: '', dueDate: '' });
   const [signatureDraft, setSignatureDraft] = useState({ role: 'department_manager', signedBy: currentUser?.id || '', signedByName: currentUser?.name || '', signatureDataUrl: '' });
   const [importPreview, setImportPreview] = useState([]);
@@ -2700,6 +2734,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const [createEvidenceFiles, setCreateEvidenceFiles] = useState([]);
   const [createEvidenceDragOver, setCreateEvidenceDragOver] = useState(false);
+  const [createModalPhotoFirst, setCreateModalPhotoFirst] = useState(false);
+  const createPhotoDropRef = useRef(null);
 
   useEffect(() => {
     setCreateDraft(prev => {
@@ -2716,6 +2752,14 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       };
     });
   }, [currentUser]);
+
+  useEffect(() => {
+    if (!showCreateModal || !createModalPhotoFirst) return undefined;
+    const timeout = setTimeout(() => {
+      createPhotoDropRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 75);
+    return () => clearTimeout(timeout);
+  }, [showCreateModal, createModalPhotoFirst]);
 
   const openReports = reports.filter(report => !report.closed && report.status !== 'closed');
   const closedReports = reports.filter(report => report.closed || report.status === 'closed');
@@ -3421,11 +3465,20 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     }
   };
 
-  const openCreateModal = () => {
-    setCreateDraft(buildDefaultNcrDraft(currentUser));
+  const refreshCreateReportNumber = () => {
+    setCreateDraft(prev => ({ ...prev, reportNumber: getNextNcrReportNumber(reports) }));
+  };
+
+  const openCreateModal = ({ photoFirst = false } = {}) => {
+    setCreateDraft(buildDefaultNcrDraft(currentUser, reports));
     setCreateEvidenceFiles([]);
     setCreateEvidenceDragOver(false);
+    setCreateModalPhotoFirst(photoFirst);
     setShowCreateModal(true);
+  };
+
+  const openCreateModalForPhotos = () => {
+    openCreateModal({ photoFirst: true });
   };
 
   const closeCreateModal = () => {
@@ -3433,6 +3486,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     setShowCreateModal(false);
     setCreateEvidenceFiles([]);
     setCreateEvidenceDragOver(false);
+    setCreateModalPhotoFirst(false);
   };
 
   const createReport = async () => {
@@ -3446,10 +3500,13 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       const classification = classifyNcrFailure(createDraft);
       const affectedDepartmentList = sanitizeNcrDepartmentList(createDraft.affectedDepartmentList || []);
       const queuedPhotos = createEvidenceFiles;
+      const selectedRootCause = getNcrRootCauseValue(createDraft);
       const created = await onCreateReport({
         ...createDraft,
         reportNumber: createDraft.reportNumber.trim(),
         eventType: createDraft.eventTypes?.[0] || createDraft.eventType,
+        rootCauseCodes: selectedRootCause,
+        rootCauseAnalysis: selectedRootCause,
         affectedDepartmentList,
         affectedDepartments: affectedDepartmentList.join(', ') || sanitizeNcrDepartmentList(splitMultiValue(createDraft.affectedDepartments)).join(', '),
         departmentGroup: affectedDepartmentList[0] || sanitizeNcrDepartmentList([createDraft.departmentGroup])[0] || '',
@@ -3504,9 +3561,14 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           <p className="text-sm text-muted">Non-conformance reports, root causes, corrective actions, and assigned follow-up work.</p>
         </div>
         {onCreateReport && (
-          <button className="btn btn-primary" onClick={openCreateModal}>
-            <Plus size={14} /> New NCR
-          </button>
+          <div className="ncr-header-actions">
+            <button className="btn btn-primary" onClick={() => openCreateModal()}>
+              <Plus size={14} /> New NCR
+            </button>
+            <button className="btn btn-secondary ncr-mobile-photo-entry" onClick={openCreateModalForPhotos}>
+              <Camera size={14} /> Take / add photo to NCR
+            </button>
+          </div>
         )}
       </div>
       <div className="ncr-controls-row">
@@ -3708,7 +3770,6 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                   <label><span>Internal / External</span><select value={selectedReport.internalExternal || ''} onChange={event => updateSelectedField({ internalExternal: event.target.value }, 'source type updated')}><option value="">Unspecified</option>{NCR_INTERNAL_EXTERNAL.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                   <label><span>Criticality</span><select value={selectedReport.criticality || selectedReport.severity || ''} onChange={event => updateSelectedField({ criticality: event.target.value }, 'criticality updated')}><option value="">Unspecified</option>{NCR_CRITICALITY.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                   <label><span>Estimated Cost</span><input type="number" min="0" step="0.01" defaultValue={selectedReport.estimatedCost ?? ''} onBlur={event => updateSelectedField({ estimatedCost: event.target.value }, 'estimated cost updated')} /></label>
-                  <label><span>Root Cause Code</span><select value={selectedReport.rootCauseCodes || ''} onChange={event => updateSelectedField({ rootCauseCodes: event.target.value }, 'root cause code updated')}><option value="">Unspecified</option>{NCR_ROOT_CAUSE_CODES.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                   <label><span>Failure Taxonomy</span><input defaultValue={selectedReport.normalizedFailureSummary || classifyNcrFailure(selectedReport).label} onBlur={event => updateSelectedField({ normalizedFailureSummary: event.target.value }, 'failure taxonomy updated')} /></label>
                 </div>
                 <div className="ncr-checkbox-cloud">
@@ -3747,7 +3808,22 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               </div>
               <div className="ncr-section">
                 <h3>Root Cause</h3>
-                <textarea rows={4} defaultValue={selectedReport.rootCauseAnalysis || selectedReport.rootCauseCodes || ''} onBlur={event => updateSelectedField({ rootCauseAnalysis: event.target.value, lifecycleStage: selectedReport.lifecycleStage === 'submitted' ? 'root_cause' : selectedReport.lifecycleStage }, 'root cause updated')} placeholder="5-Why, fishbone, process/equipment/personnel/material causes..." />
+                <div className="org-edit-grid ncr-root-cause-grid">
+                  <label>
+                    <span>Root Cause Analysis</span>
+                    <select
+                      value={getNcrRootCauseValue(selectedReport)}
+                      onChange={event => updateSelectedField({
+                        rootCauseCodes: event.target.value,
+                        rootCauseAnalysis: event.target.value,
+                        lifecycleStage: selectedReport.lifecycleStage === 'submitted' ? 'root_cause' : selectedReport.lifecycleStage,
+                      }, 'root cause updated')}
+                    >
+                      <option value="">Unspecified</option>
+                      {getNcrRootCauseOptions(getNcrRootCauseValue(selectedReport)).map(value => <option key={value} value={value}>{value}</option>)}
+                    </select>
+                  </label>
+                </div>
               </div>
               <div className="ncr-section">
                 <h3>Corrective Actions</h3>
@@ -4194,7 +4270,20 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
             </div>
             <div style={{ padding: 16 }}>
               <div className="org-edit-grid">
-                <label><span>Report Number</span><input value={createDraft.reportNumber} onChange={event => setCreateDraft(prev => ({ ...prev, reportNumber: event.target.value }))} placeholder="82009999" autoFocus /></label>
+                <div className="ncr-report-number-field">
+                  <label>
+                    <span>Report Number</span>
+                    <input
+                      value={createDraft.reportNumber}
+                      onChange={event => setCreateDraft(prev => ({ ...prev, reportNumber: event.target.value }))}
+                      placeholder={getNextNcrReportNumber(reports)}
+                      autoFocus
+                    />
+                  </label>
+                  <button type="button" className="btn btn-secondary btn-xs" onClick={refreshCreateReportNumber} aria-label="Use next NCR report number">
+                    <RefreshCw size={12} /> Auto #
+                  </button>
+                </div>
                 <label><span>Report Date</span><input type="date" value={createDraft.reportDate} onChange={event => setCreateDraft(prev => ({ ...prev, reportDate: event.target.value }))} /></label>
                 <label><span>Observer</span><input value={createDraft.observer} onChange={event => setCreateDraft(prev => ({ ...prev, observer: event.target.value }))} /></label>
                 <label><span>Author</span><input value={createDraft.author} onChange={event => setCreateDraft(prev => ({ ...prev, author: event.target.value }))} /></label>
@@ -4218,7 +4307,21 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label><span>Source Sheet</span><input value={createDraft.sourceSheet} onChange={event => setCreateDraft(prev => ({ ...prev, sourceSheet: event.target.value }))} /></label>
                 <label><span>Source Link</span><input value={createDraft.sourceLink} onChange={event => setCreateDraft(prev => ({ ...prev, sourceLink: event.target.value }))} placeholder="https://..." /></label>
                 <label><span>Personnel Involved</span><input value={createDraft.personnelInvolved} onChange={event => setCreateDraft(prev => ({ ...prev, personnelInvolved: event.target.value }))} /></label>
-                <label><span>Root Cause Codes</span><select value={createDraft.rootCauseCodes} onChange={event => setCreateDraft(prev => ({ ...prev, rootCauseCodes: event.target.value }))}><option value="">Unspecified</option>{NCR_ROOT_CAUSE_CODES.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                <label>
+                  <span>Root Cause Analysis</span>
+                  <select
+                    value={getNcrRootCauseValue(createDraft)}
+                    onChange={event => setCreateDraft(prev => ({
+                      ...prev,
+                      rootCauseCodes: event.target.value,
+                      rootCauseAnalysis: event.target.value,
+                      lifecycleStage: prev.lifecycleStage === 'submitted' ? 'root_cause' : prev.lifecycleStage,
+                    }))}
+                  >
+                    <option value="">Unspecified</option>
+                    {getNcrRootCauseOptions(getNcrRootCauseValue(createDraft)).map(value => <option key={value} value={value}>{value}</option>)}
+                  </select>
+                </label>
                 <label><span>Affected Product</span><input value={createDraft.affectedProduct} onChange={event => setCreateDraft(prev => ({ ...prev, affectedProduct: event.target.value }))} /></label>
                 <label><span>Affected Equipment</span><input value={createDraft.affectedEquipment} onChange={event => setCreateDraft(prev => ({ ...prev, affectedEquipment: event.target.value }))} /></label>
                 <label><span>Affected Job</span><input value={createDraft.affectedJob} onChange={event => setCreateDraft(prev => ({ ...prev, affectedJob: event.target.value }))} /></label>
@@ -4229,6 +4332,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label><span>Date of Sign-off</span><input type="date" value={createDraft.dateOfSignOff} onChange={event => setCreateDraft(prev => ({ ...prev, dateOfSignOff: event.target.value }))} /></label>
               </div>
               <div
+                ref={createPhotoDropRef}
                 className={`ncr-create-photo-drop ${createEvidenceDragOver ? 'drag-over' : ''}`}
                 onDragEnter={handleCreateEvidenceDrag}
                 onDragOver={handleCreateEvidenceDrag}
@@ -4249,6 +4353,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                     <input
                       type="file"
                       accept={NCR_PHOTO_ACCEPT}
+                      capture="environment"
                       multiple
                       hidden
                       disabled={creating}
@@ -4300,7 +4405,6 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label><span className="text-xs text-muted">Containment Summary</span><textarea rows={3} value={createDraft.containmentSummary} onChange={event => setCreateDraft(prev => ({ ...prev, containmentSummary: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Disposition Notes</span><textarea rows={2} value={createDraft.dispositionNotes} onChange={event => setCreateDraft(prev => ({ ...prev, dispositionNotes: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Follow-Up Details</span><textarea rows={3} value={createDraft.followUpDetails} onChange={event => setCreateDraft(prev => ({ ...prev, followUpDetails: event.target.value }))} /></label>
-                <label><span className="text-xs text-muted">Root Cause Analysis</span><textarea rows={3} value={createDraft.rootCauseAnalysis} onChange={event => setCreateDraft(prev => ({ ...prev, rootCauseAnalysis: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Immediate Action</span><textarea rows={3} value={createDraft.immediateAction} onChange={event => setCreateDraft(prev => ({ ...prev, immediateAction: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Permanent Action</span><textarea rows={3} value={createDraft.permanentAction} onChange={event => setCreateDraft(prev => ({ ...prev, permanentAction: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Long-Term Follow-Up</span><textarea rows={3} value={createDraft.longTermFollowUp} onChange={event => setCreateDraft(prev => ({ ...prev, longTermFollowUp: event.target.value }))} /></label>
