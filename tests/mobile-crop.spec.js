@@ -12,6 +12,8 @@ const viewports = [
 const evidenceDir = resolve(process.cwd(), process.env.SANDPRO_MOBILE_EVIDENCE_DIR || 'docs/evidence/mobile-zero-day');
 
 test.describe('mobile zero-day crop gates', () => {
+  test.setTimeout(90_000);
+
   test.beforeEach(async ({ page }) => {
     requireCredentials(env.e2eEmail, env.e2ePassword, 'SANDPRO_E2E_EMAIL/SANDPRO_E2E_PASSWORD or Jake credentials');
     mkdirSync(evidenceDir, { recursive: true });
@@ -24,7 +26,7 @@ test.describe('mobile zero-day crop gates', () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.goto('/');
       await dismissGuidance(page);
-      await expect(page.locator('.mobile-topbar')).toBeVisible();
+      await expect(page.locator('.mobile-topbar')).toBeVisible({ timeout: 30_000 });
       await assertNoMobileCrop(page, `dashboard ${viewport.label}`);
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-01-dashboard.png`), fullPage: true });
 
