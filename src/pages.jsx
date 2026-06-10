@@ -5606,8 +5606,9 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       const scrollerRect = scroller.getBoundingClientRect();
       const treeRect = tree.getBoundingClientRect();
       const padding = 24;
+      const topPadding = 72;
       scroller.scrollLeft = Math.max(0, scroller.scrollLeft + treeRect.left - scrollerRect.left - padding);
-      scroller.scrollTop = Math.max(0, scroller.scrollTop + treeRect.top - scrollerRect.top - padding);
+      scroller.scrollTop = Math.max(0, scroller.scrollTop + treeRect.top - scrollerRect.top - topPadding);
 
       const visibleNodes = [
         ...canvas.querySelectorAll('.org-root-drop'),
@@ -5621,8 +5622,8 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       if (leftMostNode.left < scrollerRect.left + padding) {
         scroller.scrollLeft = Math.max(0, scroller.scrollLeft + leftMostNode.left - scrollerRect.left - padding);
       }
-      if (topMostNode.top < scrollerRect.top + padding) {
-        scroller.scrollTop = Math.max(0, scroller.scrollTop + topMostNode.top - scrollerRect.top - padding);
+      if (topMostNode.top < scrollerRect.top + topPadding) {
+        scroller.scrollTop = Math.max(0, scroller.scrollTop + topMostNode.top - scrollerRect.top - topPadding);
       }
     };
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
