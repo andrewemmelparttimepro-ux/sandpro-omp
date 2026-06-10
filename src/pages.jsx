@@ -5609,18 +5609,20 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       scroller.scrollLeft = Math.max(0, scroller.scrollLeft + treeRect.left - scrollerRect.left - padding);
       scroller.scrollTop = Math.max(0, scroller.scrollTop + treeRect.top - scrollerRect.top - padding);
 
-      const visibleCards = [...tree.querySelectorAll('.org-person-card')]
-        .map(card => card.getBoundingClientRect())
+      const visibleNodes = [
+        ...canvas.querySelectorAll('.org-root-drop'),
+        ...tree.querySelectorAll('.org-person-card'),
+      ].map(node => node.getBoundingClientRect())
         .filter(rect => rect.width > 0 && rect.height > 0);
-      if (!visibleCards.length) return;
+      if (!visibleNodes.length) return;
 
-      const leftMostCard = visibleCards.reduce((leftMost, rect) => (rect.left < leftMost.left ? rect : leftMost), visibleCards[0]);
-      const topMostCard = visibleCards.reduce((topMost, rect) => (rect.top < topMost.top ? rect : topMost), visibleCards[0]);
-      if (leftMostCard.left < scrollerRect.left + padding) {
-        scroller.scrollLeft = Math.max(0, scroller.scrollLeft + leftMostCard.left - scrollerRect.left - padding);
+      const leftMostNode = visibleNodes.reduce((leftMost, rect) => (rect.left < leftMost.left ? rect : leftMost), visibleNodes[0]);
+      const topMostNode = visibleNodes.reduce((topMost, rect) => (rect.top < topMost.top ? rect : topMost), visibleNodes[0]);
+      if (leftMostNode.left < scrollerRect.left + padding) {
+        scroller.scrollLeft = Math.max(0, scroller.scrollLeft + leftMostNode.left - scrollerRect.left - padding);
       }
-      if (topMostCard.top < scrollerRect.top + padding) {
-        scroller.scrollTop = Math.max(0, scroller.scrollTop + topMostCard.top - scrollerRect.top - padding);
+      if (topMostNode.top < scrollerRect.top + padding) {
+        scroller.scrollTop = Math.max(0, scroller.scrollTop + topMostNode.top - scrollerRect.top - padding);
       }
     };
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
