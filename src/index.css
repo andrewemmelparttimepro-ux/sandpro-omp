@@ -3463,6 +3463,104 @@ select:focus-visible,
   white-space: nowrap;
 }
 
+.ncr-event-photos {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px;
+  border: 1px solid rgba(var(--sandpro-orange-rgb), 0.22);
+  border-radius: 8px;
+  background: rgba(var(--sandpro-orange-rgb), 0.045);
+}
+
+.ncr-event-photos-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ncr-event-photos-head strong,
+.ncr-event-photos-head span {
+  display: block;
+}
+
+.ncr-event-photos-head strong {
+  color: var(--accent-10);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.ncr-event-photos-head span {
+  margin-top: 2px;
+  color: var(--accent-7);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ncr-event-photo-add {
+  flex: 0 0 auto;
+}
+
+.ncr-event-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ncr-event-photo-thumb {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--accent-5);
+  border-radius: 8px;
+  background: var(--accent-1);
+  color: var(--accent-9);
+  text-decoration: none;
+}
+
+.ncr-event-photo-thumb img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #fff;
+}
+
+.ncr-event-photo-thumb span {
+  display: block;
+  overflow: hidden;
+  padding: 6px 7px;
+  color: var(--accent-8);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ncr-event-photo-more,
+.ncr-event-photo-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  border: 1px dashed var(--accent-5);
+  border-radius: 8px;
+  color: var(--accent-7);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ncr-event-photo-empty {
+  justify-content: flex-start;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
 .ncr-section {
   padding: 12px 0;
   border-top: 1px solid var(--accent-4);

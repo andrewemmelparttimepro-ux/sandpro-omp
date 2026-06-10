@@ -2494,9 +2494,47 @@ const formatNcrPhotoFileSize = (bytes = 0) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const getNcrImageFiles = (report = {}) => (report.attachments || []).filter(isNcrImageAttachment);
+
+const NcrEventPhotoStrip = ({ report, onUpload, uploading }) => {
+  const imageFiles = getNcrImageFiles(report);
+  return (
+    <div className={`ncr-event-photos ${imageFiles.length === 0 ? 'empty' : ''}`}>
+      <div className="ncr-event-photos-head">
+        <div>
+          <strong>Event photos</strong>
+          <span>{imageFiles.length ? `${imageFiles.length} picture${imageFiles.length === 1 ? '' : 's'} attached` : 'No pictures attached yet'}</span>
+        </div>
+        <label className="btn btn-secondary btn-xs ncr-event-photo-add">
+          <Image size={12} /> {uploading ? 'Uploading...' : 'Add photos'}
+          <input type="file" accept={NCR_PHOTO_ACCEPT} multiple onChange={event => onUpload?.(event, 'pictures')} disabled={uploading} hidden />
+        </label>
+      </div>
+      {imageFiles.length > 0 ? (
+        <div className="ncr-event-photo-grid">
+          {imageFiles.slice(0, 4).map(file => (
+            <a key={file.id || file.url || file.name} href={file.url} target="_blank" rel="noreferrer" className="ncr-event-photo-thumb" aria-label={`Open ${file.name || 'NCR event photo'}`}>
+              <img src={file.url} alt={file.name || 'NCR event photo'} loading="lazy" />
+              <span>{file.name || 'NCR photo'}</span>
+            </a>
+          ))}
+          {imageFiles.length > 4 && (
+            <span className="ncr-event-photo-more">+{imageFiles.length - 4}</span>
+          )}
+        </div>
+      ) : (
+        <div className="ncr-event-photo-empty">
+          <Camera size={14} />
+          <span>No event photos yet.</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const NcrEvidencePanel = ({ report, onUpload, uploading }) => {
   const files = report?.attachments || [];
-  const imageFiles = files.filter(isNcrImageAttachment);
+  const imageFiles = getNcrImageFiles(report);
   return (
     <div className="ncr-section ncr-evidence-section">
       <h3>Pictures / Evidence</h3>
@@ -2522,7 +2560,7 @@ const NcrEvidencePanel = ({ report, onUpload, uploading }) => {
         {NCR_EVIDENCE_PURPOSES.map(purpose => (
           <label key={purpose} className="btn btn-secondary btn-xs ncr-upload-button">
             <Upload size={12} /> {uploading ? 'Uploading...' : purpose.replaceAll('_', ' ')}
-            <input type="file" onChange={event => onUpload?.(event, purpose)} disabled={uploading} hidden />
+            <input type="file" accept={purpose === 'pictures' ? NCR_PHOTO_ACCEPT : undefined} multiple onChange={event => onUpload?.(event, purpose)} disabled={uploading} hidden />
           </label>
         ))}
       </div>
@@ -2841,13 +2879,16 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   };
 
   const uploadEvidenceWithPurpose = async (event, purpose = 'evidence') => {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files || []).filter(Boolean);
     event.target.value = '';
-    if (!file || !selectedReport || !onUploadAttachment) return;
+    if (files.length === 0 || !selectedReport || !onUploadAttachment) return;
     setUploadingEvidence(true);
     try {
-      await onUploadAttachment(selectedReport.id, file, currentUser.id, purpose);
-      addToast?.({ type: 'success', message: `NCR ${purpose.replaceAll('_', ' ')} uploaded` });
+      for (const file of files) {
+        await onUploadAttachment(selectedReport.id, file, currentUser.id, purpose);
+      }
+      const label = purpose.replaceAll('_', ' ');
+      addToast?.({ type: 'success', message: `${files.length} NCR ${label} file${files.length === 1 ? '' : 's'} uploaded` });
     } catch (error) {
       addToast?.({ type: 'error', message: error.message || 'Could not upload NCR evidence' });
     } finally {
@@ -3591,6 +3632,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <div><span><DefinedTerm id="internal_external">Internal/External</DefinedTerm></span><strong>{selectedReport.internalExternal || '-'}</strong></div>
                 <div><span><DefinedTerm id="npt">NPT</DefinedTerm></span><strong>{selectedReport.nonProductiveTime || '-'}</strong></div>
               </div>
+
+              <NcrEventPhotoStrip report={selectedReport} onUpload={uploadEvidenceWithPurpose} uploading={uploadingEvidence} />
 
               {isAdvancedNcrView && <div className="ncr-section">
                 <h3>KPA Header + Classification</h3>
