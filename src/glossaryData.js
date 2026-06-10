@@ -27,7 +27,7 @@ export const NCR_GLOSSARY = [
     terms: [
       { id: 'stage_draft', term: 'Draft', def: 'Being written; not yet submitted into the workflow.' },
       { id: 'stage_submitted', term: 'Submitted', def: 'Logged and awaiting triage — no containment or root-cause work recorded yet.' },
-      { id: 'stage_containment', term: 'Containment Required', def: 'The problem needs to be immediately boxed in (hold, quarantine, customer notification) before deeper analysis. An NCR moves here automatically when "Immediate containment required" is checked.' },
+      { id: 'stage_containment', term: 'Containment Required', def: 'The problem needs to be immediately boxed in (hold, quarantine, customer notification) before deeper analysis. An NCR moves here automatically when "Immediate quarantine" is checked.' },
       { id: 'stage_root_cause', term: 'Root Cause', def: 'Root cause analysis (5-Why, fishbone, etc.) is in progress.' },
       { id: 'stage_corrective', term: 'Corrective Action', def: 'Permanent fixes are being implemented to prevent recurrence.' },
       { id: 'stage_effectiveness', term: 'Effectiveness Check', def: 'Verifying the corrective action actually prevented recurrence — the last gate before closure.' },

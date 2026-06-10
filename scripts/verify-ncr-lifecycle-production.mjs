@@ -195,7 +195,7 @@ try {
   await createModal.locator('label:has-text("Disposition") select').selectOption('Hold');
   await createModal.locator('.ncr-checkbox-cloud').filter({ hasText: 'Affected Departments' }).locator('label:has-text("Quality") input').check();
   await createModal.locator('label:has-text("Event Description") textarea').fill('Temporary production validation of the upgraded NCR lifecycle workflow.');
-  await createModal.locator('label:has-text("Immediate containment required") input[type="checkbox"]').check();
+  await createModal.locator('label:has-text("Immediate quarantine") input[type="checkbox"]').check();
   await createModal.locator('label:has-text("Containment Summary") textarea').fill('Temporary NCR lot was placed on hold pending verifier review.');
   await createModal.locator('label:has-text("Disposition Notes") textarea').fill('Hold disposition selected for temporary production QA evidence.');
   await createModal.locator('label:has-text("Root Cause Analysis") textarea').fill('Temporary QA root cause for lifecycle verification.');
