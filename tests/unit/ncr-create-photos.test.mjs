@@ -51,3 +51,19 @@ test('manual NCR creation auto-sequences report numbers and keeps root cause as 
   assert.match(styles, /\.ncr-report-number-field/);
   assert.match(styles, /\.ncr-root-cause-grid/);
 });
+
+test('NCR effectiveness fields use standard controlled yes/no outcomes', () => {
+  const pages = read('src/pages.jsx');
+  const hook = read('src/hooks/useSupabase.js');
+
+  assert.match(pages, /const NCR_YES_NO_OPTIONS = \['Yes', 'No'\]/);
+  assert.match(pages, /const normalizeNcrYesNo/);
+  assert.match(pages, /<span>Action Effective\?<\/span><NcrYesNoSelect/);
+  assert.match(pages, /Action effective yes\/no decision is required\./);
+  assert.match(pages, /Action is marked not effective; revise the corrective action before closure\./);
+  assert.doesNotMatch(pages, /<span className="text-xs text-muted">Action Effective<\/span><textarea/);
+  assert.match(pages, /actionEffective: normalizeNcrYesNo\(report\.actionEffective\)/);
+  assert.match(pages, /'Action Effective\?'/);
+  assert.match(hook, /recurrence_prevented: draft\.recurrencePrevented \?\? null/);
+  assert.match(hook, /effectiveness_checked_at: draft\.effectivenessCheckedAt \|\| null/);
+});

@@ -34,8 +34,8 @@ test.describe('NCR tracker', () => {
       await page.locator('label:has-text("Report Number") input').fill(reportNumber);
       await page.locator('label:has-text("Observer") input').fill('Production QA');
       await page.locator('label:has-text("Author") input').fill('Production QA');
-      await page.locator('label:has-text("Group") input').fill('Quality Control');
-      await page.locator('label:has-text("Event Type") input').fill('Process Loss');
+      await page.locator('label:has-text("Primary Group") select').selectOption('Quality');
+      await page.locator('label:has-text("Type of Event") select').first().selectOption('Process Loss');
       await page.locator('label:has-text("Criticality") select').selectOption('Critical');
       await page.locator('label:has-text("Follow-Up Count") input').fill('1');
       await page.locator('label:has-text("Follow-Up Due Date") input').fill(new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10));
@@ -57,7 +57,7 @@ test.describe('NCR tracker', () => {
           expect(data.status).toBe('open');
           expect(data.closed).toBe(false);
           expect(data.severity).toBe('Critical');
-          expect(data.department_group).toBe('Quality Control');
+          expect(data.department_group).toBe('Quality');
           expect(data.event_description).toContain('Temporary NCR UI creation validation event.');
           break;
         }

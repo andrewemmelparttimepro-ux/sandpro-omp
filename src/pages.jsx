@@ -1746,6 +1746,7 @@ const NCR_EVENT_TYPES = ['Equipment Failure', 'Process Loss', 'Substandard Condi
 const NCR_CRITICALITY = ['Critical', 'Non-Critical'];
 const NCR_DEPARTMENT_GROUPS = ['Shop', 'Service', 'CP', 'Sales', 'Automation', 'Quality', 'Safety', 'Admin'];
 const NCR_ACTION_TIMEFRAMES = ['Immediate', '24 hours', '48 hours', '7 days', '14 days', '30 days', 'Next shutdown', 'Customer directed'];
+const NCR_YES_NO_OPTIONS = ['Yes', 'No'];
 const NCR_ROOT_CAUSE_CODES = [
   'Not Following SOP',
   'Inadequate Commissioning',
@@ -1783,6 +1784,35 @@ const NCR_IGNORED_DEPARTMENT_GROUPS = new Set(['operations']);
 
 const getNcrStageLabel = (stage = '') => (
   NCR_LIFECYCLE_STAGES.find(item => item.id === stage)?.label || ncrStatusLabel({ status: stage })
+);
+
+const normalizeNcrYesNo = (value) => {
+  if (value === true) return 'Yes';
+  if (value === false) return 'No';
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) return '';
+  if (/^(no|n|false|0)$/.test(normalized) || /not effective|ineffective|failed|did not|not worked|not acceptable/.test(normalized)) return 'No';
+  if (/^(yes|y|true|1)$/.test(normalized) || /effective|worked|successful|passed|acceptable/.test(normalized)) return 'Yes';
+  return '';
+};
+
+const ncrYesNoToBoolean = (value) => {
+  const normalized = normalizeNcrYesNo(value);
+  if (normalized === 'Yes') return true;
+  if (normalized === 'No') return false;
+  return null;
+};
+
+const NcrYesNoSelect = ({ value, onChange, disabled = false, blankLabel = 'Select Yes or No', ariaLabel }) => (
+  <select
+    value={normalizeNcrYesNo(value)}
+    onChange={event => onChange?.(event.target.value)}
+    disabled={disabled}
+    aria-label={ariaLabel}
+  >
+    <option value="">{blankLabel}</option>
+    {NCR_YES_NO_OPTIONS.map(option => <option key={option} value={option}>{option}</option>)}
+  </select>
 );
 
 const getNcrLifecycleColor = (stage = '') => ({
@@ -1837,6 +1867,7 @@ const buildNcrDetailExportHtml = ({ report, profiles = [] }) => {
       <td>${escapeExportHtml(event.note || '')}</td>
     </tr>
   `).join('');
+  const actionEffective = normalizeNcrYesNo(report.actionEffective);
   return `<!doctype html>
 <html>
 <head>
@@ -1875,6 +1906,7 @@ const buildNcrDetailExportHtml = ({ report, profiles = [] }) => {
     <div class="box"><div class="label">NPT / Cost</div>${escapeExportHtml(`${report.nonProductiveTime || 'No'} ${report.nonProductiveTimeAmount ? `- ${report.nonProductiveTimeAmount}` : ''}`)}</div>
     <div class="box"><div class="label">Failure group</div>${escapeExportHtml(report.normalizedFailureSummary || classifyNcrFailure(report).label)}</div>
     <div class="box"><div class="label">Root cause code</div>${escapeExportHtml(report.rootCauseCodes || '')}</div>
+    <div class="box"><div class="label">Action effective?</div>${escapeExportHtml(actionEffective || 'Not verified')}</div>
     <div class="box"><div class="label">Estimated cost</div>${escapeExportHtml(report.estimatedCost ?? '')}</div>
     <div class="box"><div class="label">Source</div>${escapeExportHtml(report.sourceSystem || 'OMP')}</div>
   </div>
@@ -1882,7 +1914,7 @@ const buildNcrDetailExportHtml = ({ report, profiles = [] }) => {
   <h2>Containment / Disposition</h2><p>${escapeExportHtml(report.containmentSummary || 'No containment summary.')}<br>${escapeExportHtml(report.dispositionNotes || '')}</p>
   <h2>Root Cause</h2><p>${escapeExportHtml(report.rootCauseAnalysis || report.rootCauseCodes || 'No root cause captured yet.')}</p>
   <h2>Corrective Action</h2><p>${escapeExportHtml(report.immediateAction || '')}<br>${escapeExportHtml(report.permanentAction || '')}</p>
-  <h2>Effectiveness Verification</h2><p>${escapeExportHtml(report.effectivenessSummary || report.actionEffective || 'No effectiveness verification captured yet.')}</p>
+  <h2>Effectiveness Verification</h2><p>${escapeExportHtml(`Action effective: ${actionEffective || 'Not verified'}\n${report.effectivenessSummary || 'No effectiveness verification captured yet.'}`)}</p>
   <h2>Native NCR Action Items</h2>
   <table><thead><tr><th>Action</th><th>Owner</th><th>Status</th><th>Due</th><th>Evidence</th></tr></thead><tbody>${actionRows || '<tr><td colspan="5">No action items.</td></tr>'}</tbody></table>
   <h2>Evidence Attachments</h2>
@@ -2177,6 +2209,8 @@ const transformImportedNcrRow = (row = {}, index = 0, currentUser) => {
   const eventTypes = splitMultiValue(findFirstValue(row, ['Type of Event', 'Event Type', 'Type']));
   const departments = sanitizeNcrDepartmentList(splitMultiValue(findFirstValue(row, ['What Departments does this affect?', 'Affected Departments', 'Department', 'Group'])));
   const rootCauseCodes = findFirstValue(row, ['Root Cause Codes', 'Root Cause Code', 'Root Cause']);
+  const importedActionEffectiveRaw = findFirstValue(row, ['Has Corrective/Preventative Action worked?', 'Action Effective', 'Effective?', 'Was action effective?']);
+  const importedActionEffective = normalizeNcrYesNo(importedActionEffectiveRaw);
   const baseReport = {
     ...buildDefaultNcrDraft(currentUser),
     reportNumber,
@@ -2205,8 +2239,10 @@ const transformImportedNcrRow = (row = {}, index = 0, currentUser) => {
     permanentAction: findFirstValue(row, ['Permanent Corrective Action', 'Permanent Action']),
     affectedDepartments: departments.join(', '),
     departmentGroup: departments[0] || sanitizeNcrDepartmentList([findFirstValue(row, ['Department', 'Group'])])[0] || 'Quality',
-    longTermFollowUp: findFirstValue(row, ['Has Corrective/Preventative Action worked?', 'Long-Term Follow-Up', 'Follow-Up']),
-    actionEffective: findFirstValue(row, ['Has Corrective/Preventative Action worked?', 'Action Effective']),
+    longTermFollowUp: findFirstValue(row, ['Long-Term Follow-Up', 'Long Term Follow Up', 'Follow-Up', 'Follow Up']),
+    actionEffective: importedActionEffective,
+    effectivenessSummary: findFirstValue(row, ['Effectiveness Verification', 'Verification of Effectiveness', 'Effectiveness Summary']) || (importedActionEffectiveRaw && !importedActionEffective ? importedActionEffectiveRaw : ''),
+    recurrencePrevented: ncrYesNoToBoolean(importedActionEffective),
     dateInitialCorrectiveAction: dateOnly(findFirstValue(row, ['Date of Initial Corrective Action'])),
     datePermanentCorrectiveActionCompleted: dateOnly(findFirstValue(row, ['Date of Permanent Corrective Action Completed'])),
     dateOfReview: dateOnly(findFirstValue(row, ['Date of Review'])),
@@ -2476,6 +2512,8 @@ const buildDefaultNcrDraft = (currentUser, reports = []) => {
     disposition: '',
     dispositionNotes: '',
     effectivenessSummary: '',
+    effectivenessCheckedAt: null,
+    effectivenessCheckedBy: '',
     recurrencePrevented: '',
     repeatIssue: '',
     customerApprovalRequired: false,
@@ -2933,6 +2971,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     if (!report) return ['Select an NCR first.'];
     const openActions = (report.actionItems || []).filter(action => action.status !== 'complete');
     const signatures = report.signatures || [];
+    const actionEffective = normalizeNcrYesNo(report.actionEffective);
     return [
       !report.ownerId && 'NCR owner is required.',
       !report.reviewerId && 'Reviewer / approver is required.',
@@ -2940,6 +2979,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       !report.rootCauseAnalysis?.trim() && !report.rootCauseCodes?.trim() && 'Root cause analysis or code is required.',
       !report.permanentAction?.trim() && 'Permanent corrective action is required.',
       openActions.length > 0 && `${openActions.length} corrective action item${openActions.length === 1 ? '' : 's'} still open.`,
+      !actionEffective && 'Action effective yes/no decision is required.',
+      actionEffective === 'No' && 'Action is marked not effective; revise the corrective action before closure.',
       !report.effectivenessSummary?.trim() && 'Effectiveness verification summary is required.',
       !hasNcrSignatureRole(signatures, NCR_DEPARTMENT_MANAGER_SIGNATURE_ROLES) && 'Department manager signoff is required.',
       !hasNcrSignatureRole(signatures, NCR_EXECUTIVE_SIGNATURE_ROLES) && 'Senior management review and agreement is required.',
@@ -3162,6 +3203,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     estimatedCost: report.estimatedCost,
     rootCauseCodes: report.rootCauseCodes,
     failureGroup: report.normalizedFailureSummary || classifyNcrFailure(report).label,
+    actionEffective: normalizeNcrYesNo(report.actionEffective),
+    effectivenessSummary: report.effectivenessSummary || '',
+    recurrencePrevented: report.recurrencePrevented === true ? 'Yes' : report.recurrencePrevented === false ? 'No' : '',
+    repeatIssue: report.repeatIssue === true ? 'Yes' : report.repeatIssue === false ? 'No' : '',
     followUpDueDate: report.followUpDueDate,
     eventDescription: report.eventDescription,
   }));
@@ -3190,6 +3235,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       estimatedCost: '',
       rootCauseCodes: '',
       failureGroup: '',
+      actionEffective: '',
+      effectivenessSummary: '',
+      recurrencePrevented: '',
+      repeatIssue: '',
       followUpDueDate: '',
       eventDescription: '',
     });
@@ -3227,6 +3276,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       'Affected Job',
       'Immediate Corrective Action',
       'Permanent Corrective Action',
+      'Action Effective?',
+      'Effectiveness Verification',
+      'Recurrence Prevented?',
+      'Repeat Issue?',
       'Date of Initial Corrective Action',
       'Date of Permanent Corrective Action Completed',
       'Date of Review',
@@ -3251,8 +3304,12 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       '',
       '',
       '',
-      '',
-      '',
+      'Contain and protect customer/process.',
+      'Complete corrective action tied to root cause.',
+      'Yes',
+      'Verified no repeat issue after corrective action review.',
+      'Yes',
+      'No',
       '',
       '',
       '',
@@ -3501,12 +3558,17 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       const affectedDepartmentList = sanitizeNcrDepartmentList(createDraft.affectedDepartmentList || []);
       const queuedPhotos = createEvidenceFiles;
       const selectedRootCause = getNcrRootCauseValue(createDraft);
+      const actionEffective = normalizeNcrYesNo(createDraft.actionEffective);
       const created = await onCreateReport({
         ...createDraft,
         reportNumber: createDraft.reportNumber.trim(),
         eventType: createDraft.eventTypes?.[0] || createDraft.eventType,
         rootCauseCodes: selectedRootCause,
         rootCauseAnalysis: selectedRootCause,
+        actionEffective,
+        recurrencePrevented: ncrYesNoToBoolean(actionEffective),
+        effectivenessCheckedAt: actionEffective ? new Date().toISOString() : createDraft.effectivenessCheckedAt,
+        effectivenessCheckedBy: actionEffective ? currentUser?.id : createDraft.effectivenessCheckedBy,
         affectedDepartmentList,
         affectedDepartments: affectedDepartmentList.join(', ') || sanitizeNcrDepartmentList(splitMultiValue(createDraft.affectedDepartments)).join(', '),
         departmentGroup: affectedDepartmentList[0] || sanitizeNcrDepartmentList([createDraft.departmentGroup])[0] || '',
@@ -3857,13 +3919,14 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               </div>
               <div className="ncr-section">
                 <h3>Effectiveness Verification</h3>
-                <textarea rows={3} defaultValue={selectedReport.effectivenessSummary || selectedReport.actionEffective || ''} onBlur={event => updateSelectedField({ effectivenessSummary: event.target.value, effectivenessCheckedAt: new Date().toISOString(), effectivenessCheckedBy: currentUser.id, lifecycleStage: selectedReport.lifecycleStage === 'corrective_action' ? 'effectiveness_check' : selectedReport.lifecycleStage }, 'effectiveness updated')} placeholder="What was checked? When? Evidence? Did the corrective action prevent recurrence?" />
                 <div className="ncr-binary-grid">
-                  <label><span>Prevented recurrence?</span><select value={selectedReport.recurrencePrevented === true ? 'yes' : selectedReport.recurrencePrevented === false ? 'no' : ''} onChange={event => updateSelectedField({ recurrencePrevented: event.target.value === '' ? null : event.target.value === 'yes' }, 'recurrence check updated')}><option value="">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></label>
-                  <label><span>Repeat issue?</span><select value={selectedReport.repeatIssue === true ? 'yes' : selectedReport.repeatIssue === false ? 'no' : ''} onChange={event => updateSelectedField({ repeatIssue: event.target.value === '' ? null : event.target.value === 'yes' }, 'repeat issue updated')}><option value="">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></label>
+                  <label><span>Action Effective?</span><NcrYesNoSelect value={selectedReport.actionEffective} onChange={value => updateSelectedField({ actionEffective: value, recurrencePrevented: ncrYesNoToBoolean(value), effectivenessCheckedAt: value ? new Date().toISOString() : null, effectivenessCheckedBy: value ? currentUser.id : '', lifecycleStage: selectedReport.lifecycleStage === 'corrective_action' && value ? 'effectiveness_check' : selectedReport.lifecycleStage }, 'effectiveness outcome updated')} disabled={saving} ariaLabel="Action effective yes or no" /></label>
+                  <label><span>Prevented recurrence?</span><NcrYesNoSelect value={selectedReport.recurrencePrevented} onChange={value => updateSelectedField({ recurrencePrevented: ncrYesNoToBoolean(value) }, 'recurrence check updated')} disabled={saving} blankLabel="Not assessed" ariaLabel="Prevented recurrence yes or no" /></label>
+                  <label><span>Repeat issue?</span><NcrYesNoSelect value={selectedReport.repeatIssue} onChange={value => updateSelectedField({ repeatIssue: ncrYesNoToBoolean(value) }, 'repeat issue updated')} disabled={saving} blankLabel="Not assessed" ariaLabel="Repeat issue yes or no" /></label>
                   <label><span>Date of review</span><input type="date" value={selectedReport.dateOfReview || ''} onChange={event => updateSelectedField({ dateOfReview: event.target.value }, 'review date updated')} /></label>
                   <label><span>Date of sign-off</span><input type="date" value={selectedReport.dateOfSignOff || ''} onChange={event => updateSelectedField({ dateOfSignOff: event.target.value }, 'sign-off date updated')} /></label>
                 </div>
+                <textarea rows={3} defaultValue={selectedReport.effectivenessSummary || ''} onBlur={event => updateSelectedField({ effectivenessSummary: event.target.value, effectivenessCheckedAt: new Date().toISOString(), effectivenessCheckedBy: currentUser.id, lifecycleStage: selectedReport.lifecycleStage === 'corrective_action' ? 'effectiveness_check' : selectedReport.lifecycleStage }, 'effectiveness evidence updated')} placeholder="Verification evidence, sample checked, date range, reviewed records, or customer confirmation..." />
               </div>
               {isAdvancedNcrView && <div className="ncr-section">
                 <h3>Signatures / Approvals</h3>
@@ -4330,6 +4393,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label><span>Permanent Action Completed</span><input type="date" value={createDraft.datePermanentCorrectiveActionCompleted} onChange={event => setCreateDraft(prev => ({ ...prev, datePermanentCorrectiveActionCompleted: event.target.value }))} /></label>
                 <label><span>Date of Review</span><input type="date" value={createDraft.dateOfReview} onChange={event => setCreateDraft(prev => ({ ...prev, dateOfReview: event.target.value }))} /></label>
                 <label><span>Date of Sign-off</span><input type="date" value={createDraft.dateOfSignOff} onChange={event => setCreateDraft(prev => ({ ...prev, dateOfSignOff: event.target.value }))} /></label>
+                <label><span>Action Effective?</span><NcrYesNoSelect value={createDraft.actionEffective} onChange={value => setCreateDraft(prev => ({ ...prev, actionEffective: value, recurrencePrevented: ncrYesNoToBoolean(value), effectivenessCheckedAt: value ? new Date().toISOString() : prev.effectivenessCheckedAt, effectivenessCheckedBy: value ? currentUser?.id : prev.effectivenessCheckedBy }))} ariaLabel="Action effective yes or no" /></label>
               </div>
               <div
                 ref={createPhotoDropRef}
@@ -4408,8 +4472,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label><span className="text-xs text-muted">Immediate Action</span><textarea rows={3} value={createDraft.immediateAction} onChange={event => setCreateDraft(prev => ({ ...prev, immediateAction: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Permanent Action</span><textarea rows={3} value={createDraft.permanentAction} onChange={event => setCreateDraft(prev => ({ ...prev, permanentAction: event.target.value }))} /></label>
                 <label><span className="text-xs text-muted">Long-Term Follow-Up</span><textarea rows={3} value={createDraft.longTermFollowUp} onChange={event => setCreateDraft(prev => ({ ...prev, longTermFollowUp: event.target.value }))} /></label>
-                <label><span className="text-xs text-muted">Action Effective</span><textarea rows={2} value={createDraft.actionEffective} onChange={event => setCreateDraft(prev => ({ ...prev, actionEffective: event.target.value }))} /></label>
-                <label><span className="text-xs text-muted">Effectiveness Verification</span><textarea rows={3} value={createDraft.effectivenessSummary} onChange={event => setCreateDraft(prev => ({ ...prev, effectivenessSummary: event.target.value }))} /></label>
+                <label><span className="text-xs text-muted">Effectiveness Verification</span><textarea rows={3} value={createDraft.effectivenessSummary} onChange={event => setCreateDraft(prev => ({ ...prev, effectivenessSummary: event.target.value }))} placeholder="Verification evidence, sample checked, date range, reviewed records, or customer confirmation..." /></label>
               </div>
               <div className="flex gap-8 justify-between" style={{ marginTop: 14 }}>
                 <button className="btn btn-secondary" onClick={closeCreateModal} disabled={creating}>Cancel</button>
@@ -6764,7 +6827,7 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives, ncrReports = [], cu
   });
   const updateNcrExportFilter = (key, value) => setNcrExportFilters(filters => ({ ...filters, [key]: value }));
   const exportNcrCsv = () => downloadCsv("sandpro_ncr_custom_report.csv", [
-    ["Report #", "Broad Status", "Lifecycle Stage", "Group", "Event Type", "Criticality", "Report Date", "Follow-Up Due", "Observer", "Location", "Owner ID", "Reviewer ID", "Verifier ID", "Affected Product", "Affected Equipment", "Affected Job", "Disposition", "Containment Required", "Description", "Root Cause", "Immediate Action", "Permanent Action", "Effectiveness", "Action Count", "Evidence Count", "Linked Objective ID"],
+    ["Report #", "Broad Status", "Lifecycle Stage", "Group", "Event Type", "Criticality", "Report Date", "Follow-Up Due", "Observer", "Location", "Owner ID", "Reviewer ID", "Verifier ID", "Affected Product", "Affected Equipment", "Affected Job", "Disposition", "Containment Required", "Description", "Root Cause", "Immediate Action", "Permanent Action", "Action Effective?", "Effectiveness Verification", "Recurrence Prevented?", "Repeat Issue?", "Action Count", "Evidence Count", "Linked Objective ID"],
     ...filteredExportNcrs.map(report => [
       report.reportNumber,
       ncrExportStatus(report).replace('_', ' '),
@@ -6788,7 +6851,10 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives, ncrReports = [], cu
       report.rootCauseAnalysis || report.rootCauseCodes || '',
       report.immediateAction || '',
       report.permanentAction || '',
-      report.effectivenessSummary || report.actionEffective || '',
+      normalizeNcrYesNo(report.actionEffective),
+      report.effectivenessSummary || '',
+      report.recurrencePrevented === true ? 'Yes' : report.recurrencePrevented === false ? 'No' : '',
+      report.repeatIssue === true ? 'Yes' : report.repeatIssue === false ? 'No' : '',
       report.actionItems?.length || 0,
       report.attachments?.length || 0,
       report.linkedObjectiveId || '',
