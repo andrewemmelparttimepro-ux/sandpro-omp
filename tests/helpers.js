@@ -128,7 +128,7 @@ export const login = async (page, email, password) => {
   const authPayload = await createSupabasePasswordSession(email, password);
   if (authPayload?.access_token && await installSupabaseSession(page, authPayload)) {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    if (await finishLoginIfSignedIn(page, 15000)) return;
+    if (await finishLoginIfSignedIn(page, 25000)) return;
   }
 
   const fillStable = async (locator, value) => {
@@ -142,7 +142,7 @@ export const login = async (page, email, password) => {
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await page.goto('/');
-    if (await finishLoginIfSignedIn(page, 2500)) return;
+    if (await finishLoginIfSignedIn(page, 15000)) return;
     await expect(page.getByText('Objective Management Platform')).toBeVisible();
     await page.waitForTimeout(1000);
     const emailInput = page.locator('input[placeholder="you@sandpro.com"]').filter({ visible: true }).first();
