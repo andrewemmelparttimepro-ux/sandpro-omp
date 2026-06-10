@@ -12,6 +12,7 @@ import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, form
 import { Avatar, Badge, ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from './components';
 import { usePushNotifications } from './hooks/useSupabase';
 import { supabase } from './lib/supabase';
+import { FieldKeyProvider, DefinedTerm, FieldKeyHint } from './glossary';
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 const PRIORITY_LABELS = { critical: "Critical", high: "High", medium: "Medium", low: "Low" };
@@ -2393,11 +2394,11 @@ const NcrParticipationCard = ({ observerRows = [], employeeRows = [] }) => {
       <div className="ncr-breakdown-head"><Users size={15} color="var(--brand)" /><h3>Participation Ranking</h3></div>
       <div className="ncr-participation-grid">
         <div>
-          <div className="ncr-participation-label">Observers</div>
+          <div className="ncr-participation-label"><DefinedTerm id="observer">Observers</DefinedTerm></div>
           {renderRows(observerRows)}
         </div>
         <div>
-          <div className="ncr-participation-label">Employees named</div>
+          <div className="ncr-participation-label"><DefinedTerm id="personnel_involved">Employees named</DefinedTerm></div>
           {renderRows(employeeRows)}
         </div>
       </div>
@@ -3141,6 +3142,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   };
 
   return (
+    <FieldKeyProvider>
     <div className="ncr-page">
       <div className="ncr-header">
         <div>
@@ -3156,22 +3158,24 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           </button>
         )}
       </div>
-      <div className="ncr-mode-tabs" role="tablist" aria-label="NCR workspace modes">
-        {[
-          { id: 'tracker', label: 'Tracker', icon: FileText },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-          { id: 'import', label: 'KPA Import', icon: Upload },
-        ].map(tab => (
-          <button key={tab.id} type="button" className={`ncr-mode-tab ${ncrMode === tab.id ? 'active' : ''}`} onClick={() => setNcrMode(tab.id)} aria-selected={ncrMode === tab.id}>
-            <tab.icon size={14} /> {tab.label}
-          </button>
-        ))}
-      </div>
-      <div className="ncr-view-bar">
-        <span>View</span>
-        <div className="segmented-control" role="group" aria-label="NCR detail level">
-          <button type="button" className={ncrView === 'basic' ? 'active' : ''} onClick={() => setNcrView('basic')}>Basic</button>
-          <button type="button" className={ncrView === 'advanced' ? 'active' : ''} onClick={() => setNcrView('advanced')}>Advanced</button>
+      <div className="ncr-controls-row">
+        <div className="ncr-mode-tabs" role="tablist" aria-label="NCR workspace modes">
+          {[
+            { id: 'tracker', label: 'Tracker', icon: FileText },
+            { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+            { id: 'import', label: 'KPA Import', icon: Upload },
+          ].map(tab => (
+            <button key={tab.id} type="button" className={`ncr-mode-tab ${ncrMode === tab.id ? 'active' : ''}`} onClick={() => setNcrMode(tab.id)} aria-selected={ncrMode === tab.id}>
+              <tab.icon size={14} /> {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="ncr-view-bar">
+          <span>View</span>
+          <div className="segmented-control" role="group" aria-label="NCR detail level">
+            <button type="button" className={ncrView === 'basic' ? 'active' : ''} onClick={() => setNcrView('basic')}>Basic</button>
+            <button type="button" className={ncrView === 'advanced' ? 'active' : ''} onClick={() => setNcrView('advanced')}>Advanced</button>
+          </div>
         </div>
       </div>
       {ncrMode === 'tracker' && (
@@ -3236,6 +3240,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           </div>
           <div className="ncr-filter-summary">
             <span>Showing <strong>{sorted.length}</strong> of {reports.length} NCR{reports.length === 1 ? '' : 's'}</span>
+            <FieldKeyHint label="What do these filters mean?" termId="status_open" />
             {trackerFilterCount > 0 && (
               <button type="button" className="btn btn-ghost btn-xs" onClick={clearTrackerFilters}>
                 <X size={12} /> Clear filters ({trackerFilterCount})
@@ -3335,10 +3340,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               </div>
 
               <div className="ncr-detail-grid">
-                <div><span>Observer</span><strong>{selectedReport.observer || '-'}</strong></div>
-                <div><span>Group</span><strong>{getNcrDepartmentValue(selectedReport)}</strong></div>
-                <div><span>Internal/External</span><strong>{selectedReport.internalExternal || '-'}</strong></div>
-                <div><span>NPT</span><strong>{selectedReport.nonProductiveTime || '-'}</strong></div>
+                <div><span><DefinedTerm id="observer">Observer</DefinedTerm></span><strong>{selectedReport.observer || '-'}</strong></div>
+                <div><span><DefinedTerm id="group">Group</DefinedTerm></span><strong>{getNcrDepartmentValue(selectedReport)}</strong></div>
+                <div><span><DefinedTerm id="internal_external">Internal/External</DefinedTerm></span><strong>{selectedReport.internalExternal || '-'}</strong></div>
+                <div><span><DefinedTerm id="npt">NPT</DefinedTerm></span><strong>{selectedReport.nonProductiveTime || '-'}</strong></div>
               </div>
 
               {isAdvancedNcrView && <div className="ncr-section">
@@ -3479,9 +3484,9 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <h3>Lifecycle + Ownership</h3>
                 <div className="org-edit-grid">
                   <label><span>Stage</span><select value={selectedReport.lifecycleStage || 'draft'} onChange={event => updateSelectedField({ lifecycleStage: event.target.value }, `moved to ${getNcrStageLabel(event.target.value)}`)} disabled={saving}>{NCR_LIFECYCLE_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}</select></label>
-                  <label><span>NCR Owner</span><select value={selectedReport.ownerId || ''} onChange={event => updateSelectedField({ ownerId: event.target.value }, 'owner updated')} disabled={saving}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
-                  <label><span>Reviewer / Approver</span><select value={selectedReport.reviewerId || ''} onChange={event => updateSelectedField({ reviewerId: event.target.value }, 'reviewer updated')} disabled={saving}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
-                  <label><span>Effectiveness Verifier</span><select value={selectedReport.verifierId || ''} onChange={event => updateSelectedField({ verifierId: event.target.value }, 'verifier updated')} disabled={saving}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+                  <label><span><DefinedTerm id="ncr_owner">NCR Owner</DefinedTerm></span><select value={selectedReport.ownerId || ''} onChange={event => updateSelectedField({ ownerId: event.target.value }, 'owner updated')} disabled={saving}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+                  <label><span><DefinedTerm id="reviewer">Reviewer / Approver</DefinedTerm></span><select value={selectedReport.reviewerId || ''} onChange={event => updateSelectedField({ reviewerId: event.target.value }, 'reviewer updated')} disabled={saving}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+                  <label><span><DefinedTerm id="verifier">Effectiveness Verifier</DefinedTerm></span><select value={selectedReport.verifierId || ''} onChange={event => updateSelectedField({ verifierId: event.target.value }, 'verifier updated')} disabled={saving}><option value="">Unassigned</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
                 </div>
                 <div className="ncr-closure-readiness">
                   <strong>{getClosureBlockers(selectedReport).length ? 'Closure blockers' : 'Ready for closure'}</strong>
@@ -3525,8 +3530,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
         <div className="ncr-analytics-page">
           <div className="ncr-analytics-hero card">
             <div>
-              <div className="flex items-center gap-8"><Sparkles size={18} color="var(--brand)" /><h2>NCR Analytics for Tim</h2></div>
-              <p>Trend detection, KPA-style breakdowns, open/closed aging, and provisional AI grouping. OMP now mirrors the KPA report set Merci sent while improving it with normalized failure language.</p>
+              <div className="flex items-center gap-8"><Sparkles size={18} color="var(--brand)" /><h2>NCR Analytics</h2></div>
+              <p>Trend detection, KPA-style breakdowns, open/closed aging, and AI failure grouping. Mirrors the full KPA report set while improving it with normalized failure language.</p>
             </div>
             <div className="flex gap-8" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <button type="button" className="btn btn-secondary" onClick={exportAnalyticsPdf}><Download size={14} /> Analytics PDF</button>
@@ -3557,6 +3562,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <X size={12} /> Clear ({analyticsFilterCount})
               </button>
             )}
+            <FieldKeyHint label="Key" termId="failure_taxonomy" />
           </div>
           {isAdvancedNcrView && <div className="ncr-report-set card">
             <span>KPA baseline reports matched:</span>
@@ -3573,7 +3579,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           </div>
           <div className="ncr-ai-query card">
             <div>
-              <div className="text-xs text-muted">Tim-style AI question</div>
+              <div className="text-xs text-muted">Ask AI about these NCRs</div>
               <input value={analyticsQuery} onChange={event => setAnalyticsQuery(event.target.value)} placeholder="How many AWC valve failures?" />
               <button type="button" className="btn btn-primary btn-xs" onClick={askNcrAnalyticsAi} disabled={analyticsAiLoading || !analyticsQuery.trim()} style={{ marginTop: 8 }}>
                 {analyticsAiLoading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} Ask NCR analytics
@@ -3586,7 +3592,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                   {(analyticsAiResult.groups || []).slice(0, 5).map(group => (
                     <span key={group.label}><strong>{group.count}</strong> {group.label}{group.examples?.length ? ` (${group.examples.join(', ')})` : ''}</span>
                   ))}
-                  <small>{analyticsAiResult.mode === 'openai' ? 'Answered by NCR AI.' : 'Answered by taxonomy fallback until Tim finalizes aliases.'}</small>
+                  <small>{analyticsAiResult.mode === 'openai' ? 'Answered by NCR AI.' : 'Answered by the built-in failure taxonomy.'}</small>
                 </>
               ) : (
                 <>
@@ -3602,7 +3608,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
             <div className="ncr-issue-explorer-head">
               <div>
                 <div className="flex items-center gap-8"><Search size={16} color="var(--brand)" /><h3>Common Issue Trend Explorer</h3></div>
-                <p>Run Tim-style reports for a common issue, equipment family, or process term, then see normalized failure groupings and operator subgrouping.</p>
+                <p>Search any common issue, equipment family, or process term, then see normalized failure groupings and operator subgrouping.</p>
               </div>
               <button type="button" className="btn btn-secondary btn-xs" onClick={exportIssueTrendCsv}><Download size={13} /> Export issue CSV</button>
             </div>
@@ -3832,6 +3838,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
         </div>
       )}
     </div>
+    </FieldKeyProvider>
   );
 };
 
