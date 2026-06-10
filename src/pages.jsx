@@ -2225,6 +2225,142 @@ const transformImportedNcrRow = (row = {}, index = 0, currentUser) => {
   };
 };
 
+// Trend Watch: deterministic auto-surfaced insights. No query, no API cost —
+// recomputed from the scoped report set every time data changes.
+const buildNcrTrendWatch = (reports = []) => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const ageDays = (report) => {
+    const day = String(report.reportDate || '').slice(0, 10);
+    if (!day) return null;
+    const date = new Date(`${day}T12:00:00`);
+    return Number.isFinite(date.getTime()) ? Math.floor((today - date) / 86400000) : null;
+  };
+  const failureLabel = (report) => report.normalizedFailureSummary || classifyNcrFailure(report).label;
+  const isOpenReport = (report) => !report.closed && report.status !== 'closed';
+  const insights = [];
+
+  const last30 = {};
+  const prior30 = {};
+  const seenBefore = {};
+  reports.forEach(report => {
+    const age = ageDays(report);
+    if (age === null) return;
+    const label = failureLabel(report);
+    if (age < 30) last30[label] = (last30[label] || 0) + 1;
+    else {
+      seenBefore[label] = (seenBefore[label] || 0) + 1;
+      if (age < 60) prior30[label] = (prior30[label] || 0) + 1;
+    }
+  });
+  Object.entries(last30).forEach(([label, count]) => {
+    const before = prior30[label] || 0;
+    if (count >= 3 && count >= before * 2) {
+      insights.push({
+        id: `rise-${label}`,
+        severity: before === 0 || count >= before * 3 ? 'high' : 'watch',
+        title: `${label} trending up`,
+        detail: `${count} in the last 30 days vs ${before} in the prior 30.`,
+        action: { type: 'explore', query: label },
+        count,
+      });
+    } else if (count >= 2 && before === 0 && !seenBefore[label]) {
+      insights.push({
+        id: `new-${label}`,
+        severity: 'watch',
+        title: `New failure group: ${label}`,
+        detail: `${count} NCRs in the last 30 days — never recorded before.`,
+        action: { type: 'explore', query: label },
+        count,
+      });
+    }
+  });
+
+  const operatorFailure = {};
+  reports.forEach(report => {
+    const age = ageDays(report);
+    if (age === null || age >= 90) return;
+    const operator = report.operatorLocation || '';
+    if (!operator) return;
+    const label = failureLabel(report);
+    const key = `${operator}|${label}`;
+    operatorFailure[key] = operatorFailure[key] || { operator, label, count: 0 };
+    operatorFailure[key].count += 1;
+  });
+  Object.values(operatorFailure)
+    .filter(item => item.count >= 3)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+    .forEach(item => insights.push({
+      id: `combo-${item.operator}-${item.label}`,
+      severity: 'high',
+      title: `${item.operator}: repeat ${item.label.toLowerCase()}`,
+      detail: `${item.count} at the same operator/location in the last 90 days.`,
+      action: { type: 'explore', query: `${item.operator} ${item.label}` },
+      count: item.count,
+    }));
+
+  const stalling = reports.filter(report => isOpenReport(report) && (ageDays(report) ?? 0) > 45);
+  if (stalling.length >= 3) {
+    insights.push({
+      id: 'stalling',
+      severity: 'watch',
+      title: `${stalling.length} open NCRs are older than 45 days`,
+      detail: 'These are quietly stalling — review the oldest in the tracker.',
+      action: { type: 'tracker', flag: 'past_due' },
+      count: stalling.length,
+    });
+  }
+
+  const criticalByGroup = {};
+  reports.forEach(report => {
+    if (!isNcrCritical(report) || !isOpenReport(report)) return;
+    const age = ageDays(report);
+    if (age === null || age >= 30) return;
+    const group = getNcrDepartmentValue(report) || 'Unspecified';
+    criticalByGroup[group] = (criticalByGroup[group] || 0) + 1;
+  });
+  Object.entries(criticalByGroup)
+    .filter(([, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .forEach(([group, count]) => insights.push({
+      id: `critical-${group}`,
+      severity: 'high',
+      title: `${count} critical NCRs opened in ${group} this month`,
+      detail: 'A cluster of critical events in one group within 30 days.',
+      action: { type: 'tracker', flag: 'critical' },
+      count,
+    }));
+
+  const nptByOperator = {};
+  reports.forEach(report => {
+    if (String(report.nonProductiveTime || '').toLowerCase() !== 'yes') return;
+    const age = ageDays(report);
+    if (age === null || age >= 90) return;
+    const operator = report.operatorLocation || '';
+    if (!operator) return;
+    nptByOperator[operator] = (nptByOperator[operator] || 0) + 1;
+  });
+  Object.entries(nptByOperator)
+    .filter(([, count]) => count >= 3)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .forEach(([operator, count]) => insights.push({
+      id: `npt-${operator}`,
+      severity: 'watch',
+      title: `Downtime concentrating at ${operator}`,
+      detail: `${count} NPT-causing NCRs in the last 90 days.`,
+      action: { type: 'explore', query: operator },
+      count,
+    }));
+
+  const severityRank = { high: 0, watch: 1, info: 2 };
+  return insights
+    .sort((a, b) => (severityRank[a.severity] - severityRank[b.severity]) || b.count - a.count)
+    .slice(0, 8);
+};
+
 const isNcrCritical = (report) => (
   normalizeNcr(report.severity).trim() === 'critical'
   || normalizeNcr(report.criticality).trim() === 'critical'
@@ -2480,6 +2616,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   };
   const analytics = useMemo(() => buildNcrAnalytics(analyticsScope), [analyticsScope]);
   const issueExplorer = useMemo(() => buildNcrIssueExplorer(analyticsScope, issueTrendQuery), [analyticsScope, issueTrendQuery]);
+  const trendWatch = useMemo(() => buildNcrTrendWatch(analyticsScope), [analyticsScope]);
   const analyticsAnswerRows = useMemo(() => {
     const query = normalizeFailureText(analyticsQuery);
     if (!query) return analytics.byFailure.slice(0, 5);
@@ -2956,8 +3093,9 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     URL.revokeObjectURL(url);
   };
 
-  const askNcrAnalyticsAi = async () => {
-    if (!analyticsQuery.trim() || analyticsAiLoading) return;
+  const askNcrAnalyticsAi = async (questionOverride) => {
+    const question = String(questionOverride ?? analyticsQuery).trim();
+    if (!question || analyticsAiLoading) return;
     setAnalyticsAiLoading(true);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -2968,7 +3106,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ question: analyticsQuery, accessToken: token }),
+        body: JSON.stringify({ question, accessToken: token }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'NCR analytics could not answer that question.');
@@ -3533,11 +3671,12 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               <div className="flex items-center gap-8"><Sparkles size={18} color="var(--brand)" /><h2>NCR Analytics</h2></div>
               <p>Trend detection, KPA-style breakdowns, open/closed aging, and AI failure grouping. Mirrors the full KPA report set while improving it with normalized failure language.</p>
             </div>
-            <div className="flex gap-8" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={exportAnalyticsPdf}><Download size={14} /> Analytics PDF</button>
-              <button type="button" className="btn btn-secondary" onClick={exportAnalyticsExcel}><Download size={14} /> Excel</button>
-              <button type="button" className="btn btn-secondary" onClick={exportIndividualCsv}><Download size={14} /> Individual CSV</button>
-              <button type="button" className="btn btn-primary" onClick={exportAnalyticsCsv}><Download size={14} /> CSV</button>
+            <div className="ncr-export-group" role="group" aria-label="Analytics exports">
+              <span className="ncr-export-label"><Download size={13} /> Export</span>
+              <button type="button" className="btn btn-secondary btn-xs" onClick={exportAnalyticsPdf}>PDF</button>
+              <button type="button" className="btn btn-secondary btn-xs" onClick={exportAnalyticsExcel}>Excel</button>
+              <button type="button" className="btn btn-secondary btn-xs" onClick={exportAnalyticsCsv}>Summary CSV</button>
+              <button type="button" className="btn btn-secondary btn-xs" onClick={exportIndividualCsv}>Individual CSV</button>
             </div>
           </div>
           <div className="ncr-analytics-filters card">
@@ -3577,29 +3716,106 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
             <KPICard label="Critical Open" value={analytics.critical} icon={Shield} color="var(--error)" />
             <KPICard label="Total NCRs" value={analyticsScope.length} icon={FileText} color="var(--info)" sub={analyticsFilterCount ? `of ${reports.length} total` : undefined} />
           </div>
+          <div className="ncr-trendwatch card">
+            <div className="ncr-trendwatch-head">
+              <div className="flex items-center gap-8">
+                <Activity size={16} color="var(--brand)" />
+                <h3>Trend Watch</h3>
+                <Badge color="var(--brand)">Auto-surfaced</Badge>
+              </div>
+              <p>OMP scans every NCR in scope for rising failure groups, repeat operator issues, critical clusters, stalling work, and downtime concentration — before anyone asks.</p>
+            </div>
+            <div className="ncr-trendwatch-list">
+              {trendWatch.map(insight => (
+                <button
+                  key={insight.id}
+                  type="button"
+                  className={`ncr-trendwatch-row ncr-trendwatch-${insight.severity}`}
+                  onClick={() => {
+                    if (insight.action.type === 'explore') {
+                      setIssueTrendQuery(insight.action.query);
+                    } else {
+                      clearTrackerFilters();
+                      setFlagFilter(insight.action.flag);
+                      setNcrMode('tracker');
+                    }
+                  }}
+                >
+                  <span className="ncr-trendwatch-flag">{insight.severity === 'high' ? 'Action' : 'Watch'}</span>
+                  <span className="ncr-trendwatch-text">
+                    <strong>{insight.title}</strong>
+                    <small>{insight.detail}</small>
+                  </span>
+                  <span className="ncr-trendwatch-go" aria-hidden="true">&rsaquo;</span>
+                </button>
+              ))}
+              {trendWatch.length === 0 && (
+                <p className="text-xs text-muted">No emerging trends right now. Trend Watch re-checks automatically as NCRs change — rising failures, repeat operators, critical clusters, stalling work, and NPT concentration.</p>
+              )}
+            </div>
+          </div>
           <div className="ncr-ai-query card">
-            <div>
-              <div className="text-xs text-muted">Ask AI about these NCRs</div>
-              <input value={analyticsQuery} onChange={event => setAnalyticsQuery(event.target.value)} placeholder="How many AWC valve failures?" />
-              <button type="button" className="btn btn-primary btn-xs" onClick={askNcrAnalyticsAi} disabled={analyticsAiLoading || !analyticsQuery.trim()} style={{ marginTop: 8 }}>
-                {analyticsAiLoading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} Ask NCR analytics
-              </button>
+            <div className="ncr-ai-ask">
+              <div className="ncr-ai-ask-head"><Sparkles size={15} color="var(--brand)" /><h3>Ask AI about these NCRs</h3></div>
+              <div className="ncr-ai-input-row">
+                <input
+                  value={analyticsQuery}
+                  onChange={event => setAnalyticsQuery(event.target.value)}
+                  onKeyDown={event => { if (event.key === 'Enter') askNcrAnalyticsAi(); }}
+                  placeholder="How many AWC valve failures at Exxon?"
+                  aria-label="Ask AI about these NCRs"
+                />
+                <button type="button" className="btn btn-primary" onClick={() => askNcrAnalyticsAi()} disabled={analyticsAiLoading || !analyticsQuery.trim()}>
+                  {analyticsAiLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Ask
+                </button>
+              </div>
+              <div className="ncr-ai-suggestions">
+                {['What repeat failures are trending?', 'How many AWC valve failures?', 'Which operator has the most NPT?', 'What changed in the last 30 days?'].map(suggestion => (
+                  <button key={suggestion} type="button" onClick={() => { setAnalyticsQuery(suggestion); askNcrAnalyticsAi(suggestion); }} disabled={analyticsAiLoading}>
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="ncr-ai-answer">
-              {analyticsAiResult ? (
+              {analyticsAiLoading ? (
+                <div className="ncr-ai-loading">
+                  <Loader2 size={15} className="animate-spin" />
+                  <span>Reading {analyticsScope.length} NCR{analyticsScope.length === 1 ? '' : 's'}...</span>
+                </div>
+              ) : analyticsAiResult ? (
                 <>
-                  <span className="ncr-ai-answer-main">{analyticsAiResult.answer}</span>
-                  {(analyticsAiResult.groups || []).slice(0, 5).map(group => (
-                    <span key={group.label}><strong>{group.count}</strong> {group.label}{group.examples?.length ? ` (${group.examples.join(', ')})` : ''}</span>
-                  ))}
-                  <small>{analyticsAiResult.mode === 'openai' ? 'Answered by NCR AI.' : 'Answered by the built-in failure taxonomy.'}</small>
+                  <p className="ncr-ai-answer-main">{analyticsAiResult.answer}</p>
+                  <div className="ncr-ai-groups">
+                    {(analyticsAiResult.groups || []).slice(0, 6).map(group => (
+                      <div key={group.label} className="ncr-ai-group-row">
+                        <strong>{group.count}</strong>
+                        <span className="ncr-ai-group-label">{group.label}</span>
+                        <span className="ncr-ai-group-examples">
+                          {(group.examples || []).slice(0, 3).map(example => (
+                            <button key={example} type="button" onClick={() => { setNcrMode('tracker'); clearTrackerFilters(); setSearch(String(example)); }} title={`Open NCR #${example} in the tracker`}>
+                              #{example}
+                            </button>
+                          ))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {(analyticsAiResult.caveats || []).length > 0 && <small className="ncr-ai-caveat">{analyticsAiResult.caveats[0]}</small>}
+                  <small className="ncr-ai-mode">{analyticsAiResult.mode === 'openai' ? 'Answered by NCR AI from the live report set.' : 'Answered by the built-in failure taxonomy (AI unavailable).'}</small>
                 </>
               ) : (
                 <>
-                  {analyticsAnswerRows.map(([label, count]) => (
-                    <span key={label}><strong>{count}</strong> {label}</span>
-                  ))}
-                  {analytics.byFailure.length === 0 && <span>No NCRs available yet. Import KPA records to populate trends.</span>}
+                  <p className="ncr-ai-answer-main ncr-ai-answer-idle">Top failure groups right now — ask a question for a deeper cut.</p>
+                  <div className="ncr-ai-groups">
+                    {analyticsAnswerRows.map(([label, count]) => (
+                      <div key={label} className="ncr-ai-group-row">
+                        <strong>{count}</strong>
+                        <span className="ncr-ai-group-label">{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {analytics.byFailure.length === 0 && <small className="ncr-ai-caveat">No NCRs available yet. Import KPA records to populate trends.</small>}
                 </>
               )}
             </div>
@@ -4777,14 +4993,8 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
     window.requestAnimationFrame(() => centerOrgElement(null, orgTreeOrientation === "vertical" ? 'root' : 'center'));
   }, [centerOrgElement, orgTreeOrientation, setBoundedOrgZoom]);
 
-  const handleOrgWheel = useCallback((event) => {
-    if (event.target?.closest?.('input, textarea, select, button, a, [role="button"]')) return;
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? -1 : 1;
-    const multiplier = direction > 0 ? 1.1 : 0.9;
-    zoomOrgCanvasAt(orgZoomRef.current * multiplier, { x: event.clientX, y: event.clientY });
-  }, [zoomOrgCanvasAt]);
-
+  // Wheel zoom removed per Tim Dibben (2026-06-09): wheel now scrolls the page
+  // normally; zooming is done with the explicit zoom controls.
   const handleOrgPanStart = useCallback((event) => {
     if (event.button !== 0) return;
     if (event.target?.closest?.('.org-person-card, .org-root-drop, input, textarea, select, button, a, [role="button"]')) return;
@@ -5429,7 +5639,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
           </div>
           <div className="org-navigation-strip org-print-hide">
             <span className="org-navigation-hint">
-              Chart view uses compact org-chart cards with span-of-control markers. Wheel zooms at cursor; drag blank canvas to pan.
+              Chart view uses compact org-chart cards with span-of-control markers. Use the zoom controls to resize; drag blank canvas to pan.
             </span>
             <div className="org-span-legend" aria-label="Organization span summary">
               <span><strong>{orgChartStats.averageDirectSpan}</strong> avg direct span</span>
@@ -5442,6 +5652,8 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                   <button type="button" className={orgTreeOrientation === "wide" ? "active" : ""} onClick={() => setOrgTreeOrientation("wide")}>Wide</button>
                   <button type="button" className={orgTreeOrientation === "vertical" ? "active" : ""} onClick={() => setOrgTreeOrientation("vertical")}>Stacked</button>
                 </div>
+                <button type="button" className="btn btn-xs btn-secondary" onClick={() => zoomOrgCanvasAt(orgZoomRef.current * 0.85)} aria-label="Zoom out">&minus;</button>
+                <button type="button" className="btn btn-xs btn-secondary" onClick={() => zoomOrgCanvasAt(orgZoomRef.current * 1.15)} aria-label="Zoom in">+</button>
                 <button type="button" className="btn btn-xs btn-secondary" onClick={fitOrgCanvas}>Fit</button>
                 <button type="button" className="btn btn-xs btn-secondary" onClick={centerOrgRoot}>Root</button>
                 <button type="button" className="btn btn-xs btn-secondary" onClick={centerSelectedOrgEntry} disabled={!selectedUser}>Selected</button>
@@ -5469,7 +5681,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                 "Use Add Entry > Group placeholder for teams such as Field Service Technicians that need no email or login.",
                 "Delete removes employees who are no longer tied to objectives, subtasks, messages, or Fix-It posts.",
                 "Role changes are kept separate from org cleanup and are limited to Jake, Andrew, and executives.",
-                "Use the mouse wheel to zoom the tree, then drag blank canvas space to pan around the chart.",
+                "Use the zoom and Fit controls to size the tree, then drag blank canvas space to pan around the chart.",
                 "Use Fit, Root, or Selected when the tree gets away from view.",
                 "Use Wide for the classic org-chart spread, or Stacked when the team is easier to scan vertically.",
                 "Use Expand all and Collapse all when you need to focus on one reporting branch.",
@@ -5482,7 +5694,6 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
         <div
           className={`org-tree-scroll ${orgViewMode === "tree" && isOrgPanning ? 'is-panning' : ''} ${orgProofMode && orgViewMode === "tree" ? 'org-proof-mode' : ''}`}
           ref={orgTreeScrollRef}
-          onWheel={orgViewMode === "tree" ? handleOrgWheel : undefined}
           onPointerDown={orgViewMode === "tree" ? handleOrgPanStart : undefined}
           onPointerMove={orgViewMode === "tree" ? handleOrgPanMove : undefined}
           onPointerUp={orgViewMode === "tree" ? stopOrgPan : undefined}

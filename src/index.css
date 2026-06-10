@@ -4259,52 +4259,278 @@ select:focus-visible,
 
 .ncr-ai-query {
   display: grid;
-  grid-template-columns: minmax(240px, 0.9fr) minmax(280px, 1.1fr);
-  gap: 12px;
-  align-items: end;
+  grid-template-columns: minmax(260px, 0.95fr) minmax(300px, 1.05fr);
+  gap: 16px;
+  align-items: start;
 }
 
-.ncr-ai-query input {
-  width: 100%;
-  margin-top: 4px;
-}
-
-.ncr-ai-answer {
+.ncr-ai-ask-head {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  margin-bottom: 8px;
 }
 
-.ncr-ai-answer span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 30px;
-  padding: 0 10px;
-  border: 1px solid rgba(var(--sandpro-orange-rgb), 0.24);
-  border-radius: 999px;
-  background: rgba(var(--sandpro-orange-rgb), 0.07);
-  color: var(--accent-9);
-  font-size: 12px;
+.ncr-ai-ask-head h3 {
+  margin: 0;
+  font-size: 13px;
   font-weight: 800;
 }
 
-.ncr-ai-answer .ncr-ai-answer-main {
-  flex: 1 1 100%;
-  justify-content: flex-start;
-  min-height: 38px;
-  border-radius: 8px;
-  background: var(--accent-1);
-  color: var(--accent-10);
-  line-height: 1.35;
-  white-space: normal;
+.ncr-ai-input-row {
+  display: flex;
+  gap: 8px;
 }
 
-.ncr-ai-answer small {
-  flex: 1 1 100%;
+.ncr-ai-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ncr-ai-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.ncr-ai-suggestions button {
+  appearance: none;
+  border: 1px solid var(--accent-5);
+  background: var(--accent-2);
+  color: var(--accent-8);
+  border-radius: var(--radius-full);
+  padding: 4px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.ncr-ai-suggestions button:hover:not(:disabled) {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: rgba(var(--sandpro-orange-rgb), 0.06);
+}
+
+.ncr-ai-suggestions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ncr-ai-answer {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  border-left: 1px solid var(--accent-4);
+  padding-left: 16px;
+  min-height: 96px;
+}
+
+.ncr-ai-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-7);
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 96px;
+}
+
+.ncr-ai-answer-main {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--accent-1);
+  border: 1px solid var(--accent-4);
+  color: var(--accent-10);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.ncr-ai-answer-idle {
+  font-weight: 500;
+  color: var(--accent-8);
+}
+
+.ncr-ai-groups {
+  display: grid;
+  gap: 4px;
+}
+
+.ncr-ai-group-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: var(--accent-2);
+  border: 1px solid var(--accent-4);
+  font-size: 12px;
+}
+
+.ncr-ai-group-row > strong {
+  min-width: 30px;
+  text-align: right;
+  color: var(--brand);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ncr-ai-group-label {
+  flex: 1;
+  color: var(--accent-9);
+  font-weight: 600;
+}
+
+.ncr-ai-group-examples {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.ncr-ai-group-examples button {
+  appearance: none;
+  border: 1px solid var(--accent-5);
+  background: transparent;
+  color: var(--accent-7);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.ncr-ai-group-examples button:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.ncr-ai-caveat,
+.ncr-ai-mode {
   color: var(--accent-7);
   font-size: 11px;
+  font-weight: 600;
+}
+
+.ncr-ai-mode {
   font-weight: 700;
+}
+
+/* Trend Watch — auto-surfaced insights */
+.ncr-trendwatch {
+  display: grid;
+  gap: 10px;
+}
+
+.ncr-trendwatch-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ncr-trendwatch-head p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--accent-7);
+}
+
+.ncr-trendwatch-list {
+  display: grid;
+  gap: 6px;
+}
+
+.ncr-trendwatch-row {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--accent-4);
+  background: var(--accent-2);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.ncr-trendwatch-row:hover {
+  border-color: var(--brand);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.ncr-trendwatch-flag {
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+.ncr-trendwatch-high .ncr-trendwatch-flag {
+  background: color-mix(in srgb, var(--error) 14%, transparent);
+  color: var(--error);
+  border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+}
+
+.ncr-trendwatch-watch .ncr-trendwatch-flag {
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+  color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+}
+
+.ncr-trendwatch-text {
+  flex: 1;
+  display: grid;
+  gap: 1px;
+}
+
+.ncr-trendwatch-text strong {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ncr-trendwatch-text small {
+  font-size: 11px;
+  color: var(--accent-7);
+}
+
+.ncr-trendwatch-go {
+  flex: 0 0 auto;
+  font-size: 18px;
+  color: var(--accent-6);
+}
+
+.ncr-trendwatch-row:hover .ncr-trendwatch-go {
+  color: var(--brand);
+}
+
+/* Analytics hero export group */
+.ncr-export-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.ncr-export-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent-7);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-right: 2px;
 }
 
 .ncr-report-set {
@@ -4792,6 +5018,18 @@ select:focus-visible,
   .ncr-ai-query,
   .ncr-signature-create {
     grid-template-columns: 1fr;
+  }
+
+  .ncr-ai-answer {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--accent-4);
+    padding-top: 12px;
+    min-height: 0;
+  }
+
+  .ncr-export-group {
+    justify-content: flex-start;
   }
 
   .ncr-analytics-hero,
