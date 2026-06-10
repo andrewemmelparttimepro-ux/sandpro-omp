@@ -1,0 +1,30 @@
+{
+  "baseUrl": "https://objectivetracker.net",
+  "trendRows": 5,
+  "trendClickResult": "issue explorer query=\"Shop Process loss\" from: ACTION\nShop: repeat process loss\n4 at the same operator/location in the last 90 days.\n›",
+  "askAi": {
+    "status": 200,
+    "mode": "taxonomy_fallback",
+    "footer": "Answered by the built-in failure taxonomy (AI unavailable).",
+    "answerPreview": "46 Equipment failure; 30 Process loss; 26 Substandard condition; 10 HRU failure; 4 710 valve failure; 4 AWC valve failure; 1 Not Following Established Standard Operating Procedures",
+    "groupCount": 6,
+    "exampleButtons": 18
+  },
+  "fieldKey": "opened and showed Failure taxonomy",
+  "kpaImport": "KPA Historical Import loaded",
+  "org": {
+    "zoomBefore": "75%",
+    "zoomAfterWheel": "75%",
+    "zoomAfterButton": "86%",
+    "wheelKeptZoomStable": true,
+    "controlsVisible": true
+  },
+  "screenshots": [
+    "docs/reports/evidence/trend-watch-ai-2026-06-09/ncr-analytics-trendwatch.png",
+    "docs/reports/evidence/trend-watch-ai-2026-06-09/ncr-analytics-1100.png",
+    "docs/reports/evidence/trend-watch-ai-2026-06-09/ask-ai-awc-answer.png",
+    "docs/reports/evidence/trend-watch-ai-2026-06-09/field-key-open.png",
+    "docs/reports/evidence/trend-watch-ai-2026-06-09/kpa-import-loads.png",
+    "docs/reports/evidence/trend-watch-ai-2026-06-09/org-zoom-controls.png"
+  ]
+}

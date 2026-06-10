@@ -29,15 +29,29 @@ export const navItem = (page, name) => page.getByRole('link', { name, exact: tru
   .first();
 
 export const login = async (page, email, password) => {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
     await page.goto('/');
     await expect(page.getByText('Objective Management Platform')).toBeVisible();
-    await page.getByPlaceholder('you@sandpro.com').fill(email);
-    await page.getByPlaceholder('Min 6 characters').fill(password);
-    await page.locator('form').getByRole('button', { name: 'Sign In' }).click();
+    const emailInput = page.locator('input[placeholder="you@sandpro.com"]').filter({ visible: true }).first();
+    const passwordInput = page.locator('input[placeholder="Min 6 characters"]').filter({ visible: true }).first();
+    await emailInput.fill('');
+    await emailInput.pressSequentially(email, { delay: 1 });
+    await passwordInput.fill('');
+    await passwordInput.pressSequentially(password, { delay: 1 });
+    await expect(emailInput).toHaveValue(email);
+    await expect(passwordInput).toHaveValue(password);
+    const authResponse = page.waitForResponse(response => (
+      response.url().includes('/auth/v1/token') && response.request().method() === 'POST'
+    ), { timeout: 8000 }).catch(() => null);
+    await page.locator('form button[type="submit"]').filter({ visible: true }).first().click();
+    await authResponse;
     if (await navItem(page, 'Dashboard').isVisible({ timeout: 12000 }).catch(() => false)) break;
-    if (attempt === 1) await expect(navItem(page, 'Dashboard')).toBeVisible();
+    if (attempt === 2) await expect(navItem(page, 'Dashboard')).toBeVisible();
     await page.context().clearCookies();
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    }).catch(() => {});
   }
   await dismissDailyBrief(page);
   await dismissGuidance(page);
