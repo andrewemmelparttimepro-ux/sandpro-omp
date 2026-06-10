@@ -2043,6 +2043,14 @@ export function useFixItFeed(enabled = false) {
 	    return comment;
 	  };
 
+	  const deleteComment = async (comment) => {
+	    const paths = (comment.attachments || []).map(file => file.storagePath).filter(Boolean);
+	    if (paths.length > 0) await supabase.storage.from('fix-it-files').remove(paths);
+	    const { error } = await supabase.from('fix_it_comments').delete().eq('id', comment.id);
+	    if (error) throw error;
+	    await fetchPosts();
+	  };
+
 	  const updatePostStatus = async (postId, changes = {}) => {
     const patch = { updated_at: new Date().toISOString() };
     if (changes.status !== undefined) patch.status = changes.status;
@@ -2080,7 +2088,7 @@ export function useFixItFeed(enabled = false) {
     await fetchPosts();
   };
 
-		  return { posts, loading, createPost, createComment, updatePostStatus, uploadValidationProof, deletePost, refetch: fetchPosts };
+		  return { posts, loading, createPost, createComment, deleteComment, updatePostStatus, uploadValidationProof, deletePost, refetch: fetchPosts };
 		}
 
 // ============================================================================

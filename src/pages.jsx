@@ -1280,7 +1280,7 @@ const FixItCommentComposer = ({ post, currentUser, onCreateComment, setPreviewFi
   );
 };
 
-export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateComment, onUpdatePost, onUploadValidationProof, onDeletePost, addToast }) => {
+export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateComment, onDeleteComment, onUpdatePost, onUploadValidationProof, onDeletePost, addToast }) => {
   const [body, setBody] = useState('');
   const [files, setFiles] = useState([]);
   const [posting, setPosting] = useState(false);
@@ -1454,6 +1454,15 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
       addToast?.({ type: 'success', message: 'Fix-It Feed item deleted' });
     } catch (error) {
       addToast?.({ type: 'error', message: error.message || 'Could not delete this item' });
+    }
+  };
+
+  const deleteComment = async (comment) => {
+    try {
+      await onDeleteComment(comment);
+      addToast?.({ type: 'success', message: 'Comment deleted' });
+    } catch (error) {
+      addToast?.({ type: 'error', message: error.message || 'Could not delete this comment' });
     }
   };
 
@@ -1652,6 +1661,7 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
                     const commenter = getUser(comment.createdBy);
                     const isAgentComment = isFixItAgentUser(commenter);
                     const displayCommenter = getFixItDisplayUser(commenter);
+                    const canDeleteComment = onDeleteComment && (canModerate || comment.createdBy === currentUser.id);
                     const trueAuthorLabel = commenter?.name && commenter.name !== 'Unknown'
                       ? `Agent reply via ${commenter.name}`
                       : 'Agent reply';
@@ -1663,6 +1673,11 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
                             <strong>{isAgentComment ? 'Agent' : commenter.name}</strong>
                             {isAgentComment && <span className="fixit-agent-comment-badge" title={trueAuthorLabel}>Agent reply</span>}
                             <span>{timeAgo(comment.createdAt)}</span>
+                            {canDeleteComment && (
+                              <button type="button" className="fixit-comment-delete" onClick={() => deleteComment(comment)} title="Delete comment" aria-label="Delete comment">
+                                <Trash2 size={12} />
+                              </button>
+                            )}
                           </div>
                           {comment.body && <p>{comment.body}</p>}
                           {comment.attachments?.length > 0 && (

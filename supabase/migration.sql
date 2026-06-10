@@ -944,7 +944,7 @@ CREATE POLICY "Fix-It upload owners and moderators can delete file objects"
       OR EXISTS (
         SELECT 1 FROM public.profiles
         WHERE id = auth.uid()
-        AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com'))
+        AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro'))
       )
     )
   );
@@ -1078,7 +1078,7 @@ CREATE POLICY "Fix-It owners and moderators can delete posts"
     OR EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com'))
+      AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro'))
     )
   );
 
@@ -1104,7 +1104,7 @@ CREATE POLICY "Fix-It comment authors and moderators can update comments"
     OR EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro'))
+      AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro'))
     )
   )
   WITH CHECK (
@@ -1112,7 +1112,7 @@ CREATE POLICY "Fix-It comment authors and moderators can update comments"
     OR EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro'))
+      AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro'))
     )
   );
 
@@ -1123,7 +1123,7 @@ CREATE POLICY "Fix-It comment authors and moderators can delete comments"
     OR EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro'))
+      AND (role = 'executive' OR lower(email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro'))
     )
   );
 
