@@ -3590,6 +3590,117 @@ select:focus-visible,
   width: fit-content;
 }
 
+.ncr-create-photo-drop {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed rgba(var(--sandpro-orange-rgb), 0.36);
+  border-radius: 8px;
+  background: rgba(var(--sandpro-orange-rgb), 0.04);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ncr-create-photo-drop.drag-over {
+  border-color: var(--brand);
+  background: rgba(var(--sandpro-orange-rgb), 0.09);
+  box-shadow: 0 0 0 3px rgba(var(--sandpro-orange-rgb), 0.12);
+}
+
+.ncr-create-photo-drop-head,
+.ncr-create-photo-copy,
+.ncr-create-photo-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ncr-create-photo-drop-head {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.ncr-create-photo-copy {
+  min-width: 0;
+}
+
+.ncr-create-photo-icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(var(--sandpro-orange-rgb), 0.24);
+  border-radius: 8px;
+  background: var(--accent-1);
+  color: var(--brand);
+}
+
+.ncr-create-photo-copy strong {
+  display: block;
+  color: var(--accent-10);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.ncr-create-photo-copy small {
+  display: block;
+  color: var(--accent-7);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.ncr-create-photo-button {
+  margin-left: auto;
+}
+
+.ncr-create-photo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.ncr-create-photo-chip {
+  min-width: 0;
+  justify-content: space-between;
+  padding: 7px 8px;
+  border: 1px solid var(--accent-5);
+  border-radius: 8px;
+  background: var(--accent-1);
+  color: var(--accent-8);
+}
+
+.ncr-create-photo-chip > svg {
+  flex: 0 0 auto;
+  color: var(--brand);
+}
+
+.ncr-create-photo-chip span {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ncr-create-photo-chip strong {
+  overflow: hidden;
+  color: var(--accent-9);
+  font-size: 11px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ncr-create-photo-chip small {
+  color: var(--accent-7);
+  font-size: 10px;
+}
+
+.ncr-create-photo-chip .icon-btn {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
 .ncr-mode-tabs {
   display: flex;
   flex-wrap: wrap;

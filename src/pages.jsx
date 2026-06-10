@@ -2476,6 +2476,24 @@ const isNcrImageAttachment = (file = {}) => (
   || /\.(png|jpe?g|gif|webp|heic|heif)$/i.test(String(file.name || file.url || ''))
 );
 
+const NCR_PHOTO_ACCEPT = 'image/*,.heic,.heif';
+
+const normalizeNcrPhotoFile = (file, index = 0) => {
+  if (file?.name) return file;
+  const extension = extensionForMime(file?.type || '');
+  return new File([file], `ncr-photo-${Date.now()}-${index + 1}.${extension === 'bin' ? 'jpg' : extension}`, {
+    type: file?.type || 'image/jpeg',
+    lastModified: Date.now(),
+  });
+};
+
+const formatNcrPhotoFileSize = (bytes = 0) => {
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const NcrEvidencePanel = ({ report, onUpload, uploading }) => {
   const files = report?.attachments || [];
   const imageFiles = files.filter(isNcrImageAttachment);
@@ -2577,6 +2595,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   const [analyticsAiResult, setAnalyticsAiResult] = useState(null);
   const [analyticsAiLoading, setAnalyticsAiLoading] = useState(false);
   const [uploadingEvidence, setUploadingEvidence] = useState(false);
+  const [createEvidenceFiles, setCreateEvidenceFiles] = useState([]);
+  const [createEvidenceDragOver, setCreateEvidenceDragOver] = useState(false);
 
   useEffect(() => {
     setCreateDraft(prev => {
@@ -2833,6 +2853,63 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     } finally {
       setUploadingEvidence(false);
     }
+  };
+
+  const addCreateEvidenceFiles = (fileList) => {
+    const incoming = Array.from(fileList || [])
+      .filter(Boolean)
+      .map(normalizeNcrPhotoFile)
+      .filter(isNcrImageAttachment);
+    if (incoming.length === 0) {
+      addToast?.({ type: 'error', message: 'Add a photo or image file to the NCR.' });
+      return;
+    }
+    setCreateEvidenceFiles(prev => {
+      const seen = new Set(prev.map(file => `${file.name}-${file.size}-${file.lastModified}`));
+      const next = [...prev];
+      incoming.forEach(file => {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          next.push(file);
+        }
+      });
+      return next;
+    });
+  };
+
+  const removeCreateEvidenceFile = (index) => {
+    setCreateEvidenceFiles(prev => prev.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  const handleCreateEvidenceDrag = (event) => {
+    if (!eventHasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+    setCreateEvidenceDragOver(true);
+  };
+
+  const handleCreateEvidenceDragLeave = (event) => {
+    if (event.currentTarget.contains(event.relatedTarget)) return;
+    setCreateEvidenceDragOver(false);
+  };
+
+  const handleCreateEvidenceDrop = (event) => {
+    if (!eventHasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setCreateEvidenceDragOver(false);
+    addCreateEvidenceFiles(getDroppedFiles(event.dataTransfer));
+  };
+
+  const handleCreateEvidencePaste = (event) => {
+    const pastedFiles = getClipboardFiles(event.clipboardData);
+    if (pastedFiles.length === 0) return;
+    const photoFiles = pastedFiles.filter(isNcrImageAttachment);
+    if (photoFiles.length === 0) return;
+    event.preventDefault();
+    addCreateEvidenceFiles(photoFiles);
   };
 
   const captureSignature = async () => {
@@ -3241,7 +3318,16 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
 
   const openCreateModal = () => {
     setCreateDraft(buildDefaultNcrDraft(currentUser));
+    setCreateEvidenceFiles([]);
+    setCreateEvidenceDragOver(false);
     setShowCreateModal(true);
+  };
+
+  const closeCreateModal = () => {
+    if (creating) return;
+    setShowCreateModal(false);
+    setCreateEvidenceFiles([]);
+    setCreateEvidenceDragOver(false);
   };
 
   const createReport = async () => {
@@ -3254,6 +3340,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     try {
       const classification = classifyNcrFailure(createDraft);
       const affectedDepartmentList = sanitizeNcrDepartmentList(createDraft.affectedDepartmentList || []);
+      const queuedPhotos = createEvidenceFiles;
       const created = await onCreateReport({
         ...createDraft,
         reportNumber: createDraft.reportNumber.trim(),
@@ -3269,9 +3356,30 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
         createdBy: currentUser?.id,
         updatedBy: currentUser?.id,
       });
+      let uploadedPhotoCount = 0;
+      let uploadError = null;
+      if (queuedPhotos.length > 0 && onUploadAttachment) {
+        try {
+          for (const file of queuedPhotos) {
+            await onUploadAttachment(created.id, file, currentUser?.id, 'pictures');
+            uploadedPhotoCount += 1;
+          }
+        } catch (error) {
+          uploadError = error;
+        }
+      }
       setSelectedId(created.id);
+      setCreateEvidenceFiles([]);
       setShowCreateModal(false);
-      addToast?.({ type: 'success', message: `NCR #${created.reportNumber} created` });
+      if (queuedPhotos.length > 0 && !onUploadAttachment) {
+        addToast?.({ type: 'error', message: `NCR #${created.reportNumber} created, but photo upload is unavailable.` });
+      } else if (uploadError) {
+        const remaining = Math.max(1, queuedPhotos.length - uploadedPhotoCount);
+        addToast?.({ type: 'error', message: `NCR #${created.reportNumber} created, but ${remaining} photo${remaining === 1 ? '' : 's'} did not upload. Add them from Pictures / Evidence.` });
+      } else {
+        const suffix = uploadedPhotoCount ? ` with ${uploadedPhotoCount} photo${uploadedPhotoCount === 1 ? '' : 's'}` : '';
+        addToast?.({ type: 'success', message: `NCR #${created.reportNumber} created${suffix}` });
+      }
     } catch (error) {
       addToast?.({ type: 'error', message: error.message || 'Could not create NCR' });
     } finally {
@@ -3970,7 +4078,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       )}
 
       {showCreateModal && (
-        <div className="modal-overlay" style={{ zIndex: 1300 }} onClick={event => { if (event.target === event.currentTarget && !creating) setShowCreateModal(false); }}>
+        <div className="modal-overlay" style={{ zIndex: 1300 }} onClick={event => { if (event.target === event.currentTarget) closeCreateModal(); }}>
           <div className="modal-content" style={{ width: 'min(96vw, 900px)', maxHeight: '88vh', overflowY: 'auto' }}>
             <div className="card-header">
               <FileText size={16} color="var(--brand)" />
@@ -4012,6 +4120,54 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label><span>Date of Review</span><input type="date" value={createDraft.dateOfReview} onChange={event => setCreateDraft(prev => ({ ...prev, dateOfReview: event.target.value }))} /></label>
                 <label><span>Date of Sign-off</span><input type="date" value={createDraft.dateOfSignOff} onChange={event => setCreateDraft(prev => ({ ...prev, dateOfSignOff: event.target.value }))} /></label>
               </div>
+              <div
+                className={`ncr-create-photo-drop ${createEvidenceDragOver ? 'drag-over' : ''}`}
+                onDragEnter={handleCreateEvidenceDrag}
+                onDragOver={handleCreateEvidenceDrag}
+                onDragLeave={handleCreateEvidenceDragLeave}
+                onDrop={handleCreateEvidenceDrop}
+                onPaste={handleCreateEvidencePaste}
+              >
+                <div className="ncr-create-photo-drop-head">
+                  <div className="ncr-create-photo-copy">
+                    <span className="ncr-create-photo-icon"><Camera size={16} /></span>
+                    <div>
+                      <strong>Photos / evidence</strong>
+                      <small>Drop photos here or add them before creating the NCR.</small>
+                    </div>
+                  </div>
+                  <label className="btn btn-secondary btn-xs ncr-create-photo-button">
+                    <Image size={12} /> Add photos
+                    <input
+                      type="file"
+                      accept={NCR_PHOTO_ACCEPT}
+                      multiple
+                      hidden
+                      disabled={creating}
+                      onChange={event => {
+                        addCreateEvidenceFiles(event.target.files);
+                        event.target.value = '';
+                      }}
+                    />
+                  </label>
+                </div>
+                {createEvidenceFiles.length > 0 && (
+                  <div className="ncr-create-photo-list">
+                    {createEvidenceFiles.map((file, index) => (
+                      <div key={`${file.name}-${file.size}-${index}`} className="ncr-create-photo-chip">
+                        <Image size={13} />
+                        <span title={file.name}>
+                          <strong>{file.name}</strong>
+                          <small>{formatNcrPhotoFileSize(file.size)}</small>
+                        </span>
+                        <button type="button" className="icon-btn" onClick={() => removeCreateEvidenceFile(index)} aria-label={`Remove ${file.name}`} disabled={creating}>
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="ncr-checkbox-cloud">
                 <span>Type of Event</span>
                 {NCR_EVENT_TYPES.map(value => (
@@ -4044,7 +4200,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label><span className="text-xs text-muted">Effectiveness Verification</span><textarea rows={3} value={createDraft.effectivenessSummary} onChange={event => setCreateDraft(prev => ({ ...prev, effectivenessSummary: event.target.value }))} /></label>
               </div>
               <div className="flex gap-8 justify-between" style={{ marginTop: 14 }}>
-                <button className="btn btn-secondary" onClick={() => setShowCreateModal(false)} disabled={creating}>Cancel</button>
+                <button className="btn btn-secondary" onClick={closeCreateModal} disabled={creating}>Cancel</button>
                 <button className="btn btn-primary" onClick={createReport} disabled={creating || !createDraft.reportNumber.trim()}>
                   {creating ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} {creating ? 'Creating...' : 'Create NCR'}
                 </button>
