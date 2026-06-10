@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Org Chart Hybrid Refresh Report - SandPro OMP</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 0.5in;
+    }
+
+    :root {
+      --brand: #ff7f02;
+      --ink: #151821;
+      --muted: #667085;
+      --line: #d7dde7;
+      --soft: #f6f8fb;
+      --green: #168a4a;
+      --amber: #b85c00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, Arial, sans-serif;
+      font-size: 11px;
+      line-height: 1.42;
+      background: #fff;
+    }
+
+    .page {
+      min-height: 9.9in;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, #fff 0%, #fff6ed 100%);
+    }
+
+    .logo {
+      height: 34px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--brand);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .meta {
+      display: grid;
+      gap: 4px;
+      min-width: 230px;
+      color: var(--muted);
+      font-size: 10px;
+      text-align: right;
+    }
+
+    .meta strong {
+      color: var(--ink);
+      font-size: 11px;
+    }
+
+    main {
+      padding: 22px 28px 24px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+
+    .panel.soft {
+      background: var(--soft);
+    }
+
+    h2 {
+      margin: 0 0 9px;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .lead {
+      color: #2f3746;
+      font-size: 12px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .metric {
+      padding: 10px;
+      border: 1px solid #e2e7ef;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--brand);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      position: relative;
+      margin: 0 0 8px;
+      padding-left: 15px;
+      color: #344054;
+    }
+
+    li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand);
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 11px;
+    }
+
+    .status.pass strong {
+      color: var(--green);
+    }
+
+    .status.pending strong {
+      color: var(--amber);
+    }
+
+    .callout {
+      margin-top: 14px;
+      border: 1px solid #ffd6ac;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fff8ef;
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--brand);
+    }
+
+    .foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9px;
+    }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <header>
+      <div>
+        <p class="eyebrow">SandPro OMP Release Report</p>
+        <h1>Org Chart Hybrid Refresh</h1>
+        <div class="subtitle">Bamboo-style hierarchy, tighter viewability, and cleaner export-ready controls.</div>
+      </div>
+      <div class="meta">
+        <img class="logo" src="../../public/brand/sandpro-omp-logo.png" alt="SandPro OMP" />
+        <div>Report Date: <strong>June 10, 2026</strong></div>
+        <div>Production: <strong>objectivetracker.net</strong></div>
+        <div>Release Commit: <strong>9ce42fd</strong></div>
+        <div>Deployment: <strong>dpl_7gc6x9aPDeHQaMdgTuFH6TRiXYcx</strong></div>
+      </div>
+    </header>
+
+    <main>
+      <div class="summary">
+        <section class="panel">
+          <h2>Executive Summary</h2>
+          <p class="lead">The Organization chart now uses a hybrid Bamboo-style layout: top-level leadership stays horizontal, while deeper reporting groups collapse into compact vertical rails. The chart is easier to scan, uses a smaller 2000 x 1200 working canvas, and keeps Fit/Root/zoom controls in one dedicated canvas control cluster.</p>
+        </section>
+        <section class="panel soft">
+          <h2>Live Proof Metrics</h2>
+          <div class="metrics">
+            <div class="metric"><strong>32</strong><span>Org cards</span></div>
+            <div class="metric"><strong>7</strong><span>Hybrid rails</span></div>
+            <div class="metric"><strong>1</strong><span>Zoom cluster</span></div>
+            <div class="metric"><strong>6/6</strong><span>Prod smoke</span></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>What Changed</h2>
+          <ul>
+            <li>Rebuilt Wide view around compact org cards, span markers, and deep vertical branch rails.</li>
+            <li>Reduced wide-canvas fallback from oversized blank space to a tighter 2000 x 1200 frame.</li>
+            <li>Moved Fit, Root, and zoom controls into one sticky canvas toolbar; removed duplicate control clutter.</li>
+            <li>Stabilized Fit so the root chip and first card stay visible below the toolbar after zoom settles.</li>
+          </ul>
+        </section>
+
+        <section class="panel">
+          <h2>Validation</h2>
+          <ul>
+            <li>Release preflight passed: lint, unit, schema, auth redirects, build, PWA, mobile crop, and a11y.</li>
+            <li>Production smoke passed on the live alias for login shell, admin navigation, and member access.</li>
+            <li>Live proof captured Wide + Fit: root chip 24px inside frame, first card 74px inside frame, 17px toolbar clearance.</li>
+            <li>Evidence saved at docs/evidence/org-chart-hybrid-refresh-2026-06-10.</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="status-row">
+        <div class="status pass"><strong>Code</strong><span>Committed and pushed to main.</span></div>
+        <div class="status pass"><strong>Deploy</strong><span>Live on objectivetracker.net.</span></div>
+        <div class="status pass"><strong>Proof</strong><span>Screenshot and metrics captured.</span></div>
+        <div class="status pending"><strong>Follow-up</strong><span>Exports remain on the existing renderer unless Tim wants exact hybrid output.</span></div>
+      </div>
+
+      <div class="callout">
+        <strong>Scope Note</strong>
+        No database or schema changes were made. No Fix-It, NCR, or production data was mutated. Unrelated dirty workspace files were left untouched.
+      </div>
+
+      <div class="foot">
+        <span>Prepared for SandPro OMP product review.</span>
+        <span>Report: sandpro-org-chart-hybrid-refresh-report-2026-06-10</span>
+      </div>
+    </main>
+  </section>
+</body>
+</html>
