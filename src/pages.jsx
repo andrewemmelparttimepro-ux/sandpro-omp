@@ -5,7 +5,7 @@ import {
   Search, ChevronDown, ChevronLeft, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle,
   Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3,
   Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText,
-  Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File, Wrench, Camera, RefreshCw,
+  Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw,
   PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign
 } from 'lucide-react';
 import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, getDirectReports, canManageOrgChart, canManagePermissions } from './data';
@@ -2549,6 +2549,28 @@ const isNcrImageAttachment = (file = {}) => (
 );
 
 const NCR_PHOTO_ACCEPT = 'image/*,.heic,.heif';
+const NCR_DOCUMENT_ACCEPT = [
+  'application/pdf',
+  'text/*',
+  '.txt',
+  '.md',
+  '.csv',
+  '.json',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.ppt',
+  '.pptx',
+  '.zip',
+].join(',');
+const NCR_EVIDENCE_ACCEPT = `${NCR_PHOTO_ACCEPT},${NCR_DOCUMENT_ACCEPT}`;
+const isNcrEvidenceAttachment = (file = {}) => (
+  isNcrImageAttachment(file)
+  || /^(application\/pdf|text\/|application\/json)/i.test(String(file.mimeType || file.type || ''))
+  || /(word|document|excel|spreadsheet|powerpoint|presentation|csv|zip)/i.test(String(file.mimeType || file.type || ''))
+  || /\.(pdf|txt|md|csv|json|docx?|xlsx?|pptx?|zip)$/i.test(String(file.name || file.url || ''))
+);
 
 const NCR_DEPARTMENT_MANAGER_SIGNATURE_ROLES = ['department_manager', 'management'];
 const NCR_EXECUTIVE_SIGNATURE_ROLES = ['executive', 'final_management'];
@@ -2573,11 +2595,11 @@ const getNcrSignatureForRoles = (signatures = [], roles = []) => (
   signatures.find(signature => roles.includes(signature.role)) || null
 );
 
-const normalizeNcrPhotoFile = (file, index = 0) => {
+const normalizeNcrEvidenceFile = (file, index = 0) => {
   if (file?.name) return file;
   const extension = extensionForMime(file?.type || '');
-  return new File([file], `ncr-photo-${Date.now()}-${index + 1}.${extension === 'bin' ? 'jpg' : extension}`, {
-    type: file?.type || 'image/jpeg',
+  return new globalThis.File([file], `ncr-evidence-${Date.now()}-${index + 1}.${extension === 'bin' ? 'jpg' : extension}`, {
+    type: file?.type || 'application/octet-stream',
     lastModified: Date.now(),
   });
 };
@@ -2590,20 +2612,33 @@ const formatNcrPhotoFileSize = (bytes = 0) => {
 };
 
 const getNcrImageFiles = (report = {}) => (report.attachments || []).filter(isNcrImageAttachment);
+const getNcrDocumentFiles = (report = {}) => (report.attachments || []).filter(file => !isNcrImageAttachment(file));
+const getNcrAttachmentPurpose = (file = {}) => (isNcrImageAttachment(file) ? 'pictures' : 'evidence');
 
 const NcrEventPhotoStrip = ({ report, onUpload, uploading }) => {
   const imageFiles = getNcrImageFiles(report);
+  const documentFiles = getNcrDocumentFiles(report);
   return (
-    <div className={`ncr-event-photos ${imageFiles.length === 0 ? 'empty' : ''}`}>
+    <div className={`ncr-event-photos ${imageFiles.length === 0 && documentFiles.length === 0 ? 'empty' : ''}`}>
       <div className="ncr-event-photos-head">
         <div>
-          <strong>Event photos</strong>
-          <span>{imageFiles.length ? `${imageFiles.length} picture${imageFiles.length === 1 ? '' : 's'} attached` : 'No pictures attached yet'}</span>
+          <strong>Event photos + docs</strong>
+          <span>
+            {imageFiles.length ? `${imageFiles.length} picture${imageFiles.length === 1 ? '' : 's'}` : 'No pictures'}
+            {` · `}
+            {documentFiles.length ? `${documentFiles.length} doc${documentFiles.length === 1 ? '' : 's'}` : 'No docs'}
+          </span>
         </div>
-        <label className="btn btn-secondary btn-xs ncr-event-photo-add">
-          <Image size={12} /> {uploading ? 'Uploading...' : 'Add photos'}
-          <input type="file" accept={NCR_PHOTO_ACCEPT} capture="environment" multiple onChange={event => onUpload?.(event, 'pictures')} disabled={uploading} hidden />
-        </label>
+        <div className="ncr-event-photo-actions">
+          <label className="btn btn-secondary btn-xs ncr-event-photo-add">
+            <Image size={12} /> {uploading ? 'Uploading...' : 'Add photos'}
+            <input type="file" accept={NCR_PHOTO_ACCEPT} capture="environment" multiple onChange={event => onUpload?.(event, 'pictures')} disabled={uploading} hidden />
+          </label>
+          <label className="btn btn-secondary btn-xs ncr-event-photo-add">
+            <Paperclip size={12} /> {uploading ? 'Uploading...' : 'Add docs'}
+            <input type="file" accept={NCR_DOCUMENT_ACCEPT} multiple onChange={event => onUpload?.(event, 'evidence')} disabled={uploading} hidden />
+          </label>
+        </div>
       </div>
       {imageFiles.length > 0 ? (
         <div className="ncr-event-photo-grid">
@@ -2623,6 +2658,16 @@ const NcrEventPhotoStrip = ({ report, onUpload, uploading }) => {
           <span>No event photos yet.</span>
         </div>
       )}
+      {documentFiles.length > 0 && (
+        <div className="ncr-event-doc-list">
+          {documentFiles.slice(0, 4).map(file => (
+            <a key={file.id || file.url || file.name} href={file.url} target="_blank" rel="noreferrer" className="ncr-event-doc-file">
+              <Paperclip size={12} /> <span>{file.name || 'Supporting document'}</span>
+            </a>
+          ))}
+          {documentFiles.length > 4 && <span className="ncr-event-doc-more">+{documentFiles.length - 4} more</span>}
+        </div>
+      )}
     </div>
   );
 };
@@ -2632,7 +2677,7 @@ const NcrEvidencePanel = ({ report, onUpload, uploading }) => {
   const imageFiles = getNcrImageFiles(report);
   return (
     <div className="ncr-section ncr-evidence-section">
-      <h3>Pictures / Evidence</h3>
+      <h3>Photos + Documentation</h3>
       {imageFiles.length > 0 && (
         <div className="ncr-image-strip">
           {imageFiles.slice(0, 6).map(file => (
@@ -2655,7 +2700,7 @@ const NcrEvidencePanel = ({ report, onUpload, uploading }) => {
         {NCR_EVIDENCE_PURPOSES.map(purpose => (
           <label key={purpose} className="btn btn-secondary btn-xs ncr-upload-button">
             <Upload size={12} /> {uploading ? 'Uploading...' : purpose.replaceAll('_', ' ')}
-            <input type="file" accept={purpose === 'pictures' ? NCR_PHOTO_ACCEPT : undefined} capture={purpose === 'pictures' ? 'environment' : undefined} multiple onChange={event => onUpload?.(event, purpose)} disabled={uploading} hidden />
+            <input type="file" accept={purpose === 'pictures' ? NCR_PHOTO_ACCEPT : NCR_EVIDENCE_ACCEPT} capture={purpose === 'pictures' ? 'environment' : undefined} multiple onChange={event => onUpload?.(event, purpose)} disabled={uploading} hidden />
           </label>
         ))}
       </div>
@@ -3048,10 +3093,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   const addCreateEvidenceFiles = (fileList) => {
     const incoming = Array.from(fileList || [])
       .filter(Boolean)
-      .map(normalizeNcrPhotoFile)
-      .filter(isNcrImageAttachment);
+      .map(normalizeNcrEvidenceFile)
+      .filter(isNcrEvidenceAttachment);
     if (incoming.length === 0) {
-      addToast?.({ type: 'error', message: 'Add a photo or image file to the NCR.' });
+      addToast?.({ type: 'error', message: 'Add a photo, PDF, spreadsheet, or supporting document to the NCR.' });
       return;
     }
     setCreateEvidenceFiles(prev => {
@@ -3096,10 +3141,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   const handleCreateEvidencePaste = (event) => {
     const pastedFiles = getClipboardFiles(event.clipboardData);
     if (pastedFiles.length === 0) return;
-    const photoFiles = pastedFiles.filter(isNcrImageAttachment);
-    if (photoFiles.length === 0) return;
+    const evidenceFiles = pastedFiles.filter(isNcrEvidenceAttachment);
+    if (evidenceFiles.length === 0) return;
     event.preventDefault();
-    addCreateEvidenceFiles(photoFiles);
+    addCreateEvidenceFiles(evidenceFiles);
   };
 
   const captureSignature = async () => {
@@ -3556,7 +3601,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     try {
       const classification = classifyNcrFailure(createDraft);
       const affectedDepartmentList = sanitizeNcrDepartmentList(createDraft.affectedDepartmentList || []);
-      const queuedPhotos = createEvidenceFiles;
+      const queuedEvidenceFiles = createEvidenceFiles;
       const selectedRootCause = getNcrRootCauseValue(createDraft);
       const actionEffective = normalizeNcrYesNo(createDraft.actionEffective);
       const created = await onCreateReport({
@@ -3580,13 +3625,13 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
         createdBy: currentUser?.id,
         updatedBy: currentUser?.id,
       });
-      let uploadedPhotoCount = 0;
+      let uploadedEvidenceCount = 0;
       let uploadError = null;
-      if (queuedPhotos.length > 0 && onUploadAttachment) {
+      if (queuedEvidenceFiles.length > 0 && onUploadAttachment) {
         try {
-          for (const file of queuedPhotos) {
-            await onUploadAttachment(created.id, file, currentUser?.id, 'pictures');
-            uploadedPhotoCount += 1;
+          for (const file of queuedEvidenceFiles) {
+            await onUploadAttachment(created.id, file, currentUser?.id, getNcrAttachmentPurpose(file));
+            uploadedEvidenceCount += 1;
           }
         } catch (error) {
           uploadError = error;
@@ -3595,13 +3640,13 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       setSelectedId(created.id);
       setCreateEvidenceFiles([]);
       setShowCreateModal(false);
-      if (queuedPhotos.length > 0 && !onUploadAttachment) {
-        addToast?.({ type: 'error', message: `NCR #${created.reportNumber} created, but photo upload is unavailable.` });
+      if (queuedEvidenceFiles.length > 0 && !onUploadAttachment) {
+        addToast?.({ type: 'error', message: `NCR #${created.reportNumber} created, but evidence upload is unavailable.` });
       } else if (uploadError) {
-        const remaining = Math.max(1, queuedPhotos.length - uploadedPhotoCount);
-        addToast?.({ type: 'error', message: `NCR #${created.reportNumber} created, but ${remaining} photo${remaining === 1 ? '' : 's'} did not upload. Add them from Pictures / Evidence.` });
+        const remaining = Math.max(1, queuedEvidenceFiles.length - uploadedEvidenceCount);
+        addToast?.({ type: 'error', message: `NCR #${created.reportNumber} created, but ${remaining} evidence file${remaining === 1 ? '' : 's'} did not upload. Add them from Photos + Documentation.` });
       } else {
-        const suffix = uploadedPhotoCount ? ` with ${uploadedPhotoCount} photo${uploadedPhotoCount === 1 ? '' : 's'}` : '';
+        const suffix = uploadedEvidenceCount ? ` with ${uploadedEvidenceCount} evidence file${uploadedEvidenceCount === 1 ? '' : 's'}` : '';
         addToast?.({ type: 'success', message: `NCR #${created.reportNumber} created${suffix}` });
       }
     } catch (error) {
@@ -3628,7 +3673,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               <Plus size={14} /> New NCR
             </button>
             <button className="btn btn-secondary ncr-mobile-photo-entry" onClick={openCreateModalForPhotos}>
-              <Camera size={14} /> Take / add photo to NCR
+              <Camera size={14} /> Take / add photo or doc to NCR
             </button>
           </div>
         )}
@@ -3824,7 +3869,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               <NcrEventPhotoStrip report={selectedReport} onUpload={uploadEvidenceWithPurpose} uploading={uploadingEvidence} />
 
               {isAdvancedNcrView && <div className="ncr-section">
-                <h3>KPA Header + Classification</h3>
+                <h3>Header + Classification</h3>
                 <div className="org-edit-grid">
                   <label><span>Worksite / Area</span><select value={selectedReport.worksiteArea || ''} onChange={event => updateSelectedField({ worksiteArea: event.target.value }, 'worksite updated')}><option value="">Unspecified</option>{NCR_WORKSITE_AREAS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                   <label><span>Operator and Location</span><input defaultValue={selectedReport.operatorLocation || ''} onBlur={event => updateSelectedField({ operatorLocation: event.target.value }, 'operator/location updated')} /></label>
@@ -4408,25 +4453,41 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                   <div className="ncr-create-photo-copy">
                     <span className="ncr-create-photo-icon"><Camera size={16} /></span>
                     <div>
-                      <strong>Photos / evidence</strong>
-                      <small>Drop photos here or add them before creating the NCR.</small>
+                      <strong>Photos + documentation</strong>
+                      <small>Drop photos, PDFs, spreadsheets, or support docs here before creating the NCR.</small>
                     </div>
                   </div>
-                  <label className="btn btn-secondary btn-xs ncr-create-photo-button">
-                    <Image size={12} /> Add photos
-                    <input
-                      type="file"
-                      accept={NCR_PHOTO_ACCEPT}
-                      capture="environment"
-                      multiple
-                      hidden
-                      disabled={creating}
-                      onChange={event => {
-                        addCreateEvidenceFiles(event.target.files);
-                        event.target.value = '';
-                      }}
-                    />
-                  </label>
+                  <div className="ncr-create-photo-actions">
+                    <label className="btn btn-secondary btn-xs ncr-create-photo-button">
+                      <Image size={12} /> Add photos
+                      <input
+                        type="file"
+                        accept={NCR_PHOTO_ACCEPT}
+                        capture="environment"
+                        multiple
+                        hidden
+                        disabled={creating}
+                        onChange={event => {
+                          addCreateEvidenceFiles(event.target.files);
+                          event.target.value = '';
+                        }}
+                      />
+                    </label>
+                    <label className="btn btn-secondary btn-xs ncr-create-photo-button">
+                      <Paperclip size={12} /> Add docs
+                      <input
+                        type="file"
+                        accept={NCR_DOCUMENT_ACCEPT}
+                        multiple
+                        hidden
+                        disabled={creating}
+                        onChange={event => {
+                          addCreateEvidenceFiles(event.target.files);
+                          event.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
                 {createEvidenceFiles.length > 0 && (
                   <div className="ncr-create-photo-list">
@@ -6053,7 +6114,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                     <span><strong>PNG image</strong><small>High-quality image for slides or emails</small></span>
                   </button>
                   <button type="button" onClick={exportOrgChartSvg}>
-                    <File size={13} />
+                    <FileIcon size={13} />
                     <span><strong>SVG vector</strong><small>Editable/scalable image export</small></span>
                   </button>
                   <button type="button" onClick={exportOrgChartCsv}>

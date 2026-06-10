@@ -7,19 +7,27 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (path) => readFileSync(join(root, path), 'utf8');
 
-test('new NCR creation supports queued photo evidence', () => {
+test('new NCR creation supports queued photo and document evidence', () => {
   const pages = read('src/pages.jsx');
   const styles = read('src/index.css');
 
   assert.match(pages, /NCR_PHOTO_ACCEPT = 'image\/\*,\.heic,\.heif'/);
+  assert.match(pages, /const NCR_DOCUMENT_ACCEPT = \[/);
+  assert.match(pages, /const NCR_EVIDENCE_ACCEPT = `\$\{NCR_PHOTO_ACCEPT\},\$\{NCR_DOCUMENT_ACCEPT\}`/);
+  assert.match(pages, /const isNcrEvidenceAttachment/);
   assert.match(pages, /createEvidenceFiles/);
   assert.match(pages, /ncr-create-photo-drop/);
-  assert.match(pages, /Drop photos here or add them before creating the NCR/);
+  assert.match(pages, /Drop photos, PDFs, spreadsheets, or support docs here before creating the NCR/);
+  assert.match(pages, /Photos \+ documentation/);
+  assert.match(pages, /Add docs/);
   assert.match(pages, /ncr-mobile-photo-entry/);
+  assert.match(pages, /Take \/ add photo or doc to NCR/);
   assert.match(pages, /openCreateModalForPhotos/);
   assert.match(pages, /capture="environment"/);
-  assert.match(pages, /onUploadAttachment\(created\.id, file, currentUser\?\.id, 'pictures'\)/);
+  assert.match(pages, /getNcrAttachmentPurpose\(file\)/);
+  assert.match(pages, /accept=\{NCR_DOCUMENT_ACCEPT\}/);
   assert.match(styles, /\.ncr-create-photo-drop/);
+  assert.match(styles, /\.ncr-create-photo-actions/);
   assert.match(styles, /\.ncr-create-photo-chip/);
   assert.match(styles, /\.ncr-mobile-photo-entry/);
 });
@@ -29,12 +37,23 @@ test('NCR detail rail exposes event photo thumbnails and picture upload', () => 
   const styles = read('src/index.css');
 
   assert.match(pages, /const NcrEventPhotoStrip/);
-  assert.match(pages, /Event photos/);
+  assert.match(pages, /Event photos \+ docs/);
   assert.match(pages, /getNcrImageFiles\(report\)/);
+  assert.match(pages, /getNcrDocumentFiles\(report\)/);
   assert.match(pages, /onUpload\?\.\(event, 'pictures'\)/);
+  assert.match(pages, /onUpload\?\.\(event, 'evidence'\)/);
+  assert.match(pages, /Photos \+ Documentation/);
   assert.match(pages, /<NcrEventPhotoStrip report=\{selectedReport\}/);
   assert.match(styles, /\.ncr-event-photos/);
   assert.match(styles, /\.ncr-event-photo-thumb/);
+  assert.match(styles, /\.ncr-event-doc-file/);
+});
+
+test('NCR header section is not branded as KPA-only', () => {
+  const pages = read('src/pages.jsx');
+
+  assert.match(pages, /<h3>Header \+ Classification<\/h3>/);
+  assert.doesNotMatch(pages, /KPA Header \+ Classification/);
 });
 
 test('manual NCR creation auto-sequences report numbers and keeps root cause as one dropdown', () => {

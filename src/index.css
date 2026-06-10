@@ -3514,6 +3514,15 @@ select:focus-visible,
   flex: 0 0 auto;
 }
 
+.ncr-event-photo-actions,
+.ncr-create-photo-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .ncr-event-photo-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3570,6 +3579,38 @@ select:focus-visible,
   justify-content: flex-start;
   padding: 9px 10px;
   background: rgba(255, 255, 255, 0.68);
+}
+
+.ncr-event-doc-list {
+  display: grid;
+  gap: 6px;
+}
+
+.ncr-event-doc-file,
+.ncr-event-doc-more {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid var(--accent-5);
+  border-radius: 8px;
+  background: var(--accent-1);
+  color: var(--accent-9);
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.ncr-event-doc-file span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ncr-event-doc-more {
+  color: var(--accent-7);
 }
 
 .ncr-section {
@@ -3782,6 +3823,10 @@ select:focus-visible,
 
 .ncr-create-photo-button {
   margin-left: auto;
+}
+
+.ncr-create-photo-actions .ncr-create-photo-button {
+  margin-left: 0;
 }
 
 .ncr-create-photo-list {
@@ -7530,6 +7575,16 @@ select:focus-visible,
   .ncr-create-photo-drop {
     margin-top: 10px;
     background: rgba(var(--sandpro-orange-rgb), 0.07);
+  }
+
+  .ncr-event-photo-actions,
+  .ncr-create-photo-actions {
+    width: 100%;
+  }
+
+  .ncr-event-photo-actions .ncr-event-photo-add {
+    flex: 1 1 120px;
+    justify-content: center;
   }
 
   .ncr-create-photo-button {
