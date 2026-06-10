@@ -18,7 +18,10 @@ test.describe('accessibility smoke', () => {
     for (const name of ['Dashboard', 'Objectives', 'Organization']) {
       await expect(navItem(page, name)).toBeVisible();
     }
-    await expect(page.getByRole('button', { name: /New/i })).toBeVisible();
+    const createButton = testInfo.project.name === 'mobile-chrome'
+      ? page.getByRole('button', { name: 'Create new objective' })
+      : page.getByRole('button', { name: 'New', exact: true });
+    await expect(createButton).toBeVisible();
     await navItem(page, 'Objectives').click();
     if (testInfo.project.name === 'mobile-chrome') {
       await expect(page.locator('.mobile-objective-list')).toBeVisible();
