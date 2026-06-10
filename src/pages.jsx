@@ -5605,7 +5605,10 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       scroller.scrollLeft = Math.max(0, scroller.scrollLeft + treeRect.left - scrollerRect.left - padding);
       scroller.scrollTop = Math.max(0, scroller.scrollTop + treeRect.top - scrollerRect.top - padding);
     };
-    window.requestAnimationFrame(() => window.requestAnimationFrame(alignTreeToViewport));
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      alignTreeToViewport();
+      window.requestAnimationFrame(alignTreeToViewport);
+    }));
   }, [centerOrgElement, orgTreeOrientation, setBoundedOrgZoom]);
 
   // Wheel zoom removed per Tim Dibben (2026-06-09): wheel now scrolls the page
