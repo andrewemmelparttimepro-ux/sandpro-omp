@@ -5559,8 +5559,8 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
     const target = selector ? canvas.querySelector(selector) : null;
     if (!target) {
       if (fallback === 'root') {
-        scroller.scrollLeft = orgTreeOrientation === "vertical" ? 0 : Math.max(0, (scroller.scrollWidth - scroller.clientWidth) / 2);
-        scroller.scrollTop = orgTreeOrientation === "vertical" ? 0 : Math.max(0, scroller.clientHeight * 0.18);
+        scroller.scrollLeft = 0;
+        scroller.scrollTop = 0;
       } else {
         scroller.scrollLeft = orgTreeOrientation === "vertical" ? 0 : Math.max(0, (scroller.scrollWidth - scroller.clientWidth) / 2);
         scroller.scrollTop = orgTreeOrientation === "vertical" ? 0 : Math.max(0, (scroller.scrollHeight - scroller.clientHeight) / 3);
@@ -5593,7 +5593,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
     const minZoom = orgTreeOrientation === "vertical" ? 0.7 : 0.35;
     const nextZoom = Math.min(1.4, Math.max(minZoom, Math.min((scroller.clientWidth - 72) / width, (scroller.clientHeight - 96) / height)));
     setBoundedOrgZoom(nextZoom);
-    window.requestAnimationFrame(() => centerOrgElement(null, orgTreeOrientation === "vertical" ? 'root' : 'center'));
+    window.requestAnimationFrame(() => centerOrgElement('.org-tree', 'root'));
   }, [centerOrgElement, orgTreeOrientation, setBoundedOrgZoom]);
 
   // Wheel zoom removed per Tim Dibben (2026-06-09): wheel now scrolls the page
