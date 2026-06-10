@@ -5,9 +5,9 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', '.vercel', 'playwright-report', 'test-results']),
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['**/*.{js,jsx,mjs}'],
     extends: [
       js.configs.recommended,
       reactHooks.configs.flat.recommended,
@@ -33,6 +33,12 @@ export default defineConfig([
       'react-hooks/preserve-manual-memoization': 'off',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/static-components': 'off',
+    },
+  },
+  {
+    files: ['playwright.config.js', 'tests/**/*.{js,mjs}', 'api/**/*.js', 'scripts/**/*.mjs', 'supabase/**/*.mjs'],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
     },
   },
 ])

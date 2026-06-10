@@ -1,18 +1,60 @@
 {
   "name": "SandPro OMP",
-  "short_name": "SandPro OMP",
+  "short_name": "SandPro",
   "description": "Objective Management Platform for SandPro team execution.",
-  "start_url": "/",
+  "id": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#EA580C",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#ff7f02",
+  "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/pwa/sandpro-omp-icon-192-v2.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa/sandpro-omp-icon-512-v2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-omp-v2.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "url": "/?page=dashboard",
+      "description": "Open the executive dashboard"
+    },
+    {
+      "name": "Objectives",
+      "short_name": "Objectives",
+      "url": "/?page=objectives",
+      "description": "Open objective tracking"
+    },
+    {
+      "name": "Fix-It Feed",
+      "short_name": "Fix-It",
+      "url": "/?page=fixit",
+      "description": "Capture and review product feedback"
+    },
+    {
+      "name": "NCR Tracker",
+      "short_name": "NCR",
+      "url": "/?page=ncr",
+      "description": "Review non-conformance reports"
     }
   ]
 }

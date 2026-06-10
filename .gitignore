@@ -3,6 +3,9 @@ node_modules/
 
 # Build output
 dist/
+playwright-report/
+test-results/
+backups/
 
 # Environment
 .env
@@ -19,3 +22,7 @@ dist/
 # Vercel
 .vercel/
 .vercel
+.env*.local
+
+# Supabase local link/cache
+supabase/.temp/

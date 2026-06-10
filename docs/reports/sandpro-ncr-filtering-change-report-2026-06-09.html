@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SandPro OMP - NCR Filtering Change Report</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 0.5in;
+    }
+
+    :root {
+      --brand: #ff7f02;
+      --ink: #151821;
+      --muted: #667085;
+      --line: #d7dde7;
+      --soft: #f6f8fb;
+      --green: #168a4a;
+      --amber: #b85c00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, Arial, sans-serif;
+      font-size: 11px;
+      line-height: 1.42;
+      background: #fff;
+    }
+
+    .page {
+      min-height: 9.9in;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, #fff 0%, #fff6ed 100%);
+    }
+
+    .logo {
+      height: 34px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--brand);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      display: grid;
+      gap: 4px;
+      min-width: 180px;
+      color: var(--muted);
+      font-size: 10px;
+      text-align: right;
+    }
+
+    .meta strong {
+      color: var(--ink);
+      font-size: 11px;
+    }
+
+    main {
+      padding: 22px 28px 24px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+
+    .panel.soft {
+      background: var(--soft);
+    }
+
+    h2 {
+      margin: 0 0 9px;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .lead {
+      font-size: 12px;
+      color: #2f3746;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .metric {
+      padding: 10px;
+      border: 1px solid #e2e7ef;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--brand);
+      font-size: 18px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      position: relative;
+      margin: 0 0 8px;
+      padding-left: 15px;
+      color: #344054;
+    }
+
+    li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand);
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 11px;
+    }
+
+    .status.pass strong {
+      color: var(--green);
+    }
+
+    .status.pending strong {
+      color: var(--amber);
+    }
+
+    .foot {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9.5px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    code {
+      color: #202939;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 9.5px;
+      background: #f0f3f8;
+      border: 1px solid #dfe5ef;
+      border-radius: 6px;
+      padding: 1px 5px;
+    }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <header>
+      <div>
+        <p class="eyebrow">SandPro OMP Change Report</p>
+        <h1>NCR Filtering + Analytics Polish</h1>
+      </div>
+      <div class="meta">
+        <img class="logo" src="../../public/brand/sandpro-omp-logo.png" alt="SandPro OMP" />
+        <span><strong>Commit:</strong> b802a83</span>
+        <span><strong>Date:</strong> June 9, 2026</span>
+        <span><strong>Status:</strong> Pushed to main</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="summary">
+        <div class="panel soft">
+          <h2>Executive Summary</h2>
+          <p class="lead">
+            The NCR tab was upgraded from a basic tracker into a faster review workspace with clickable KPI filters,
+            stronger table sorting, scoped analytics, and clearer KPA import preview controls. The goal was better
+            day-to-day triage without changing the underlying NCR data model.
+          </p>
+        </div>
+        <div class="panel">
+          <div class="metrics">
+            <div class="metric"><strong>3</strong><span>Files</span></div>
+            <div class="metric"><strong>66</strong><span>Tests Passing</span></div>
+            <div class="metric"><strong>1</strong><span>Commit Pushed</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <h2>What Changed</h2>
+          <ul>
+            <li>Clickable NCR KPI cards now act as quick filters and show an active state.</li>
+            <li>Tracker filters now include worksite/area, attention level, and report-date range.</li>
+            <li>Table columns can be sorted, with clearer status labels and expanded search matching.</li>
+            <li>Analytics now use a shared scope so KPIs, charts, trend examples, and exports stay aligned.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <h2>User Impact</h2>
+          <ul>
+            <li>Users can answer "what needs attention" with fewer clicks.</li>
+            <li>Filtered views now explain how many NCRs are shown and provide one-click clearing.</li>
+            <li>Analytics exports reflect the exact scope the user is reviewing.</li>
+            <li>KPA import preview now makes filtered rows and total commit count explicit.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <h2>Files Included</h2>
+          <ul>
+            <li><code>src/pages.jsx</code> - NCR filtering, sorting, analytics scope, import preview.</li>
+            <li><code>src/components.jsx</code> - KPI active state support and accessibility state.</li>
+            <li><code>src/index.css</code> - segmented controls, active KPI styling, responsive filters.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <h2>Validation</h2>
+          <ul>
+            <li><code>npm run lint</code> passed.</li>
+            <li><code>npm run test:unit</code> passed with 66 of 66 tests.</li>
+            <li>Vite production build completed successfully in the agent environment.</li>
+            <li>Commit <code>b802a83</code> was pushed to <code>origin/main</code>.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="status-row">
+        <div class="status pass">
+          <strong>Committed</strong>
+          <span>NCR polish package is on local and remote main.</span>
+        </div>
+        <div class="status pass">
+          <strong>Tests Passed</strong>
+          <span>Lint and unit gates were reported clean in the handoff.</span>
+        </div>
+        <div class="status pending">
+          <strong>Deploy Pending</strong>
+          <span>Deployment was intentionally not performed per the handoff.</span>
+        </div>
+      </section>
+
+      <div class="foot">
+        <span>Generated for SandPro OMP - NCR tab polish and filtering overhaul.</span>
+        <span>Source: AGENT-HANDOFF-NCR-FILTERING.md and commit b802a83.</span>
+      </div>
+    </main>
+  </section>
+</body>
+</html>

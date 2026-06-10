@@ -1,0 +1,59 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "sandpro-omp.vercel.app"
+        }
+      ],
+      "destination": "https://objectivetracker.net",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "sandpro-omp.vercel.app"
+        }
+      ],
+      "destination": "https://objectivetracker.net/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.objectivetracker.net"
+        }
+      ],
+      "destination": "https://objectivetracker.net",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.objectivetracker.net"
+        }
+      ],
+      "destination": "https://objectivetracker.net/:path*",
+      "permanent": true
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/daily-digest",
+      "schedule": "0 13 * * 1-5"
+    },
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "0 14 * * *"
+    }
+  ]
+}
