@@ -1667,8 +1667,8 @@ select:focus-visible,
 
 .org-tree-canvas-viewport {
   position: relative;
-  min-width: 3200px;
-  min-height: 1800px;
+  min-width: 2000px;
+  min-height: 1200px;
 }
 
 .org-tree-canvas-viewport.vertical-tree {
@@ -1678,11 +1678,11 @@ select:focus-visible,
 
 .org-tree-canvas {
   position: absolute;
-  top: 420px;
-  left: 900px;
+  top: 96px;
+  left: 240px;
   width: max-content;
   min-width: max-content;
-  padding: 0 900px 720px 0;
+  padding: 0 240px 320px 0;
   transform-origin: 0 0;
   transition: transform 0.08s linear;
   will-change: transform;
@@ -1752,7 +1752,7 @@ select:focus-visible,
 .org-person-card {
   position: relative;
   width: 246px;
-  min-height: 100px;
+  min-height: 88px;
   display: flex;
   align-items: flex-start;
   gap: 9px;
@@ -2223,7 +2223,7 @@ select:focus-visible,
   left: 50%;
   right: 50%;
   height: 2px;
-  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.38);
+  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.55);
 }
 
 .org-tree-canvas.vertical-tree .org-tree-children::before {
@@ -2233,7 +2233,7 @@ select:focus-visible,
   right: auto;
   width: 2px;
   height: auto;
-  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.3);
+  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.45);
 }
 
 .org-tree-node.has-children > .org-person-card::after {
@@ -2257,7 +2257,7 @@ select:focus-visible,
   left: 50%;
   width: 2px;
   height: 14px;
-  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.42);
+  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.55);
 }
 
 .org-tree-canvas.vertical-tree .org-tree-children > .org-tree-node::before {
@@ -2274,7 +2274,7 @@ select:focus-visible,
   left: 0;
   right: 0;
   height: 2px;
-  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.34);
+  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.5);
   z-index: -1;
 }
 
@@ -2284,6 +2284,66 @@ select:focus-visible,
 
 .org-tree-children > .org-tree-node:first-child::after { left: 50%; }
 .org-tree-children > .org-tree-node:last-child::after { right: 50%; }
+
+/* ============================================================================
+   BAMBOO-STYLE HYBRID ORG TREE (Tim Dibben decision 2026-06-09)
+   Wide view: root + manager row stay horizontal; everything two levels down
+   renders as compact vertical lists with a left rail under each manager —
+   dramatically narrower, scannable, and printable.
+   ========================================================================= */
+
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin: 10px 0 0 14px;
+  padding: 6px 0 0 22px;
+}
+
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children::before {
+  top: 0;
+  bottom: 13px;
+  left: 0;
+  right: auto;
+  width: 2px;
+  height: auto;
+  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.5);
+}
+
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children > .org-tree-node {
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children > .org-tree-node::before {
+  top: 26px;
+  left: -22px;
+  width: 22px;
+  height: 2px;
+  background: rgba(var(--org-branch-rgb, 255, 127, 2), 0.5);
+}
+
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children > .org-tree-node:not(:only-child)::after {
+  display: none;
+}
+
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children .org-person-card {
+  width: 236px;
+  min-height: 0;
+  padding: 8px 10px;
+  align-items: center;
+}
+
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children .org-tree-node.has-children > .org-person-card::after {
+  display: none;
+}
+
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children .org-span-control,
+.org-tree-canvas.wide-tree .org-tree-children .org-tree-children .org-branch-label {
+  display: none;
+}
 
 .mobile-only { display: none; }
 
@@ -2474,6 +2534,12 @@ select:focus-visible,
 .ncr-mobile-list,
 .org-mobile-list {
   display: none;
+}
+
+.org-mobile-person.org-mobile-nested {
+  margin-left: calc(var(--org-mobile-depth, 0) * 16px);
+  width: calc(100% - var(--org-mobile-depth, 0) * 16px);
+  border-left: 3px solid rgba(var(--org-branch-rgb, 255, 127, 2), 0.55);
 }
 
 .desktop-objective-views {

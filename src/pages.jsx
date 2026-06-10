@@ -6252,10 +6252,6 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                   <button type="button" className={orgTreeOrientation === "wide" ? "active" : ""} onClick={() => setOrgTreeOrientation("wide")}>Wide</button>
                   <button type="button" className={orgTreeOrientation === "vertical" ? "active" : ""} onClick={() => setOrgTreeOrientation("vertical")}>Stacked</button>
                 </div>
-                <button type="button" className="btn btn-xs btn-secondary" onClick={() => zoomOrgCanvasAt(orgZoomRef.current * 0.85)} aria-label="Zoom out">&minus;</button>
-                <button type="button" className="btn btn-xs btn-secondary" onClick={() => zoomOrgCanvasAt(orgZoomRef.current * 1.15)} aria-label="Zoom in">+</button>
-                <button type="button" className="btn btn-xs btn-secondary" onClick={fitOrgCanvas}>Fit</button>
-                <button type="button" className="btn btn-xs btn-secondary" onClick={centerOrgRoot}>Root</button>
                 <button type="button" className="btn btn-xs btn-secondary" onClick={centerSelectedOrgEntry} disabled={!selectedUser}>Selected</button>
                 <button type="button" className="btn btn-xs btn-secondary" onClick={expandAllOrgBranches}>Expand all</button>
                 <button type="button" className="btn btn-xs btn-secondary" onClick={collapseAllOrgBranches}>Collapse all</button>
@@ -6308,9 +6304,29 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
             <button type="button" className="btn btn-xs btn-secondary" onClick={centerOrgRoot} title="Center company root">Root</button>
           </div>}
           <div className="org-mobile-list" aria-label="Mobile organization list">
-            {orgEntries
-              .filter(user => !orgSearch.trim() || matchesSearch(user))
-              .map(user => {
+            {(() => {
+              const knownIds = new Set(orgEntries.map(entry => entry.id));
+              const childrenBy = new Map();
+              orgEntries.forEach(entry => {
+                const parent = entry.reports_to && knownIds.has(entry.reports_to) ? entry.reports_to : null;
+                childrenBy.set(parent, [...(childrenBy.get(parent) || []), entry]);
+              });
+              const rows = [];
+              const seen = new Set();
+              const visit = (entry, depth) => {
+                if (seen.has(entry.id)) return;
+                seen.add(entry.id);
+                rows.push({ entry, depth });
+                (childrenBy.get(entry.id) || [])
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                  .forEach(child => visit(child, depth + 1));
+              };
+              (childrenBy.get(null) || []).sort((a, b) => (a.name || '').localeCompare(b.name || '')).forEach(root => visit(root, 0));
+              orgEntries.forEach(entry => { if (!seen.has(entry.id)) visit(entry, 0); });
+              return rows;
+            })()
+              .filter(({ entry }) => !orgSearch.trim() || matchesSearch(entry))
+              .map(({ entry: user, depth }) => {
                 const reports = getOrgReports(user.id);
                 const manager = user.reports_to ? getOrgEntry(user.reports_to) : null;
                 const userObjs = user.isPlaceholder ? [] : getUserObjectives(user.id);
@@ -6318,7 +6334,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                 const branchColor = getBranchColor(user);
                 const branchName = getBranchName(user);
                 return (
-                  <button key={user.id} type="button" className={`org-mobile-person ${user.isPlaceholder ? 'placeholder' : ''} ${selectedUser?.id === user.id ? 'selected' : ''}`} style={{ '--org-branch-rgb': branchColor }} onClick={() => setSelectedUser(user)}>
+                  <button key={user.id} type="button" className={`org-mobile-person ${user.isPlaceholder ? 'placeholder' : ''} ${selectedUser?.id === user.id ? 'selected' : ''} ${depth > 0 && !orgSearch.trim() ? 'org-mobile-nested' : ''}`} style={{ '--org-branch-rgb': branchColor, '--org-mobile-depth': Math.min(depth, 4) }} onClick={() => setSelectedUser(user)}>
                     <Avatar user={user} size={38} />
                     <span className="org-mobile-person-copy">
                       <strong>{user.name}</strong>
