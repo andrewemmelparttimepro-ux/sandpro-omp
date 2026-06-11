@@ -4,7 +4,7 @@ export const OKR_LEVELS = [
   { id: "key_result", label: "Key Result", shortLabel: "KR", color: "#10B981" },
   { id: "project", label: "Project", shortLabel: "Project", color: "#ff7f02" },
   { id: "run_the_business", label: "Run-the-business", shortLabel: "RTB", color: "#64748B" },
-  { id: "needs_review", label: "Needs Assessment", shortLabel: "Review", color: "#F59E0B" },
+  { id: "needs_review", label: "Unclassified", shortLabel: "Unclassified", color: "#94A3B8" },
 ];
 
 export const OKR_LEVEL_LABELS = OKR_LEVELS.reduce((acc, level) => ({ ...acc, [level.id]: level.label }), {});
@@ -47,18 +47,30 @@ export const REQUIRED_SIGNATURE_ROLES = [
   { role: "senior_management", label: "Senior management" },
 ];
 
+// Deliberately narrow: these must signal stage-gated project work, not everyday
+// ops language. Words like "build", "implement", "install", "deploy" matched half
+// of normal oilfield work items and produced confidently-wrong Project labels.
 const PROJECT_KEYWORDS = [
   "project",
   "prototype",
-  "launch",
-  "build",
-  "implement",
-  "install",
-  "deploy",
   "pilot",
   "r&d",
   "research",
+  "feasibility",
+  "new product",
+  "stage gate",
 ];
+
+// DEFAULT pending Jake decision #5 (approval matrix + $ threshold).
+// Senior management signoff is only gate-blocking at/above this budget,
+// or when a project is explicitly flagged requiresSeniorApproval.
+export const SENIOR_APPROVAL_BUDGET_THRESHOLD = 25000;
+
+export const isOkrClassificationUncertain = (objective = {}) => (
+  (objective.okrLevel || objective.okr_level) === "needs_review"
+  || (objective.classificationStatus || objective.classification_status) === "needs_review"
+  || Number(objective.classificationConfidence ?? objective.classification_confidence ?? 100) < 80
+);
 
 export const getCurrentOkrPeriod = (date = new Date()) => {
   const month = date.getMonth();
@@ -109,7 +121,7 @@ export const inferObjectiveClassification = (objective = {}, objectives = []) =>
     return { okrLevel: "key_result", confidence: 0.9, status: "auto_classified", reason: "Has a parent objective and numeric baseline/target fields." };
   }
   if (PROJECT_KEYWORDS.some(keyword => text.includes(keyword))) {
-    return { okrLevel: "project", confidence: 0.78, status: "auto_classified", reason: "Title or description reads like executable project work." };
+    return { okrLevel: "project", confidence: 0.7, status: "needs_review", reason: "Reads like stage-gated project work (keyword match) — confirm and link a Key Result." };
   }
   if (children.length > 0 || type === "parent") {
     const isCompany = !parentId && /leadership|executive|company/.test(department);
@@ -121,7 +133,7 @@ export const inferObjectiveClassification = (objective = {}, objectives = []) =>
     };
   }
   if (parentId) {
-    return { okrLevel: "project", confidence: 0.66, status: "needs_review", reason: "Linked to a parent but missing metric fields required for a KR." };
+    return { okrLevel: "needs_review", confidence: 0.6, status: "needs_review", reason: "Linked to a parent but missing the numeric baseline/target a Key Result requires — classify manually." };
   }
   if (metric) {
     return { okrLevel: "key_result", confidence: 0.64, status: "needs_review", reason: "Numeric target exists but no parent OKR is linked yet." };
@@ -196,9 +208,17 @@ export const buildProjectGateBlockers = (project = {}) => {
     const artifact = artifacts.find(entry => entry.artifactKey === item.key || entry.artifact_key === item.key);
     if (!artifact || !["complete", "waived"].includes(artifact.status)) blockers.push(`${item.title} is required.`);
   });
+  const budget = Number(project.budgetEstimate ?? project.budget_estimate ?? 0);
+  const needsSeniorApproval = (Number.isFinite(budget) && budget >= SENIOR_APPROVAL_BUDGET_THRESHOLD)
+    || Boolean(project.requiresSeniorApproval ?? project.requires_senior_approval);
   REQUIRED_SIGNATURE_ROLES.forEach(item => {
+    if (item.role === "senior_management" && !needsSeniorApproval) return;
     const signature = signatures.find(entry => (entry.role || "").toLowerCase() === item.role);
-    if (!signature) blockers.push(`${item.label} signoff is required.`);
+    if (!signature) {
+      blockers.push(item.role === "senior_management"
+        ? `Senior management signoff is required (budget at or above $${SENIOR_APPROVAL_BUDGET_THRESHOLD.toLocaleString()}).`
+        : `${item.label} signoff is required.`);
+    }
   });
   if (!project.runTheBusiness && !project.run_the_business && !(project.linkedObjectiveIds || []).length && !(project.linkedKrId || project.linked_kr_id)) {
     blockers.push("Linked Key Result is required unless this is Run-the-business work.");

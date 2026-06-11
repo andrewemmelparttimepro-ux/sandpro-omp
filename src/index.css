@@ -5334,6 +5334,22 @@ select:focus-visible,
   font-weight: 700;
 }
 
+/* Unclassified OKR chip — deliberately muted vs. authoritative level badges */
+.okr-unclassified-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  border: 1px dashed var(--accent-6);
+  background: var(--accent-2);
+  color: var(--accent-7);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: help;
+}
+
 /* Trend Watch — auto-surfaced insights */
 .ncr-trendwatch {
   display: grid;

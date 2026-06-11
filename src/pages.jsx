@@ -20,6 +20,7 @@ import {
   getOkrLevelMeta,
   getProjectStageMeta,
   isKeyResultStale,
+  isOkrClassificationUncertain,
   buildOkrTree,
   buildProjectGateBlockers,
   summarizeFramework,
@@ -951,7 +952,9 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
             <ChevronDown size={14} style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
           </button>
           <button type="button" className="okr-tree-title" onClick={() => onOpenCard(objective, "structure")}>
-            <Badge color={meta.color}>{meta.shortLabel}</Badge>
+            {isOkrClassificationUncertain(objective)
+              ? <span className="okr-unclassified-chip" title={objective.classificationReason || 'Classification needs a human decision'}>Unclassified · review</span>
+              : <Badge color={meta.color}>{meta.shortLabel}</Badge>}
             <span>
               <strong>{objective.title}</strong>
               <small>{getUser(objective.ownerId).name} · {objective.department || 'Unassigned'} · {objective.okrPeriod || 'No period'}</small>
@@ -1105,24 +1108,32 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
         <select className="objectives-filter-select objectives-filter-select-time" value={dueFilter} onChange={e => updateFilter("due", e.target.value)}>
           {OBJECTIVE_DUE_FILTERS.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
         </select>
-        <select className="objectives-filter-select" value={okrLevelFilter} onChange={e => updateFilter("okrLevel", e.target.value)}>
-          <option value="all">All OKR levels</option>
-          {OKR_LEVELS.map(level => <option key={level.id} value={level.id}>{level.label}</option>)}
-        </select>
-        <select className="objectives-filter-select" value={okrPeriodFilter} onChange={e => updateFilter("okrPeriod", e.target.value)}>
-          <option value="all">All periods</option>
-          {allPeriods.map(period => <option key={period} value={period}>{period}</option>)}
-        </select>
-        <select className="objectives-filter-select" value={staleFilter} onChange={e => updateFilter("stale", e.target.value)}>
-          <option value="all">KR freshness</option>
-          <option value="true">Stale KRs</option>
-          <option value="false">Fresh KRs</option>
-        </select>
-        <select className="objectives-filter-select" value={projectStageFilter} onChange={e => updateFilter("projectStage", e.target.value)}>
-          <option value="all">All project stages</option>
-          <option value="blocked">Approval blockers</option>
-          {PROJECT_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
-        </select>
+        {(viewMode === "tree" || okrLevelFilter !== "all") && (
+          <select className="objectives-filter-select" value={okrLevelFilter} onChange={e => updateFilter("okrLevel", e.target.value)}>
+            <option value="all">All OKR levels</option>
+            {OKR_LEVELS.map(level => <option key={level.id} value={level.id}>{level.label}</option>)}
+          </select>
+        )}
+        {(viewMode === "tree" || okrPeriodFilter !== "all") && (
+          <select className="objectives-filter-select" value={okrPeriodFilter} onChange={e => updateFilter("okrPeriod", e.target.value)}>
+            <option value="all">All periods</option>
+            {allPeriods.map(period => <option key={period} value={period}>{period}</option>)}
+          </select>
+        )}
+        {(viewMode === "tree" || staleFilter !== "all") && (
+          <select className="objectives-filter-select" value={staleFilter} onChange={e => updateFilter("stale", e.target.value)}>
+            <option value="all">KR freshness</option>
+            <option value="true">Stale KRs</option>
+            <option value="false">Fresh KRs</option>
+          </select>
+        )}
+        {(viewMode === "tree" || projectStageFilter !== "all") && (
+          <select className="objectives-filter-select" value={projectStageFilter} onChange={e => updateFilter("projectStage", e.target.value)}>
+            <option value="all">All project stages</option>
+            <option value="blocked">Approval blockers</option>
+            {PROJECT_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
+          </select>
+        )}
         {hasActiveFilters && (
           <button className="btn btn-secondary btn-sm" onClick={onClearFilters}>
             <Target size={12} /> All Objectives
@@ -1243,9 +1254,10 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
 	                      <td>{obj.department}</td>
                       <td>
                         <div className="objective-worktype-cell">
-                          <Badge color={getOkrLevelMeta(obj.okrLevel).color}>{getOkrLevelMeta(obj.okrLevel).shortLabel}</Badge>
+                          {isOkrClassificationUncertain(obj)
+                            ? <span className="okr-unclassified-chip" title={obj.classificationReason || 'Classification needs a human decision'}>Unclassified</span>
+                            : <Badge color={getOkrLevelMeta(obj.okrLevel).color}>{getOkrLevelMeta(obj.okrLevel).shortLabel}</Badge>}
                           <span>{obj.okrPeriod || "No period"}</span>
-                          {obj.classificationConfidence < 75 && <small>Review</small>}
                         </div>
                       </td>
                       <td onClick={event => event.stopPropagation()}><QuickStatusControl obj={obj} /></td>
