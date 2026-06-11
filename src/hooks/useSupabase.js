@@ -162,6 +162,21 @@ const hasChangedFields = (current, changes) => (
   Object.entries(changes).some(([key, value]) => !valuesEqual(current?.[key], value))
 );
 
+const isPriorityNotificationSender = (context = {}) => (
+  String(context.senderEmail || '').toLowerCase() === 'jfeil@sandpro.com'
+  || String(context.senderName || '').toLowerCase() === 'jake feil'
+);
+
+const notificationPriorityRank = (notification) => (notification.priority === 'priority' ? 1 : 0);
+
+const sortNotifications = (items = []) => [...items].sort((left, right) => {
+  const unread = Number(!right.isRead) - Number(!left.isRead);
+  if (unread !== 0) return unread;
+  const priority = notificationPriorityRank(right) - notificationPriorityRank(left);
+  if (priority !== 0) return priority;
+  return new Date(right.ts || 0) - new Date(left.ts || 0);
+});
+
 export function usePushNotifications(userId) {
   const [state, setState] = useState({
     supported: false,
@@ -2112,6 +2127,10 @@ export function useNotifications(userId) {
         type: n.type,
         objectiveId: n.objective_id,
         message: n.message,
+        senderId: n.sender_id,
+        priority: n.priority || 'normal',
+        detailLabel: n.detail_label || '',
+        detailText: n.detail_text || '',
         isRead: n.is_read,
         ts: n.created_at,
       })));
@@ -2147,12 +2166,21 @@ export function useNotifications(userId) {
   };
 
   const createNotification = async (targetUserId, type, objectiveId, message, context = {}) => {
-    const { data } = await supabase.from('notifications').insert({
+    const priority = context.priority || (isPriorityNotificationSender(context) ? 'priority' : 'normal');
+    const { data, error } = await supabase.from('notifications').insert({
       user_id: targetUserId,
+      sender_id: context.senderId || null,
       type,
       objective_id: objectiveId,
       message,
+      priority,
+      detail_label: context.detailLabel || '',
+      detail_text: context.detailText || '',
     }).select('id').maybeSingle();
+    if (error || !data?.id) {
+      console.warn('[Supabase] notification insert failed; skipping push fan-out:', error?.message || 'No notification id returned');
+      return null;
+    }
     const { data: sessionData } = await supabase.auth.getSession();
     fetch('/api/notifications/send-event', {
       method: 'POST',
@@ -2165,12 +2193,15 @@ export function useNotifications(userId) {
         type,
         objectiveId,
         message,
-        notificationId: data?.id || null,
+        notificationId: data.id,
+        priority,
         detailText: context.detailText || '',
         detailLabel: context.detailLabel || '',
       }),
     }).catch(() => {});
+    await fetchNotifications();
+    return data;
   };
 
-  return { notifications, loading, markRead, markAllRead, createNotification, refetch: fetchNotifications };
+  return { notifications: sortNotifications(notifications), loading, markRead, markAllRead, createNotification, refetch: fetchNotifications };
 }

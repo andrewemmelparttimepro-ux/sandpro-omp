@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     const auth = await getAuthedProfile(req);
     if (auth.error) return json(res, 401, { error: auth.error });
 
-    const { targetUserId, type = 'assignment', objectiveId, message, notificationId = null, detailText = '', detailLabel = '' } = req.body || {};
+    const { targetUserId, type = 'assignment', objectiveId, message, notificationId = null, priority = 'normal', detailText = '', detailLabel = '' } = req.body || {};
     if (!targetUserId || !objectiveId || !message) return json(res, 400, { error: 'targetUserId, objectiveId, and message are required.' });
 
     const supabase = getSupabaseAdmin();
@@ -51,6 +51,7 @@ export default async function handler(req, res) {
       prefs,
       message,
       url: link,
+      priority,
     });
 
     let email = { skipped: true, reason: 'target_email_missing' };

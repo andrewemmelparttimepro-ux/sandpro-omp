@@ -871,6 +871,31 @@ select:focus-visible,
   animation: slideDown 0.2s ease;
 }
 
+.notification-item.priority {
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+
+.notification-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.notification-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  padding: 1px 6px;
+  background: var(--brand-bg);
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
 /* Kanban */
 .kanban-board { display: flex; gap: 12px; flex: 1; overflow-x: auto; min-height: 0; }
 .kanban-column {

@@ -453,6 +453,13 @@ const NotificationPanel = ({ notifications, onMarkAllRead, onClose, onClickNotif
     const map = { assignment: "var(--info)", delegation: "var(--brand)", mention: "var(--brand)", comment: "var(--accent-8)", status_change: "var(--warning)", due_soon: "var(--warning)", overdue: "var(--error)", blocker: "var(--error)", acknowledgement: "var(--success)" };
     return map[type] || "var(--accent-7)";
   };
+  const orderedNotifications = [...notifications].sort((left, right) => {
+    const unreadRank = Number(!right.isRead) - Number(!left.isRead);
+    if (unreadRank !== 0) return unreadRank;
+    const priorityRank = Number(right.priority === 'priority') - Number(left.priority === 'priority');
+    if (priorityRank !== 0) return priorityRank;
+    return new Date(right.ts || 0) - new Date(left.ts || 0);
+  });
 
   return (
     <div className="notification-dropdown" onClick={e => e.stopPropagation()}>
@@ -469,18 +476,19 @@ const NotificationPanel = ({ notifications, onMarkAllRead, onClose, onClickNotif
       </div>
       <div style={{ maxHeight: 400, overflowY: "auto" }}>
         {notifications.length === 0 ? <div className="text-sm text-muted" style={{ padding: 24, textAlign: "center" }}>No notifications</div> :
-          notifications.map(n => (
-            <div key={n.id} onClick={() => onClickNotif(n)} className="flex gap-10 cursor-pointer" style={{
+          orderedNotifications.map(n => (
+            <div key={n.id} onClick={() => onClickNotif(n)} className={`notification-item ${!n.isRead ? 'unread' : ''} ${n.priority === 'priority' ? 'priority' : ''} flex gap-10 cursor-pointer`} style={{
               padding: "12px 16px", borderBottom: "1px solid var(--accent-4)",
               background: n.isRead ? "transparent" : "rgba(var(--sandpro-orange-rgb),0.03)"
             }} onMouseEnter={e => e.currentTarget.style.background = "var(--accent-4)"} onMouseLeave={e => e.currentTarget.style.background = n.isRead ? "transparent" : "rgba(var(--sandpro-orange-rgb),0.03)"}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: getColor(n.type) + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Bell size={13} color={getColor(n.type)} />
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: (n.priority === 'priority' ? 'var(--brand)' : getColor(n.type)) + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Bell size={13} color={n.priority === 'priority' ? 'var(--brand)' : getColor(n.type)} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="text-sm" style={{ lineHeight: 1.4, color: n.isRead ? "var(--accent-8)" : "var(--accent-10)" }}>{n.message}</div>
-                <div className="text-xs text-muted" style={{ marginTop: 2 }}>
+                <div className="notification-meta text-xs text-muted" style={{ marginTop: 2 }}>
                   {new Date(n.ts).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  {n.priority === 'priority' && <span className="notification-priority-badge">Jake priority</span>}
                 </div>
               </div>
               {!n.isRead && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--brand)", flexShrink: 0, marginTop: 6 }} />}
@@ -501,11 +509,23 @@ function App() {
   const { objectives, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, runObjectiveStarter, refetch: refetchObjectives } = useObjectives();
   const { posts: fixItPosts, loading: fixItLoading, createPost: createFixItPost, createComment: createFixItComment, deleteComment: deleteFixItComment, updatePostStatus: updateFixItPostStatus, uploadValidationProof: uploadFixItValidationProof, deletePost: deleteFixItPost } = useFixItFeed(Boolean(user));
   const { reports: ncrReports, loading: ncrLoading, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports } = useNcrReports(Boolean(user));
-  const { notifications, markRead, markAllRead, createNotification } = useNotifications(profile?.id);
+  const { notifications, markRead, markAllRead, createNotification: createRawNotification } = useNotifications(profile?.id);
   const pushNotifications = usePushNotifications(profile?.id);
   const fixItAgentRecipientIds = useMemo(() => (
     profiles.filter(isFixItAgentPushRecipient).map(userProfile => userProfile.id)
   ), [profiles]);
+  const createNotification = useCallback((targetUserId, type, objectiveId, message, context = {}) => createRawNotification(
+    targetUserId,
+    type,
+    objectiveId,
+    message,
+    {
+      senderId: profile?.id,
+      senderName: profile?.name,
+      senderEmail: profile?.email,
+      ...context,
+    },
+  ), [createRawNotification, profile?.email, profile?.id, profile?.name]);
 
   // UI State
   const [route, setRoute] = useState(() => readRouteFromLocation());

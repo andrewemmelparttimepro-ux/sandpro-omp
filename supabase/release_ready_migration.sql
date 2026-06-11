@@ -324,6 +324,12 @@ CREATE TABLE IF NOT EXISTS public.ncr_action_items (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE public.notifications
+  ADD COLUMN IF NOT EXISTS sender_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS priority TEXT NOT NULL DEFAULT 'normal',
+  ADD COLUMN IF NOT EXISTS detail_label TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS detail_text TEXT DEFAULT '';
+
 CREATE TABLE IF NOT EXISTS public.ncr_attachments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   ncr_id UUID NOT NULL REFERENCES public.ncr_reports(id) ON DELETE CASCADE,
@@ -500,6 +506,8 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON public.push_subscripti
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_active ON public.push_subscriptions(user_id, active);
 CREATE INDEX IF NOT EXISTS idx_push_delivery_user ON public.push_delivery_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_push_delivery_notification ON public.push_delivery_log(notification_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_sender ON public.notifications(sender_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_priority ON public.notifications(user_id, priority, is_read, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_message_reactions_message ON public.message_reactions(message_id);
 CREATE INDEX IF NOT EXISTS idx_message_reactions_user ON public.message_reactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_message_reads_user ON public.objective_message_reads(user_id);
@@ -662,6 +670,7 @@ ALTER TABLE public.objective_metric_checkins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_workflow_steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_agent_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_delivery_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_delivery_log ENABLE ROW LEVEL SECURITY;
@@ -794,6 +803,21 @@ CREATE POLICY "Users upsert own notification preferences"
   ON public.notification_preferences FOR ALL TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can view own notifications" ON public.notifications;
+CREATE POLICY "Users can view own notifications"
+  ON public.notifications FOR SELECT TO authenticated
+  USING (auth.uid() = user_id OR auth.uid() = sender_id);
+
+DROP POLICY IF EXISTS "System can insert notifications" ON public.notifications;
+CREATE POLICY "System can insert notifications"
+  ON public.notifications FOR INSERT TO authenticated
+  WITH CHECK (sender_id IS NULL OR sender_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can update own notifications" ON public.notifications;
+CREATE POLICY "Users can update own notifications"
+  ON public.notifications FOR UPDATE TO authenticated
+  USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Users view own email delivery log" ON public.email_delivery_log;
 CREATE POLICY "Users view own email delivery log"

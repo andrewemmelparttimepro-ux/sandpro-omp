@@ -29,8 +29,9 @@ export const isHighPriorityObjective = (objective = {}) => (
   ['critical', 'high'].includes(String(objective.priority || '').toLowerCase())
 );
 
-export const isUrgentPushType = (type, objective) => (
-  ['blocker', 'at_risk', 'overdue'].includes(type)
+export const isUrgentPushType = (type, objective, priority = 'normal') => (
+  priority === 'priority'
+  || ['blocker', 'at_risk', 'overdue'].includes(type)
   || (type === 'due_soon' && isHighPriorityObjective(objective))
 );
 
@@ -60,8 +61,8 @@ const pushTitle = (type) => {
   return 'SandPro OMP';
 };
 
-export const buildPushPayload = ({ type, objective, message, url, notificationId }) => {
-  const urgent = isUrgentPushType(type, objective);
+export const buildPushPayload = ({ type, objective, message, url, notificationId, priority = 'normal' }) => {
+  const urgent = isUrgentPushType(type, objective, priority);
   return {
     title: pushTitle(type),
     body: String(message || objective?.title || 'Open SandPro OMP for details.').slice(0, 180),
@@ -104,6 +105,7 @@ export const sendPushNotifications = async ({
   prefs,
   message,
   url,
+  priority = 'normal',
 }) => {
   const supabase = getSupabaseAdmin();
   const objectiveId = objective?.id || null;
@@ -150,7 +152,7 @@ export const sendPushNotifications = async ({
     return { skipped: true, reason: 'no_subscription' };
   }
 
-  const payload = buildPushPayload({ type, objective, message, url, notificationId });
+  const payload = buildPushPayload({ type, objective, message, url, notificationId, priority });
   const results = [];
 
   for (const subscription of subscriptions) {

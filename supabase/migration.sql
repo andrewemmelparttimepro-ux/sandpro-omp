@@ -513,9 +513,13 @@ CREATE TABLE public.org_chart_placeholders (
 CREATE TABLE public.notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  sender_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   type TEXT NOT NULL DEFAULT 'info',
   objective_id UUID REFERENCES public.objectives(id) ON DELETE CASCADE,
   message TEXT NOT NULL,
+  priority TEXT NOT NULL DEFAULT 'normal',
+  detail_label TEXT DEFAULT '',
+  detail_text TEXT DEFAULT '',
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -563,6 +567,8 @@ CREATE INDEX idx_agent_runs_objective ON public.objective_agent_runs(objective_i
 CREATE INDEX idx_agent_runs_status ON public.objective_agent_runs(status);
 CREATE INDEX idx_notifications_user ON public.notifications(user_id);
 CREATE INDEX idx_notifications_read ON public.notifications(user_id, is_read);
+CREATE INDEX idx_notifications_sender ON public.notifications(sender_id);
+CREATE INDEX idx_notifications_priority ON public.notifications(user_id, priority, is_read, created_at DESC);
 CREATE INDEX idx_email_delivery_user ON public.email_delivery_log(user_id);
 CREATE INDEX idx_push_subscriptions_user ON public.push_subscriptions(user_id);
 CREATE INDEX idx_push_subscriptions_active ON public.push_subscriptions(user_id, active);
@@ -1194,11 +1200,11 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view own notifications"
   ON public.notifications FOR SELECT TO authenticated
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id OR auth.uid() = sender_id);
 
 CREATE POLICY "System can insert notifications"
   ON public.notifications FOR INSERT TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (sender_id IS NULL OR sender_id = auth.uid());
 
 CREATE POLICY "Users can update own notifications"
   ON public.notifications FOR UPDATE TO authenticated

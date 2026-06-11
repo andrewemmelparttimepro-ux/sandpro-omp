@@ -35,6 +35,7 @@ const checks = [
   ['objective_metric_checkins table', 'objective_metric_checkins', 'id,objective_id,checkin_date,value,note,created_by'],
   ['objective_workflow_steps table', 'objective_workflow_steps', 'id,objective_id,title,description,step_order,status,owner_id,due_date,completed_at,completed_by,updated_at'],
   ['objective_agent_runs table', 'objective_agent_runs', 'id,objective_id,requested_by,agent_key,run_type,status,input_snapshot,output_summary,output_json,source_links,file_id,error,completed_at'],
+  ['notifications sender priority columns', 'notifications', 'id,user_id,sender_id,type,objective_id,message,priority,detail_label,detail_text,is_read,created_at'],
   ['notification_preferences table', 'notification_preferences', 'user_id,email_enabled,due_reminders,overdue_alerts,blocker_alerts,comment_notifications,delegation_alerts,digest_frequency'],
   ['email_delivery_log table', 'email_delivery_log', 'id,user_id,objective_id,notification_type,dedupe_key,recipient,subject,status,sent_at'],
   ['push_subscriptions table', 'push_subscriptions', 'id,user_id,endpoint,p256dh,auth,device_label,user_agent,platform,is_pwa,active,revoked_at,last_seen_at,updated_at'],
