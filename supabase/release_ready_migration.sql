@@ -5,7 +5,51 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 ALTER TABLE public.objectives
   ADD COLUMN IF NOT EXISTS measurement_cadence TEXT NOT NULL DEFAULT 'monthly',
-  ADD COLUMN IF NOT EXISTS rollup_method TEXT NOT NULL DEFAULT 'average';
+  ADD COLUMN IF NOT EXISTS rollup_method TEXT NOT NULL DEFAULT 'average',
+  ADD COLUMN IF NOT EXISTS okr_level TEXT NOT NULL DEFAULT 'needs_review',
+  ADD COLUMN IF NOT EXISTS okr_period TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS okr_weight NUMERIC NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS classification_status TEXT NOT NULL DEFAULT 'needs_assessment',
+  ADD COLUMN IF NOT EXISTS classification_confidence NUMERIC NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS classification_reason TEXT DEFAULT '';
+
+UPDATE public.objectives
+SET
+  okr_level = CASE
+    WHEN parent_id IS NOT NULL AND baseline_metric IS NOT NULL AND target_metric IS NOT NULL THEN 'key_result'
+    WHEN LOWER(COALESCE(title, '') || ' ' || COALESCE(description, '')) ~ '(project|prototype|launch|build|implement|install|deploy|pilot|r&d|research)' THEN 'project'
+    WHEN type = 'parent' AND parent_id IS NULL AND LOWER(COALESCE(department, '')) ~ '(leadership|executive|company)' THEN 'company'
+    WHEN type = 'parent' OR EXISTS (SELECT 1 FROM public.objectives child WHERE child.parent_id = objectives.id) THEN 'department'
+    WHEN parent_id IS NOT NULL THEN 'project'
+    WHEN baseline_metric IS NOT NULL AND target_metric IS NOT NULL THEN 'key_result'
+    WHEN LOWER(COALESCE(department, '')) ~ '(admin|operations|shop|safety|hr)' THEN 'run_the_business'
+    ELSE 'needs_review'
+  END,
+  okr_period = COALESCE(NULLIF(okr_period, ''), CONCAT(EXTRACT(YEAR FROM NOW())::INT, '-Q', EXTRACT(QUARTER FROM NOW())::INT)),
+  classification_status = CASE
+    WHEN parent_id IS NOT NULL AND baseline_metric IS NOT NULL AND target_metric IS NOT NULL THEN 'auto_classified'
+    WHEN LOWER(COALESCE(title, '') || ' ' || COALESCE(description, '')) ~ '(project|prototype|launch|build|implement|install|deploy|pilot|r&d|research)' THEN 'auto_classified'
+    WHEN type = 'parent' OR EXISTS (SELECT 1 FROM public.objectives child WHERE child.parent_id = objectives.id) THEN 'auto_classified'
+    WHEN LOWER(COALESCE(department, '')) ~ '(admin|operations|shop|safety|hr)' THEN 'auto_classified'
+    ELSE 'needs_review'
+  END,
+  classification_confidence = CASE
+    WHEN parent_id IS NOT NULL AND baseline_metric IS NOT NULL AND target_metric IS NOT NULL THEN 90
+    WHEN type = 'parent' AND parent_id IS NULL AND LOWER(COALESCE(department, '')) ~ '(leadership|executive|company)' THEN 82
+    WHEN LOWER(COALESCE(title, '') || ' ' || COALESCE(description, '')) ~ '(project|prototype|launch|build|implement|install|deploy|pilot|r&d|research)' THEN 78
+    WHEN type = 'parent' OR EXISTS (SELECT 1 FROM public.objectives child WHERE child.parent_id = objectives.id) THEN 76
+    WHEN LOWER(COALESCE(department, '')) ~ '(admin|operations|shop|safety|hr)' THEN 70
+    ELSE 50
+  END,
+  classification_reason = CASE
+    WHEN parent_id IS NOT NULL AND baseline_metric IS NOT NULL AND target_metric IS NOT NULL THEN 'Auto-classified as Key Result because it has a parent and numeric metrics.'
+    WHEN LOWER(COALESCE(title, '') || ' ' || COALESCE(description, '')) ~ '(project|prototype|launch|build|implement|install|deploy|pilot|r&d|research)' THEN 'Auto-classified as Project because the title/description reads like executable project work.'
+    WHEN type = 'parent' OR EXISTS (SELECT 1 FROM public.objectives child WHERE child.parent_id = objectives.id) THEN 'Auto-classified as OKR because it has child objectives or parent tracking type.'
+    WHEN LOWER(COALESCE(department, '')) ~ '(admin|operations|shop|safety|hr)' THEN 'Auto-classified as Run-the-business because it is operational work without hierarchy or KR metrics.'
+    ELSE 'Needs assessment because the objective needs OKR/project structure.'
+  END
+WHERE classification_status = 'needs_assessment'
+  AND classification_confidence = 0;
 
 ALTER TABLE public.subtasks
   ADD COLUMN IF NOT EXISTS due_date TIMESTAMPTZ,
@@ -101,6 +145,93 @@ CREATE TABLE IF NOT EXISTS public.objective_agent_runs (
   error TEXT DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS public.okr_projects (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  project_type TEXT NOT NULL DEFAULT 'internal',
+  linked_kr_id UUID REFERENCES public.objectives(id) ON DELETE SET NULL,
+  run_the_business BOOLEAN NOT NULL DEFAULT FALSE,
+  sponsor_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  lead_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  stage TEXT NOT NULL DEFAULT 'idea',
+  health TEXT NOT NULL DEFAULT 'green',
+  health_comment TEXT DEFAULT '',
+  start_date DATE,
+  target_date DATE,
+  next_milestone TEXT DEFAULT '',
+  next_milestone_due_date DATE,
+  budget_estimate NUMERIC,
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.okr_project_kr_links (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID NOT NULL REFERENCES public.okr_projects(id) ON DELETE CASCADE,
+  objective_id UUID NOT NULL REFERENCES public.objectives(id) ON DELETE CASCADE,
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(project_id, objective_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.okr_assessment_artifacts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID NOT NULL REFERENCES public.okr_projects(id) ON DELETE CASCADE,
+  artifact_key TEXT NOT NULL,
+  title TEXT NOT NULL,
+  owner_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  status TEXT NOT NULL DEFAULT 'missing',
+  response_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  summary TEXT DEFAULT '',
+  completed_at TIMESTAMPTZ,
+  completed_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(project_id, artifact_key)
+);
+
+CREATE TABLE IF NOT EXISTS public.okr_project_signatures (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID NOT NULL REFERENCES public.okr_projects(id) ON DELETE CASCADE,
+  role TEXT NOT NULL,
+  signed_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  signed_by_name TEXT DEFAULT '',
+  signature_data_url TEXT DEFAULT '',
+  note TEXT DEFAULT '',
+  signed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.okr_project_attachments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID NOT NULL REFERENCES public.okr_projects(id) ON DELETE CASCADE,
+  artifact_id UUID REFERENCES public.okr_assessment_artifacts(id) ON DELETE SET NULL,
+  uploaded_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  purpose TEXT NOT NULL DEFAULT 'evidence',
+  type TEXT DEFAULT '',
+  mime_type TEXT DEFAULT '',
+  size TEXT DEFAULT '',
+  storage_path TEXT DEFAULT '',
+  url TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.okr_project_audit_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID NOT NULL REFERENCES public.okr_projects(id) ON DELETE CASCADE,
+  actor_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  event_type TEXT NOT NULL DEFAULT 'update',
+  field_name TEXT DEFAULT '',
+  old_value JSONB,
+  new_value JSONB,
+  note TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE public.files
@@ -501,6 +632,20 @@ CREATE INDEX IF NOT EXISTS idx_workflow_steps_objective ON public.objective_work
 CREATE INDEX IF NOT EXISTS idx_workflow_steps_owner ON public.objective_workflow_steps(owner_id);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_objective ON public.objective_agent_runs(objective_id);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_status ON public.objective_agent_runs(status);
+CREATE INDEX IF NOT EXISTS idx_objectives_okr_level ON public.objectives(okr_level);
+CREATE INDEX IF NOT EXISTS idx_objectives_okr_period ON public.objectives(okr_period);
+CREATE INDEX IF NOT EXISTS idx_objectives_classification ON public.objectives(classification_status, classification_confidence);
+CREATE INDEX IF NOT EXISTS idx_okr_projects_stage ON public.okr_projects(stage);
+CREATE INDEX IF NOT EXISTS idx_okr_projects_type ON public.okr_projects(project_type);
+CREATE INDEX IF NOT EXISTS idx_okr_projects_linked_kr ON public.okr_projects(linked_kr_id);
+CREATE INDEX IF NOT EXISTS idx_okr_projects_sponsor ON public.okr_projects(sponsor_id);
+CREATE INDEX IF NOT EXISTS idx_okr_projects_lead ON public.okr_projects(lead_id);
+CREATE INDEX IF NOT EXISTS idx_okr_project_links_project ON public.okr_project_kr_links(project_id);
+CREATE INDEX IF NOT EXISTS idx_okr_project_links_objective ON public.okr_project_kr_links(objective_id);
+CREATE INDEX IF NOT EXISTS idx_okr_artifacts_project ON public.okr_assessment_artifacts(project_id);
+CREATE INDEX IF NOT EXISTS idx_okr_signatures_project ON public.okr_project_signatures(project_id);
+CREATE INDEX IF NOT EXISTS idx_okr_attachments_project ON public.okr_project_attachments(project_id);
+CREATE INDEX IF NOT EXISTS idx_okr_audit_project ON public.okr_project_audit_events(project_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_email_delivery_user ON public.email_delivery_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON public.push_subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_active ON public.push_subscriptions(user_id, active);
@@ -611,6 +756,16 @@ CREATE TRIGGER set_workflow_steps_updated_at
   BEFORE UPDATE ON public.objective_workflow_steps
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+DROP TRIGGER IF EXISTS set_okr_projects_updated_at ON public.okr_projects;
+CREATE TRIGGER set_okr_projects_updated_at
+  BEFORE UPDATE ON public.okr_projects
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS set_okr_artifacts_updated_at ON public.okr_assessment_artifacts;
+CREATE TRIGGER set_okr_artifacts_updated_at
+  BEFORE UPDATE ON public.okr_assessment_artifacts
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
 DROP TRIGGER IF EXISTS set_fix_it_posts_updated_at ON public.fix_it_posts;
 CREATE TRIGGER set_fix_it_posts_updated_at
   BEFORE UPDATE ON public.fix_it_posts
@@ -636,6 +791,42 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION public.create_default_project_assessment_artifacts()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.okr_assessment_artifacts (project_id, artifact_key, title, status)
+  VALUES
+    (NEW.id, 'economic_evaluation', 'Economic evaluation', 'missing'),
+    (NEW.id, 'risk_assessment', 'Risk assessment', 'missing'),
+    (NEW.id, 'quality_review', 'Quality review forms', 'missing'),
+    (NEW.id, 'viability_review', 'Product viability review', 'missing'),
+    (NEW.id, 'required_approvals', 'Required approvals', 'missing'),
+    (NEW.id, 'next_steps_ownership', 'Next steps + ownership', 'missing')
+  ON CONFLICT (project_id, artifact_key) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS create_project_assessment_artifacts ON public.okr_projects;
+CREATE TRIGGER create_project_assessment_artifacts
+  AFTER INSERT ON public.okr_projects
+  FOR EACH ROW EXECUTE FUNCTION public.create_default_project_assessment_artifacts();
+
+WITH default_project_artifacts(artifact_key, title) AS (
+  VALUES
+    ('economic_evaluation', 'Economic evaluation'),
+    ('risk_assessment', 'Risk assessment'),
+    ('quality_review', 'Quality review forms'),
+    ('viability_review', 'Product viability review'),
+    ('required_approvals', 'Required approvals'),
+    ('next_steps_ownership', 'Next steps + ownership')
+)
+INSERT INTO public.okr_assessment_artifacts (project_id, artifact_key, title, status)
+SELECT project.id, artifact.artifact_key, artifact.title, 'missing'
+FROM public.okr_projects project
+CROSS JOIN default_project_artifacts artifact
+ON CONFLICT (project_id, artifact_key) DO NOTHING;
 
 DROP TRIGGER IF EXISTS create_objective_workflow_steps ON public.objectives;
 CREATE TRIGGER create_objective_workflow_steps
@@ -669,6 +860,12 @@ ALTER TABLE public.objective_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_metric_checkins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_workflow_steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_agent_runs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.okr_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.okr_project_kr_links ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.okr_assessment_artifacts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.okr_project_signatures ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.okr_project_attachments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.okr_project_audit_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_delivery_log ENABLE ROW LEVEL SECURITY;
@@ -789,6 +986,77 @@ CREATE POLICY "Objective team manages workflow steps"
     )
     OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
   );
+
+DROP POLICY IF EXISTS "OKR projects viewable by all authenticated" ON public.okr_projects;
+CREATE POLICY "OKR projects viewable by all authenticated"
+  ON public.okr_projects FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can create OKR projects" ON public.okr_projects;
+CREATE POLICY "Authenticated users can create OKR projects"
+  ON public.okr_projects FOR INSERT TO authenticated WITH CHECK (auth.uid() = created_by OR created_by IS NULL);
+
+DROP POLICY IF EXISTS "Authenticated users can update OKR projects" ON public.okr_projects;
+CREATE POLICY "Authenticated users can update OKR projects"
+  ON public.okr_projects FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated users can delete OKR projects" ON public.okr_projects;
+CREATE POLICY "Authenticated users can delete OKR projects"
+  ON public.okr_projects FOR DELETE TO authenticated USING (
+    auth.uid() = created_by
+    OR EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND (role = 'executive' OR lower(email) IN ('jfeil@sandpro.com', 'andrew@ndai.pro'))
+    )
+  );
+
+DROP POLICY IF EXISTS "OKR project links viewable by all authenticated" ON public.okr_project_kr_links;
+CREATE POLICY "OKR project links viewable by all authenticated"
+  ON public.okr_project_kr_links FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can manage OKR project links" ON public.okr_project_kr_links;
+CREATE POLICY "Authenticated users can manage OKR project links"
+  ON public.okr_project_kr_links FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "OKR assessment artifacts viewable by all authenticated" ON public.okr_assessment_artifacts;
+CREATE POLICY "OKR assessment artifacts viewable by all authenticated"
+  ON public.okr_assessment_artifacts FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can manage OKR assessment artifacts" ON public.okr_assessment_artifacts;
+CREATE POLICY "Authenticated users can manage OKR assessment artifacts"
+  ON public.okr_assessment_artifacts FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "OKR signatures viewable by all authenticated" ON public.okr_project_signatures;
+CREATE POLICY "OKR signatures viewable by all authenticated"
+  ON public.okr_project_signatures FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can create OKR signatures" ON public.okr_project_signatures;
+CREATE POLICY "Authenticated users can create OKR signatures"
+  ON public.okr_project_signatures FOR INSERT TO authenticated WITH CHECK (auth.uid() = created_by OR created_by IS NULL);
+
+DROP POLICY IF EXISTS "Authenticated users can delete OKR signatures" ON public.okr_project_signatures;
+CREATE POLICY "Authenticated users can delete OKR signatures"
+  ON public.okr_project_signatures FOR DELETE TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "OKR project attachments viewable by all authenticated" ON public.okr_project_attachments;
+CREATE POLICY "OKR project attachments viewable by all authenticated"
+  ON public.okr_project_attachments FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can create OKR project attachments" ON public.okr_project_attachments;
+CREATE POLICY "Authenticated users can create OKR project attachments"
+  ON public.okr_project_attachments FOR INSERT TO authenticated WITH CHECK (auth.uid() = uploaded_by OR uploaded_by IS NULL);
+
+DROP POLICY IF EXISTS "Authenticated users can delete OKR project attachments" ON public.okr_project_attachments;
+CREATE POLICY "Authenticated users can delete OKR project attachments"
+  ON public.okr_project_attachments FOR DELETE TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "OKR project audit viewable by all authenticated" ON public.okr_project_audit_events;
+CREATE POLICY "OKR project audit viewable by all authenticated"
+  ON public.okr_project_audit_events FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can create OKR project audit" ON public.okr_project_audit_events;
+CREATE POLICY "Authenticated users can create OKR project audit"
+  ON public.okr_project_audit_events FOR INSERT TO authenticated WITH CHECK (auth.uid() = actor_id OR actor_id IS NULL);
 
 DROP POLICY IF EXISTS "Agent runs viewable by all authenticated" ON public.objective_agent_runs;
 CREATE POLICY "Agent runs viewable by all authenticated"
@@ -1020,6 +1288,12 @@ CREATE POLICY "Authenticated users can create Fix-It attachments"
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.fix_it_comments TO authenticated;
 GRANT SELECT, INSERT ON public.fix_it_attachments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.okr_projects TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.okr_project_kr_links TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.okr_assessment_artifacts TO authenticated;
+GRANT SELECT, INSERT, DELETE ON public.okr_project_signatures TO authenticated;
+GRANT SELECT, INSERT, DELETE ON public.okr_project_attachments TO authenticated;
+GRANT SELECT, INSERT ON public.okr_project_audit_events TO authenticated;
 
 DROP POLICY IF EXISTS "Executives and org editors view org chart updates" ON public.org_chart_updates;
 DROP POLICY IF EXISTS "Executives and Merci view org chart updates" ON public.org_chart_updates;
@@ -1117,6 +1391,10 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('ncr-files', 'ncr-files', false)
 ON CONFLICT (id) DO UPDATE SET public = false;
 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('okr-project-files', 'okr-project-files', false)
+ON CONFLICT (id) DO UPDATE SET public = false;
+
 DROP POLICY IF EXISTS "Authenticated users can read objective file objects" ON storage.objects;
 CREATE POLICY "Authenticated users can read objective file objects"
   ON storage.objects FOR SELECT TO authenticated
@@ -1148,6 +1426,11 @@ CREATE POLICY "Authenticated users can read NCR file objects"
   ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'ncr-files');
 
+DROP POLICY IF EXISTS "Authenticated users can read OKR project file objects" ON storage.objects;
+CREATE POLICY "Authenticated users can read OKR project file objects"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (bucket_id = 'okr-project-files');
+
 DROP POLICY IF EXISTS "Authenticated users can upload Fix-It file objects" ON storage.objects;
 CREATE POLICY "Authenticated users can upload Fix-It file objects"
   ON storage.objects FOR INSERT TO authenticated
@@ -1157,6 +1440,11 @@ DROP POLICY IF EXISTS "Authenticated users can upload NCR file objects" ON stora
 CREATE POLICY "Authenticated users can upload NCR file objects"
   ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'ncr-files' AND owner = auth.uid());
+
+DROP POLICY IF EXISTS "Authenticated users can upload OKR project file objects" ON storage.objects;
+CREATE POLICY "Authenticated users can upload OKR project file objects"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'okr-project-files' AND owner = auth.uid());
 
 DROP POLICY IF EXISTS "Fix-It upload owners and moderators can delete file objects" ON storage.objects;
 CREATE POLICY "Fix-It upload owners and moderators can delete file objects"
@@ -1184,6 +1472,17 @@ CREATE POLICY "NCR upload owners and executives can delete file objects"
     )
   );
 
+DROP POLICY IF EXISTS "OKR project upload owners and executives can delete file objects" ON storage.objects;
+CREATE POLICY "OKR project upload owners and executives can delete file objects"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'okr-project-files'
+    AND (
+      owner = auth.uid()
+      OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+    )
+  );
+
 DO $$
 BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE public.org_chart_placeholders;
@@ -1201,6 +1500,48 @@ END $$;
 DO $$
 BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE public.objective_workflow_steps;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.okr_projects;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.okr_project_kr_links;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.okr_assessment_artifacts;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.okr_project_signatures;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.okr_project_attachments;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.okr_project_audit_events;
 EXCEPTION WHEN duplicate_object THEN
   NULL;
 END $$;

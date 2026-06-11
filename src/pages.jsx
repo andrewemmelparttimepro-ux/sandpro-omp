@@ -13,6 +13,18 @@ import { Avatar, Badge, ProgressBar, KPICard, ObjectiveCard, EmptyState, Feature
 import { usePushNotifications } from './hooks/useSupabase';
 import { supabase } from './lib/supabase';
 import { FieldKeyProvider, DefinedTerm, FieldKeyHint } from './glossary';
+import {
+  OKR_LEVELS,
+  OKR_LEVEL_LABELS,
+  PROJECT_STAGES,
+  getOkrLevelMeta,
+  getProjectStageMeta,
+  isKeyResultStale,
+  buildOkrTree,
+  buildProjectGateBlockers,
+  summarizeFramework,
+  buildQuarterlyScorecardRows,
+} from './okrFramework';
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 const PRIORITY_LABELS = { critical: "Critical", high: "High", medium: "Medium", low: "Low" };
@@ -210,7 +222,7 @@ const OBJECTIVE_SCOPE_LABELS = {
 // ============================================================================
 // DASHBOARD PAGE — Role-adaptive
 // ============================================================================
-export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick, onKpiClick }) => {
+export const DashboardPage = ({ objectives, okrProjects = [], currentUser, onOpenCard, onDeptClick, onKpiClick }) => {
   const [scope, setScope] = useState(currentUser.role === "executive" ? "company" : currentUser.role === "manager" ? "team" : "individual");
   const directReports = getDirectReports(currentUser.id);
   const scopedObjectives = scope === "individual"
@@ -252,6 +264,17 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick
     { key: "14", label: "14 days", value: dueWithin(14), dueWindow: 14, tone: dueWithin(14) > 0 ? "mid" : "empty" },
     { key: "28", label: "28 days", value: dueWithin(28), dueWindow: 28, tone: dueWithin(28) > 0 ? "far" : "empty" },
   ];
+  const scopedProjectIds = new Set(scopedObjectives.flatMap(objective => (objective.linkedProjects || []).map(project => project.id)));
+  const scopedProjects = okrProjects.filter(project => (
+    scopedProjectIds.has(project.id)
+    || scope === "company"
+    || project.sponsorId === currentUser.id
+    || project.leadId === currentUser.id
+  ));
+  const frameworkSummary = summarizeFramework(scopedObjectives, scopedProjects);
+  const reviewNeeded = scopedObjectives.filter(objective => objective.okrLevel === "needs_review" || objective.classificationStatus === "needs_review").length;
+  const staleKrCount = frameworkSummary.staleKrs.length;
+  const blockedProjectCount = frameworkSummary.blockedProjects.length;
 
   // "My Work" for manager/contributor
   const delegatedToMe = scopedObjectives.filter(o => o.ownerId === currentUser.id && o.delegatedBy && o.delegatedBy !== currentUser.id);
@@ -296,6 +319,28 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick
         <KPICard bucket="state" icon={CheckCircle2} label="Completed" value={completed} sub="finished work" color="#10B981" breakdown={statusBreakdown(scopedObjectives.filter(o => o.status === "completed"))} onClick={() => onKpiClick?.({ label: "Completed", status: "completed", scope })} />
         <KPICard bucket="time" icon={AlertTriangle} label="Past Due" value={overdue} sub={`${atRisk} at risk · ${blocked} blocked`} color="#EF4444" breakdown={statusBreakdown(overdueItems)} onClick={() => onKpiClick?.({ label: "Past Due", overdue: true, activeOnly: true, scope })} />
         <DueHorizonStrip items={dueHorizonItems} onSelect={(item) => onKpiClick?.({ label: `Due Next ${item.label}`, dueWindow: item.dueWindow, activeOnly: true, scope })} />
+      </div>
+      <div className="framework-dashboard-strip">
+        <button type="button" onClick={() => onKpiClick?.({ label: "Company OKRs", okrLevel: "company", scope, view: "tree" })}>
+          <span>Company OKRs</span>
+          <strong>{frameworkSummary.levelCounts.company || 0}</strong>
+        </button>
+        <button type="button" onClick={() => onKpiClick?.({ label: "Stale KRs", okrLevel: "key_result", stale: "true", scope, view: "list" })}>
+          <span>Stale KRs</span>
+          <strong>{staleKrCount}</strong>
+        </button>
+        <button type="button" onClick={() => onKpiClick?.({ label: "Project Assessments", projectStage: "assessment", scope, view: "tree" })}>
+          <span>Projects in assessment</span>
+          <strong>{frameworkSummary.projectStageCounts.assessment || 0}</strong>
+        </button>
+        <button type="button" onClick={() => onKpiClick?.({ label: "Approval blockers", projectStage: "blocked", scope, view: "tree" })}>
+          <span>Gate blockers</span>
+          <strong>{blockedProjectCount}</strong>
+        </button>
+        <button type="button" onClick={() => onKpiClick?.({ label: "Needs classification review", okrLevel: "needs_review", scope, view: "list" })}>
+          <span>Needs review</span>
+          <strong>{reviewNeeded}</strong>
+        </button>
       </div>
 
       {/* Delegated-to-me needing acknowledgement */}
@@ -466,12 +511,13 @@ export const DashboardPage = ({ objectives, currentUser, onOpenCard, onDeptClick
 // ============================================================================
 // OBJECTIVES PAGE — Grid + Kanban + List views
 // ============================================================================
-export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, highlightDept, onFiltersChange, onClearFilters, onQuickTag, onQuickStatus }) => {
+export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, currentUser, filters, highlightDept, onFiltersChange, onClearFilters, onQuickTag, onQuickStatus }) => {
   const [glowActive, setGlowActive] = useState(false);
   const [taggingObjectiveId, setTaggingObjectiveId] = useState(null);
   const [expandedTagObjectiveId, setExpandedTagObjectiveId] = useState(null);
   const [statusUpdatingObjectiveId, setStatusUpdatingObjectiveId] = useState(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [expandedTreeIds, setExpandedTreeIds] = useState(() => new Set());
   const [showListDescriptions, setShowListDescriptions] = useState(() => {
     try { return window.localStorage.getItem('sandpro-objectives-show-descriptions') === 'true'; }
     catch { return false; }
@@ -485,6 +531,10 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
   const priorityFilter = filters.priority || "all";
   const dueFilter = filters.due || "all";
   const scopeFilter = filters.scope || "all";
+  const okrLevelFilter = filters.okrLevel || "all";
+  const okrPeriodFilter = filters.okrPeriod || "all";
+  const projectStageFilter = filters.projectStage || "all";
+  const staleFilter = filters.stale || "all";
   const activeOnly = Boolean(filters.activeOnly);
   const updateFilter = (key, value) => onFiltersChange?.({ [key]: value });
   const updateShowListDescriptions = (nextValue) => {
@@ -505,6 +555,17 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
   const statusFilters = OBJECTIVE_STATUS_FILTERS;
   const statusOptions = statusFilters.filter(status => status.id !== "all");
   const allDepartments = [...new Set(objectives.map(o => o.department).filter(Boolean))].sort();
+  const allPeriods = [...new Set(objectives.map(o => o.okrPeriod).filter(Boolean))].sort().reverse();
+  const linkedProjectStagesFor = useCallback((objective) => {
+    const linked = [
+      ...(objective.linkedProjects || []),
+      ...okrProjects.filter(project => {
+        const ids = project.linkedObjectiveIds || (project.linkedKrId ? [project.linkedKrId] : []);
+        return ids.includes(objective.id);
+      }),
+    ];
+    return linked.map(project => project.stage || "idea");
+  }, [okrProjects]);
   const allOwners = getProfiles()
     .filter(user => user?.id)
     .sort((a, b) => {
@@ -547,6 +608,19 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
       if (departmentFilter !== "all" && o.department !== departmentFilter) return false;
       if (priorityFilter !== "all" && o.priority !== priorityFilter) return false;
       if (!isInDueWindow(o, dueFilter)) return false;
+      if (okrLevelFilter !== "all" && o.okrLevel !== okrLevelFilter) return false;
+      if (okrPeriodFilter !== "all" && (o.okrPeriod || "") !== okrPeriodFilter) return false;
+      if (staleFilter !== "all" && String(isKeyResultStale(o)) !== staleFilter) return false;
+      if (projectStageFilter === "blocked") {
+        const linkedProjects = [
+          ...(o.linkedProjects || []),
+          ...okrProjects.filter(project => {
+            const ids = project.linkedObjectiveIds || (project.linkedKrId ? [project.linkedKrId] : []);
+            return ids.includes(o.id);
+          }),
+        ];
+        if (!linkedProjects.some(project => buildProjectGateBlockers(project).length > 0)) return false;
+      } else if (projectStageFilter !== "all" && !linkedProjectStagesFor(o).includes(projectStageFilter)) return false;
       return true;
     }).sort((a, b) => {
       if (sortBy === "priority") return (PRIORITY_ORDER[a.priority] || 3) - (PRIORITY_ORDER[b.priority] || 3);
@@ -557,11 +631,11 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
       if (sortBy === "oldest") return createdTime(a) - createdTime(b);
       return 0;
     });
-  }, [objectives, filter, search, sortBy, ownerFilter, departmentFilter, priorityFilter, dueFilter, activeOnly, isInScope]);
+  }, [objectives, filter, search, sortBy, ownerFilter, departmentFilter, priorityFilter, dueFilter, okrLevelFilter, okrPeriodFilter, projectStageFilter, staleFilter, activeOnly, isInScope, linkedProjectStagesFor, okrProjects]);
 
   const kanbanStatuses = ["not_started", "on_track", "at_risk", "blocked", "completed"];
   const visibleKanbanStatuses = filter === "all" ? kanbanStatuses : kanbanStatuses.filter(status => status === filter);
-  const hasActiveFilters = search || filter !== "all" || ownerFilter !== "all" || departmentFilter !== "all" || priorityFilter !== "all" || dueFilter !== "all" || scopeFilter !== "all" || activeOnly;
+  const hasActiveFilters = search || filter !== "all" || ownerFilter !== "all" || departmentFilter !== "all" || priorityFilter !== "all" || dueFilter !== "all" || scopeFilter !== "all" || okrLevelFilter !== "all" || okrPeriodFilter !== "all" || projectStageFilter !== "all" || staleFilter !== "all" || activeOnly;
   const activeChips = [
     search && { key: "search", label: `Search: ${search}`, clear: () => updateFilter("search", "") },
     filter !== "all" && { key: "status", label: getStatusLabel(filter), clear: () => updateFilter("status", "all") },
@@ -570,6 +644,10 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
     priorityFilter !== "all" && { key: "priority", label: priorityFilter, clear: () => updateFilter("priority", "all") },
     dueFilter !== "all" && { key: "due", label: dueLabel(dueFilter), clear: () => updateFilter("due", "all") },
     scopeFilter !== "all" && { key: "scope", label: OBJECTIVE_SCOPE_LABELS[scopeFilter] || "Company", clear: () => updateFilter("scope", "all") },
+    okrLevelFilter !== "all" && { key: "okrLevel", label: OKR_LEVEL_LABELS[okrLevelFilter] || okrLevelFilter, clear: () => updateFilter("okrLevel", "all") },
+    okrPeriodFilter !== "all" && { key: "okrPeriod", label: okrPeriodFilter, clear: () => updateFilter("okrPeriod", "all") },
+    projectStageFilter !== "all" && { key: "projectStage", label: projectStageFilter === "blocked" ? "Approval blockers" : getProjectStageMeta(projectStageFilter).label, clear: () => updateFilter("projectStage", "all") },
+    staleFilter !== "all" && { key: "stale", label: staleFilter === "true" ? "Stale KRs" : "Fresh KRs", clear: () => updateFilter("stale", "all") },
     activeOnly && { key: "active", label: "Active", clear: () => updateFilter("activeOnly", false) },
   ].filter(Boolean);
   const lensTone = hasActiveFilters ? "focused" : "neutral";
@@ -577,11 +655,115 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
     { key: "scope", label: OBJECTIVE_SCOPE_LABELS[scopeFilter] || "All scopes", tone: scopeFilter !== "all" ? "scope" : "muted" },
     { key: "state", label: activeOnly ? "Active" : filter !== "all" ? getStatusLabel(filter) : "All work", tone: activeOnly || filter !== "all" ? "state" : "muted" },
     { key: "due", label: dueFilter !== "all" ? dueLabel(dueFilter) : "All due dates", tone: dueFilter !== "all" ? "time" : "muted" },
+    { key: "okr", label: okrLevelFilter !== "all" ? OKR_LEVEL_LABELS[okrLevelFilter] : "All OKR levels", tone: okrLevelFilter !== "all" ? "state" : "muted" },
+    { key: "project", label: projectStageFilter !== "all" ? (projectStageFilter === "blocked" ? "Approval blockers" : getProjectStageMeta(projectStageFilter).label) : "All project stages", tone: projectStageFilter !== "all" ? "scope" : "muted" },
   ];
   const emptyText = hasActiveFilters
     ? `No objectives match ${activeChips.map(c => c.label).join(", ")}.`
     : "No objectives to show yet.";
   const emptyAction = hasActiveFilters ? <button className="btn btn-primary btn-sm" onClick={onClearFilters}>Clear filters</button> : null;
+  const visibleProjects = useMemo(() => okrProjects.filter(project => {
+    if (projectStageFilter === "blocked") return buildProjectGateBlockers(project).length > 0;
+    if (projectStageFilter !== "all" && (project.stage || "idea") !== projectStageFilter) return false;
+    return true;
+  }), [okrProjects, projectStageFilter]);
+  const okrTree = useMemo(() => buildOkrTree(filtered, visibleProjects), [filtered, visibleProjects]);
+  const toggleTreeId = (id) => {
+    setExpandedTreeIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const downloadRows = (filename, rows) => {
+    const csv = rows.map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const exportJakeWeeklyOnePager = () => {
+    const staleKrs = filtered.filter(isKeyResultStale);
+    const blockedProjects = visibleProjects.filter(project => buildProjectGateBlockers(project).length > 0);
+    downloadRows('sandpro_jake_weekly_okr_one_pager.csv', [
+      ['Section', 'Name', 'Owner', 'Status', 'Note'],
+      ['Snapshot', 'Visible objectives', currentUser.name, filtered.length, `${visibleProjects.length} project assessments`],
+      ...staleKrs.map(objective => ['Stale KR', objective.title, getUser(objective.ownerId).name, objective.status, objective.okrPeriod || '']),
+      ...blockedProjects.map(project => ['Project blocker', project.name, getUser(project.leadId).name, project.stage, buildProjectGateBlockers(project).join(' | ')]),
+    ]);
+  };
+  const exportQuarterlyExcel = async () => {
+    const rows = buildQuarterlyScorecardRows(filtered, visibleProjects);
+    await writeXlsxFile([
+      {
+        sheet: 'Quarterly Scorecard',
+        data: [
+          ['Title', 'Level', 'Owner', 'Department', 'Period', 'Progress', 'Status', 'Stale KR', 'Linked Projects'].map(value => ({ value, fontWeight: 'bold' })),
+          ...rows.map(row => [row.title, row.level, row.owner, row.department, row.period, row.progress, row.status, row.stale, row.linkedProjects].map(value => ({ value }))),
+        ],
+      },
+      {
+        sheet: 'Project Pipeline',
+        data: [
+          ['Name', 'Stage', 'Health', 'Lead', 'Sponsor', 'Gate blockers'].map(value => ({ value, fontWeight: 'bold' })),
+          ...visibleProjects.map(project => [
+            project.name,
+            getProjectStageMeta(project.stage).label,
+            project.health || 'green',
+            getUser(project.leadId).name,
+            getUser(project.sponsorId).name,
+            buildProjectGateBlockers(project).join(' | '),
+          ].map(value => ({ value }))),
+        ],
+      },
+    ]).toFile('sandpro_okr_quarterly_scorecard.xlsx');
+  };
+  const exportDepartmentScorecard = () => {
+    const departments = [...new Set(filtered.map(objective => objective.department || 'Unassigned'))].sort();
+    downloadRows('sandpro_department_quarterly_scorecard.csv', [
+      ['Department', 'Objectives', 'Company OKRs', 'Department OKRs', 'Key Results', 'Average Progress', 'Stale KRs'],
+      ...departments.map(dept => {
+        const items = filtered.filter(objective => (objective.department || 'Unassigned') === dept);
+        const avgProgress = items.length ? Math.round(items.reduce((sum, objective) => sum + Number(objective.progress || 0), 0) / items.length) : 0;
+        return [
+          dept,
+          items.length,
+          items.filter(objective => objective.okrLevel === 'company').length,
+          items.filter(objective => objective.okrLevel === 'department').length,
+          items.filter(objective => objective.okrLevel === 'key_result').length,
+          `${avgProgress}%`,
+          items.filter(isKeyResultStale).length,
+        ];
+      }),
+    ]);
+  };
+  const exportRndPipeline = () => {
+    const rndProjects = visibleProjects.filter(project => project.projectType === 'rnd');
+    downloadRows('sandpro_rd_pipeline.csv', [
+      ['Project', 'Stage', 'Health', 'Lead', 'Sponsor', 'Target Date', 'Next Milestone', 'Gate blockers'],
+      ...rndProjects.map(project => [
+        project.name,
+        getProjectStageMeta(project.stage).label,
+        project.health || 'green',
+        getUser(project.leadId).name,
+        getUser(project.sponsorId).name,
+        project.targetDate || '',
+        project.nextMilestone || '',
+        buildProjectGateBlockers(project).join(' | '),
+      ]),
+    ]);
+  };
+  const exportQuarterlyPdf = () => {
+    const rows = buildQuarterlyScorecardRows(filtered, visibleProjects);
+    const win = window.open('', 'sandpro-okr-scorecard-export', 'width=1100,height=800');
+    if (!win) return;
+    win.document.write(`<!doctype html><html><head><title>SandPro OMP Quarterly Scorecard</title><style>@page{size:letter;margin:.45in}body{font-family:Inter,Arial,sans-serif;color:#111827}h1{font-size:22px;margin:0 0 4px}.meta{color:#64748b;font-size:12px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.stat{border:1px solid #d1d5db;border-radius:8px;padding:10px}.stat strong{display:block;font-size:20px;color:#ff7f02}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border-bottom:1px solid #e5e7eb;padding:7px;text-align:left}th{color:#64748b;text-transform:uppercase;font-size:9px}.blockers{margin-top:16px;border:1px solid #fed7aa;border-radius:8px;padding:10px}</style></head><body><h1>SandPro OMP Quarterly Scorecard</h1><div class="meta">Generated ${escapeExportHtml(new Date().toLocaleString())} from the active Objectives lens.</div><div class="grid"><div class="stat"><span>Objectives</span><strong>${filtered.length}</strong></div><div class="stat"><span>Projects</span><strong>${visibleProjects.length}</strong></div><div class="stat"><span>Stale KRs</span><strong>${filtered.filter(isKeyResultStale).length}</strong></div><div class="stat"><span>Gate blockers</span><strong>${visibleProjects.filter(project => buildProjectGateBlockers(project).length > 0).length}</strong></div></div><table><thead><tr><th>Title</th><th>Level</th><th>Owner</th><th>Dept</th><th>Period</th><th>Progress</th><th>Status</th><th>Projects</th></tr></thead><tbody>${rows.map(row => `<tr><td>${escapeExportHtml(row.title)}</td><td>${escapeExportHtml(row.level)}</td><td>${escapeExportHtml(row.owner)}</td><td>${escapeExportHtml(row.department)}</td><td>${escapeExportHtml(row.period)}</td><td>${escapeExportHtml(row.progress)}%</td><td>${escapeExportHtml(row.status)}</td><td>${escapeExportHtml(row.linkedProjects)}</td></tr>`).join('')}</tbody></table><div class="blockers"><strong>Project gate blockers</strong><br>${visibleProjects.filter(project => buildProjectGateBlockers(project).length > 0).map(project => `${escapeExportHtml(project.name)}: ${escapeExportHtml(buildProjectGateBlockers(project).join('; '))}`).join('<br>') || 'None'}</div><script>window.onload=()=>setTimeout(()=>window.print(),250)</script></body></html>`);
+    win.document.close();
+  };
   const tagCandidatesFor = (obj) => getProfiles()
     .filter(user => user.id !== obj.ownerId && !(obj.members || []).some(member => member.userId === user.id))
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -740,6 +922,68 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
     );
   };
 
+  const exportProjectAuditPack = (project) => {
+    const blockers = buildProjectGateBlockers(project);
+    downloadRows(`sandpro_project_audit_${String(project.name || project.id).toLowerCase().replace(/[^a-z0-9]+/g, '_')}.csv`, [
+      ['Section', 'Field', 'Value'],
+      ['Project', 'Name', project.name],
+      ['Project', 'Stage', getProjectStageMeta(project.stage).label],
+      ['Project', 'Health', project.health || 'green'],
+      ['Project', 'Lead', getUser(project.leadId).name],
+      ['Project', 'Sponsor', getUser(project.sponsorId).name],
+      ...blockers.map(blocker => ['Gate blocker', 'Required', blocker]),
+      ...(project.artifacts || []).map(artifact => ['Artifact', artifact.title, `${artifact.status}: ${artifact.summary || ''}`]),
+      ...(project.signatures || []).map(signature => ['Signature', signature.role, `${signature.signedByName || getUser(signature.signedBy).name} ${signature.signedAt || ''}`]),
+      ...(project.attachments || []).map(file => ['Attachment', file.purpose, file.name]),
+      ...(project.auditEvents || []).map(event => ['Audit', event.eventType, event.note || event.fieldName || '']),
+    ]);
+  };
+
+  const OkrTreeNode = ({ node, depth = 0 }) => {
+    const objective = node.objective;
+    const meta = getOkrLevelMeta(objective.okrLevel);
+    const expanded = expandedTreeIds.has(objective.id) || depth < 1;
+    const hasChildren = node.children.length > 0 || node.projects.length > 0;
+    return (
+      <div className="okr-tree-node" style={{ '--okr-depth': depth }}>
+        <div className="okr-tree-row">
+          <button type="button" className="icon-btn okr-tree-toggle" onClick={() => toggleTreeId(objective.id)} disabled={!hasChildren}>
+            <ChevronDown size={14} style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
+          </button>
+          <button type="button" className="okr-tree-title" onClick={() => onOpenCard(objective, "structure")}>
+            <Badge color={meta.color}>{meta.shortLabel}</Badge>
+            <span>
+              <strong>{objective.title}</strong>
+              <small>{getUser(objective.ownerId).name} · {objective.department || 'Unassigned'} · {objective.okrPeriod || 'No period'}</small>
+            </span>
+          </button>
+          {isKeyResultStale(objective) && <Badge color="#EF4444">Stale KR</Badge>}
+          <ProgressBar value={objective.progress || 0} color={getStatusColor(objective.status)} height={4} />
+        </div>
+        {expanded && (
+          <div className="okr-tree-children">
+            {node.projects.map(project => {
+              const blockers = buildProjectGateBlockers(project);
+              return (
+                <div key={project.id} className="okr-tree-project">
+                  <Layers size={13} color="var(--brand)" />
+                  <span>
+                    <strong>{project.name}</strong>
+                    <small>{getProjectStageMeta(project.stage).label} · {project.nextMilestone || 'No next milestone'} · {blockers.length ? `${blockers.length} blocker${blockers.length === 1 ? '' : 's'}` : 'Gate clear'}</small>
+                  </span>
+                  <button type="button" className="btn btn-xs btn-secondary" onClick={() => exportProjectAuditPack(project)}>
+                    <Download size={12} /> Audit pack
+                  </button>
+                </div>
+              );
+            })}
+            {node.children.map(child => <OkrTreeNode key={child.objective.id} node={child} depth={depth + 1} />)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       {/* Toolbar */}
@@ -773,6 +1017,10 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
             <label><span>Department</span><select value={departmentFilter} onChange={e => updateFilter("department", e.target.value)}><option value="all">All Departments</option>{allDepartments.map(d => <option key={d} value={d}>{d}</option>)}</select></label>
             <label><span>Priority</span><select value={priorityFilter} onChange={e => updateFilter("priority", e.target.value)}><option value="all">All Priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
             <label><span>Due</span><select value={dueFilter} onChange={e => updateFilter("due", e.target.value)}>{OBJECTIVE_DUE_FILTERS.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
+            <label><span>OKR level</span><select value={okrLevelFilter} onChange={e => updateFilter("okrLevel", e.target.value)}><option value="all">All OKR levels</option>{OKR_LEVELS.map(level => <option key={level.id} value={level.id}>{level.label}</option>)}</select></label>
+            <label><span>Period</span><select value={okrPeriodFilter} onChange={e => updateFilter("okrPeriod", e.target.value)}><option value="all">All periods</option>{allPeriods.map(period => <option key={period} value={period}>{period}</option>)}</select></label>
+            <label><span>KR freshness</span><select value={staleFilter} onChange={e => updateFilter("stale", e.target.value)}><option value="all">All KRs</option><option value="true">Stale KRs</option><option value="false">Fresh KRs</option></select></label>
+            <label><span>Project stage</span><select value={projectStageFilter} onChange={e => updateFilter("projectStage", e.target.value)}><option value="all">All project stages</option><option value="blocked">Approval blockers</option>{PROJECT_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}</select></label>
             <label className="mobile-check-row"><input type="checkbox" checked={showListDescriptions} onChange={event => updateShowListDescriptions(event.target.checked)} /> Show short descriptions</label>
             <div className="mobile-sheet-actions">
               {hasActiveFilters && <button className="btn btn-secondary" onClick={onClearFilters}>Clear</button>}
@@ -817,6 +1065,15 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
           <button className={`icon-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => updateFilter("view", "list")} title="List View"><List size={16} /></button>
           <button className={`icon-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => updateFilter("view", "grid")} title="Grid View"><LayoutGrid size={16} /></button>
           <button className={`icon-btn ${viewMode === 'kanban' ? 'active' : ''}`} onClick={() => updateFilter("view", "kanban")} title="Kanban View"><Columns3 size={16} /></button>
+          <button className={`icon-btn ${viewMode === 'tree' ? 'active' : ''}`} onClick={() => updateFilter("view", "tree")} title="OKR Tree View"><Network size={16} /></button>
+        </div>
+        <div className="okr-export-group">
+          <span><Download size={12} /> Export</span>
+          <button type="button" className="btn btn-xs btn-secondary" onClick={exportJakeWeeklyOnePager}>Jake 1-pager</button>
+          <button type="button" className="btn btn-xs btn-secondary" onClick={exportDepartmentScorecard}>Dept scorecard</button>
+          <button type="button" className="btn btn-xs btn-secondary" onClick={exportRndPipeline}>R&D</button>
+          <button type="button" className="btn btn-xs btn-secondary" onClick={exportQuarterlyPdf}>PDF</button>
+          <button type="button" className="btn btn-xs btn-secondary" onClick={exportQuarterlyExcel}>Excel</button>
         </div>
         {viewMode === "list" && (
           <label className="objective-description-toggle">
@@ -847,6 +1104,24 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
         </select>
         <select className="objectives-filter-select objectives-filter-select-time" value={dueFilter} onChange={e => updateFilter("due", e.target.value)}>
           {OBJECTIVE_DUE_FILTERS.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+        </select>
+        <select className="objectives-filter-select" value={okrLevelFilter} onChange={e => updateFilter("okrLevel", e.target.value)}>
+          <option value="all">All OKR levels</option>
+          {OKR_LEVELS.map(level => <option key={level.id} value={level.id}>{level.label}</option>)}
+        </select>
+        <select className="objectives-filter-select" value={okrPeriodFilter} onChange={e => updateFilter("okrPeriod", e.target.value)}>
+          <option value="all">All periods</option>
+          {allPeriods.map(period => <option key={period} value={period}>{period}</option>)}
+        </select>
+        <select className="objectives-filter-select" value={staleFilter} onChange={e => updateFilter("stale", e.target.value)}>
+          <option value="all">KR freshness</option>
+          <option value="true">Stale KRs</option>
+          <option value="false">Fresh KRs</option>
+        </select>
+        <select className="objectives-filter-select" value={projectStageFilter} onChange={e => updateFilter("projectStage", e.target.value)}>
+          <option value="all">All project stages</option>
+          <option value="blocked">Approval blockers</option>
+          {PROJECT_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
         </select>
         {hasActiveFilters && (
           <button className="btn btn-secondary btn-sm" onClick={onClearFilters}>
@@ -909,6 +1184,7 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
 	                  <th>Tagged</th>
 	                  <th>Next Step</th>
 	                  <th>Dept</th>
+                  <th>Work Type</th>
                   <th>Status</th>
                   <th>Priority</th>
                   <th>Progress</th>
@@ -965,6 +1241,13 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
 	                        </button>
 	                      </td>
 	                      <td>{obj.department}</td>
+                      <td>
+                        <div className="objective-worktype-cell">
+                          <Badge color={getOkrLevelMeta(obj.okrLevel).color}>{getOkrLevelMeta(obj.okrLevel).shortLabel}</Badge>
+                          <span>{obj.okrPeriod || "No period"}</span>
+                          {obj.classificationConfidence < 75 && <small>Review</small>}
+                        </div>
+                      </td>
                       <td onClick={event => event.stopPropagation()}><QuickStatusControl obj={obj} /></td>
                       <td><PriorityBadge priority={obj.priority} /></td>
                       <td><div style={{ minWidth: 90 }}><ProgressBar value={obj.progress} color={getStatusColor(obj.status)} height={4} /></div></td>
@@ -1043,6 +1326,23 @@ export const ObjectivesPage = ({ objectives, onOpenCard, currentUser, filters, h
               );
             })}
             {filtered.length === 0 && <EmptyState icon={Target} text={emptyText} action={emptyAction} />}
+          </div>
+        )}
+        {viewMode === "tree" && (
+          <div className="card okr-tree-view">
+            <div className="okr-tree-header">
+              <div>
+                <strong>OKR + Project Tree</strong>
+                <span>{'Company OKR -> Department OKR -> Key Result -> linked projects'}</span>
+              </div>
+              <div className="flex gap-6">
+                <Badge color="var(--brand)">{filtered.length} objectives</Badge>
+                <Badge color="#64748B">{visibleProjects.length} projects</Badge>
+              </div>
+            </div>
+            <div className="okr-tree-body">
+              {okrTree.length === 0 ? <EmptyState icon={Network} text={emptyText} action={emptyAction} /> : okrTree.map(node => <OkrTreeNode key={node.objective.id} node={node} />)}
+            </div>
           </div>
         )}
         </div>

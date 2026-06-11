@@ -1,0 +1,10 @@
+{
+  "capturedAt": "2026-06-11T15:46:51.444Z",
+  "baseUrl": "https://objectivetracker.net",
+  "dashboardStripVisible": 1,
+  "treeHeadingVisible": 1,
+  "deploymentUrl": "https://sandpro-l0y93r0in-nd-ai.vercel.app",
+  "deploymentId": "dpl_DJDuGa1kGNPWjXvo82ejCjRdYh7V",
+  "productionSmoke": "6 passed",
+  "frameworkProductionSmoke": "3 passed"
+}

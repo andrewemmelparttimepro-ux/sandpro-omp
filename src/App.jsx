@@ -29,6 +29,10 @@ const DEFAULT_OBJECTIVE_FILTERS = {
   priority: "all",
   due: "all",
   scope: "all",
+  okrLevel: "all",
+  okrPeriod: "all",
+  projectStage: "all",
+  stale: "all",
   activeOnly: false,
 };
 const AI_FEATURE_STORAGE_KEY = 'sandpro-ai-features-enabled-v2';
@@ -85,6 +89,10 @@ const readRouteFromLocation = () => {
       priority: params.get("priority") || DEFAULT_OBJECTIVE_FILTERS.priority,
       due: params.get("due") || DEFAULT_OBJECTIVE_FILTERS.due,
       scope: params.get("scope") || DEFAULT_OBJECTIVE_FILTERS.scope,
+      okrLevel: params.get("okrLevel") || DEFAULT_OBJECTIVE_FILTERS.okrLevel,
+      okrPeriod: params.get("okrPeriod") || DEFAULT_OBJECTIVE_FILTERS.okrPeriod,
+      projectStage: params.get("projectStage") || DEFAULT_OBJECTIVE_FILTERS.projectStage,
+      stale: params.get("stale") || DEFAULT_OBJECTIVE_FILTERS.stale,
       activeOnly: params.get("active") === "1",
     },
   };
@@ -107,6 +115,10 @@ const writeRouteToUrl = (route, replace = false) => {
   if (filters.priority !== "all") params.set("priority", filters.priority);
   if (filters.due !== "all") params.set("due", filters.due);
   if (filters.scope !== "all") params.set("scope", filters.scope);
+  if (filters.okrLevel !== "all") params.set("okrLevel", filters.okrLevel);
+  if (filters.okrPeriod !== "all") params.set("okrPeriod", filters.okrPeriod);
+  if (filters.projectStage !== "all") params.set("projectStage", filters.projectStage);
+  if (filters.stale !== "all") params.set("stale", filters.stale);
   if (filters.activeOnly) params.set("active", "1");
 
   const nextUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}${window.location.hash}`;
@@ -506,7 +518,7 @@ function App() {
   // Supabase hooks
   const { user, profile, loading: authLoading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, refetchProfile } = useAuth();
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
-  const { objectives, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, runObjectiveStarter, refetch: refetchObjectives } = useObjectives();
+  const { objectives, okrProjects, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, refetch: refetchObjectives } = useObjectives();
   const { posts: fixItPosts, loading: fixItLoading, createPost: createFixItPost, createComment: createFixItComment, deleteComment: deleteFixItComment, updatePostStatus: updateFixItPostStatus, uploadValidationProof: uploadFixItValidationProof, deletePost: deleteFixItPost } = useFixItFeed(Boolean(user));
   const { reports: ncrReports, loading: ncrLoading, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports } = useNcrReports(Boolean(user));
   const { notifications, markRead, markAllRead, createNotification: createRawNotification } = useNotifications(profile?.id);
@@ -902,6 +914,12 @@ function App() {
       if (updated.metricUnit !== orig.metricUnit) changes.metricUnit = updated.metricUnit;
       if (updated.measurementCadence !== orig.measurementCadence) changes.measurementCadence = updated.measurementCadence;
       if (updated.rollupMethod !== orig.rollupMethod) changes.rollupMethod = updated.rollupMethod;
+      if (updated.okrLevel !== orig.okrLevel) changes.okrLevel = updated.okrLevel;
+      if (updated.okrPeriod !== orig.okrPeriod) changes.okrPeriod = updated.okrPeriod;
+      if (updated.okrWeight !== orig.okrWeight) changes.okrWeight = updated.okrWeight;
+      if (updated.classificationStatus !== orig.classificationStatus) changes.classificationStatus = updated.classificationStatus;
+      if (updated.classificationConfidence !== orig.classificationConfidence) changes.classificationConfidence = updated.classificationConfidence;
+      if (updated.classificationReason !== orig.classificationReason) changes.classificationReason = updated.classificationReason;
       changes.currentStatus = orig.status;
       changes.currentProgress = orig.progress;
       changes.userId = profile.id;
@@ -1250,7 +1268,7 @@ function App() {
       ...prev,
       page: "objectives",
       objectiveId: null,
-      filters: { ...DEFAULT_OBJECTIVE_FILTERS, ...filters, sort: filters.sort || "due", view: "list" },
+      filters: { ...DEFAULT_OBJECTIVE_FILTERS, ...filters, sort: filters.sort || "due", view: filters.view || "list" },
     }));
   };
 
@@ -1641,15 +1659,20 @@ function App() {
           <span>{pullRefreshState.refreshing ? 'Refreshing...' : pullRefreshState.ready ? 'Release to reload' : 'Pull to refresh'}</span>
         </div>
         <main className="main-content" ref={mainContentRef}>
-          {currentPage === 0 && <DashboardPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onKpiClick={(preset) => showObjectivesWithFilters({
+          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} currentUser={currentUser} onOpenCard={handleOpenCard} onKpiClick={(preset) => showObjectivesWithFilters({
             status: preset.status || "all",
             owner: preset.scope === "individual" ? currentUser.id : "all",
             due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
             scope: preset.scope || "all",
+            okrLevel: preset.okrLevel || "all",
+            okrPeriod: preset.okrPeriod || "all",
+            projectStage: preset.projectStage || "all",
+            stale: preset.stale || "all",
+            view: preset.view || DEFAULT_OBJECTIVE_FILTERS.view,
             activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
             label: preset.label,
           })} onDeptClick={(dept) => showObjectivesWithFilters({ department: dept, label: dept }, dept)} />}
-          {currentPage === 1 && <ObjectivesPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} />}
+          {currentPage === 1 && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} />}
           {route.page === "fixit" && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} />}
           {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
           {route.page === "organization" && <OrgPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}
@@ -1674,7 +1697,7 @@ function App() {
       </button>
 
       {/* MODALS */}
-      {openCard && <SuperCard obj={openCard} objectives={objectives} initialTab={route.objectiveTab} onTabChange={(tab) => updateRoute(prev => ({ ...prev, objectiveTab: tab }), { replace: true })} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} uploadObjectiveFile={uploadObjectiveFile} deleteObjectiveFile={deleteObjectiveFile} addSubtask={addSubtask} updateSubtask={updateSubtask} deleteSubtask={deleteSubtask} addMetricCheckin={addMetricCheckin} addObjectiveMember={addObjectiveMember} removeObjectiveMember={removeObjectiveMember} addWorkflowStep={addWorkflowStep} updateWorkflowStep={updateWorkflowStep} onMarkMessagesRead={markObjectiveMessagesRead} onUpdateMessage={handleUpdateMessage} onSetMessageReaction={handleSetMessageReaction} onRemoveMessageReaction={handleRemoveMessageReaction} onTranslateMessage={handleTranslateMessage} runObjectiveStarter={aiFeaturesAvailable ? runObjectiveStarter : null} aiFeaturesEnabled={aiFeaturesAvailable} createNotification={createNotification}
+      {openCard && <SuperCard obj={openCard} objectives={objectives} okrProjects={okrProjects} initialTab={route.objectiveTab} onTabChange={(tab) => updateRoute(prev => ({ ...prev, objectiveTab: tab }), { replace: true })} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} uploadObjectiveFile={uploadObjectiveFile} deleteObjectiveFile={deleteObjectiveFile} addSubtask={addSubtask} updateSubtask={updateSubtask} deleteSubtask={deleteSubtask} addMetricCheckin={addMetricCheckin} addObjectiveMember={addObjectiveMember} removeObjectiveMember={removeObjectiveMember} addWorkflowStep={addWorkflowStep} updateWorkflowStep={updateWorkflowStep} createOkrProject={createOkrProject} updateOkrProject={updateOkrProject} updateProjectArtifact={updateProjectArtifact} captureProjectSignature={captureProjectSignature} uploadProjectAttachment={uploadProjectAttachment} deleteProjectAttachment={deleteProjectAttachment} onMarkMessagesRead={markObjectiveMessagesRead} onUpdateMessage={handleUpdateMessage} onSetMessageReaction={handleSetMessageReaction} onRemoveMessageReaction={handleRemoveMessageReaction} onTranslateMessage={handleTranslateMessage} runObjectiveStarter={aiFeaturesAvailable ? runObjectiveStarter : null} aiFeaturesEnabled={aiFeaturesAvailable} createNotification={createNotification}
         onEdit={(obj) => { setEditingObj(obj); handleCloseCard(); }} />}
       {(showCreateForm || editingObj) && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={async (obj) => { const saved = await handleSaveObjective(obj); if (saved) setEditingObj(null); return saved; }} onClose={() => { setShowCreateForm(false); setEditingObj(null); }} />}
       {showAccountSettings && (

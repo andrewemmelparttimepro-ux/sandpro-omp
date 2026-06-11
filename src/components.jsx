@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useCallback, Component } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo, Component } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X, Send, Paperclip, Check, AlertTriangle, Clock, MessageSquare,
@@ -9,6 +9,22 @@ import {
 } from 'lucide-react';
 import { getUser, getProfiles, getDirectReports, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId } from './data';
 import { findMentionCandidates, getActiveMention, getMentionedUsers, insertMentionText } from './mentions';
+import {
+  OKR_LEVELS,
+  OKR_LEVEL_LABELS,
+  PROJECT_TYPES,
+  PROJECT_STAGES,
+  PROJECT_HEALTH,
+  ASSESSMENT_ARTIFACTS,
+  REQUIRED_SIGNATURE_ROLES,
+  getCurrentOkrPeriod,
+  getOkrLevelMeta,
+  getProjectStageMeta,
+  getProjectHealthMeta,
+  isKeyResultStale,
+  buildProjectGateBlockers,
+  canAdvanceProjectStage,
+} from './okrFramework';
 
 const readDraft = (key, fallback = "") => {
   try { return window.localStorage.getItem(key) ?? fallback; } catch { return fallback; }
@@ -694,7 +710,275 @@ export const TagMentionControl = ({
 // ============================================================================
 // SUPER CARD MODAL — Full objective detail
 // ============================================================================
-export const SuperCard = ({ obj, objectives, initialTab = "messages", onTabChange, onClose, onUpdate, onDelete, currentUser, addToast, onEdit, uploadObjectiveFile, deleteObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, onMarkMessagesRead, onUpdateMessage, onSetMessageReaction, onRemoveMessageReaction, onTranslateMessage, runObjectiveStarter, aiFeaturesEnabled = false, createNotification }) => {
+const ProjectArtifactRow = ({ artifact, onUpdate, disabled }) => {
+  const [summary, setSummary] = useState(artifact.summary || "");
+  useEffect(() => setSummary(artifact.summary || ""), [artifact.summary, artifact.id]);
+  const isComplete = ["complete", "waived"].includes(artifact.status);
+  return (
+    <div className={`project-artifact-row ${isComplete ? "complete" : ""}`}>
+      <div className="project-artifact-main">
+        <div className="flex items-center gap-6">
+          {isComplete ? <CheckCircle2 size={14} color="var(--success)" /> : <AlertTriangle size={14} color="var(--warning)" />}
+          <strong>{artifact.title}</strong>
+        </div>
+        <span>{ASSESSMENT_ARTIFACTS.find(item => item.key === artifact.artifactKey)?.ownerLens || "Assessment artifact"}</span>
+      </div>
+      <select
+        value={artifact.status || "missing"}
+        disabled={disabled}
+        onChange={event => onUpdate?.(artifact, { status: event.target.value })}
+      >
+        <option value="missing">Missing</option>
+        <option value="draft">Draft</option>
+        <option value="complete">Complete</option>
+        <option value="waived">Waived</option>
+      </select>
+      <div className="project-artifact-summary">
+        <textarea value={summary} onChange={event => setSummary(event.target.value)} rows={2} placeholder="Assessment notes, link, or document summary" />
+        <button
+          type="button"
+          className="btn btn-xs btn-secondary"
+          disabled={disabled || summary === (artifact.summary || "")}
+          onClick={() => onUpdate?.(artifact, { summary })}
+        >
+          Save note
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const ProjectAssessmentPanel = ({
+  objective,
+  objectives,
+  projects,
+  currentUser,
+  createOkrProject,
+  updateOkrProject,
+  updateProjectArtifact,
+  captureProjectSignature,
+  uploadProjectAttachment,
+  deleteProjectAttachment,
+  addToast,
+}) => {
+  const keyResults = objectives.filter(item => item.okrLevel === "key_result" || item.id === objective.id);
+  const defaultLinkedKr = objective.okrLevel === "key_result" ? objective.id : (keyResults.find(item => item.parentId === objective.id)?.id || "");
+  const [projectDraft, setProjectDraft] = useState({
+    name: "",
+    description: "",
+    projectType: "ops",
+    linkedKrId: defaultLinkedKr,
+    runTheBusiness: objective.okrLevel === "run_the_business",
+    sponsorId: currentUser.id,
+    leadId: currentUser.id,
+    stage: "idea",
+    health: "green",
+    startDate: "",
+    targetDate: "",
+    nextMilestone: "",
+    nextMilestoneDueDate: "",
+    budgetEstimate: "",
+  });
+  const [creatingProject, setCreatingProject] = useState(false);
+  const [uploadTarget, setUploadTarget] = useState(null);
+  const [attachmentPurpose, setAttachmentPurpose] = useState("evidence");
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setProjectDraft(draft => ({
+      ...draft,
+      linkedKrId: draft.linkedKrId || defaultLinkedKr,
+      runTheBusiness: draft.runTheBusiness || objective.okrLevel === "run_the_business",
+    }));
+  }, [defaultLinkedKr, objective.okrLevel]);
+
+  const updateDraft = (key, value) => setProjectDraft(draft => ({ ...draft, [key]: value }));
+  const canCreateProject = projectDraft.name.trim() && (projectDraft.runTheBusiness || projectDraft.linkedKrId);
+
+  const createProject = async () => {
+    if (!createOkrProject || !canCreateProject || creatingProject) return;
+    setCreatingProject(true);
+    try {
+      await createOkrProject({
+        ...projectDraft,
+        name: projectDraft.name.trim(),
+        linkedObjectiveIds: projectDraft.runTheBusiness ? [] : [projectDraft.linkedKrId],
+        createdBy: currentUser.id,
+      });
+      setProjectDraft(draft => ({ ...draft, name: "", description: "", nextMilestone: "", budgetEstimate: "" }));
+      addToast?.({ type: "success", message: "Project assessment shell created" });
+    } catch (error) {
+      addToast?.({ type: "error", message: error.message || "Could not create project" });
+    } finally {
+      setCreatingProject(false);
+    }
+  };
+
+  const updateProjectStage = async (project, stage) => {
+    if (!updateOkrProject) return;
+    const advancement = canAdvanceProjectStage(project, stage);
+    if (!advancement.ok) {
+      addToast?.({ type: "error", message: `Assessment blockers remain: ${advancement.blockers[0]}` });
+      return;
+    }
+    await updateOkrProject(project.id, { stage, userId: currentUser.id, auditNote: `Stage changed to ${getProjectStageMeta(stage).label}` });
+    addToast?.({ type: "success", message: "Project stage updated" });
+  };
+
+  const updateArtifact = async (artifact, changes) => {
+    if (!updateProjectArtifact) return;
+    await updateProjectArtifact(artifact.id, {
+      ...changes,
+      userId: currentUser.id,
+      completedBy: ["complete", "waived"].includes(changes.status) ? currentUser.id : undefined,
+    });
+    addToast?.({ type: "success", message: "Assessment artifact updated" });
+  };
+
+  const addSignature = async (project, role) => {
+    if (!captureProjectSignature) return;
+    await captureProjectSignature(project.id, {
+      role,
+      signedBy: currentUser.id,
+      signedByName: currentUser.name,
+      createdBy: currentUser.id,
+      note: "Signed from OKR project assessment gate.",
+    });
+    addToast?.({ type: "success", message: `${REQUIRED_SIGNATURE_ROLES.find(item => item.role === role)?.label || role} signoff captured` });
+  };
+
+  const openAttachmentPicker = (project, purpose = "evidence") => {
+    setUploadTarget(project);
+    setAttachmentPurpose(purpose);
+    fileInputRef.current?.click();
+  };
+
+  const uploadFiles = async (files) => {
+    if (!uploadTarget || !uploadProjectAttachment) return;
+    const selected = Array.from(files || []).filter(file => file?.name);
+    if (!selected.length) return;
+    try {
+      for (const file of selected) {
+        await uploadProjectAttachment(uploadTarget.id, file, currentUser.id, attachmentPurpose);
+      }
+      addToast?.({ type: "success", message: `${selected.length} project file${selected.length === 1 ? "" : "s"} uploaded` });
+    } catch (error) {
+      addToast?.({ type: "error", message: error.message || "Could not upload project files" });
+    } finally {
+      setUploadTarget(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="project-assessment-panel">
+      <input ref={fileInputRef} type="file" multiple hidden onChange={event => uploadFiles(event.target.files)} />
+      <div className="project-create-card">
+        <div className="project-section-heading">
+          <div>
+            <strong>Create linked project assessment</strong>
+            <span>{'Idea -> Assessment -> Approved -> Active -> Done/Killed'}</span>
+          </div>
+          <Badge color="var(--brand)">v1 gates</Badge>
+        </div>
+        <div className="project-create-grid">
+          <label><span className="required-label">Project name</span><input value={projectDraft.name} onChange={event => updateDraft("name", event.target.value)} placeholder="Assessment or project title" /></label>
+          <label><span className="required-label">Project type</span><select value={projectDraft.projectType} onChange={event => updateDraft("projectType", event.target.value)}>{PROJECT_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></label>
+          <label><span className="required-label">Sponsor</span><select value={projectDraft.sponsorId} onChange={event => updateDraft("sponsorId", event.target.value)}>{getProfiles().map(user => <option key={user.id} value={user.id}>{user.name}</option>)}</select></label>
+          <label><span className="required-label">Lead</span><select value={projectDraft.leadId} onChange={event => updateDraft("leadId", event.target.value)}>{getProfiles().map(user => <option key={user.id} value={user.id}>{user.name}</option>)}</select></label>
+          <label><span className="required-label">Linked KR</span><select value={projectDraft.linkedKrId} disabled={projectDraft.runTheBusiness} onChange={event => updateDraft("linkedKrId", event.target.value)}><option value="">Choose Key Result</option>{keyResults.map(kr => <option key={kr.id} value={kr.id}>{kr.title}</option>)}</select></label>
+          <label><span>Stage</span><select value={projectDraft.stage} onChange={event => updateDraft("stage", event.target.value)}>{PROJECT_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}</select></label>
+          <label><span>Health</span><select value={projectDraft.health} onChange={event => updateDraft("health", event.target.value)}>{PROJECT_HEALTH.map(health => <option key={health.id} value={health.id}>{health.label}</option>)}</select></label>
+          <label><span>Budget estimate</span><input type="number" value={projectDraft.budgetEstimate} onChange={event => updateDraft("budgetEstimate", event.target.value)} placeholder="0" /></label>
+          <label><span>Target date</span><input type="date" value={projectDraft.targetDate} onChange={event => updateDraft("targetDate", event.target.value)} /></label>
+          <label><span className="required-label">Next milestone</span><input value={projectDraft.nextMilestone} onChange={event => updateDraft("nextMilestone", event.target.value)} placeholder="Next decision or deliverable" /></label>
+        </div>
+        <label className="project-inline-check"><input type="checkbox" checked={projectDraft.runTheBusiness} onChange={event => updateDraft("runTheBusiness", event.target.checked)} /> Run-the-business exception; KR link not required</label>
+        <textarea value={projectDraft.description} onChange={event => updateDraft("description", event.target.value)} rows={2} placeholder="Assessment context, decision needed, or expected impact" />
+        <button type="button" className="btn btn-primary btn-sm" disabled={!canCreateProject || creatingProject} onClick={createProject}>
+          {creatingProject ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+          Create project shell
+        </button>
+      </div>
+
+      {projects.length === 0 ? <EmptyState icon={Layers} text="No linked project assessments yet." /> : projects.map(project => {
+        const stageMeta = getProjectStageMeta(project.stage);
+        const healthMeta = getProjectHealthMeta(project.health);
+        const blockers = buildProjectGateBlockers(project);
+        return (
+          <div key={project.id} className="project-gate-card">
+            <div className="project-gate-header">
+              <div>
+                <strong>{project.name || project.title}</strong>
+                <span>{PROJECT_TYPES.find(type => type.id === project.projectType)?.label || "Project"} · {project.nextMilestone || "No next milestone yet"}</span>
+              </div>
+              <div className="project-gate-badges">
+                <Badge color={stageMeta.id === "active" ? "var(--brand)" : "#64748B"}>{stageMeta.label}</Badge>
+                <Badge color={healthMeta.color}>{healthMeta.label}</Badge>
+              </div>
+            </div>
+            <div className="project-stage-row">
+              <select value={project.stage || "idea"} onChange={event => updateProjectStage(project, event.target.value)}>
+                {PROJECT_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
+              </select>
+              <select value={project.health || "green"} onChange={event => updateOkrProject?.(project.id, { health: event.target.value, userId: currentUser.id, auditNote: "Health updated" })}>
+                {PROJECT_HEALTH.map(health => <option key={health.id} value={health.id}>{health.label}</option>)}
+              </select>
+              <button type="button" className="btn btn-xs btn-secondary" onClick={() => openAttachmentPicker(project, "evidence")}><Upload size={12} /> Add files</button>
+              <button type="button" className="btn btn-xs btn-secondary" onClick={() => openAttachmentPicker(project, "approval")}><Paperclip size={12} /> Approval doc</button>
+            </div>
+
+            {blockers.length > 0 ? (
+              <div className="project-blockers">
+                <strong>Gate blockers</strong>
+                {blockers.map(blocker => <span key={blocker}>- {blocker}</span>)}
+              </div>
+            ) : (
+              <div className="project-clearance"><CheckCircle2 size={14} /> Assessment gates are clear for approval/activation.</div>
+            )}
+
+            <div className="project-subsection-title">Assessment artifacts</div>
+            {(project.artifacts || []).map(artifact => (
+              <ProjectArtifactRow key={artifact.id} artifact={artifact} onUpdate={updateArtifact} disabled={!updateProjectArtifact} />
+            ))}
+
+            <div className="project-subsection-title">Required signoffs</div>
+            <div className="project-signoff-grid">
+              {REQUIRED_SIGNATURE_ROLES.map(role => {
+                const signature = (project.signatures || []).find(item => item.role === role.role);
+                return (
+                  <div key={role.role} className={`project-signoff ${signature ? "signed" : ""}`}>
+                    <strong>{role.label}</strong>
+                    <span>{signature ? `${signature.signedByName || getUser(signature.signedBy)?.name || "Signed"} · ${formatDate(signature.signedAt)}` : "Required before approval"}</span>
+                    {!signature && <button type="button" className="btn btn-xs btn-secondary" onClick={() => addSignature(project, role.role)}><Check size={12} /> Sign</button>}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="project-subsection-title">Files and audit</div>
+            <div className="project-file-list">
+              {(project.attachments || []).length === 0 ? <span className="text-xs text-muted">No project files uploaded yet.</span> : project.attachments.map(file => (
+                <div key={file.id} className="project-file-pill">
+                  <a href={file.url || "#"} target="_blank" rel="noreferrer"><Paperclip size={12} /> {file.name}</a>
+                  <span>{file.purpose}</span>
+                  {deleteProjectAttachment && <button type="button" className="icon-btn" onClick={() => deleteProjectAttachment(file)} title="Delete project file"><Trash2 size={12} /></button>}
+                </div>
+              ))}
+            </div>
+            <div className="project-audit-list">
+              {(project.auditEvents || []).slice(-4).reverse().map(event => (
+                <div key={event.id}><Clock size={12} /><span>{event.note || event.eventType}</span><small>{formatDate(event.createdAt)}</small></div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "messages", onTabChange, onClose, onUpdate, onDelete, currentUser, addToast, onEdit, uploadObjectiveFile, deleteObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, onMarkMessagesRead, onUpdateMessage, onSetMessageReaction, onRemoveMessageReaction, onTranslateMessage, runObjectiveStarter, aiFeaturesEnabled = false, createNotification }) => {
   const [activeTab, setActiveTab] = useState(initialTab || "messages");
   const messageDraftKey = `sandpro-message-draft-${currentUser.id}-${obj.id}`;
   const [newMessage, setNewMessage] = useState(() => readDraft(messageDraftKey, ""));
@@ -757,6 +1041,16 @@ export const SuperCard = ({ obj, objectives, initialTab = "messages", onTabChang
   const completedAgentRun = [...agentRuns].reverse().find(run => run.status === "completed");
   const latestFailedAgentRun = [...agentRuns].reverse().find(run => run.status === "failed");
   const starterFile = completedAgentRun?.fileId ? (localObj.files || []).find(file => file.id === completedAgentRun.fileId) : null;
+  const linkedProjects = useMemo(() => okrProjects.filter(project => {
+    const ids = project.linkedObjectiveIds || (project.linkedKrId ? [project.linkedKrId] : []);
+    return ids.includes(localObj.id) || (localObj.linkedProjects || []).some(linked => linked.id === project.id);
+  }), [okrProjects, localObj.id, localObj.linkedProjects]);
+  const okrMeta = getOkrLevelMeta(localObj.okrLevel);
+  const confidence = Math.max(0, Math.min(100, Number(localObj.classificationConfidence ?? 0)));
+  const lowConfidence = confidence > 0 && confidence < 75;
+  const staleKr = isKeyResultStale(localObj);
+  const childObjectives = objectives.filter(item => item.parentId === localObj.id);
+  const parentObjective = localObj.parentId ? objectives.find(item => item.id === localObj.parentId) : null;
 
   const owner = getUser(localObj.ownerId);
   const creator = getUser(localObj.createdBy);
@@ -1416,6 +1710,7 @@ export const SuperCard = ({ obj, objectives, initialTab = "messages", onTabChang
   const tabs = [
     { id: "messages", label: "Messages", icon: MessageSquare, countText: unreadMessages ? `${unreadMessages} unread` : messageCount ? `${messageCount} total` : "" },
     { id: "details", label: "Details", icon: FileText },
+    { id: "structure", label: "Structure", icon: Building2, count: linkedProjects.length },
     { id: "workflow", label: "Next Step", icon: CheckCircle2, count: workflowTotal },
     { id: "subtasks", label: "Subtasks", icon: Layers, count: localObj.subtasks?.length },
     { id: "metrics", label: "Metrics", icon: TrendingUp, count: localObj.metricCheckins?.length },
@@ -1434,6 +1729,9 @@ export const SuperCard = ({ obj, objectives, initialTab = "messages", onTabChang
               <div className="flex gap-6 flex-wrap" style={{ marginBottom: 8 }}>
                 <Badge color={localObj.blockerFlag ? getStatusColor("blocked") : getStatusColor(localObj.status)}>{localObj.blockerFlag ? getStatusLabel("blocked") : getStatusLabel(localObj.status)}</Badge>
                 <Badge color={getPriorityColor(localObj.priority)} outline>{localObj.priority}</Badge>
+                <Badge color={okrMeta.color} outline>{okrMeta.shortLabel}</Badge>
+                {lowConfidence && <Badge color="#F59E0B">Review classification</Badge>}
+                {staleKr && <Badge color="#EF4444">Stale KR</Badge>}
                 {overdue && <Badge color="#F59E0B">OVERDUE</Badge>}
                 {!localObj.acknowledged && localObj.delegatedBy && <Badge color="#8B5CF6">Needs Acknowledgement</Badge>}
               </div>
@@ -1584,6 +1882,97 @@ export const SuperCard = ({ obj, objectives, initialTab = "messages", onTabChang
                   })}
                 <div ref={messagesEndRef} />
               </div>
+            </div>
+          )}
+
+          {/* STRUCTURE */}
+          {activeTab === "structure" && (
+            <div style={{ padding: "20px 24px" }}>
+              <div className="objective-structure-summary">
+                <div>
+                  <span>Work classification</span>
+                  <strong style={{ color: okrMeta.color }}>{OKR_LEVEL_LABELS[localObj.okrLevel] || okrMeta.label}</strong>
+                  <small>{localObj.classificationReason || "Classification has not been explained yet."}</small>
+                </div>
+                <div>
+                  <span>Assessment confidence</span>
+                  <strong>{confidence ? `${confidence}%` : "Pending"}</strong>
+                  <small>{localObj.classificationStatus === "manual" ? "Manually set" : lowConfidence ? "Needs review" : "Auto-classified"}</small>
+                </div>
+                <div>
+                  <span>Period / cadence</span>
+                  <strong>{localObj.okrPeriod || getCurrentOkrPeriod()}</strong>
+                  <small>{localObj.measurementCadence || "monthly"} updates</small>
+                </div>
+                <div>
+                  <span>Weight</span>
+                  <strong>{Number(localObj.okrWeight ?? 1).toFixed(1)}</strong>
+                  <small>Equal-weight v1 default</small>
+                </div>
+              </div>
+
+              <div className="objective-structure-grid">
+                <div className="card objective-structure-card">
+                  <div className="project-section-heading">
+                    <div>
+                      <strong>Hierarchy</strong>
+                      <span>{'Company OKR -> Department OKR -> KR -> projects'}</span>
+                    </div>
+                  </div>
+                  {parentObjective ? (
+                    <button type="button" className="objective-structure-link" onClick={() => addToast?.({ type: "info", message: "Open the parent from the Objectives tree view." })}>
+                      <Layers size={14} />
+                      <span><strong>Parent</strong>{parentObjective.title}</span>
+                    </button>
+                  ) : (
+                    <div className="text-xs text-muted">No parent objective linked.</div>
+                  )}
+                  {childObjectives.length > 0 ? childObjectives.map(child => (
+                    <div key={child.id} className="objective-structure-child">
+                      <span className="status-dot" style={{ background: getStatusColor(child.status) }} />
+                      <span>{child.title}</span>
+                      <Badge color={getOkrLevelMeta(child.okrLevel).color}>{getOkrLevelMeta(child.okrLevel).shortLabel}</Badge>
+                    </div>
+                  )) : <div className="text-xs text-muted" style={{ marginTop: 10 }}>No child objectives linked.</div>}
+                </div>
+                <div className="card objective-structure-card">
+                  <div className="project-section-heading">
+                    <div>
+                      <strong>Required fields</strong>
+                      <span>Shown by OKR/project classification</span>
+                    </div>
+                  </div>
+                  <div className="objective-required-list">
+                    {[
+                      ["Owner", Boolean(localObj.ownerId)],
+                      ["Department / period", Boolean(localObj.department && localObj.okrPeriod)],
+                      ["Parent OKR", !["department", "key_result"].includes(localObj.okrLevel) || Boolean(localObj.parentId)],
+                      ["KR metrics", localObj.okrLevel !== "key_result" || [localObj.baselineMetric, localObj.currentMetric, localObj.targetMetric, localObj.metricUnit].every(value => value !== null && value !== undefined && value !== "")],
+                      ["Linked project assessment", localObj.okrLevel !== "key_result" || linkedProjects.length > 0],
+                    ].map(([label, ok]) => (
+                      <div key={label} className={ok ? "met" : "missing"}>
+                        {ok ? <Check size={12} /> : <AlertTriangle size={12} />}
+                        <span>{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {staleKr && <div className="project-blockers"><strong>Stale KR</strong><span>- No recent metric check-in or update in the last 14 days.</span></div>}
+                </div>
+              </div>
+
+              <ProjectAssessmentPanel
+                objective={localObj}
+                objectives={objectives}
+                projects={linkedProjects}
+                currentUser={currentUser}
+                createOkrProject={createOkrProject}
+                updateOkrProject={updateOkrProject}
+                updateProjectArtifact={updateProjectArtifact}
+                captureProjectSignature={captureProjectSignature}
+                uploadProjectAttachment={uploadProjectAttachment}
+                deleteProjectAttachment={deleteProjectAttachment}
+                addToast={addToast}
+              />
             </div>
           )}
 
@@ -2279,6 +2668,9 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const [parentId, setParentId] = useState(editObj?.parentId || savedDraft?.parentId || "");
   const [department, setDepartment] = useState(editObj?.department || savedDraft?.department || currentUser.department);
   const [type, setType] = useState(editObj?.type || savedDraft?.type || "simple");
+  const [okrLevel, setOkrLevel] = useState(editObj?.okrLevel || savedDraft?.okrLevel || "needs_review");
+  const [okrPeriod, setOkrPeriod] = useState(editObj?.okrPeriod || savedDraft?.okrPeriod || getCurrentOkrPeriod());
+  const [okrWeight, setOkrWeight] = useState(editObj?.okrWeight ?? savedDraft?.okrWeight ?? 1);
   const [measurementCadence, setMeasurementCadence] = useState(editObj?.measurementCadence || savedDraft?.measurementCadence || "monthly");
   const [metricUnit, setMetricUnit] = useState(editObj?.metricUnit ?? savedDraft?.metricUnit ?? "");
   const [baselineMetric, setBaselineMetric] = useState(editObj?.baselineMetric ?? savedDraft?.baselineMetric ?? "");
@@ -2286,6 +2678,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const [currentMetric, setCurrentMetric] = useState(editObj?.currentMetric ?? savedDraft?.currentMetric ?? "");
   const [rollupMethod, setRollupMethod] = useState(editObj?.rollupMethod || savedDraft?.rollupMethod || "average");
   const [titleError, setTitleError] = useState(false);
+  const [requiredFieldErrors, setRequiredFieldErrors] = useState([]);
   const [saving, setSaving] = useState(false);
   const [activeDescriptionMention, setActiveDescriptionMention] = useState(null);
   const [selectedDescriptionMentionIds, setSelectedDescriptionMentionIds] = useState([]);
@@ -2311,11 +2704,11 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
 
   useEffect(() => {
     if (editObj) return;
-    const draft = { title, description, priority, dueDate, ownerId, parentId, department, type, measurementCadence, metricUnit, baselineMetric, targetMetric, currentMetric, rollupMethod };
+    const draft = { title, description, priority, dueDate, ownerId, parentId, department, type, okrLevel, okrPeriod, okrWeight, measurementCadence, metricUnit, baselineMetric, targetMetric, currentMetric, rollupMethod };
     try { window.localStorage.setItem(formDraftKey, JSON.stringify(draft)); } catch {
       // Drafts are best effort and should never block objective creation.
     }
-  }, [baselineMetric, currentMetric, department, description, dueDate, editObj, formDraftKey, measurementCadence, metricUnit, ownerId, parentId, priority, rollupMethod, targetMetric, title, type]);
+  }, [baselineMetric, currentMetric, department, description, dueDate, editObj, formDraftKey, measurementCadence, metricUnit, okrLevel, okrPeriod, okrWeight, ownerId, parentId, priority, rollupMethod, targetMetric, title, type]);
 
   const hasDraftContent = !editObj && Boolean(
     title.trim() ||
@@ -2326,6 +2719,9 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
     ownerId !== currentUser.id ||
     department !== currentUser.department ||
     type !== "simple" ||
+    okrLevel !== "needs_review" ||
+    okrPeriod !== getCurrentOkrPeriod() ||
+    Number(okrWeight) !== 1 ||
     measurementCadence !== "monthly" ||
     metricUnit ||
     baselineMetric !== "" ||
@@ -2350,6 +2746,17 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
     setActiveDescriptionMention(getActiveMention(value, e.target.selectionStart ?? value.length));
   };
 
+  const selectOkrLevel = (value) => {
+    setOkrLevel(value);
+    if (value === "key_result") {
+      setType("measured");
+      setRollupMethod("manual");
+    }
+    if (value === "company" || value === "department") setType("parent");
+    if (value === "run_the_business" && type === "parent") setType("simple");
+    setRequiredFieldErrors([]);
+  };
+
   const insertDescriptionMention = (user) => {
     if (!activeDescriptionMention) return;
     const nextDescription = insertMentionText(description, activeDescriptionMention, user);
@@ -2363,6 +2770,20 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const handleSave = async () => {
     if (saving) return;
     if (!title.trim()) { setTitleError(true); return; }
+    const requiredErrors = [];
+    if (!ownerId) requiredErrors.push("Owner is required.");
+    if (["company", "department", "key_result"].includes(okrLevel) && !okrPeriod.trim()) requiredErrors.push("Period is required for OKR work.");
+    if (["department", "key_result"].includes(okrLevel) && !parentId) requiredErrors.push(okrLevel === "key_result" ? "Key Results need a parent OKR." : "Department OKRs need a Company OKR parent.");
+    if (okrLevel === "key_result") {
+      if (baselineMetric === "" || currentMetric === "" || targetMetric === "") requiredErrors.push("Key Results need baseline, current, and target values.");
+      if (!metricUnit.trim()) requiredErrors.push("Key Results need a unit.");
+      if (!measurementCadence) requiredErrors.push("Key Results need an update cadence.");
+    }
+    if (requiredErrors.length) {
+      setRequiredFieldErrors(requiredErrors);
+      return;
+    }
+    setRequiredFieldErrors([]);
     setTitleError(false);
     const obj = {
       ...(editObj ? { id: editObj.id } : {}),
@@ -2383,6 +2804,12 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
       blockerReason: editObj?.blockerReason || "",
       nextAction: editObj?.nextAction || "",
       type,
+      okrLevel,
+      okrPeriod,
+      okrWeight: Number(okrWeight) || 1,
+      classificationStatus: "manual",
+      classificationConfidence: 1,
+      classificationReason: "Set manually in objective form.",
       baselineMetric: baselineMetric === "" ? null : Number(baselineMetric),
       targetMetric: targetMetric === "" ? null : Number(targetMetric),
       currentMetric: currentMetric === "" ? null : Number(currentMetric),
@@ -2505,17 +2932,56 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
               </select>
             </div>
           </div>
+          <div className="objective-form-section">
+            <div className="project-section-heading">
+              <div>
+                <strong>Work Classification</strong>
+                <span>Separate from progress calculation; drives OKR hierarchy, KR freshness, and project gates.</span>
+              </div>
+              {okrLevel === "needs_review" && <Badge color="#F59E0B">Needs review</Badge>}
+            </div>
+            <div className="objective-classification-grid">
+              <label>
+                <span className={["company", "department", "key_result"].includes(okrLevel) ? "required-label" : ""}>Classification</span>
+                <select value={okrLevel} onChange={event => selectOkrLevel(event.target.value)}>
+                  {OKR_LEVELS.map(level => <option key={level.id} value={level.id}>{level.label}</option>)}
+                </select>
+              </label>
+              <label>
+                <span className={["company", "department", "key_result"].includes(okrLevel) ? "required-label" : ""}>Period</span>
+                <input value={okrPeriod} onChange={event => setOkrPeriod(event.target.value)} placeholder="2026-Q2" />
+              </label>
+              <label>
+                <span>Weight</span>
+                <input type="number" min="0" step="0.1" value={okrWeight} onChange={event => setOkrWeight(event.target.value)} />
+              </label>
+              <label>
+                <span>Update cadence</span>
+                <select value={measurementCadence} onChange={e => setMeasurementCadence(e.target.value)}>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="annual">Annual</option>
+                </select>
+              </label>
+            </div>
+            {requiredFieldErrors.length > 0 && (
+              <div className="objective-required-errors">
+                {requiredFieldErrors.map(error => <span key={error}><AlertTriangle size={12} /> {error}</span>)}
+              </div>
+            )}
+          </div>
           <div className="text-xs text-muted" style={{ marginTop: -10 }}>
             Use automatic calculation when the objective has linked supporting work. Use manual when leadership will update the percentage directly.
           </div>
-          {["measured", "monthly"].includes(type) && (
+          {(["measured", "monthly"].includes(type) || okrLevel === "key_result") && (
             <div className="card" style={{ padding: 12 }}>
               <div className="text-xs font-semibold text-muted" style={{ textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>Metric Target</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10 }}>
-                <input type="number" value={baselineMetric} onChange={e => setBaselineMetric(e.target.value)} placeholder="Baseline" />
-                <input type="number" value={currentMetric} onChange={e => setCurrentMetric(e.target.value)} placeholder="Current" />
-                <input type="number" value={targetMetric} onChange={e => setTargetMetric(e.target.value)} placeholder="Target" />
-                <input value={metricUnit} onChange={e => setMetricUnit(e.target.value)} placeholder="Unit" />
+                <input className={okrLevel === "key_result" ? "required-input" : ""} type="number" value={baselineMetric} onChange={e => setBaselineMetric(e.target.value)} placeholder="Baseline" />
+                <input className={okrLevel === "key_result" ? "required-input" : ""} type="number" value={currentMetric} onChange={e => setCurrentMetric(e.target.value)} placeholder="Current" />
+                <input className={okrLevel === "key_result" ? "required-input" : ""} type="number" value={targetMetric} onChange={e => setTargetMetric(e.target.value)} placeholder="Target" />
+                <input className={okrLevel === "key_result" ? "required-input" : ""} value={metricUnit} onChange={e => setMetricUnit(e.target.value)} placeholder="Unit" />
                 <select value={measurementCadence} onChange={e => setMeasurementCadence(e.target.value)}>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
@@ -2525,7 +2991,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
             </div>
           )}
           <div>
-            <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Parent Objective (optional)</label>
+            <label className={`text-xs font-semibold text-muted ${["department", "key_result"].includes(okrLevel) ? "required-label" : ""}`} style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Parent Objective {["department", "key_result"].includes(okrLevel) ? "*" : "(optional)"}</label>
             <select value={parentId} onChange={e => setParentId(e.target.value)} style={{ width: "100%" }}>
               <option value="">None — top-level objective</option>
               {objectives.filter(o => o.id !== editObj?.id).map(o => <option key={o.id} value={o.id}>{o.title}</option>)}

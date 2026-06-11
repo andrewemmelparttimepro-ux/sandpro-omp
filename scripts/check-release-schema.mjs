@@ -35,6 +35,12 @@ const checks = [
   ['objective_metric_checkins table', 'objective_metric_checkins', 'id,objective_id,checkin_date,value,note,created_by'],
   ['objective_workflow_steps table', 'objective_workflow_steps', 'id,objective_id,title,description,step_order,status,owner_id,due_date,completed_at,completed_by,updated_at'],
   ['objective_agent_runs table', 'objective_agent_runs', 'id,objective_id,requested_by,agent_key,run_type,status,input_snapshot,output_summary,output_json,source_links,file_id,error,completed_at'],
+  ['OKR projects table', 'okr_projects', 'id,name,description,project_type,linked_kr_id,run_the_business,sponsor_id,lead_id,stage,health,health_comment,start_date,target_date,next_milestone,next_milestone_due_date,budget_estimate,created_by,created_at,updated_at'],
+  ['OKR project KR links table', 'okr_project_kr_links', 'id,project_id,objective_id,created_by,created_at'],
+  ['OKR assessment artifacts table', 'okr_assessment_artifacts', 'id,project_id,artifact_key,title,owner_id,status,response_json,summary,completed_at,completed_by,created_at,updated_at'],
+  ['OKR project signatures table', 'okr_project_signatures', 'id,project_id,role,signed_by,signed_by_name,signature_data_url,note,signed_at,created_by,created_at'],
+  ['OKR project attachments table', 'okr_project_attachments', 'id,project_id,artifact_id,uploaded_by,name,purpose,type,mime_type,size,storage_path,url,created_at'],
+  ['OKR project audit table', 'okr_project_audit_events', 'id,project_id,actor_id,event_type,field_name,old_value,new_value,note,created_at'],
   ['notifications sender priority columns', 'notifications', 'id,user_id,sender_id,type,objective_id,message,priority,detail_label,detail_text,is_read,created_at'],
   ['notification_preferences table', 'notification_preferences', 'user_id,email_enabled,due_reminders,overdue_alerts,blocker_alerts,comment_notifications,delegation_alerts,digest_frequency'],
   ['email_delivery_log table', 'email_delivery_log', 'id,user_id,objective_id,notification_type,dedupe_key,recipient,subject,status,sent_at'],
@@ -55,7 +61,7 @@ const checks = [
   ['org_chart_updates table', 'org_chart_updates', 'id,changed_user_id,changed_by,note,old_value,new_value,created_at'],
   ['org_chart_placeholders table', 'org_chart_placeholders', 'id,name,title,department,reports_to,color,created_by,created_at,updated_at'],
   ['files release columns', 'files', 'id,message_id,uploaded_by,mime_type,storage_path,agent_run_id,generated_by_agent'],
-  ['objectives release columns', 'objectives', 'id,measurement_cadence,rollup_method'],
+  ['objectives release columns', 'objectives', 'id,measurement_cadence,rollup_method,okr_level,okr_period,okr_weight,classification_status,classification_confidence,classification_reason'],
   ['subtasks release columns', 'subtasks', 'id,due_date,weight,is_milestone,milestone_date'],
   ['objective_updates release columns', 'objective_updates', 'id,user_id,action_type,old_value,new_value,reference_id'],
 ];
@@ -135,10 +141,14 @@ const runClientChecks = async (key, canCheckStorage) => {
     } else if (!buckets.some((bucket) => bucket.id === 'ncr-files' && bucket.public === false)) {
       failed = true;
       console.error('x ncr-files bucket: missing or not private');
+    } else if (!buckets.some((bucket) => bucket.id === 'okr-project-files' && bucket.public === false)) {
+      failed = true;
+      console.error('x okr-project-files bucket: missing or not private');
     } else {
       console.log('ok private objective-files bucket');
       console.log('ok private fix-it-files bucket');
       console.log('ok private ncr-files bucket');
+      console.log('ok private okr-project-files bucket');
     }
   }
 

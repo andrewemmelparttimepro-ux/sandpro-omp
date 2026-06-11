@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { applyAutoClassification, buildProjectGateBlockers } from '../okrFramework';
+
+const normalizeConfidenceForDb = (value) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 1;
+  return number > 1 ? Math.min(1, number / 100) : Math.max(0, Math.min(1, number));
+};
 
 const ATTACHMENT_MARKER = '\n__SANDPRO_ATTACHMENTS__';
 
@@ -450,6 +457,7 @@ export function useProfiles() {
 // ============================================================================
 export function useObjectives() {
   const [objectives, setObjectives] = useState([]);
+  const [okrProjects, setOkrProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchObjectives = useCallback(async () => {
@@ -467,10 +475,11 @@ export function useObjectives() {
     const ids = objs.map(o => o.id);
     if (ids.length === 0) {
       setObjectives([]);
+      setOkrProjects([]);
       setLoading(false);
       return;
     }
-    const [messagesRes, subtasksRes, updatesRes, filesRes, members, metricCheckins, agentRuns, workflowSteps, messageReads] = await Promise.all([
+    const [messagesRes, subtasksRes, updatesRes, filesRes, members, metricCheckins, agentRuns, workflowSteps, messageReads, projectRows, projectLinks, projectArtifacts, projectSignatures, projectAttachments, projectAuditEvents] = await Promise.all([
       timedQuery(supabase.from('messages').select('*').in('objective_id', ids).order('created_at'), 'messages fetch'),
       timedQuery(supabase.from('subtasks').select('*').in('objective_id', ids), 'subtasks fetch'),
       timedQuery(supabase.from('objective_updates').select('*').in('objective_id', ids).order('created_at'), 'objective updates fetch'),
@@ -482,6 +491,12 @@ export function useObjectives() {
       currentUserId
         ? nullableSelect(supabase.from('objective_message_reads').select('*').eq('user_id', currentUserId).in('objective_id', ids), [], 'objective message reads fetch')
         : Promise.resolve([]),
+      nullableSelect(supabase.from('okr_projects').select('*').order('updated_at', { ascending: false }), [], 'OKR projects fetch'),
+      nullableSelect(supabase.from('okr_project_kr_links').select('*'), [], 'OKR project links fetch'),
+      nullableSelect(supabase.from('okr_assessment_artifacts').select('*').order('artifact_key'), [], 'OKR assessment artifacts fetch'),
+      nullableSelect(supabase.from('okr_project_signatures').select('*').order('created_at'), [], 'OKR signatures fetch'),
+      nullableSelect(supabase.from('okr_project_attachments').select('*').order('created_at'), [], 'OKR attachments fetch'),
+      nullableSelect(supabase.from('okr_project_audit_events').select('*').order('created_at', { ascending: false }), [], 'OKR audit events fetch'),
     ]);
 
     const messageIds = (messagesRes.data || []).map(message => message.id).filter(Boolean);
@@ -518,6 +533,27 @@ export function useObjectives() {
       };
     }));
 
+    const signedProjectAttachments = await Promise.all((projectAttachments || []).map(async (f) => {
+      let signedUrl = f.url || '';
+      if (f.storage_path) {
+        signedUrl = await createSignedUrlSafe('okr-project-files', f.storage_path) || signedUrl;
+      }
+      return {
+        id: f.id,
+        projectId: f.project_id,
+        artifactId: f.artifact_id,
+        uploadedBy: f.uploaded_by,
+        name: f.name,
+        purpose: f.purpose || 'evidence',
+        type: f.type || '',
+        mimeType: f.mime_type || '',
+        size: f.size || '',
+        storagePath: f.storage_path,
+        url: signedUrl,
+        createdAt: f.created_at,
+      };
+    }));
+
     const messagesByObj = groupBy(messagesRes.data, 'objective_id');
     const subtasksByObj = groupBy(subtasksRes.data, 'objective_id');
     const updatesByObj = groupBy(updatesRes.data, 'objective_id');
@@ -529,6 +565,87 @@ export function useObjectives() {
     const workflowByObj = groupBy(workflowSteps, 'objective_id');
     const readsByObj = groupBy(messageReads, 'objective_id');
     const reactionsByMessage = groupBy(messageReactions, 'message_id');
+    const projectLinksByProject = groupBy(projectLinks, 'project_id');
+    const projectsByLinkedObjective = groupBy(
+      [
+        ...(projectLinks || []).map(link => ({ project_id: link.project_id, objective_id: link.objective_id })),
+        ...(projectRows || []).filter(project => project.linked_kr_id).map(project => ({ project_id: project.id, objective_id: project.linked_kr_id })),
+      ],
+      'objective_id',
+    );
+    const artifactsByProject = groupBy(projectArtifacts, 'project_id');
+    const signaturesByProject = groupBy(projectSignatures, 'project_id');
+    const attachmentsByProject = groupBy(signedProjectAttachments, 'projectId');
+    const auditByProject = groupBy(projectAuditEvents, 'project_id');
+
+    const localProjects = (projectRows || []).map(project => {
+      const linkedObjectiveIds = [
+        project.linked_kr_id,
+        ...(projectLinksByProject[project.id] || []).map(link => link.objective_id),
+      ].filter(Boolean).filter((id, index, arr) => arr.indexOf(id) === index);
+      const mapped = {
+        id: project.id,
+        name: project.name,
+        title: project.name,
+        description: project.description || '',
+        projectType: project.project_type || 'internal',
+        linkedKrId: project.linked_kr_id,
+        linkedObjectiveIds,
+        runTheBusiness: Boolean(project.run_the_business),
+        sponsorId: project.sponsor_id,
+        leadId: project.lead_id,
+        stage: project.stage || 'idea',
+        health: project.health || 'green',
+        healthComment: project.health_comment || '',
+        startDate: project.start_date,
+        targetDate: project.target_date,
+        nextMilestone: project.next_milestone || '',
+        nextMilestoneDueDate: project.next_milestone_due_date,
+        budgetEstimate: project.budget_estimate,
+        createdBy: project.created_by,
+        createdAt: project.created_at,
+        updatedAt: project.updated_at,
+        artifacts: (artifactsByProject[project.id] || []).map(artifact => ({
+          id: artifact.id,
+          projectId: artifact.project_id,
+          artifactKey: artifact.artifact_key,
+          title: artifact.title,
+          ownerId: artifact.owner_id,
+          status: artifact.status || 'missing',
+          responseJson: artifact.response_json || {},
+          summary: artifact.summary || '',
+          completedAt: artifact.completed_at,
+          completedBy: artifact.completed_by,
+          createdAt: artifact.created_at,
+          updatedAt: artifact.updated_at,
+        })),
+        signatures: (signaturesByProject[project.id] || []).map(signature => ({
+          id: signature.id,
+          projectId: signature.project_id,
+          role: signature.role,
+          signedBy: signature.signed_by,
+          signedByName: signature.signed_by_name || '',
+          signatureDataUrl: signature.signature_data_url || '',
+          note: signature.note || '',
+          signedAt: signature.signed_at,
+          createdBy: signature.created_by,
+          createdAt: signature.created_at,
+        })),
+        attachments: attachmentsByProject[project.id] || [],
+        auditEvents: (auditByProject[project.id] || []).map(event => ({
+          id: event.id,
+          projectId: event.project_id,
+          actorId: event.actor_id,
+          eventType: event.event_type,
+          fieldName: event.field_name || '',
+          oldValue: event.old_value,
+          newValue: event.new_value,
+          note: event.note || '',
+          createdAt: event.created_at,
+        })),
+      };
+      return { ...mapped, gateBlockers: buildProjectGateBlockers(mapped) };
+    });
 
     // Assemble rich objectives (matching the shape the UI expects)
     const rich = objs.map(o => ({
@@ -550,6 +667,15 @@ export function useObjectives() {
       metricUnit: o.metric_unit,
       measurementCadence: o.measurement_cadence || 'monthly',
       rollupMethod: o.rollup_method || 'average',
+      okrLevel: o.okr_level,
+      okrPeriod: o.okr_period,
+      okrWeight: o.okr_weight,
+      classificationStatus: o.classification_status,
+      classificationConfidence: o.classification_confidence,
+      classificationReason: o.classification_reason,
+      linkedProjects: (projectsByLinkedObjective[o.id] || [])
+        .map(link => localProjects.find(project => project.id === link.project_id))
+        .filter(Boolean),
       messageReadAt: readsByObj[o.id]?.[0]?.last_read_at || null,
       messages: (messagesByObj[o.id] || []).map(m => {
         const parsed = splitMessageAttachments(m.text);
@@ -667,11 +793,15 @@ export function useObjectives() {
       })),
     }));
 
-    const byParent = rich.reduce((acc, objective) => {
+    const classifiedRich = applyAutoClassification(rich).map(objective => ({
+      ...objective,
+      linkedProjects: objective.linkedProjects || [],
+    }));
+    const byParent = classifiedRich.reduce((acc, objective) => {
       if (objective.parentId) (acc[objective.parentId] = acc[objective.parentId] || []).push(objective);
       return acc;
     }, {});
-    const withRollups = rich.map((objective) => {
+    const withRollups = classifiedRich.map((objective) => {
       if (objective.rollupMethod === 'manual') return objective;
       const childObjectives = byParent[objective.id] || [];
       const weightedSubtasks = (objective.subtasks || []).map(st => ({ progress: st.progress || 0, weight: Number(st.weight) || 1 }));
@@ -685,6 +815,7 @@ export function useObjectives() {
       return { ...objective, progress: Math.round(total), rollupProgress: Math.round(total) };
     });
 
+    setOkrProjects(localProjects);
     setObjectives(withRollups);
     setLoading(false);
     return withRollups;
@@ -706,6 +837,12 @@ export function useObjectives() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_metric_checkins' }, () => fetchObjectives())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_agent_runs' }, () => fetchObjectives())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_workflow_steps' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_projects' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_kr_links' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_assessment_artifacts' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_signatures' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_attachments' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_audit_events' }, () => fetchObjectives())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [fetchObjectives]);
@@ -727,6 +864,13 @@ export function useObjectives() {
     metricUnit: row.metric_unit,
     measurementCadence: row.measurement_cadence || 'monthly',
     rollupMethod: row.rollup_method || 'average',
+    okrLevel: row.okr_level,
+    okrPeriod: row.okr_period,
+    okrWeight: row.okr_weight,
+    classificationStatus: row.classification_status,
+    classificationConfidence: row.classification_confidence,
+    classificationReason: row.classification_reason,
+    linkedProjects: [],
     messages: [],
     subtasks: [],
     updates: [{
@@ -771,6 +915,12 @@ export function useObjectives() {
         metric_unit: obj.metricUnit || '',
         measurement_cadence: obj.measurementCadence || 'monthly',
         rollup_method: obj.rollupMethod || 'average',
+        okr_level: obj.okrLevel || 'needs_review',
+        okr_period: obj.okrPeriod || '',
+        okr_weight: obj.okrWeight ?? 1,
+        classification_status: obj.classificationStatus || 'manual',
+        classification_confidence: normalizeConfidenceForDb(obj.classificationConfidence ?? 1),
+        classification_reason: obj.classificationReason || 'Set during objective creation.',
       })
       .select()
       .single();
@@ -870,6 +1020,12 @@ export function useObjectives() {
     if (changes.metricUnit !== undefined) dbChanges.metric_unit = changes.metricUnit;
     if (changes.measurementCadence !== undefined) dbChanges.measurement_cadence = changes.measurementCadence;
     if (changes.rollupMethod !== undefined) dbChanges.rollup_method = changes.rollupMethod;
+    if (changes.okrLevel !== undefined) dbChanges.okr_level = changes.okrLevel;
+    if (changes.okrPeriod !== undefined) dbChanges.okr_period = changes.okrPeriod;
+    if (changes.okrWeight !== undefined) dbChanges.okr_weight = changes.okrWeight;
+    if (changes.classificationStatus !== undefined) dbChanges.classification_status = changes.classificationStatus;
+    if (changes.classificationConfidence !== undefined) dbChanges.classification_confidence = normalizeConfidenceForDb(changes.classificationConfidence);
+    if (changes.classificationReason !== undefined) dbChanges.classification_reason = changes.classificationReason;
 
     if (!Object.keys(dbChanges).length) {
       await fetchObjectives();
@@ -1194,7 +1350,189 @@ export function useObjectives() {
     await fetchObjectives();
   };
 
-  return { objectives, loading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, runObjectiveStarter, refetch: fetchObjectives };
+  const writeProjectAudit = async (projectId, event) => {
+    if (!projectId) return;
+    await supabase.from('okr_project_audit_events').insert({
+      project_id: projectId,
+      actor_id: event.actorId || null,
+      event_type: event.eventType || 'update',
+      field_name: event.fieldName || '',
+      old_value: event.oldValue ?? null,
+      new_value: event.newValue ?? null,
+      note: event.note || '',
+    });
+  };
+
+  const syncProjectLinks = async (projectId, linkedObjectiveIds = [], userId = null) => {
+    const uniqueIds = [...new Set(linkedObjectiveIds.filter(Boolean))];
+    await supabase.from('okr_project_kr_links').delete().eq('project_id', projectId);
+    if (uniqueIds.length > 0) {
+      const { error } = await supabase.from('okr_project_kr_links').insert(uniqueIds.map(objectiveId => ({
+        project_id: projectId,
+        objective_id: objectiveId,
+        created_by: userId,
+      })));
+      if (error) throw error;
+    }
+  };
+
+  const createOkrProject = async (project) => {
+    const linkedObjectiveIds = project.linkedObjectiveIds || (project.linkedKrId ? [project.linkedKrId] : []);
+    const { data, error } = await supabase.from('okr_projects').insert({
+      name: project.name,
+      description: project.description || '',
+      project_type: project.projectType || 'internal',
+      linked_kr_id: linkedObjectiveIds[0] || null,
+      run_the_business: Boolean(project.runTheBusiness),
+      sponsor_id: project.sponsorId || null,
+      lead_id: project.leadId || null,
+      stage: project.stage || 'idea',
+      health: project.health || 'green',
+      health_comment: project.healthComment || '',
+      start_date: project.startDate || null,
+      target_date: project.targetDate || null,
+      next_milestone: project.nextMilestone || '',
+      next_milestone_due_date: project.nextMilestoneDueDate || null,
+      budget_estimate: project.budgetEstimate === '' ? null : project.budgetEstimate ?? null,
+      created_by: project.createdBy || null,
+    }).select().single();
+    if (error) throw error;
+    await syncProjectLinks(data.id, linkedObjectiveIds, project.createdBy || null);
+    await writeProjectAudit(data.id, {
+      actorId: project.createdBy || null,
+      eventType: 'project_created',
+      fieldName: 'okr_projects',
+      newValue: { name: project.name, stage: project.stage || 'idea' },
+      note: `Project created: ${project.name}`,
+    });
+    await fetchObjectives();
+    return data;
+  };
+
+  const updateOkrProject = async (projectId, changes) => {
+    const dbChanges = {};
+    if (changes.name !== undefined) dbChanges.name = changes.name;
+    if (changes.description !== undefined) dbChanges.description = changes.description;
+    if (changes.projectType !== undefined) dbChanges.project_type = changes.projectType;
+    if (changes.runTheBusiness !== undefined) dbChanges.run_the_business = Boolean(changes.runTheBusiness);
+    if (changes.sponsorId !== undefined) dbChanges.sponsor_id = changes.sponsorId || null;
+    if (changes.leadId !== undefined) dbChanges.lead_id = changes.leadId || null;
+    if (changes.stage !== undefined) dbChanges.stage = changes.stage;
+    if (changes.health !== undefined) dbChanges.health = changes.health;
+    if (changes.healthComment !== undefined) dbChanges.health_comment = changes.healthComment;
+    if (changes.startDate !== undefined) dbChanges.start_date = changes.startDate || null;
+    if (changes.targetDate !== undefined) dbChanges.target_date = changes.targetDate || null;
+    if (changes.nextMilestone !== undefined) dbChanges.next_milestone = changes.nextMilestone;
+    if (changes.nextMilestoneDueDate !== undefined) dbChanges.next_milestone_due_date = changes.nextMilestoneDueDate || null;
+    if (changes.budgetEstimate !== undefined) dbChanges.budget_estimate = changes.budgetEstimate === '' ? null : changes.budgetEstimate;
+    if (changes.linkedObjectiveIds !== undefined) dbChanges.linked_kr_id = (changes.linkedObjectiveIds || [])[0] || null;
+    if (Object.keys(dbChanges).length > 0) {
+      const { error } = await supabase.from('okr_projects').update(dbChanges).eq('id', projectId);
+      if (error) throw error;
+      await writeProjectAudit(projectId, {
+        actorId: changes.userId || null,
+        eventType: changes.stage !== undefined ? 'stage_change' : 'field_update',
+        fieldName: Object.keys(dbChanges).join(','),
+        newValue: dbChanges,
+        note: changes.auditNote || 'Project updated',
+      });
+    }
+    if (changes.linkedObjectiveIds !== undefined) {
+      await syncProjectLinks(projectId, changes.linkedObjectiveIds, changes.userId || null);
+    }
+    await fetchObjectives();
+  };
+
+  const updateProjectArtifact = async (artifactId, changes) => {
+    const dbChanges = {};
+    if (changes.status !== undefined) dbChanges.status = changes.status;
+    if (changes.summary !== undefined) dbChanges.summary = changes.summary;
+    if (changes.ownerId !== undefined) dbChanges.owner_id = changes.ownerId || null;
+    if (changes.responseJson !== undefined) dbChanges.response_json = changes.responseJson || {};
+    if (changes.status === 'complete') {
+      dbChanges.completed_at = changes.completedAt || new Date().toISOString();
+      dbChanges.completed_by = changes.completedBy || null;
+    }
+    const { data, error } = await supabase.from('okr_assessment_artifacts').update(dbChanges).eq('id', artifactId).select().single();
+    if (error) throw error;
+    await writeProjectAudit(data.project_id, {
+      actorId: changes.userId || changes.completedBy || null,
+      eventType: 'artifact_update',
+      fieldName: data.artifact_key,
+      newValue: dbChanges,
+      note: changes.auditNote || `Assessment artifact updated: ${data.title}`,
+    });
+    await fetchObjectives();
+  };
+
+  const captureProjectSignature = async (projectId, signature) => {
+    const { error } = await supabase.from('okr_project_signatures').insert({
+      project_id: projectId,
+      role: signature.role,
+      signed_by: signature.signedBy || null,
+      signed_by_name: signature.signedByName || '',
+      signature_data_url: signature.signatureDataUrl || '',
+      note: signature.note || '',
+      created_by: signature.createdBy || null,
+    });
+    if (error) throw error;
+    await writeProjectAudit(projectId, {
+      actorId: signature.createdBy || signature.signedBy || null,
+      eventType: 'signature_added',
+      fieldName: signature.role,
+      newValue: { role: signature.role, signedBy: signature.signedBy || signature.signedByName || '' },
+      note: `Signoff captured: ${signature.role}`,
+    });
+    await fetchObjectives();
+  };
+
+  const uploadProjectAttachment = async (projectId, file, uploadedBy, purpose = 'evidence', artifactId = null) => {
+    const ts = Date.now();
+    const safeName = file.name.replace(/[^\w.!@()+,=\-\s]/g, '_');
+    const path = `${projectId}/${ts}_${safeName}`;
+    const { error: uploadError } = await supabase.storage.from('okr-project-files').upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || 'application/octet-stream',
+    });
+    if (uploadError) throw uploadError;
+    const { data, error } = await supabase.from('okr_project_attachments').insert({
+      project_id: projectId,
+      artifact_id: artifactId || null,
+      uploaded_by: uploadedBy || null,
+      name: file.name,
+      purpose,
+      type: getFileType(file.type),
+      mime_type: file.type || 'application/octet-stream',
+      size: formatSize(file.size),
+      storage_path: path,
+      url: '',
+    }).select().single();
+    if (error) {
+      await supabase.storage.from('okr-project-files').remove([path]);
+      throw error;
+    }
+    await writeProjectAudit(projectId, {
+      actorId: uploadedBy || null,
+      eventType: 'evidence_added',
+      fieldName: 'okr_project_attachments',
+      newValue: { name: file.name, purpose },
+      note: `Attachment added: ${file.name}`,
+    });
+    await fetchObjectives();
+    return data;
+  };
+
+  const deleteProjectAttachment = async (file) => {
+    if (file.storagePath) {
+      await supabase.storage.from('okr-project-files').remove([file.storagePath]);
+    }
+    const { error } = await supabase.from('okr_project_attachments').delete().eq('id', file.id);
+    if (error) throw error;
+    await fetchObjectives();
+  };
+
+  return { objectives, okrProjects, loading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, refetch: fetchObjectives };
 }
 
 const mapNcrReport = (row) => ({
