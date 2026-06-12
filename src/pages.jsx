@@ -876,6 +876,17 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
       </select>
     );
   };
+  const handleKanbanWheel = (event) => {
+    if (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    const column = event.target?.closest?.('.kanban-column');
+    const body = column?.querySelector?.('.kanban-column-body');
+    if (!body || body.scrollHeight <= body.clientHeight + 1) return;
+    const nextTop = body.scrollTop + event.deltaY;
+    const maxTop = body.scrollHeight - body.clientHeight;
+    if ((event.deltaY < 0 && body.scrollTop <= 0) || (event.deltaY > 0 && body.scrollTop >= maxTop - 1)) return;
+    body.scrollTop = Math.max(0, Math.min(maxTop, nextTop));
+    event.preventDefault();
+  };
   const getWorkflowSummary = (obj) => {
     const steps = [...(obj.workflowSteps || [])].sort((a, b) => (a.stepOrder ?? 0) - (b.stepOrder ?? 0));
     const done = steps.filter(step => step.status === "done" || step.status === "skipped").length;
@@ -1317,7 +1328,7 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
         )}
 
         {viewMode === "kanban" && (
-          <div className="kanban-board">
+          <div className="kanban-board" onWheel={handleKanbanWheel}>
             {visibleKanbanStatuses.map(status => {
               const colObjs = filtered.filter(o => o.status === status);
               return (

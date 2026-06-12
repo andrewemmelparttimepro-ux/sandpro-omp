@@ -31,7 +31,7 @@ test.describe('objectives onboarding and kanban scrolling', () => {
     await expect(explainer).toHaveCount(0);
   });
 
-  test('kanban view allows mouse-wheel scrolling through the board', async ({ page }) => {
+  test('kanban view allows mouse-wheel scrolling through hidden objective cards', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 640 });
     await dismissGuidance(page);
     await navItem(page, 'Objectives').click();
@@ -41,20 +41,19 @@ test.describe('objectives onboarding and kanban scrolling', () => {
     await expect(shell).toBeVisible();
     await expect(page.locator('.kanban-column')).toHaveCount(5);
 
-    const overflow = await shell.evaluate(el => ({
-      scrollHeight: el.scrollHeight,
-      clientHeight: el.clientHeight,
-      scrollTop: el.scrollTop,
-    }));
-    expect(overflow.scrollHeight).toBeGreaterThan(overflow.clientHeight);
+    const scrollableBodyIndex = await page.locator('.kanban-column-body').evaluateAll(bodies => (
+      bodies.findIndex(body => body.scrollHeight > body.clientHeight + 6)
+    ));
+    expect(scrollableBodyIndex).toBeGreaterThanOrEqual(0);
 
-    const box = await shell.boundingBox();
+    const body = page.locator('.kanban-column-body').nth(scrollableBodyIndex);
+    const box = await body.boundingBox();
     expect(box).toBeTruthy();
-    await page.mouse.move(box.x + Math.min(240, box.width / 2), box.y + Math.min(320, box.height / 2));
+    await page.mouse.move(box.x + Math.min(160, box.width / 2), box.y + Math.min(260, box.height / 2));
     await page.mouse.wheel(0, 520);
 
-    await expect.poll(async () => shell.evaluate(el => el.scrollTop), {
-      message: 'Kanban shell should scroll when the user wheels over the board.',
+    await expect.poll(async () => body.evaluate(el => el.scrollTop), {
+      message: 'The Kanban column body should scroll when the user wheels over hidden cards.',
     }).toBeGreaterThan(0);
   });
 
