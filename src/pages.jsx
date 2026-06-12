@@ -699,70 +699,87 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
   };
   const exportQuarterlyExcel = async () => {
     const rows = buildQuarterlyScorecardRows(filtered, visibleProjects);
+    const scorecardRows = rows.length ? rows : [{
+      title: 'No objectives in current lens',
+      level: '',
+      owner: currentUser.name,
+      department: '',
+      period: '',
+      progress: '',
+      status: '',
+      stale: '',
+      linkedProjects: '',
+    }];
+    const pipelineRows = visibleProjects.length ? visibleProjects.map(project => [
+      project.name,
+      getProjectStageMeta(project.stage).label,
+      project.health || 'green',
+      getUser(project.leadId).name,
+      getUser(project.sponsorId).name,
+      buildProjectGateBlockers(project).join(' | ') || 'Gate clear',
+    ]) : [['No projects in current lens', '', '', '', '', '']];
     await writeXlsxFile([
       {
         sheet: 'Quarterly Scorecard',
         data: [
           ['Title', 'Level', 'Owner', 'Department', 'Period', 'Progress', 'Status', 'Stale KR', 'Linked Projects'].map(value => ({ value, fontWeight: 'bold' })),
-          ...rows.map(row => [row.title, row.level, row.owner, row.department, row.period, row.progress, row.status, row.stale, row.linkedProjects].map(value => ({ value }))),
+          ...scorecardRows.map(row => [row.title, row.level, row.owner, row.department, row.period, row.progress, row.status, row.stale, row.linkedProjects].map(value => ({ value }))),
         ],
       },
       {
         sheet: 'Project Pipeline',
         data: [
           ['Name', 'Stage', 'Health', 'Lead', 'Sponsor', 'Gate blockers'].map(value => ({ value, fontWeight: 'bold' })),
-          ...visibleProjects.map(project => [
-            project.name,
-            getProjectStageMeta(project.stage).label,
-            project.health || 'green',
-            getUser(project.leadId).name,
-            getUser(project.sponsorId).name,
-            buildProjectGateBlockers(project).join(' | '),
-          ].map(value => ({ value }))),
+          ...pipelineRows.map(row => row.map(value => ({ value }))),
         ],
       },
     ]).toFile('sandpro_okr_quarterly_scorecard.xlsx');
   };
   const exportDepartmentScorecard = () => {
     const departments = [...new Set(filtered.map(objective => objective.department || 'Unassigned'))].sort();
+    const departmentRows = departments.length ? departments.map(dept => {
+      const items = filtered.filter(objective => (objective.department || 'Unassigned') === dept);
+      const avgProgress = items.length ? Math.round(items.reduce((sum, objective) => sum + Number(objective.progress || 0), 0) / items.length) : 0;
+      return [
+        dept,
+        items.length,
+        items.filter(objective => objective.okrLevel === 'company').length,
+        items.filter(objective => objective.okrLevel === 'department').length,
+        items.filter(objective => objective.okrLevel === 'key_result').length,
+        `${avgProgress}%`,
+        items.filter(isKeyResultStale).length,
+      ];
+    }) : [['No departments in current lens', 0, 0, 0, 0, '0%', 0]];
     downloadRows('sandpro_department_quarterly_scorecard.csv', [
       ['Department', 'Objectives', 'Company OKRs', 'Department OKRs', 'Key Results', 'Average Progress', 'Stale KRs'],
-      ...departments.map(dept => {
-        const items = filtered.filter(objective => (objective.department || 'Unassigned') === dept);
-        const avgProgress = items.length ? Math.round(items.reduce((sum, objective) => sum + Number(objective.progress || 0), 0) / items.length) : 0;
-        return [
-          dept,
-          items.length,
-          items.filter(objective => objective.okrLevel === 'company').length,
-          items.filter(objective => objective.okrLevel === 'department').length,
-          items.filter(objective => objective.okrLevel === 'key_result').length,
-          `${avgProgress}%`,
-          items.filter(isKeyResultStale).length,
-        ];
-      }),
+      ...departmentRows,
     ]);
   };
   const exportRndPipeline = () => {
     const rndProjects = visibleProjects.filter(project => project.projectType === 'rnd');
+    const rndRows = rndProjects.length ? rndProjects.map(project => [
+      project.name,
+      getProjectStageMeta(project.stage).label,
+      project.health || 'green',
+      getUser(project.leadId).name,
+      getUser(project.sponsorId).name,
+      project.targetDate || '',
+      project.nextMilestone || '',
+      buildProjectGateBlockers(project).join(' | ') || 'Gate clear',
+    ]) : [['No R&D projects in current lens', '', '', '', '', '', '', '']];
     downloadRows('sandpro_rd_pipeline.csv', [
       ['Project', 'Stage', 'Health', 'Lead', 'Sponsor', 'Target Date', 'Next Milestone', 'Gate blockers'],
-      ...rndProjects.map(project => [
-        project.name,
-        getProjectStageMeta(project.stage).label,
-        project.health || 'green',
-        getUser(project.leadId).name,
-        getUser(project.sponsorId).name,
-        project.targetDate || '',
-        project.nextMilestone || '',
-        buildProjectGateBlockers(project).join(' | '),
-      ]),
+      ...rndRows,
     ]);
   };
   const exportQuarterlyPdf = () => {
     const rows = buildQuarterlyScorecardRows(filtered, visibleProjects);
     const win = window.open('', 'sandpro-okr-scorecard-export', 'width=1100,height=800');
     if (!win) return;
-    win.document.write(`<!doctype html><html><head><title>SandPro OMP Quarterly Scorecard</title><style>@page{size:letter;margin:.45in}body{font-family:Inter,Arial,sans-serif;color:#111827}h1{font-size:22px;margin:0 0 4px}.meta{color:#64748b;font-size:12px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.stat{border:1px solid #d1d5db;border-radius:8px;padding:10px}.stat strong{display:block;font-size:20px;color:#ff7f02}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border-bottom:1px solid #e5e7eb;padding:7px;text-align:left}th{color:#64748b;text-transform:uppercase;font-size:9px}.blockers{margin-top:16px;border:1px solid #fed7aa;border-radius:8px;padding:10px}</style></head><body><h1>SandPro OMP Quarterly Scorecard</h1><div class="meta">Generated ${escapeExportHtml(new Date().toLocaleString())} from the active Objectives lens.</div><div class="grid"><div class="stat"><span>Objectives</span><strong>${filtered.length}</strong></div><div class="stat"><span>Projects</span><strong>${visibleProjects.length}</strong></div><div class="stat"><span>Stale KRs</span><strong>${filtered.filter(isKeyResultStale).length}</strong></div><div class="stat"><span>Gate blockers</span><strong>${visibleProjects.filter(project => buildProjectGateBlockers(project).length > 0).length}</strong></div></div><table><thead><tr><th>Title</th><th>Level</th><th>Owner</th><th>Dept</th><th>Period</th><th>Progress</th><th>Status</th><th>Projects</th></tr></thead><tbody>${rows.map(row => `<tr><td>${escapeExportHtml(row.title)}</td><td>${escapeExportHtml(row.level)}</td><td>${escapeExportHtml(row.owner)}</td><td>${escapeExportHtml(row.department)}</td><td>${escapeExportHtml(row.period)}</td><td>${escapeExportHtml(row.progress)}%</td><td>${escapeExportHtml(row.status)}</td><td>${escapeExportHtml(row.linkedProjects)}</td></tr>`).join('')}</tbody></table><div class="blockers"><strong>Project gate blockers</strong><br>${visibleProjects.filter(project => buildProjectGateBlockers(project).length > 0).map(project => `${escapeExportHtml(project.name)}: ${escapeExportHtml(buildProjectGateBlockers(project).join('; '))}`).join('<br>') || 'None'}</div><script>window.onload=()=>setTimeout(()=>window.print(),250)</script></body></html>`);
+    const tableRows = rows.length
+      ? rows.map(row => `<tr><td>${escapeExportHtml(row.title)}</td><td>${escapeExportHtml(row.level)}</td><td>${escapeExportHtml(row.owner)}</td><td>${escapeExportHtml(row.department)}</td><td>${escapeExportHtml(row.period)}</td><td>${escapeExportHtml(row.progress)}%</td><td>${escapeExportHtml(row.status)}</td><td>${escapeExportHtml(row.linkedProjects)}</td></tr>`).join('')
+      : '<tr><td colspan="8">No objectives in current lens.</td></tr>';
+    win.document.write(`<!doctype html><html><head><title>SandPro OMP Quarterly Scorecard</title><style>@page{size:letter;margin:.45in}body{font-family:Inter,Arial,sans-serif;color:#111827}h1{font-size:22px;margin:0 0 4px}.meta{color:#64748b;font-size:12px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.stat{border:1px solid #d1d5db;border-radius:8px;padding:10px}.stat strong{display:block;font-size:20px;color:#ff7f02}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border-bottom:1px solid #e5e7eb;padding:7px;text-align:left}th{color:#64748b;text-transform:uppercase;font-size:9px}.blockers{margin-top:16px;border:1px solid #fed7aa;border-radius:8px;padding:10px}</style></head><body><h1>SandPro OMP Quarterly Scorecard</h1><div class="meta">Generated ${escapeExportHtml(new Date().toLocaleString())} from the active Objectives lens.</div><div class="grid"><div class="stat"><span>Objectives</span><strong>${filtered.length}</strong></div><div class="stat"><span>Projects</span><strong>${visibleProjects.length}</strong></div><div class="stat"><span>Stale KRs</span><strong>${filtered.filter(isKeyResultStale).length}</strong></div><div class="stat"><span>Gate blockers</span><strong>${visibleProjects.filter(project => buildProjectGateBlockers(project).length > 0).length}</strong></div></div><table><thead><tr><th>Title</th><th>Level</th><th>Owner</th><th>Dept</th><th>Period</th><th>Progress</th><th>Status</th><th>Projects</th></tr></thead><tbody>${tableRows}</tbody></table><div class="blockers"><strong>Project gate blockers</strong><br>${visibleProjects.filter(project => buildProjectGateBlockers(project).length > 0).map(project => `${escapeExportHtml(project.name)}: ${escapeExportHtml(buildProjectGateBlockers(project).join('; '))}`).join('<br>') || 'None'}</div><script>window.onload=()=>setTimeout(()=>window.print(),250)</script></body></html>`);
     win.document.close();
   };
   const tagCandidatesFor = (obj) => getProfiles()
@@ -1162,7 +1179,7 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
       />
 
       {/* Content */}
-      <div style={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
+      <div className={`objectives-content-shell objectives-content-${viewMode}`}>
         <div className="mobile-objective-list">
           {filtered.map(obj => <MobileObjectiveCard key={obj.id} obj={obj} />)}
           {filtered.length === 0 && <EmptyState icon={Target} text={emptyText} action={emptyAction} />}

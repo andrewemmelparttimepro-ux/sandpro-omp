@@ -193,6 +193,11 @@ export const dismissDailyBrief = async (page) => {
 export const dismissGuidance = async (page) => {
   await dismissDailyBrief(page);
 
+  const frameworkExplainer = page.locator('.framework-explainer-close');
+  if (await frameworkExplainer.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await frameworkExplainer.click({ force: true });
+  }
+
   const featureAnnouncement = page.locator('.new-feature-close');
   if (await featureAnnouncement.isVisible({ timeout: 1000 }).catch(() => false)) {
     await featureAnnouncement.click({ force: true });

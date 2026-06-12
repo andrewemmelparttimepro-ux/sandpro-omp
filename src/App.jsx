@@ -37,6 +37,8 @@ const DEFAULT_OBJECTIVE_FILTERS = {
 };
 const AI_FEATURE_STORAGE_KEY = 'sandpro-ai-features-enabled-v2';
 const FEATURE_ANNOUNCEMENT_STORAGE_PREFIX = 'sandpro-new-feature-seen';
+const FRAMEWORK_EXPLAINER_STORAGE_PREFIX = 'sandpro-framework-explainer-seen';
+const FRAMEWORK_EXPLAINER_VERSION = 'okr-project-framework-2026-06-11';
 const PUSH_SETUP_DISMISSED_PREFIX = 'sandpro-push-setup-dismissed';
 const DAILY_BRIEF_STORAGE_VERSION = 'bulletin-2026-06-01-pwa-push-tim';
 const BRAND_LOGO_SRC = '/brand/sandpro-omp-logo.png';
@@ -59,6 +61,7 @@ const NEW_FEATURE_ANNOUNCEMENTS = [
 ];
 
 const featureAnnouncementKey = (userId, featureId) => `${FEATURE_ANNOUNCEMENT_STORAGE_PREFIX}-${userId}-${featureId}`;
+const frameworkExplainerKey = (userId) => `${FRAMEWORK_EXPLAINER_STORAGE_PREFIX}-${userId}-${FRAMEWORK_EXPLAINER_VERSION}`;
 const pushSetupDismissKey = (userId) => `${PUSH_SETUP_DISMISSED_PREFIX}-${userId}`;
 
 const isPersonalAiDashboardOwner = (userProfile) => {
@@ -552,6 +555,7 @@ function App() {
   const [aiFeaturesEnabled, setAiFeaturesEnabled] = useState(() => safeStorage.get(AI_FEATURE_STORAGE_KEY) === '1');
   const [showDailyBrief, setShowDailyBrief] = useState(false);
   const [activeFeatureAnnouncement, setActiveFeatureAnnouncement] = useState(null);
+  const [showFrameworkExplainer, setShowFrameworkExplainer] = useState(false);
   const [pushSetupDismissed, setPushSetupDismissed] = useState(false);
   const [hasInteractedSinceLogin, setHasInteractedSinceLogin] = useState(false);
   const [highlightDept, setHighlightDept] = useState(null);
@@ -753,6 +757,28 @@ function App() {
       openCard ||
       showCreateForm ||
       editingObj ||
+      activeFeatureAnnouncement ||
+      showFrameworkExplainer
+    ) return undefined;
+
+    const seenKey = frameworkExplainerKey(profile.id);
+    if (safeStorage.get(seenKey)) return undefined;
+
+    const timer = window.setTimeout(() => {
+      if (!safeStorage.get(seenKey)) setShowFrameworkExplainer(true);
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [profile, mustSetPassword, showDailyBrief, openCard, showCreateForm, editingObj, activeFeatureAnnouncement, showFrameworkExplainer]);
+
+  useEffect(() => {
+    if (
+      !profile ||
+      mustSetPassword ||
+      showDailyBrief ||
+      showFrameworkExplainer ||
+      openCard ||
+      showCreateForm ||
+      editingObj ||
       activeFeatureAnnouncement
     ) return undefined;
 
@@ -767,7 +793,7 @@ function App() {
       }
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [profile, mustSetPassword, showDailyBrief, openCard, showCreateForm, editingObj, activeFeatureAnnouncement]);
+  }, [profile, mustSetPassword, showDailyBrief, showFrameworkExplainer, openCard, showCreateForm, editingObj, activeFeatureAnnouncement]);
 
   // Toast helpers
   const addToast = useCallback((toast) => {
@@ -783,6 +809,25 @@ function App() {
     }
     setActiveFeatureAnnouncement(null);
   }, [activeFeatureAnnouncement, profile]);
+
+  const dismissFrameworkExplainer = useCallback(() => {
+    if (profile?.id) safeStorage.set(frameworkExplainerKey(profile.id), '1');
+    setShowFrameworkExplainer(false);
+  }, [profile?.id]);
+
+  const openFrameworkObjectives = useCallback(() => {
+    dismissFrameworkExplainer();
+    setHighlightDept(null);
+    updateRoute(prev => ({
+      ...prev,
+      page: "objectives",
+      objectiveId: null,
+      filters: {
+        ...DEFAULT_OBJECTIVE_FILTERS,
+        view: "tree",
+      },
+    }));
+  }, [dismissFrameworkExplainer, updateRoute]);
 
   const openFeatureAnnouncement = useCallback(() => {
     if (!activeFeatureAnnouncement) return;
@@ -1429,6 +1474,7 @@ function App() {
     && !mustSetPassword
     && !showDailyBrief
     && !activeFeatureAnnouncement
+    && !showFrameworkExplainer
     && !pushSetupDismissed
     && !pushNotifications.enabled
     && !pushNotifications.loading
@@ -1597,6 +1643,58 @@ function App() {
             <LogOut size={18} />
           </button>
         </aside>
+      )}
+
+      {showFrameworkExplainer && (
+        <div className="framework-explainer-overlay" role="dialog" aria-modal="true" aria-labelledby="framework-explainer-title">
+          <section className="framework-explainer-card">
+            <button type="button" className="framework-explainer-close" onClick={dismissFrameworkExplainer} title="Dismiss OKR guide" aria-label="Dismiss OKR guide">
+              <X size={16} />
+            </button>
+            <div className="framework-explainer-kicker">First login guide</div>
+            <h2 id="framework-explainer-title">What changed in Dashboard + Objectives</h2>
+            <p className="framework-explainer-lead">
+              Dashboard is now the command view for deciding what needs attention. Objectives is the working record for OKRs, KRs, projects, gates, files, audit, and signoffs.
+            </p>
+            <div className="framework-explainer-grid">
+              <div className="framework-explainer-step">
+                <span><LayoutDashboard size={18} /></span>
+                <div>
+                  <strong>Start in Dashboard</strong>
+                  <p>Use the lenses to see active work, stale KRs, blockers, departments, and due-date pressure without changing the source records.</p>
+                </div>
+              </div>
+              <div className="framework-explainer-step">
+                <span><Target size={18} /></span>
+                <div>
+                  <strong>Work in Objectives</strong>
+                  <p>Open the objective to manage structure, metrics, linked projects, gate blockers, evidence files, audit history, and signoffs.</p>
+                </div>
+              </div>
+              <div className="framework-explainer-step">
+                <span><Network size={18} /></span>
+                <div>
+                  <strong>Review the tree</strong>
+                  <p>Company OKRs, department OKRs, key results, and linked projects now live in one hierarchy so work does not drift away from the result it supports.</p>
+                </div>
+              </div>
+              <div className="framework-explainer-step">
+                <span><ClipboardCheck size={18} /></span>
+                <div>
+                  <strong>Use the exports</strong>
+                  <p>Jake one-pagers, department scorecards, R&D pipeline reports, quarterly scorecards, and project audit packs are built from the same live objective data.</p>
+                </div>
+              </div>
+            </div>
+            <div className="framework-explainer-note">
+              Items marked Unclassified or Needs Review are preserved exactly as-is. They are asking for a human classification decision, not saying the work is wrong.
+            </div>
+            <div className="framework-explainer-actions">
+              <button type="button" className="btn btn-primary" onClick={openFrameworkObjectives}>Open Objectives tree</button>
+              <button type="button" className="btn btn-ghost" onClick={dismissFrameworkExplainer}>Got it</button>
+            </div>
+          </section>
+        </div>
       )}
 
       {activeFeatureAnnouncement && (
