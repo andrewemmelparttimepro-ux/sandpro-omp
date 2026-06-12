@@ -1591,6 +1591,10 @@ select:focus-visible,
   gap: 8px;
 }
 
+.kanban-column-body > .card {
+  flex: 0 0 auto;
+}
+
 .objective-lens-summary {
   display: flex;
   align-items: center;

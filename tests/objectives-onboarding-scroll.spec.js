@@ -36,10 +36,16 @@ test.describe('objectives onboarding and kanban scrolling', () => {
     await dismissGuidance(page);
     await navItem(page, 'Objectives').click();
     await page.getByTitle('Kanban View').click();
+    await dismissGuidance(page);
 
     const shell = page.locator('.objectives-content-kanban');
     await expect(shell).toBeVisible();
     await expect(page.locator('.kanban-column')).toHaveCount(5);
+
+    const cardHeights = await page.locator('.kanban-column-body .card').evaluateAll(cards => (
+      cards.map(card => card.getBoundingClientRect().height)
+    ));
+    expect(Math.min(...cardHeights)).toBeGreaterThan(120);
 
     const scrollableBodyIndex = await page.locator('.kanban-column-body').evaluateAll(bodies => (
       bodies.findIndex(body => body.scrollHeight > body.clientHeight + 6)
