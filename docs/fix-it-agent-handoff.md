@@ -46,6 +46,18 @@ Do not archive Fix-It posts yourself unless Andrew explicitly asks. The large or
 
 Do not mark a feature-scope item done unless the feature actually exists and has been verified in production. If the post is ambiguous, leave it open or in progress and report the product decision needed.
 
+## Public Comment Discipline
+
+Fix-It comments are public-facing team communication, not an agent work log. Do not post routine recheck notes, audit summaries, route observations, deployment/test/proof narration, "no safe bug fix" explanations, or long product-architecture reasoning in the public comment thread.
+
+Post a Fix-It comment only when it directly helps the card:
+
+- answer a user question,
+- ask one concise clarification or decision question needed to unblock the item,
+- provide a brief user-facing completion note after an actual live fix and attached proof.
+
+Keep command output, proof inventory, deployment blockers, no-op reasoning, and internal verification details in the Codex thread report. If no response is needed on the card, do not add a comment.
+
 ## Database Model
 
 Primary table: `fix_it_posts`

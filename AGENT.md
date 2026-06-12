@@ -70,10 +70,31 @@ Use task comments when:
 
 - someone asks a question,
 - someone needs clarification,
-- the agent can explain a blocker or next decision,
+- the agent must ask one concise decision question to unblock the item,
 - the right action is guidance rather than a code change.
 
 Agent comments display with an `Agent reply` badge when the commenter is Andrew/agent identity.
+
+### Public Comment Discipline
+
+Fix-It comments are public-facing team communication, not an agent work log.
+
+Do not post routine internal notes such as:
+
+- recheck or audit summaries,
+- deployment/test/proof narration,
+- route or URL observations,
+- "no safe bug fix" explanations,
+- speculative product-architecture reasoning,
+- long blocker analysis that belongs in the Codex thread report.
+
+Post a Fix-It comment only when it directly helps the people reading the card:
+
+- answer a user question,
+- ask the shortest necessary clarification or decision question,
+- provide a brief completion note after an actual fix is live and proof is attached.
+
+Keep all internal verification details, command output, deployment blockers, proof inventory, and no-op reasoning in the Codex final report instead of the public comment thread. If no response is needed on the card, do not add a comment.
 
 ### Mark Fixed / Validation Complete
 
@@ -280,7 +301,7 @@ For every active, non-archived item:
 
 1. Read the post body, screenshots/files, comments, status, owner, and proof state.
 2. Determine the target client/project and exact app behavior requested.
-3. If someone asks a question, needs clarification, or the agent can be helpful, reply in task comments.
+3. If someone asks a question, needs clarification, or the card needs a concise decision question, reply in task comments; otherwise keep internal notes in the Codex report.
 4. If the request is clear, safe, and already approved or obviously a bug, claim it.
 5. Implement the smallest correct fix in the right workspace.
 6. Run the relevant checks for the touched surface.
@@ -321,6 +342,8 @@ Leave the item open or in progress and comment the exact decision needed when th
 - impossible to validate live,
 - blocked by missing credentials or environment access,
 - asking to archive/delete without explicit Andrew approval.
+
+If the decision need is already obvious from the card or would require a long internal explanation, do not add another public comment. Report that blocker in the Codex thread instead.
 
 ## Live Inspection Queries
 
