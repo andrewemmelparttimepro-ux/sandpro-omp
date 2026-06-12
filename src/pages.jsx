@@ -17,7 +17,8 @@ import {
   OKR_LEVELS,
   OKR_LEVEL_LABELS,
   PROJECT_STAGES,
-  getOkrLevelMeta,
+  getAssumedOkrLevel,
+  getObjectiveOkrLevelMeta,
   getProjectStageMeta,
   isKeyResultStale,
   isOkrClassificationUncertain,
@@ -512,11 +513,14 @@ export const DashboardPage = ({ objectives, okrProjects = [], currentUser, onOpe
 // ============================================================================
 // OBJECTIVES PAGE — Grid + Kanban + List views
 // ============================================================================
-export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, currentUser, filters, highlightDept, onFiltersChange, onClearFilters, onQuickTag, onQuickStatus }) => {
+export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, currentUser, filters, highlightDept, onFiltersChange, onClearFilters, onQuickTag, onQuickStatus, onQuickClassification }) => {
   const [glowActive, setGlowActive] = useState(false);
   const [taggingObjectiveId, setTaggingObjectiveId] = useState(null);
   const [expandedTagObjectiveId, setExpandedTagObjectiveId] = useState(null);
   const [statusUpdatingObjectiveId, setStatusUpdatingObjectiveId] = useState(null);
+  const [classificationUpdatingObjectiveId, setClassificationUpdatingObjectiveId] = useState(null);
+  const [classificationEditingObjectiveId, setClassificationEditingObjectiveId] = useState(null);
+  const [classificationDraftLevel, setClassificationDraftLevel] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [expandedTreeIds, setExpandedTreeIds] = useState(() => new Set());
   const [showListDescriptions, setShowListDescriptions] = useState(() => {
@@ -609,7 +613,9 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
       if (departmentFilter !== "all" && o.department !== departmentFilter) return false;
       if (priorityFilter !== "all" && o.priority !== priorityFilter) return false;
       if (!isInDueWindow(o, dueFilter)) return false;
-      if (okrLevelFilter !== "all" && o.okrLevel !== okrLevelFilter) return false;
+      if (okrLevelFilter === "needs_review") {
+        if (!isOkrClassificationUncertain(o)) return false;
+      } else if (okrLevelFilter !== "all" && getAssumedOkrLevel(o) !== okrLevelFilter) return false;
       if (okrPeriodFilter !== "all" && (o.okrPeriod || "") !== okrPeriodFilter) return false;
       if (staleFilter !== "all" && String(isKeyResultStale(o)) !== staleFilter) return false;
       if (projectStageFilter === "blocked") {
@@ -645,7 +651,7 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
     priorityFilter !== "all" && { key: "priority", label: priorityFilter, clear: () => updateFilter("priority", "all") },
     dueFilter !== "all" && { key: "due", label: dueLabel(dueFilter), clear: () => updateFilter("due", "all") },
     scopeFilter !== "all" && { key: "scope", label: OBJECTIVE_SCOPE_LABELS[scopeFilter] || "Company", clear: () => updateFilter("scope", "all") },
-    okrLevelFilter !== "all" && { key: "okrLevel", label: OKR_LEVEL_LABELS[okrLevelFilter] || okrLevelFilter, clear: () => updateFilter("okrLevel", "all") },
+    okrLevelFilter !== "all" && { key: "okrLevel", label: okrLevelFilter === "needs_review" ? "Needs classification review" : OKR_LEVEL_LABELS[okrLevelFilter] || okrLevelFilter, clear: () => updateFilter("okrLevel", "all") },
     okrPeriodFilter !== "all" && { key: "okrPeriod", label: okrPeriodFilter, clear: () => updateFilter("okrPeriod", "all") },
     projectStageFilter !== "all" && { key: "projectStage", label: projectStageFilter === "blocked" ? "Approval blockers" : getProjectStageMeta(projectStageFilter).label, clear: () => updateFilter("projectStage", "all") },
     staleFilter !== "all" && { key: "stale", label: staleFilter === "true" ? "Stale KRs" : "Fresh KRs", clear: () => updateFilter("stale", "all") },
@@ -656,7 +662,7 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
     { key: "scope", label: OBJECTIVE_SCOPE_LABELS[scopeFilter] || "All scopes", tone: scopeFilter !== "all" ? "scope" : "muted" },
     { key: "state", label: activeOnly ? "Active" : filter !== "all" ? getStatusLabel(filter) : "All work", tone: activeOnly || filter !== "all" ? "state" : "muted" },
     { key: "due", label: dueFilter !== "all" ? dueLabel(dueFilter) : "All due dates", tone: dueFilter !== "all" ? "time" : "muted" },
-    { key: "okr", label: okrLevelFilter !== "all" ? OKR_LEVEL_LABELS[okrLevelFilter] : "All OKR levels", tone: okrLevelFilter !== "all" ? "state" : "muted" },
+    { key: "okr", label: okrLevelFilter === "needs_review" ? "Needs review" : okrLevelFilter !== "all" ? OKR_LEVEL_LABELS[okrLevelFilter] : "All OKR levels", tone: okrLevelFilter !== "all" ? "state" : "muted" },
     { key: "project", label: projectStageFilter !== "all" ? (projectStageFilter === "blocked" ? "Approval blockers" : getProjectStageMeta(projectStageFilter).label) : "All project stages", tone: projectStageFilter !== "all" ? "scope" : "muted" },
   ];
   const emptyText = hasActiveFilters
@@ -876,6 +882,96 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
       </select>
     );
   };
+  const openClassificationEditor = (event, obj) => {
+    event.stopPropagation();
+    if (!onQuickClassification) return;
+    setClassificationEditingObjectiveId(obj.id);
+    setClassificationDraftLevel(getAssumedOkrLevel(obj));
+  };
+  const closeClassificationEditor = (event) => {
+    event.stopPropagation();
+    setClassificationEditingObjectiveId(null);
+    setClassificationDraftLevel("");
+  };
+  const confirmClassificationChange = async (event, obj) => {
+    event.stopPropagation();
+    const nextLevel = classificationDraftLevel || getAssumedOkrLevel(obj);
+    if (!nextLevel || nextLevel === getAssumedOkrLevel(obj)) {
+      setClassificationEditingObjectiveId(null);
+      setClassificationDraftLevel("");
+      return;
+    }
+    setClassificationUpdatingObjectiveId(obj.id);
+    try {
+      await onQuickClassification(obj, nextLevel);
+      setClassificationEditingObjectiveId(null);
+      setClassificationDraftLevel("");
+    } finally {
+      setClassificationUpdatingObjectiveId(null);
+    }
+  };
+  const ObjectiveClassificationControl = ({ obj, compact = false }) => {
+    const assumed = isOkrClassificationUncertain(obj);
+    const meta = getObjectiveOkrLevelMeta(obj);
+    const isEditing = classificationEditingObjectiveId === obj.id;
+    const isUpdating = classificationUpdatingObjectiveId === obj.id;
+    const currentLevel = getAssumedOkrLevel(obj);
+    const title = obj.classificationReason || (assumed ? `Auto-classified as ${meta.label}; review if needed.` : `Classified as ${meta.label}.`);
+
+    if (isEditing) {
+      const unchanged = (classificationDraftLevel || currentLevel) === currentLevel;
+      return (
+        <div className={`okr-classification-editor ${compact ? "compact" : ""}`} onClick={event => event.stopPropagation()}>
+          <select
+            value={classificationDraftLevel || currentLevel}
+            disabled={isUpdating}
+            aria-label={`Change classification for ${obj.title}`}
+            onChange={event => setClassificationDraftLevel(event.target.value)}
+          >
+            {OKR_LEVELS.map(level => (
+              <option key={level.id} value={level.id}>{level.label}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="okr-classification-confirm"
+            disabled={isUpdating || unchanged}
+            title={unchanged ? "Choose a different category first" : "Confirm classification change"}
+            aria-label={`Confirm classification change for ${obj.title}`}
+            onClick={event => confirmClassificationChange(event, obj)}
+          >
+            {isUpdating ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+          </button>
+          <button
+            type="button"
+            className="okr-classification-cancel"
+            title="Cancel classification change"
+            aria-label={`Cancel classification change for ${obj.title}`}
+            onClick={closeClassificationEditor}
+          >
+            <X size={13} />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        className={`okr-classification-chip ${assumed ? "assumed" : "manual"} ${compact ? "compact" : ""}`}
+        style={{ '--okr-level-color': meta.color }}
+        title={title}
+        aria-label={`${assumed ? "Assumed" : "Classification"} ${meta.label} for ${obj.title}. Click to change.`}
+        disabled={!onQuickClassification || isUpdating}
+        onClick={event => openClassificationEditor(event, obj)}
+      >
+        {isUpdating && <Loader2 size={12} className="animate-spin" />}
+        <span>{assumed ? "Assumed" : meta.shortLabel}</span>
+        <strong>{assumed ? meta.label : meta.shortLabel}</strong>
+        <ChevronDown size={12} />
+      </button>
+    );
+  };
   const handleKanbanWheel = (event) => {
     if (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
     const column = event.target?.closest?.('.kanban-column');
@@ -970,7 +1066,6 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
 
   const OkrTreeNode = ({ node, depth = 0 }) => {
     const objective = node.objective;
-    const meta = getOkrLevelMeta(objective.okrLevel);
     const expanded = expandedTreeIds.has(objective.id) || depth < 1;
     const hasChildren = node.children.length > 0 || node.projects.length > 0;
     return (
@@ -979,10 +1074,8 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
           <button type="button" className="icon-btn okr-tree-toggle" onClick={() => toggleTreeId(objective.id)} disabled={!hasChildren}>
             <ChevronDown size={14} style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
           </button>
+          <ObjectiveClassificationControl obj={objective} />
           <button type="button" className="okr-tree-title" onClick={() => onOpenCard(objective, "structure")}>
-            {isOkrClassificationUncertain(objective)
-              ? <span className="okr-unclassified-chip" title={objective.classificationReason || 'Classification needs a human decision'}>Unclassified · review</span>
-              : <Badge color={meta.color}>{meta.shortLabel}</Badge>}
             <span>
               <strong>{objective.title}</strong>
               <small>{getUser(objective.ownerId).name} · {objective.department || 'Unassigned'} · {objective.okrPeriod || 'No period'}</small>
@@ -1048,7 +1141,14 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
             <label><span>Department</span><select value={departmentFilter} onChange={e => updateFilter("department", e.target.value)}><option value="all">All Departments</option>{allDepartments.map(d => <option key={d} value={d}>{d}</option>)}</select></label>
             <label><span>Priority</span><select value={priorityFilter} onChange={e => updateFilter("priority", e.target.value)}><option value="all">All Priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
             <label><span>Due</span><select value={dueFilter} onChange={e => updateFilter("due", e.target.value)}>{OBJECTIVE_DUE_FILTERS.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
-            <label><span>OKR level</span><select value={okrLevelFilter} onChange={e => updateFilter("okrLevel", e.target.value)}><option value="all">All OKR levels</option>{OKR_LEVELS.map(level => <option key={level.id} value={level.id}>{level.label}</option>)}</select></label>
+            <label>
+              <span>OKR level</span>
+              <select value={okrLevelFilter} onChange={e => updateFilter("okrLevel", e.target.value)}>
+                <option value="all">All OKR levels</option>
+                {okrLevelFilter === "needs_review" && <option value="needs_review">Needs classification review</option>}
+                {OKR_LEVELS.map(level => <option key={level.id} value={level.id}>{level.label}</option>)}
+              </select>
+            </label>
             <label><span>Period</span><select value={okrPeriodFilter} onChange={e => updateFilter("okrPeriod", e.target.value)}><option value="all">All periods</option>{allPeriods.map(period => <option key={period} value={period}>{period}</option>)}</select></label>
             <label><span>KR freshness</span><select value={staleFilter} onChange={e => updateFilter("stale", e.target.value)}><option value="all">All KRs</option><option value="true">Stale KRs</option><option value="false">Fresh KRs</option></select></label>
             <label><span>Project stage</span><select value={projectStageFilter} onChange={e => updateFilter("projectStage", e.target.value)}><option value="all">All project stages</option><option value="blocked">Approval blockers</option>{PROJECT_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}</select></label>
@@ -1139,6 +1239,7 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
         {(viewMode === "tree" || okrLevelFilter !== "all") && (
           <select className="objectives-filter-select" value={okrLevelFilter} onChange={e => updateFilter("okrLevel", e.target.value)}>
             <option value="all">All OKR levels</option>
+            {okrLevelFilter === "needs_review" && <option value="needs_review">Needs classification review</option>}
             {OKR_LEVELS.map(level => <option key={level.id} value={level.id}>{level.label}</option>)}
           </select>
         )}
@@ -1282,9 +1383,7 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
 	                      <td>{obj.department}</td>
                       <td>
                         <div className="objective-worktype-cell">
-                          {isOkrClassificationUncertain(obj)
-                            ? <span className="okr-unclassified-chip" title={obj.classificationReason || 'Classification needs a human decision'}>Unclassified</span>
-                            : <Badge color={getOkrLevelMeta(obj.okrLevel).color}>{getOkrLevelMeta(obj.okrLevel).shortLabel}</Badge>}
+                          <ObjectiveClassificationControl obj={obj} compact />
                           <span>{obj.okrPeriod || "No period"}</span>
                         </div>
                       </td>

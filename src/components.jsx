@@ -17,8 +17,11 @@ import {
   PROJECT_HEALTH,
   ASSESSMENT_ARTIFACTS,
   REQUIRED_SIGNATURE_ROLES,
+  OKR_ASSUMED_FALLBACK_LEVEL,
+  getAssumedOkrLevel,
   getCurrentOkrPeriod,
   getOkrLevelMeta,
+  getObjectiveOkrLevelMeta,
   getProjectStageMeta,
   getProjectHealthMeta,
   isKeyResultStale,
@@ -1045,7 +1048,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
     const ids = project.linkedObjectiveIds || (project.linkedKrId ? [project.linkedKrId] : []);
     return ids.includes(localObj.id) || (localObj.linkedProjects || []).some(linked => linked.id === project.id);
   }), [okrProjects, localObj.id, localObj.linkedProjects]);
-  const okrMeta = getOkrLevelMeta(localObj.okrLevel);
+  const okrMeta = getObjectiveOkrLevelMeta(localObj);
   const confidence = Math.max(0, Math.min(100, Number(localObj.classificationConfidence ?? 0)));
   const lowConfidence = confidence > 0 && confidence < 75;
   const staleKr = isKeyResultStale(localObj);
@@ -1891,7 +1894,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
               <div className="objective-structure-summary">
                 <div>
                   <span>Work classification</span>
-                  <strong style={{ color: okrMeta.color }}>{OKR_LEVEL_LABELS[localObj.okrLevel] || okrMeta.label}</strong>
+                  <strong style={{ color: okrMeta.color }}>{OKR_LEVEL_LABELS[getAssumedOkrLevel(localObj)] || okrMeta.label}</strong>
                   <small>{localObj.classificationReason || "Classification has not been explained yet."}</small>
                 </div>
                 <div>
@@ -2660,6 +2663,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const savedDraft = editObj ? null : (() => {
     try { return JSON.parse(window.localStorage.getItem(formDraftKey) || "null"); } catch { return null; }
   })();
+  const normalizedInitialOkrLevel = getAssumedOkrLevel(editObj || { okrLevel: savedDraft?.okrLevel || OKR_ASSUMED_FALLBACK_LEVEL });
   const [title, setTitle] = useState(editObj?.title || savedDraft?.title || "");
   const [description, setDescription] = useState(editObj?.description || savedDraft?.description || "");
   const [priority, setPriority] = useState(editObj?.priority || savedDraft?.priority || "medium");
@@ -2668,7 +2672,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const [parentId, setParentId] = useState(editObj?.parentId || savedDraft?.parentId || "");
   const [department, setDepartment] = useState(editObj?.department || savedDraft?.department || currentUser.department);
   const [type, setType] = useState(editObj?.type || savedDraft?.type || "simple");
-  const [okrLevel, setOkrLevel] = useState(editObj?.okrLevel || savedDraft?.okrLevel || "needs_review");
+  const [okrLevel, setOkrLevel] = useState(normalizedInitialOkrLevel);
   const [okrPeriod, setOkrPeriod] = useState(editObj?.okrPeriod || savedDraft?.okrPeriod || getCurrentOkrPeriod());
   const [okrWeight, setOkrWeight] = useState(editObj?.okrWeight ?? savedDraft?.okrWeight ?? 1);
   const [measurementCadence, setMeasurementCadence] = useState(editObj?.measurementCadence || savedDraft?.measurementCadence || "monthly");
@@ -2719,7 +2723,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
     ownerId !== currentUser.id ||
     department !== currentUser.department ||
     type !== "simple" ||
-    okrLevel !== "needs_review" ||
+    okrLevel !== OKR_ASSUMED_FALLBACK_LEVEL ||
     okrPeriod !== getCurrentOkrPeriod() ||
     Number(okrWeight) !== 1 ||
     measurementCadence !== "monthly" ||
@@ -2938,7 +2942,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
                 <strong>Work Classification</strong>
                 <span>Separate from progress calculation; drives OKR hierarchy, KR freshness, and project gates.</span>
               </div>
-              {okrLevel === "needs_review" && <Badge color="#F59E0B">Needs review</Badge>}
+              {editObj?.classificationStatus !== "manual" && <Badge color="#F59E0B">Confirm category if needed</Badge>}
             </div>
             <div className="objective-classification-grid">
               <label>

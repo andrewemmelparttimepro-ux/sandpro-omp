@@ -1401,6 +1401,30 @@ function App() {
     }
   };
 
+  const handleQuickClassificationObjective = async (objective, okrLevel) => {
+    if (!objective?.id || !okrLevel || objective.okrLevel === okrLevel) return;
+    try {
+      await updateObjective(objective.id, {
+        okrLevel,
+        classificationStatus: 'manual',
+        classificationConfidence: 100,
+        classificationReason: `Manually confirmed as ${okrLevel.replace(/_/g, ' ')} by ${profile.name}.`,
+        updateNote: `Work classification confirmed as ${okrLevel.replace(/_/g, ' ')}`,
+        actionType: 'classification_change',
+        oldValue: objective.okrLevel || 'assumed',
+        newValue: okrLevel,
+        currentStatus: objective.status,
+        currentProgress: objective.progress,
+        userId: profile.id,
+      });
+      await refetchObjectives();
+      addToast({ type: 'success', message: 'Classification confirmed' });
+    } catch (err) {
+      addToast({ type: 'error', message: err.message || 'Could not update classification' });
+      await refetchObjectives();
+    }
+  };
+
   const handleNotificationClick = async (n) => {
     await markRead(n.id);
     if (n.objectiveId) {
@@ -1687,7 +1711,7 @@ function App() {
               </div>
             </div>
             <div className="framework-explainer-note">
-              Items marked Unclassified or Needs Review are preserved exactly as-is. They are asking for a human classification decision, not saying the work is wrong.
+              Items marked Assumed are preserved exactly as-is. They are placed in the best-fit category and are asking for a human confirmation, not saying the work is wrong.
             </div>
             <div className="framework-explainer-actions">
               <button type="button" className="btn btn-primary" onClick={openFrameworkObjectives}>Open Objectives tree</button>
@@ -1770,7 +1794,7 @@ function App() {
             activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
             label: preset.label,
           })} onDeptClick={(dept) => showObjectivesWithFilters({ department: dept, label: dept }, dept)} />}
-          {currentPage === 1 && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} />}
+          {currentPage === 1 && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
           {route.page === "fixit" && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} />}
           {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
           {route.page === "organization" && <OrgPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}

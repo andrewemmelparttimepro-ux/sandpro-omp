@@ -9,7 +9,7 @@ import {
   isKeyResultStale,
 } from '../../src/okrFramework.js';
 
-test('OKR auto-classification preserves content and identifies company, KR, project, and review work', () => {
+test('OKR auto-classification preserves content and places uncertain work in an assumed category', () => {
   const objectives = [
     { id: 'company', title: 'Company growth OKR', department: 'Leadership', type: 'parent' },
     { id: 'kr', title: 'Increase service margin', parentId: 'company', baselineMetric: 20, currentMetric: 25, targetMetric: 30, metricUnit: '%' },
@@ -21,7 +21,8 @@ test('OKR auto-classification preserves content and identifies company, KR, proj
   assert.equal(classified[0].okrLevel, 'company');
   assert.equal(classified[1].okrLevel, 'key_result');
   assert.equal(classified[2].okrLevel, 'project');
-  assert.equal(classified[3].okrLevel, 'needs_review');
+  assert.equal(classified[3].okrLevel, 'run_the_business');
+  assert.equal(classified[3].classificationStatus, 'needs_review');
   assert.equal(classified[2].title, objectives[2].title);
 });
 

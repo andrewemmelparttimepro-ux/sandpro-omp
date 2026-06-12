@@ -915,7 +915,7 @@ export function useObjectives() {
         metric_unit: obj.metricUnit || '',
         measurement_cadence: obj.measurementCadence || 'monthly',
         rollup_method: obj.rollupMethod || 'average',
-        okr_level: obj.okrLevel || 'needs_review',
+        okr_level: obj.okrLevel || 'run_the_business',
         okr_period: obj.okrPeriod || '',
         okr_weight: obj.okrWeight ?? 1,
         classification_status: obj.classificationStatus || 'manual',

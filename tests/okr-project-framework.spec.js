@@ -37,6 +37,31 @@ test.describe('OKR + project assessment framework cohesion', () => {
     await expect(page).toHaveURL(/okrLevel=key_result/);
   });
 
+  test('assumed classifications open a confirmed category dropdown instead of Unclassified', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile-chrome', 'Desktop tree classification control is covered on desktop.');
+    await navItem(page, 'Objectives').click();
+    await page.getByTitle('OKR Tree View').click();
+    await expect(page.getByText('OKR + Project Tree')).toBeVisible();
+
+    const assumedChip = page.locator('.okr-classification-chip.assumed').first();
+    await expect(assumedChip).toBeVisible();
+    await expect(assumedChip).toContainText(/Assumed/i);
+    await expect(page.locator('.okr-unclassified-chip')).toHaveCount(0);
+
+    await assumedChip.click();
+    const editor = page.locator('.okr-classification-editor').first();
+    await expect(editor).toBeVisible();
+    const optionLabels = await editor.locator('option').evaluateAll(options => options.map(option => option.textContent));
+    expect(optionLabels.join(' ')).not.toMatch(/Unclassified/i);
+
+    const select = editor.locator('select');
+    const current = await select.inputValue();
+    await select.selectOption(current === 'project' ? 'run_the_business' : 'project');
+    await expect(editor.getByRole('button', { name: /Confirm classification change/i })).toBeEnabled();
+    await editor.getByRole('button', { name: /Cancel classification change/i }).click();
+    await expect(editor).toHaveCount(0);
+  });
+
   test('objective create/edit form separates work classification from progress calculation', async ({ page }, testInfo) => {
     if (testInfo.project.name === 'mobile-chrome') {
       await page.getByRole('button', { name: 'Create new objective' }).click();

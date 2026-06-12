@@ -450,7 +450,7 @@
 
 .okr-tree-row {
   display: grid;
-  grid-template-columns: 30px minmax(240px, 1fr) auto minmax(90px, 140px);
+  grid-template-columns: 30px auto minmax(240px, 1fr) auto minmax(90px, 140px);
   gap: 8px;
   align-items: center;
   padding: 8px;
@@ -542,6 +542,12 @@
 
   .okr-tree-row {
     grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  .okr-tree-row > .okr-classification-chip,
+  .okr-tree-row > .okr-classification-editor,
+  .okr-tree-row > .okr-tree-title {
+    grid-column: 2;
   }
 
   .okr-tree-row > .badge,
@@ -5512,20 +5518,116 @@ select:focus-visible,
   font-weight: 700;
 }
 
-/* Unclassified OKR chip — deliberately muted vs. authoritative level badges */
-.okr-unclassified-chip {
+.okr-classification-chip,
+.okr-classification-editor {
   display: inline-flex;
   align-items: center;
-  padding: 1px 8px;
+  gap: 4px;
+  width: fit-content;
+}
+
+.okr-classification-chip {
+  padding: 2px 8px;
   border-radius: var(--radius-full);
-  border: 1px dashed var(--accent-6);
-  background: var(--accent-2);
-  color: var(--accent-7);
+  border: 1px solid color-mix(in srgb, var(--okr-level-color, var(--accent-7)) 44%, transparent);
+  background: color-mix(in srgb, var(--okr-level-color, var(--accent-7)) 9%, var(--accent-2));
+  color: color-mix(in srgb, var(--okr-level-color, var(--accent-8)) 75%, var(--accent-9));
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.02em;
   white-space: nowrap;
-  cursor: help;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.okr-classification-chip.assumed {
+  border-style: dashed;
+}
+
+.okr-classification-chip.manual {
+  background: color-mix(in srgb, var(--okr-level-color, var(--accent-7)) 13%, var(--accent-2));
+}
+
+.okr-classification-chip:hover,
+.okr-classification-chip:focus-visible {
+  border-color: var(--okr-level-color, var(--brand));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--okr-level-color, var(--brand)) 14%, transparent);
+  outline: none;
+}
+
+.okr-classification-chip:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.okr-classification-chip span,
+.okr-classification-chip strong {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  font-size: inherit;
+  line-height: 1;
+}
+
+.okr-classification-chip span {
+  opacity: 0.74;
+  font-weight: 800;
+}
+
+.okr-classification-chip strong {
+  font-weight: 900;
+}
+
+.okr-classification-chip.compact {
+  padding: 2px 7px;
+}
+
+.okr-classification-editor {
+  border: 1px solid var(--accent-5);
+  border-radius: 999px;
+  padding: 2px;
+  background: var(--accent-2);
+}
+
+.okr-classification-editor select {
+  min-width: 154px;
+  height: 26px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-9);
+  font-size: 11px;
+  font-weight: 800;
+  outline: none;
+}
+
+.okr-classification-editor.compact select {
+  min-width: 132px;
+}
+
+.okr-classification-confirm,
+.okr-classification-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--accent-5);
+  border-radius: 999px;
+  background: var(--accent-3);
+  color: var(--accent-8);
+  cursor: pointer;
+}
+
+.okr-classification-confirm {
+  color: var(--success);
+}
+
+.okr-classification-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.okr-classification-cancel {
+  color: var(--danger);
 }
 
 /* Trend Watch — auto-surfaced insights */

@@ -4,10 +4,14 @@ export const OKR_LEVELS = [
   { id: "key_result", label: "Key Result", shortLabel: "KR", color: "#10B981" },
   { id: "project", label: "Project", shortLabel: "Project", color: "#ff7f02" },
   { id: "run_the_business", label: "Run-the-business", shortLabel: "RTB", color: "#64748B" },
-  { id: "needs_review", label: "Unclassified", shortLabel: "Unclassified", color: "#94A3B8" },
 ];
 
-export const OKR_LEVEL_LABELS = OKR_LEVELS.reduce((acc, level) => ({ ...acc, [level.id]: level.label }), {});
+export const OKR_ASSUMED_FALLBACK_LEVEL = "run_the_business";
+
+export const OKR_LEVEL_LABELS = OKR_LEVELS.reduce((acc, level) => ({
+  ...acc,
+  [level.id]: level.label,
+}), { needs_review: "Needs classification review" });
 
 export const PROJECT_TYPES = [
   { id: "rnd", label: "R&D" },
@@ -78,7 +82,19 @@ export const getCurrentOkrPeriod = (date = new Date()) => {
   return `${date.getFullYear()}-Q${quarter}`;
 };
 
-export const getOkrLevelMeta = (level) => OKR_LEVELS.find(item => item.id === level) || OKR_LEVELS[OKR_LEVELS.length - 1];
+export const getAssumedOkrLevel = (objective = {}) => {
+  const level = objective.okrLevel || objective.okr_level;
+  if (OKR_LEVELS.some(item => item.id === level)) return level;
+  return OKR_ASSUMED_FALLBACK_LEVEL;
+};
+
+export const getOkrLevelMeta = (level) => (
+  OKR_LEVELS.find(item => item.id === level)
+  || OKR_LEVELS.find(item => item.id === OKR_ASSUMED_FALLBACK_LEVEL)
+  || OKR_LEVELS[0]
+);
+
+export const getObjectiveOkrLevelMeta = (objective = {}) => getOkrLevelMeta(getAssumedOkrLevel(objective));
 export const getProjectStageMeta = (stage) => PROJECT_STAGES.find(item => item.id === stage) || PROJECT_STAGES[0];
 export const getProjectHealthMeta = (health) => PROJECT_HEALTH.find(item => item.id === health) || PROJECT_HEALTH[0];
 
@@ -133,7 +149,7 @@ export const inferObjectiveClassification = (objective = {}, objectives = []) =>
     };
   }
   if (parentId) {
-    return { okrLevel: "needs_review", confidence: 0.6, status: "needs_review", reason: "Linked to a parent but missing the numeric baseline/target a Key Result requires — classify manually." };
+    return { okrLevel: "key_result", confidence: 0.6, status: "needs_review", reason: "Assumed Key Result because it is linked to a parent, but it is missing the numeric baseline/target a Key Result requires." };
   }
   if (metric) {
     return { okrLevel: "key_result", confidence: 0.64, status: "needs_review", reason: "Numeric target exists but no parent OKR is linked yet." };
@@ -141,7 +157,7 @@ export const inferObjectiveClassification = (objective = {}, objectives = []) =>
   if (/admin|operations|shop|safety|hr/.test(department)) {
     return { okrLevel: "run_the_business", confidence: 0.7, status: "auto_classified", reason: "Operational work without OKR hierarchy or KR metrics." };
   }
-  return { okrLevel: "needs_review", confidence: 0.5, status: "needs_review", reason: "Not enough structure to classify safely." };
+  return { okrLevel: "run_the_business", confidence: 0.5, status: "needs_review", reason: "Assumed Run-the-business because there is not enough OKR/project structure to classify it more specifically." };
 };
 
 export const normalizeObjectiveFramework = (objective = {}, objectives = []) => {
@@ -267,7 +283,7 @@ export const buildQuarterlyScorecardRows = (objectives = [], projects = []) => {
     .filter(objective => ["company", "department", "key_result"].includes(objective.okrLevel))
     .map(objective => ({
       title: objective.title,
-      level: OKR_LEVEL_LABELS[objective.okrLevel] || "Needs Assessment",
+      level: OKR_LEVEL_LABELS[getAssumedOkrLevel(objective)] || "Run-the-business",
       owner: objective.ownerName || objective.ownerId || "",
       department: objective.department || "",
       period: objective.okrPeriod || getCurrentOkrPeriod(),
