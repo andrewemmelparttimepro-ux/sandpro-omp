@@ -33,7 +33,6 @@ test.describe('accessibility smoke', () => {
     test.skip(!env.e2eEmail || !env.e2ePassword, 'Set SANDPRO_E2E_EMAIL/SANDPRO_E2E_PASSWORD to run authenticated a11y smoke.');
     await login(page, env.e2eEmail, env.e2ePassword);
     await suppressFirstRunGuides(page);
-    await page.reload({ waitUntil: 'domcontentloaded' });
     await dismissGuidance(page);
     for (const name of ['Dashboard', 'Objectives', 'Organization']) {
       await expect(navItem(page, name)).toBeVisible();
