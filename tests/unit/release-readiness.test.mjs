@@ -791,6 +791,9 @@ test('alternative dashboard mode is backed by persisted preference, presence, an
   assert.match(css, /\.alt-key-button/);
   assert.match(css, /\.alt-objective-stack/);
   assert.match(css, /\.alt-recent-tiles/);
+  assert.match(css, /:root\[data-theme="dark"\] \.alt-dashboard-view/);
+  assert.match(css, /\.alt-objective-card\.status-blocked,[\s\S]*?\.alt-objective-card\.status-completed[\s\S]*?background:/);
+  assert.match(css, /:root\[data-theme="dark"\] \.alt-objective-card\.status-blocked/);
   assert.match(pages, /playAltKeyClick\(prefs\.soundEnabled\)/);
   assert.match(pages, /setShuffleToken\(Date\.now\(\)\)/);
   assert.match(pages, /updatePrefs\(\{ manualOrder: withoutSource \}\)/);
