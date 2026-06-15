@@ -754,7 +754,6 @@ function App() {
       openCard ||
       showCreateForm ||
       editingObj ||
-      activeFeatureAnnouncement ||
       showAccountSettings
     ) return undefined;
 
@@ -780,7 +779,6 @@ function App() {
     window.addEventListener("keyup", handler);
     return () => window.removeEventListener("keyup", handler);
   }, [
-    activeFeatureAnnouncement,
     altDashboard.preferences.soundEnabled,
     dashboardMode,
     editingObj,
