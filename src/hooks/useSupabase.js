@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { applyAutoClassification, buildProjectGateBlockers } from '../okrFramework';
+import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
+import {
+  ALT_NOTES_BUCKET,
+  ALT_NOTES_EDITOR_EMPTY_DOC,
+  buildAltNoteRow,
+  createAltNoteDraft,
+  normalizeAltNoteAttachmentRow,
+  normalizeAltNoteFolderRow,
+  normalizeAltNoteRow,
+} from '../altNotes';
 
 const normalizeConfidenceForDb = (value) => {
   const number = Number(value);
@@ -450,6 +460,423 @@ export function useProfiles() {
   };
 
   return { profiles, loading, refetch: fetchProfiles };
+}
+
+// ============================================================================
+// ALTERNATIVE DASHBOARD — per-user layout preferences and presence
+// ============================================================================
+export function useAlternativeDashboard(userId) {
+  const [preferences, setPreferences] = useState(() => normalizeAltDashboardPreference(null, userId));
+  const [presence, setPresence] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const lastPresenceTouchRef = useRef(0);
+
+  const fetchAlternativeDashboard = useCallback(async () => {
+    if (!userId) {
+      setPreferences(normalizeAltDashboardPreference(null, userId));
+      setPresence([]);
+      setLoading(false);
+      return;
+    }
+    const [preferenceRes, presenceRows] = await Promise.all([
+      timedQuery(
+        supabase
+          .from('alt_dashboard_preferences')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle(),
+        'alt dashboard preferences fetch',
+        null,
+      ),
+      nullableSelect(
+        supabase
+          .from('alt_dashboard_presence')
+          .select('user_id,last_seen_at,updated_at')
+          .order('last_seen_at', { ascending: false }),
+        [],
+        'alt dashboard presence fetch',
+      ),
+    ]);
+    setPreferences(normalizeAltDashboardPreference(preferenceRes.data, userId));
+    setPresence((presenceRows || []).map(row => ({
+      userId: row.user_id,
+      lastSeenAt: row.last_seen_at,
+      updatedAt: row.updated_at,
+    })));
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { fetchAlternativeDashboard(); }, [fetchAlternativeDashboard]);
+
+  useEffect(() => {
+    if (!userId) return undefined;
+    const channel = supabase
+      .channel(`alt-dashboard-${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'alt_dashboard_preferences',
+        filter: `user_id=eq.${userId}`,
+      }, () => fetchAlternativeDashboard())
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'alt_dashboard_presence',
+      }, () => fetchAlternativeDashboard())
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [fetchAlternativeDashboard, userId]);
+
+  const savePreferences = useCallback(async (changes = {}) => {
+    if (!userId) return normalizeAltDashboardPreference(null, userId);
+    const next = normalizeAltDashboardPreference({
+      user_id: userId,
+      last_dashboard_mode: changes.lastDashboardMode ?? preferences.lastDashboardMode,
+      selected_time_key: changes.selectedTimeKey ?? preferences.selectedTimeKey,
+      compute_mode: changes.computeMode ?? preferences.computeMode,
+      sound_enabled: changes.soundEnabled ?? preferences.soundEnabled,
+      widget_slots: changes.widgetSlots ?? preferences.widgetSlots,
+      pinned_people: changes.pinnedPeople ?? preferences.pinnedPeople,
+      pinned_objectives: changes.pinnedObjectives ?? preferences.pinnedObjectives,
+      manual_order: changes.manualOrder ?? preferences.manualOrder,
+      notes_state: changes.notesState ?? preferences.notesState,
+    }, userId);
+    setPreferences(next);
+    const row = altPreferenceToRow(userId, next);
+    const { error } = await supabase
+      .from('alt_dashboard_preferences')
+      .upsert(row, { onConflict: 'user_id' });
+    if (error && next.computeMode === 'closed' && /compute_mode|check constraint/i.test(error.message || '')) {
+      const fallback = await supabase
+        .from('alt_dashboard_preferences')
+        .upsert({ ...row, compute_mode: 'compute' }, { onConflict: 'user_id' });
+      if (fallback.error) console.warn('[Supabase] alt dashboard preferences save skipped:', fallback.error.message);
+    } else if (error) {
+      console.warn('[Supabase] alt dashboard preferences save skipped:', error.message);
+    }
+    return next;
+  }, [preferences, userId]);
+
+  const touchPresence = useCallback(async ({ force = false } = {}) => {
+    if (!userId) return;
+    const now = Date.now();
+    if (!force && now - lastPresenceTouchRef.current < 45_000) return;
+    lastPresenceTouchRef.current = now;
+    const isoNow = new Date(now).toISOString();
+    setPresence(prev => {
+      const next = prev.filter(row => row.userId !== userId);
+      return [{ userId, lastSeenAt: isoNow, updatedAt: isoNow }, ...next];
+    });
+    const { error } = await supabase
+      .from('alt_dashboard_presence')
+      .upsert({
+        user_id: userId,
+        last_seen_at: isoNow,
+        updated_at: isoNow,
+      }, { onConflict: 'user_id' });
+    if (error) console.warn('[Supabase] alt dashboard presence save skipped:', error.message);
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return undefined;
+    touchPresence({ force: true });
+    const timer = window.setInterval(() => touchPresence(), 60_000);
+    return () => window.clearInterval(timer);
+  }, [touchPresence, userId]);
+
+  return {
+    preferences,
+    presence,
+    loading,
+    savePreferences,
+    touchPresence,
+    refetch: fetchAlternativeDashboard,
+  };
+}
+
+// ============================================================================
+// ALTERNATIVE NOTES — private PS.2 Notes workspace
+// ============================================================================
+const safeStorageName = (name = 'attachment') => String(name)
+  .replace(/[^\w.-]+/g, '-')
+  .replace(/^-+|-+$/g, '')
+  .slice(0, 120) || 'attachment';
+
+export function useAltNotes(userId) {
+  const [notes, setNotes] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [attachments, setAttachments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const fetchAltNotes = useCallback(async () => {
+    if (!userId) {
+      setNotes([]);
+      setFolders([]);
+      setAttachments([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const [folderRows, noteRows, attachmentRows] = await Promise.all([
+      nullableSelect(
+        supabase
+          .from('alt_dashboard_note_folders')
+          .select('id,user_id,name,icon,sort_order,created_at,updated_at')
+          .eq('user_id', userId)
+          .order('sort_order', { ascending: true })
+          .order('name', { ascending: true }),
+        [],
+        'alt notes folders fetch',
+      ),
+      nullableSelect(
+        supabase
+          .from('alt_dashboard_notes')
+          .select('id,user_id,folder_id,objective_id,title,body_json,plain_text,preview,pinned,archived_at,deleted_at,created_at,updated_at,last_edited_at')
+          .eq('user_id', userId)
+          .order('pinned', { ascending: false })
+          .order('last_edited_at', { ascending: false }),
+        [],
+        'alt notes fetch',
+      ),
+      nullableSelect(
+        supabase
+          .from('alt_dashboard_note_attachments')
+          .select('id,user_id,note_id,storage_path,name,mime_type,size,created_at,updated_at')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false }),
+        [],
+        'alt notes attachments fetch',
+      ),
+    ]);
+    const signedAttachments = await Promise.all((attachmentRows || []).map(async (row) => {
+      const normalized = normalizeAltNoteAttachmentRow(row);
+      const signedUrl = await createSignedUrlSafe(ALT_NOTES_BUCKET, normalized.storagePath, 60 * 60);
+      return { ...normalized, signedUrl };
+    }));
+    setFolders((folderRows || []).map(normalizeAltNoteFolderRow));
+    setNotes((noteRows || []).map(normalizeAltNoteRow));
+    setAttachments(signedAttachments);
+    setError('');
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { fetchAltNotes(); }, [fetchAltNotes]);
+
+  useEffect(() => {
+    if (!userId) return undefined;
+    const channel = supabase
+      .channel(`alt-notes-${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'alt_dashboard_notes',
+        filter: `user_id=eq.${userId}`,
+      }, () => fetchAltNotes())
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'alt_dashboard_note_folders',
+        filter: `user_id=eq.${userId}`,
+      }, () => fetchAltNotes())
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'alt_dashboard_note_attachments',
+        filter: `user_id=eq.${userId}`,
+      }, () => fetchAltNotes())
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [fetchAltNotes, userId]);
+
+  const createFolder = useCallback(async (name) => {
+    if (!userId || !name) return null;
+    const optimistic = normalizeAltNoteFolderRow({
+      id: `folder-${Date.now()}`,
+      user_id: userId,
+      name,
+      sort_order: folders.length,
+    });
+    setFolders(prev => [...prev, optimistic]);
+    const { data, error: insertError } = await supabase
+      .from('alt_dashboard_note_folders')
+      .insert({
+        user_id: userId,
+        name,
+        sort_order: folders.length,
+        updated_at: new Date().toISOString(),
+      })
+      .select('id,user_id,name,icon,sort_order,created_at,updated_at')
+      .single();
+    if (insertError) {
+      setError(insertError.message);
+      setFolders(prev => prev.filter(folder => folder.id !== optimistic.id));
+      console.warn('[Supabase] alt notes folder create skipped:', insertError.message);
+      return { ...optimistic, error: insertError };
+    }
+    const folder = normalizeAltNoteFolderRow(data);
+    setFolders(prev => [folder, ...prev.filter(item => item.id !== optimistic.id && item.id !== folder.id)]);
+    return folder;
+  }, [folders.length, userId]);
+
+  const createNote = useCallback(async ({
+    folderId = null,
+    objectiveId = null,
+    title = 'Untitled Note',
+    bodyJson = ALT_NOTES_EDITOR_EMPTY_DOC,
+    persist = true,
+  } = {}) => {
+    if (!userId) return null;
+    const optimistic = createAltNoteDraft({ userId, folderId, objectiveId, title, bodyJson });
+    setNotes(prev => [optimistic, ...prev]);
+    if (!persist) return optimistic;
+    const { data, error: insertError } = await supabase
+      .from('alt_dashboard_notes')
+      .insert(buildAltNoteRow(userId, { folderId, objectiveId, title, bodyJson }))
+      .select('id,user_id,folder_id,objective_id,title,body_json,plain_text,preview,pinned,archived_at,deleted_at,created_at,updated_at,last_edited_at')
+      .single();
+    if (insertError) {
+      setError(insertError.message);
+      console.warn('[Supabase] alt note create skipped:', insertError.message);
+      return { ...optimistic, error: insertError };
+    }
+    const note = normalizeAltNoteRow(data);
+    setNotes(prev => [note, ...prev.filter(item => item.id !== optimistic.id && item.id !== note.id)]);
+    return note;
+  }, [userId]);
+
+  const saveNote = useCallback(async (noteId, changes = {}) => {
+    if (!userId || !noteId) return { error: new Error('Missing user or note') };
+    const current = notes.find(note => note.id === noteId);
+    const next = normalizeAltNoteRow({
+      ...(current || {}),
+      ...changes,
+      id: noteId,
+      user_id: userId,
+      body_json: changes.bodyJson || current?.bodyJson || ALT_NOTES_EDITOR_EMPTY_DOC,
+      plain_text: changes.plainText ?? current?.plainText ?? '',
+      archived_at: changes.archivedAt ?? current?.archivedAt ?? null,
+      deleted_at: changes.deletedAt ?? current?.deletedAt ?? null,
+    });
+    setNotes(prev => [next, ...prev.filter(note => note.id !== noteId)]);
+    if (String(noteId).startsWith('draft-')) {
+      const { data, error: insertError } = await supabase
+        .from('alt_dashboard_notes')
+        .insert(buildAltNoteRow(userId, next))
+        .select('id,user_id,folder_id,objective_id,title,body_json,plain_text,preview,pinned,archived_at,deleted_at,created_at,updated_at,last_edited_at')
+        .single();
+      if (insertError) {
+        setError(insertError.message);
+        console.warn('[Supabase] alt note draft save skipped:', insertError.message);
+        return { error: insertError };
+      }
+      const savedDraft = normalizeAltNoteRow(data);
+      setNotes(prev => [savedDraft, ...prev.filter(note => note.id !== noteId && note.id !== savedDraft.id)]);
+      return { note: savedDraft };
+    }
+    const row = buildAltNoteRow(userId, next);
+    const { data, error: updateError } = await supabase
+      .from('alt_dashboard_notes')
+      .update(row)
+      .eq('id', noteId)
+      .eq('user_id', userId)
+      .select('id,user_id,folder_id,objective_id,title,body_json,plain_text,preview,pinned,archived_at,deleted_at,created_at,updated_at,last_edited_at')
+      .single();
+    if (updateError) {
+      setError(updateError.message);
+      console.warn('[Supabase] alt note save skipped:', updateError.message);
+      return { error: updateError };
+    }
+    const saved = normalizeAltNoteRow(data);
+    setNotes(prev => [saved, ...prev.filter(note => note.id !== noteId)]);
+    return { note: saved };
+  }, [notes, userId]);
+
+  const archiveNote = useCallback((noteId) => saveNote(noteId, {
+    archivedAt: new Date().toISOString(),
+    deletedAt: null,
+  }), [saveNote]);
+
+  const deleteNote = useCallback((noteId) => saveNote(noteId, {
+    deletedAt: new Date().toISOString(),
+    archivedAt: null,
+  }), [saveNote]);
+
+  const restoreNote = useCallback((noteId) => saveNote(noteId, {
+    deletedAt: null,
+    archivedAt: null,
+  }), [saveNote]);
+
+  const purgeNote = useCallback(async (noteId) => {
+    if (!userId || !noteId) return;
+    const previousNotes = notes;
+    setNotes(prev => prev.filter(note => note.id !== noteId));
+    const { error: deleteError } = await supabase
+      .from('alt_dashboard_notes')
+      .delete()
+      .eq('id', noteId)
+      .eq('user_id', userId);
+    if (deleteError) {
+      setNotes(previousNotes);
+      setError(deleteError.message);
+      console.warn('[Supabase] alt note purge skipped:', deleteError.message);
+    }
+  }, [notes, userId]);
+
+  const uploadAttachment = useCallback(async (noteId, file) => {
+    if (!userId || !noteId || !file) return { error: new Error('Missing note attachment inputs') };
+    const path = `${userId}/${noteId}/${Date.now()}-${safeStorageName(file.name)}`;
+    const upload = await supabase.storage
+      .from(ALT_NOTES_BUCKET)
+      .upload(path, file, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: false,
+      });
+    if (upload.error) {
+      setError(upload.error.message);
+      console.warn('[Supabase] alt note file upload skipped:', upload.error.message);
+      return { error: upload.error };
+    }
+    const { data, error: insertError } = await supabase
+      .from('alt_dashboard_note_attachments')
+      .insert({
+        user_id: userId,
+        note_id: noteId,
+        storage_path: path,
+        name: file.name || 'Attachment',
+        mime_type: file.type || 'application/octet-stream',
+        size: file.size || 0,
+      })
+      .select('id,user_id,note_id,storage_path,name,mime_type,size,created_at,updated_at')
+      .single();
+    if (insertError) {
+      setError(insertError.message);
+      console.warn('[Supabase] alt note attachment row save skipped:', insertError.message);
+      return { error: insertError };
+    }
+    const normalized = normalizeAltNoteAttachmentRow(data);
+    const signedUrl = await createSignedUrlSafe(ALT_NOTES_BUCKET, normalized.storagePath, 60 * 60);
+    const attachment = { ...normalized, signedUrl };
+    setAttachments(prev => [attachment, ...prev.filter(item => item.id !== attachment.id)]);
+    return { attachment };
+  }, [userId]);
+
+  return {
+    notes,
+    folders,
+    attachments,
+    loading,
+    error,
+    refetch: fetchAltNotes,
+    createFolder,
+    createNote,
+    saveNote,
+    archiveNote,
+    deleteNote,
+    restoreNote,
+    purgeNote,
+    uploadAttachment,
+  };
 }
 
 // ============================================================================

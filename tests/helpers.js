@@ -193,9 +193,11 @@ export const dismissDailyBrief = async (page) => {
 export const dismissGuidance = async (page) => {
   await dismissDailyBrief(page);
 
-  const frameworkExplainer = page.locator('.framework-explainer-close');
-  if (await frameworkExplainer.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await frameworkExplainer.click({ force: true });
+  for (let i = 0; i < 3; i += 1) {
+    const visibleOverlay = page.locator('.framework-explainer-overlay').filter({ visible: true }).first();
+    if (!(await visibleOverlay.isVisible({ timeout: 1000 }).catch(() => false))) break;
+    await visibleOverlay.locator('.framework-explainer-close').click({ force: true });
+    await expect(page.locator('.framework-explainer-overlay').filter({ visible: true })).toHaveCount(0, { timeout: 2500 }).catch(() => null);
   }
 
   const featureAnnouncement = page.locator('.new-feature-close');

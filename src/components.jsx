@@ -5,7 +5,8 @@ import {
   Activity, Zap, Calendar, ChevronDown, Download, Upload, FileText,
   Image, File, Film, Music, Archive, TrendingUp, Layers, ArrowLeft,
   Target, CheckCircle2, Building2, Plus, Edit3, Trash2, Flag, Loader2, Mic,
-  Sparkles, AlertCircle, Users, UserPlus, HelpCircle, Bell, Home, Smartphone, SmilePlus, Languages
+  Sparkles, AlertCircle, Users, UserPlus, HelpCircle, Bell, Home, Smartphone, SmilePlus, Languages,
+  ThumbsUp, Wrench, Handshake
 } from 'lucide-react';
 import { getUser, getProfiles, getDirectReports, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId } from './data';
 import { findMentionCandidates, getActiveMention, getMentionedUsers, insertMentionText } from './mentions';
@@ -83,12 +84,22 @@ export const Badge = ({ children, color = "#ff7f02", outline = false }) => (
 );
 
 const MESSAGE_REACTIONS = [
-  { id: 'thumbs_up', emoji: '👍', label: 'Thumbs up' },
-  { id: 'heard', emoji: '👂', label: 'Heard' },
-  { id: 'on_it', emoji: '🛠️', label: "I'm on it" },
-  { id: 'thanks', emoji: '🙏', label: 'Thanks' },
-  { id: 'done', emoji: '✅', label: 'Done' },
+  { id: 'thumbs_up', icon: ThumbsUp, label: 'Thumbs up' },
+  { id: 'heard', icon: Bell, label: 'Heard' },
+  { id: 'on_it', icon: Wrench, label: "I'm on it" },
+  { id: 'thanks', icon: Handshake, label: 'Thanks' },
+  { id: 'done', icon: CheckCircle2, label: 'Done' },
 ];
+
+const MessageReactionSymbol = ({ option, size = 13 }) => {
+  const Icon = option?.icon;
+  if (!Icon) return null;
+  return (
+    <span className="executive-symbol message-reaction-symbol" aria-hidden="true">
+      <Icon size={size} />
+    </span>
+  );
+};
 
 const MAX_VOICE_NOTE_SECONDS = 5 * 60;
 
@@ -113,6 +124,7 @@ const MessageReactions = ({ message, currentUser, onSetReaction, onRemoveReactio
   const [pickerOpen, setPickerOpen] = useState(false);
   const reactions = message.reactions || [];
   const activeReaction = reactions.find(reaction => reaction.userId === currentUser?.id)?.reaction || null;
+  const activeReactionOption = MESSAGE_REACTIONS.find(option => option.id === activeReaction);
   const grouped = MESSAGE_REACTIONS.map(option => {
     const matching = reactions.filter(reaction => reaction.reaction === option.id);
     return {
@@ -145,7 +157,7 @@ const MessageReactions = ({ message, currentUser, onSetReaction, onRemoveReactio
           onClick={() => setPickerOpen(open => !open)}
         >
           <SmilePlus size={13} />
-          <span>{MESSAGE_REACTIONS.find(option => option.id === activeReaction)?.emoji || 'React'}</span>
+          {activeReactionOption ? <MessageReactionSymbol option={activeReactionOption} size={12} /> : <span>React</span>}
         </button>
         <div className={`message-reaction-menu ${pickerOpen ? 'is-open' : ''}`} role="menu" aria-label="Choose a reaction">
           {MESSAGE_REACTIONS.map(option => (
@@ -158,7 +170,7 @@ const MessageReactions = ({ message, currentUser, onSetReaction, onRemoveReactio
               aria-label={option.label}
               title={option.label}
             >
-              <span aria-hidden="true">{option.emoji}</span>
+              <MessageReactionSymbol option={option} />
               <span>{option.label}</span>
             </button>
           ))}
@@ -175,7 +187,7 @@ const MessageReactions = ({ message, currentUser, onSetReaction, onRemoveReactio
               title={option.users.join(', ')}
               aria-label={`${option.label}: ${option.count}`}
             >
-              <span aria-hidden="true">{option.emoji}</span>
+              <MessageReactionSymbol option={option} size={12} />
               <span>{option.count}</span>
             </button>
           ))}

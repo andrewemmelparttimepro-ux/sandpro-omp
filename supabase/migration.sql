@@ -439,6 +439,67 @@ CREATE TABLE public.push_delivery_log (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE public.alt_dashboard_preferences (
+  user_id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  last_dashboard_mode TEXT NOT NULL DEFAULT 'standard' CHECK (last_dashboard_mode IN ('standard', 'alternative')),
+  selected_time_key TEXT NOT NULL DEFAULT 'today' CHECK (selected_time_key IN ('today', 'next3', 'week')),
+  compute_mode TEXT NOT NULL DEFAULT 'open' CHECK (compute_mode IN ('all', 'open', 'closed')),
+  sound_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  widget_slots JSONB NOT NULL DEFAULT '["pressing", "notes", "next_due", "recent_collaborator", "key_metric"]'::jsonb,
+  pinned_people JSONB NOT NULL DEFAULT '[]'::jsonb,
+  pinned_objectives JSONB NOT NULL DEFAULT '[]'::jsonb,
+  manual_order JSONB NOT NULL DEFAULT '[]'::jsonb,
+  notes_state JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE public.alt_dashboard_presence (
+  user_id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE public.alt_dashboard_note_folders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  name TEXT NOT NULL DEFAULT 'Notes',
+  icon TEXT NOT NULL DEFAULT 'folder',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE public.alt_dashboard_notes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  folder_id UUID REFERENCES public.alt_dashboard_note_folders(id) ON DELETE SET NULL,
+  objective_id UUID REFERENCES public.objectives(id) ON DELETE SET NULL,
+  title TEXT NOT NULL DEFAULT 'Untitled Note',
+  body_json JSONB NOT NULL DEFAULT '{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb,
+  plain_text TEXT NOT NULL DEFAULT '',
+  preview TEXT NOT NULL DEFAULT '',
+  pinned BOOLEAN NOT NULL DEFAULT FALSE,
+  archived_at TIMESTAMPTZ,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_edited_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE public.alt_dashboard_note_attachments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  note_id UUID NOT NULL REFERENCES public.alt_dashboard_notes(id) ON DELETE CASCADE,
+  storage_path TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT 'Attachment',
+  mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',
+  size BIGINT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE public.fix_it_posts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   body TEXT DEFAULT '',
@@ -574,6 +635,14 @@ CREATE INDEX idx_push_subscriptions_user ON public.push_subscriptions(user_id);
 CREATE INDEX idx_push_subscriptions_active ON public.push_subscriptions(user_id, active);
 CREATE INDEX idx_push_delivery_user ON public.push_delivery_log(user_id);
 CREATE INDEX idx_push_delivery_notification ON public.push_delivery_log(notification_id);
+CREATE INDEX idx_alt_dashboard_preferences_updated ON public.alt_dashboard_preferences(updated_at DESC);
+CREATE INDEX idx_alt_dashboard_presence_seen ON public.alt_dashboard_presence(last_seen_at DESC);
+CREATE INDEX idx_alt_note_folders_user ON public.alt_dashboard_note_folders(user_id, sort_order, name);
+CREATE INDEX idx_alt_notes_user_edited ON public.alt_dashboard_notes(user_id, last_edited_at DESC);
+CREATE INDEX idx_alt_notes_user_folder ON public.alt_dashboard_notes(user_id, folder_id);
+CREATE INDEX idx_alt_notes_user_objective ON public.alt_dashboard_notes(user_id, objective_id);
+CREATE INDEX idx_alt_notes_user_pinned ON public.alt_dashboard_notes(user_id, pinned, last_edited_at DESC);
+CREATE INDEX idx_alt_note_attachments_user_note ON public.alt_dashboard_note_attachments(user_id, note_id);
 CREATE INDEX idx_fix_it_posts_created ON public.fix_it_posts(created_at DESC);
 CREATE INDEX idx_fix_it_posts_status ON public.fix_it_posts(status);
 CREATE INDEX idx_fix_it_attachments_post ON public.fix_it_attachments(post_id);
@@ -625,6 +694,26 @@ CREATE TRIGGER workflow_steps_updated_at
 
 CREATE TRIGGER push_subscriptions_updated_at
   BEFORE UPDATE ON public.push_subscriptions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER alt_dashboard_preferences_updated_at
+  BEFORE UPDATE ON public.alt_dashboard_preferences
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER alt_dashboard_presence_updated_at
+  BEFORE UPDATE ON public.alt_dashboard_presence
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER alt_note_folders_updated_at
+  BEFORE UPDATE ON public.alt_dashboard_note_folders
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER alt_notes_updated_at
+  BEFORE UPDATE ON public.alt_dashboard_notes
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER alt_note_attachments_updated_at
+  BEFORE UPDATE ON public.alt_dashboard_note_attachments
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 CREATE TRIGGER org_chart_placeholders_updated_at
@@ -907,6 +996,10 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('ncr-files', 'ncr-files', false)
 ON CONFLICT (id) DO UPDATE SET public = false;
 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('alt-note-files', 'alt-note-files', false)
+ON CONFLICT (id) DO UPDATE SET public = false;
+
 CREATE POLICY "Authenticated users can read objective file objects"
   ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'objective-files');
@@ -933,6 +1026,14 @@ CREATE POLICY "Authenticated users can read NCR file objects"
   ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'ncr-files');
 
+CREATE POLICY "Users can read own alt note file objects"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'alt-note-files'
+    AND owner = auth.uid()
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
 CREATE POLICY "Authenticated users can upload Fix-It file objects"
   ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'fix-it-files' AND owner = auth.uid());
@@ -940,6 +1041,27 @@ CREATE POLICY "Authenticated users can upload Fix-It file objects"
 CREATE POLICY "Authenticated users can upload NCR file objects"
   ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'ncr-files' AND owner = auth.uid());
+
+CREATE POLICY "Users can upload own alt note file objects"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'alt-note-files'
+    AND owner = auth.uid()
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+CREATE POLICY "Users can update own alt note file objects"
+  ON storage.objects FOR UPDATE TO authenticated
+  USING (
+    bucket_id = 'alt-note-files'
+    AND owner = auth.uid()
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  )
+  WITH CHECK (
+    bucket_id = 'alt-note-files'
+    AND owner = auth.uid()
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 CREATE POLICY "Fix-It upload owners and moderators can delete file objects"
   ON storage.objects FOR DELETE TO authenticated
@@ -963,6 +1085,14 @@ CREATE POLICY "NCR upload owners and executives can delete file objects"
       owner = auth.uid()
       OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
     )
+  );
+
+CREATE POLICY "Users can delete own alt note file objects"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'alt-note-files'
+    AND owner = auth.uid()
+    AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
 ALTER TABLE public.objective_members ENABLE ROW LEVEL SECURITY;
@@ -1065,6 +1195,49 @@ ALTER TABLE public.push_delivery_log ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users view own push delivery log"
   ON public.push_delivery_log FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
+ALTER TABLE public.alt_dashboard_preferences ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users view own alt dashboard preferences"
+  ON public.alt_dashboard_preferences FOR SELECT TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users upsert own alt dashboard preferences"
+  ON public.alt_dashboard_preferences FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+ALTER TABLE public.alt_dashboard_presence ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Alt dashboard presence viewable by authenticated users"
+  ON public.alt_dashboard_presence FOR SELECT TO authenticated
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users upsert own alt dashboard presence"
+  ON public.alt_dashboard_presence FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+ALTER TABLE public.alt_dashboard_note_folders ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own alt note folders"
+  ON public.alt_dashboard_note_folders FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+ALTER TABLE public.alt_dashboard_notes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own alt notes"
+  ON public.alt_dashboard_notes FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+ALTER TABLE public.alt_dashboard_note_attachments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own alt note attachments"
+  ON public.alt_dashboard_note_attachments FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
 ALTER TABLE public.fix_it_posts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Fix-It posts viewable by all authenticated"
@@ -1138,6 +1311,11 @@ CREATE POLICY "Authenticated users can create Fix-It attachments"
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.fix_it_comments TO authenticated;
 GRANT SELECT, INSERT ON public.fix_it_attachments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.alt_dashboard_preferences TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.alt_dashboard_presence TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.alt_dashboard_note_folders TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.alt_dashboard_notes TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.alt_dashboard_note_attachments TO authenticated;
 
 CREATE POLICY "Executives and org editors view org chart updates"
   ON public.org_chart_updates FOR SELECT TO authenticated
@@ -1218,6 +1396,11 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.message_reactions;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.objectives;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.files;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.alt_dashboard_preferences;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.alt_dashboard_presence;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.alt_dashboard_note_folders;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.alt_dashboard_notes;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.alt_dashboard_note_attachments;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.objective_members;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.objective_metric_checkins;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.objective_agent_runs;

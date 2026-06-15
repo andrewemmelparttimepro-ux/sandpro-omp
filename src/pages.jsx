@@ -6,12 +6,13 @@ import {
   Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3,
   Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText,
   Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw,
-  PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign
+  PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio
 } from 'lucide-react';
 import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, getDirectReports, canManageOrgChart, canManagePermissions } from './data';
 import { Avatar, Badge, ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from './components';
-import { usePushNotifications } from './hooks/useSupabase';
+import { useAltNotes, usePushNotifications } from './hooks/useSupabase';
 import { supabase } from './lib/supabase';
+import AltNotesPopup from './AltNotesPopup';
 import { FieldKeyProvider, DefinedTerm, FieldKeyHint } from './glossary';
 import {
   OKR_LEVELS,
@@ -27,6 +28,21 @@ import {
   summarizeFramework,
   buildQuarterlyScorecardRows,
 } from './okrFramework';
+import {
+  ALT_COMPUTE_MODES,
+  ALT_DASHBOARD_MODE,
+  ALT_TIME_KEYS,
+  buildAltInteractionRoster,
+  buildAltRecentTiles,
+  buildAltTrendSummary,
+  DEFAULT_ALT_DASHBOARD_PREFS,
+  filterAltObjectivesByTimeKey,
+  getAltPresenceState,
+  getAltWorkHealth,
+  isActiveObjective,
+  rankAltObjectives,
+} from './altDashboard';
+import { getAltNotesPreview, normalizeAltNotesState } from './altNotes';
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 const PRIORITY_LABELS = { critical: "Critical", high: "High", medium: "Medium", low: "Low" };
@@ -221,10 +237,544 @@ const OBJECTIVE_SCOPE_LABELS = {
   individual: "Individual",
 };
 
+const mergeAltPreferences = (preferences = {}) => ({
+  ...DEFAULT_ALT_DASHBOARD_PREFS,
+  ...preferences,
+  widgetSlots: Array.isArray(preferences.widgetSlots) ? preferences.widgetSlots : DEFAULT_ALT_DASHBOARD_PREFS.widgetSlots,
+  pinnedPeople: Array.isArray(preferences.pinnedPeople) ? preferences.pinnedPeople : [],
+  pinnedObjectives: Array.isArray(preferences.pinnedObjectives) ? preferences.pinnedObjectives : [],
+  manualOrder: Array.isArray(preferences.manualOrder) ? preferences.manualOrder : [],
+  notesState: normalizeAltNotesState(preferences.notesState),
+});
+
+const playAltKeyClick = (enabled) => {
+  if (!enabled || typeof window === 'undefined') return;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  try {
+    const context = new AudioContext();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(620, context.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(280, context.currentTime + 0.035);
+    gain.gain.setValueAtTime(0.025, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.045);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.045);
+    window.setTimeout(() => context.close?.(), 80);
+  } catch {
+    // Audio feedback is optional and should never block interaction.
+  }
+};
+
+const getPersonName = (userId) => getUser(userId).name || 'Unknown teammate';
+
+const AltTrafficLight = ({ presenceState }) => (
+  <span
+    className={`alt-traffic-light presence-${presenceState.state}`}
+    role="img"
+    title={`Presence: ${presenceState.label}`}
+    aria-label={`Presence: ${presenceState.label}`}
+  >
+    <span className="alt-bulb alt-bulb-red" />
+    <span className="alt-bulb alt-bulb-amber" />
+    <span className="alt-bulb alt-bulb-green" />
+  </span>
+);
+
+const AltRosterSignals = ({ presenceState, workHealth }) => (
+  <div className="alt-roster-signals" aria-label={`Presence ${presenceState.label}; work health ${workHealth.label}`}>
+    <AltTrafficLight presenceState={presenceState} />
+    <span className={`alt-work-health-chip work-${workHealth.state}`} title={`Work health: ${workHealth.label}`}>
+      {workHealth.label}
+    </span>
+  </div>
+);
+
+const AltKeyButton = ({ item, active, onClick }) => (
+  <button
+    type="button"
+    className={`alt-key-button ${active ? 'active' : ''}`}
+    onClick={onClick}
+    aria-pressed={active}
+  >
+    <strong>{item.shortLabel}</strong>
+    <span>{item.label}</span>
+  </button>
+);
+
+const AltMacroGauge = ({ summary }) => {
+  const rows = summary?.rows || [];
+  const comparisons = summary?.comparisons || [];
+  const trendPoints = summary?.trend?.points || [];
+  const maxComparison = Math.max(1, ...comparisons.map(item => item.value));
+  const selectedCount = summary?.selected?.count || 0;
+  const gaugeMax = Math.max(1, maxComparison);
+  const gaugePct = Math.min(100, Math.round((selectedCount / gaugeMax) * 100));
+  const chartWidth = 220;
+  const chartHeight = 74;
+  const maxTrend = Math.max(1, summary?.trend?.max || 1);
+  const pointString = trendPoints.map((point, index) => {
+    const x = trendPoints.length <= 1 ? 0 : (index / (trendPoints.length - 1)) * chartWidth;
+    const y = chartHeight - (point.value / maxTrend) * (chartHeight - 10) - 5;
+    return `${x},${y}`;
+  }).join(' ');
+  return (
+    <div className="alt-macro-gauge" data-window={summary?.key} aria-label={`${summary?.selected?.label || 'Selected'} objective trend summary`}>
+      <div className="alt-macro-trend-card">
+        <div className="alt-macro-trend-head">
+          <div>
+            <span>{summary?.selected?.label || 'Lens'} trend</span>
+            <strong>{summary?.trend?.empty ? 'No movement yet' : `${summary?.trend?.total || 0} signals`}</strong>
+          </div>
+          <b>{selectedCount}</b>
+        </div>
+        <svg className="alt-macro-sparkline" viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none" aria-hidden="true">
+          <polyline points={pointString} />
+          {trendPoints.map((point, index) => {
+            const x = trendPoints.length <= 1 ? 0 : (index / (trendPoints.length - 1)) * chartWidth;
+            const y = chartHeight - (point.value / maxTrend) * (chartHeight - 10) - 5;
+            return <circle key={point.key} cx={x} cy={y} r="2.6" />;
+          })}
+        </svg>
+        <div className="alt-macro-trend-days">
+          {trendPoints.map(point => <span key={point.key}>{point.label}</span>)}
+        </div>
+      </div>
+      <div className="alt-gauge-face" style={{ '--gauge-pct': `${gaugePct}%` }}>
+        <span>{summary?.selected?.rangeLabel || 'selected window'}</span>
+      </div>
+      <div className="alt-gauge-metrics">
+        {rows.map(item => (
+          <div key={item.id} className={`alt-gauge-metric alt-trend-${item.tone}`}>
+            <div className="alt-trend-label">
+              <span>{item.label}</span>
+              <strong>{item.value}{item.suffix || ''}</strong>
+            </div>
+            <div className="alt-trend-track">
+              <span style={{ width: `${Math.max(7, Math.min(100, item.suffix ? item.value : (item.value / Math.max(1, selectedCount)) * 100))}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="alt-gauge-comparison" aria-label="Time key comparison">
+        {comparisons.map(item => (
+          <div key={item.id} className={item.active ? 'active' : ''}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const AltPersonRow = ({ item, presenceState, workHealth, pinned, onPinToggle }) => {
+  const user = item.profile;
+  return (
+    <div
+      className={`alt-person-row presence-${presenceState.state} ${pinned ? 'pinned' : ''}`}
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.setData('text/sandpro-user-id', user.id);
+        event.dataTransfer.effectAllowed = 'copy';
+      }}
+    >
+      <GripVertical size={14} className="alt-drag-grip" />
+      <Avatar user={user} size={30} />
+      <div className="alt-person-copy">
+        <strong>{user.name}</strong>
+        <span>{presenceState.label}</span>
+      </div>
+      <AltRosterSignals presenceState={presenceState} workHealth={workHealth} />
+      <button type="button" className={`alt-pin-button ${pinned ? 'active' : ''}`} onClick={() => onPinToggle(user.id)} title={pinned ? `Unpin ${user.name}` : `Pin ${user.name}`}>
+        <Star size={13} />
+      </button>
+    </div>
+  );
+};
+
+const AltObjectiveStackCard = ({
+  objective,
+  computeMode,
+  pinned,
+  onOpen,
+  onCompute,
+  onPinToggle,
+  onDropPerson,
+  onReorder,
+  dragging,
+  onDragState,
+}) => (
+  <article
+    className={`alt-objective-card status-${objective.status || 'unknown'} ${pinned ? 'pinned' : ''} ${dragging ? 'dragging' : ''}`}
+    draggable
+    onDragStart={(event) => {
+      event.dataTransfer.setData('text/sandpro-objective-id', objective.id);
+      event.dataTransfer.effectAllowed = 'move';
+      onDragState?.(objective.id);
+    }}
+    onDragEnd={() => onDragState?.(null)}
+    onDragOver={(event) => event.preventDefault()}
+    onDrop={(event) => {
+      event.preventDefault();
+      onDragState?.(null);
+      const personId = event.dataTransfer.getData('text/sandpro-user-id');
+      const objectiveId = event.dataTransfer.getData('text/sandpro-objective-id');
+      if (personId) onDropPerson(objective, personId);
+      else if (objectiveId && objectiveId !== objective.id) onReorder(objectiveId, objective.id);
+    }}
+    onClick={() => computeMode === 'closed' ? onCompute(objective) : onOpen(objective)}
+  >
+    <div className="alt-objective-card-main">
+      <div className="alt-objective-status" style={{ background: getStatusColor(objective.status) }} />
+      <div>
+        <h3>{objective.title}</h3>
+        <div className="alt-objective-meta">
+          <span>{getUser(objective.ownerId).name}</span>
+          <span>{getStatusLabel(objective.status)}</span>
+          <span>{formatDate(objective.dueDate)}</span>
+        </div>
+      </div>
+    </div>
+    <div className="alt-objective-actions" onClick={(event) => event.stopPropagation()}>
+      <button type="button" className={`alt-pin-button ${pinned ? 'active' : ''}`} onClick={() => onPinToggle(objective.id)} title={pinned ? 'Unpin objective' : 'Pin objective'}>
+        <Star size={13} />
+      </button>
+      <button type="button" className="alt-open-button" onClick={() => onOpen(objective)}>Open</button>
+    </div>
+  </article>
+);
+
+const AltCommandWidgetBody = ({ type, objective, person, onOpen }) => {
+  if (person) {
+    return (
+      <div className={`alt-command-body alt-widget-${type}`}>
+        <strong>{person.profile.name}</strong>
+        <small>{person.lastInteractionAt ? timeAgo(person.lastInteractionAt) : 'Recent collaborator'}</small>
+      </div>
+    );
+  }
+  return (
+    <button type="button" className={`alt-command-body alt-widget-${type}`} onClick={() => objective && onOpen(objective)} disabled={!objective}>
+      <strong>{objective?.title || 'Nothing active'}</strong>
+      <small>{objective ? `${getStatusLabel(objective.status)} · ${formatDate(objective.dueDate)}` : 'No matching item'}</small>
+    </button>
+  );
+};
+
+const AltPressingWidget = ({ objective, windowLabel, onOpen }) => (
+  <section className="alt-ps-card alt-ps1-card">
+    <div className="alt-ps-card-head">
+      <span>PS.1</span>
+      <strong>Pressing</strong>
+    </div>
+    <AltCommandWidgetBody type="pressing" objective={objective} onOpen={onOpen} />
+    <small>{windowLabel}</small>
+  </section>
+);
+
+const AltPersonalWidget = ({ notesPreview, loading, onOpen, onNewNote }) => (
+  <section className="alt-ps-card alt-ps2-card alt-notes-card">
+    <div className="alt-ps-card-head">
+      <span>PS.2</span>
+      <button type="button" className="alt-notes-card-new" onClick={onNewNote} aria-label="New PS.2 note">
+        <Plus size={14} />
+      </button>
+    </div>
+    <button type="button" className="alt-command-body alt-notes-launcher" onClick={onOpen}>
+      <strong>{loading ? 'Loading Notes...' : notesPreview.title}</strong>
+      <small>{loading ? 'Opening your private workspace' : notesPreview.preview}</small>
+      <em>{loading ? 'PS.2 Notes' : notesPreview.meta}</em>
+    </button>
+  </section>
+);
+
+const getRecentIcon = (type) => {
+  if (type === 'message' || type === 'reaction') return MessageSquare;
+  if (type === 'tag' || type === 'delegation') return Users;
+  if (type === 'metric') return BarChart3;
+  if (type === 'update') return Activity;
+  return FileText;
+};
+
+const AltRecentTile = ({ event, onOpen }) => {
+  const Icon = getRecentIcon(event.type);
+  const actorName = event.actorId ? getPersonName(event.actorId) : event.source;
+  return (
+    <button
+      type="button"
+      className={`alt-recent-tile ${event.empty ? 'empty' : ''}`}
+      onClick={() => event.objective && onOpen(event.objective)}
+      disabled={event.empty || !event.objective}
+    >
+      <span className="executive-symbol alt-recent-symbol" aria-hidden="true">
+        <Icon size={13} />
+      </span>
+      <strong>{event.title}</strong>
+      <small>{event.empty ? event.source : `${actorName} · ${timeAgo(event.at)}`}</small>
+    </button>
+  );
+};
+
+const AlternativeDashboardView = ({
+  objectives,
+  currentUser,
+  preferences,
+  presence,
+  onOpenCard,
+  onPreferenceChange,
+  onAltTagPerson,
+}) => {
+  const prefs = useMemo(() => mergeAltPreferences(preferences), [preferences]);
+  const [focusObjectiveId, setFocusObjectiveId] = useState(null);
+  const [draggingObjectiveId, setDraggingObjectiveId] = useState(null);
+  const [shuffleToken, setShuffleToken] = useState(0);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const notesStore = useAltNotes(currentUser.id);
+  const now = useMemo(() => new Date(), []);
+  const profiles = useMemo(() => getProfiles(), []);
+  const roster = useMemo(() => buildAltInteractionRoster({ objectives, profiles, currentUser, now }), [objectives, profiles, currentUser, now]);
+  const pinnedPeople = useMemo(() => new Set(prefs.pinnedPeople), [prefs.pinnedPeople]);
+  const orderedRoster = useMemo(() => [...roster].sort((left, right) => {
+    const leftPinned = pinnedPeople.has(left.userId);
+    const rightPinned = pinnedPeople.has(right.userId);
+    if (leftPinned !== rightPinned) return leftPinned ? -1 : 1;
+    return right.score - left.score;
+  }).slice(0, 12), [pinnedPeople, roster]);
+  const dueObjectives = useMemo(() => filterAltObjectivesByTimeKey(objectives, prefs.selectedTimeKey, now), [objectives, prefs.selectedTimeKey, now]);
+  const rankedObjectives = useMemo(() => rankAltObjectives({ objectives: dueObjectives, preferences: prefs, focusObjectiveId, now }), [dueObjectives, focusObjectiveId, now, prefs]);
+  const recentTiles = buildAltRecentTiles(objectives, 5);
+  const trendSummary = useMemo(() => buildAltTrendSummary({ objectives, timeKey: prefs.selectedTimeKey, now }), [objectives, prefs.selectedTimeKey, now]);
+  const pinnedObjectives = new Set(prefs.pinnedObjectives);
+  const selectedTimeKey = ALT_TIME_KEYS.find(item => item.id === prefs.selectedTimeKey) || ALT_TIME_KEYS[0];
+  const selectedComputeMode = ALT_COMPUTE_MODES.find(item => item.id === prefs.computeMode) || ALT_COMPUTE_MODES.find(item => item.id === 'open');
+  const pressingObjective = rankedObjectives[0] || dueObjectives[0] || null;
+  const notesPreview = useMemo(() => getAltNotesPreview(notesStore.notes), [notesStore.notes]);
+
+  useEffect(() => {
+    if (!shuffleToken) return undefined;
+    const timer = window.setTimeout(() => setShuffleToken(0), 420);
+    return () => window.clearTimeout(timer);
+  }, [shuffleToken]);
+
+  const updatePrefs = (changes) => onPreferenceChange?.(changes);
+  const updateNotesState = useCallback((notesState) => onPreferenceChange?.({ notesState }), [onPreferenceChange]);
+  const setTimeKey = (timeKey) => {
+    playAltKeyClick(prefs.soundEnabled);
+    setFocusObjectiveId(null);
+    updatePrefs({ selectedTimeKey: timeKey });
+  };
+  const togglePersonPin = (userId) => {
+    const next = pinnedPeople.has(userId)
+      ? prefs.pinnedPeople.filter(id => id !== userId)
+      : [userId, ...prefs.pinnedPeople.filter(id => id !== userId)];
+    updatePrefs({ pinnedPeople: next });
+  };
+  const toggleObjectivePin = (objectiveId) => {
+    const next = pinnedObjectives.has(objectiveId)
+      ? prefs.pinnedObjectives.filter(id => id !== objectiveId)
+      : [objectiveId, ...prefs.pinnedObjectives.filter(id => id !== objectiveId)];
+    updatePrefs({ pinnedObjectives: next });
+  };
+  const reorderObjective = (sourceId, targetId) => {
+    const currentOrder = rankedObjectives.map(objective => objective.id);
+    const withoutSource = currentOrder.filter(id => id !== sourceId);
+    const targetIndex = withoutSource.indexOf(targetId);
+    if (targetIndex === -1) return;
+    withoutSource.splice(targetIndex, 0, sourceId);
+    updatePrefs({ manualOrder: withoutSource });
+  };
+  const handleObjectiveClick = (objective) => {
+    playAltKeyClick(prefs.soundEnabled);
+    setFocusObjectiveId(objective.id);
+    setShuffleToken(Date.now());
+  };
+  const handleDropPerson = (objective, userId) => {
+    playAltKeyClick(prefs.soundEnabled);
+    onAltTagPerson?.(objective, userId);
+  };
+  const openNotes = () => {
+    updatePrefs({ widgetSlots: ['pressing', 'notes', 'next_due', 'recent_collaborator', 'key_metric'] });
+    setNotesOpen(true);
+  };
+  const createPs2Note = async (event) => {
+    event.stopPropagation();
+    const note = await notesStore.createNote({ persist: false });
+    updatePrefs({
+      widgetSlots: ['pressing', 'notes', 'next_due', 'recent_collaborator', 'key_metric'],
+      notesState: {
+        ...prefs.notesState,
+        selectedNoteId: note?.id || prefs.notesState.selectedNoteId,
+        selectedFolderId: prefs.notesState.selectedFolderId || 'all',
+      },
+    });
+    setNotesOpen(true);
+  };
+
+  return (
+    <div className="alt-dashboard-view">
+      <div className="alt-orbit-stage">
+        <AltPressingWidget objective={pressingObjective} windowLabel={trendSummary.selected.rangeLabel} onOpen={onOpenCard} />
+
+        <aside className="alt-panel alt-roster-panel">
+          <div className="alt-panel-header">
+            <div>
+              <span>My orbit</span>
+              <strong>{orderedRoster.length}</strong>
+            </div>
+            <Radio size={16} />
+          </div>
+          <div className="alt-roster-list">
+            {orderedRoster.length === 0 ? (
+              <EmptyState icon={Users} text="No 80-hour collaborator activity yet." />
+            ) : orderedRoster.map(item => (
+              <AltPersonRow
+                key={item.userId}
+                item={item}
+                pinned={pinnedPeople.has(item.userId)}
+                presenceState={getAltPresenceState(item.userId, presence, now)}
+                workHealth={getAltWorkHealth(item.userId, objectives, now)}
+                onPinToggle={togglePersonPin}
+              />
+            ))}
+          </div>
+        </aside>
+
+        <section className="alt-main-lens">
+          <div className="alt-lens-toolbar">
+            <div className="alt-key-row" aria-label="Alternative dashboard due agenda">
+              {ALT_TIME_KEYS.map(item => (
+                <AltKeyButton key={item.id} item={item} active={prefs.selectedTimeKey === item.id} onClick={() => setTimeKey(item.id)} />
+              ))}
+            </div>
+            <div className="alt-switch-row">
+              <div className="alt-co-switch" aria-label="All, open, or complete card mode">
+                {ALT_COMPUTE_MODES.map(item => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={prefs.computeMode === item.id ? 'active' : ''}
+                    data-mode={item.id}
+                    onClick={() => {
+                      playAltKeyClick(prefs.soundEnabled);
+                      updatePrefs({ computeMode: item.id });
+                      if (item.id !== 'closed') setFocusObjectiveId(null);
+                    }}
+                    aria-pressed={prefs.computeMode === item.id}
+                    title={item.title}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className={`alt-sound-toggle ${prefs.soundEnabled ? 'active' : ''}`}
+                onClick={() => updatePrefs({ soundEnabled: !prefs.soundEnabled })}
+                title={prefs.soundEnabled ? 'Turn key sound off' : 'Turn key sound on'}
+                aria-pressed={prefs.soundEnabled}
+              >
+                {prefs.soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
+              </button>
+            </div>
+          </div>
+          <div className="alt-lens-state">
+            <div>
+              <span>{selectedTimeKey.label} lens</span>
+              <strong>{trendSummary.selected.rangeLabel}</strong>
+              <small>{trendSummary.selected.dateLabel}</small>
+            </div>
+            <b>{rankedObjectives.length}</b>
+          </div>
+          <div className="alt-stack-head">
+            <div>
+              <span>{selectedTimeKey.label}</span>
+              <strong>{rankedObjectives.length} objective{rankedObjectives.length === 1 ? '' : 's'}</strong>
+            </div>
+            <Badge color={selectedComputeMode.id === 'closed' ? 'var(--error)' : 'var(--success)'}>{selectedComputeMode.title}</Badge>
+          </div>
+          <div className={`alt-objective-stack ${shuffleToken ? 'is-shuffling' : ''}`}>
+            {rankedObjectives.length === 0 ? (
+              <EmptyState icon={CheckCircle2} text="No active objectives in this due window." />
+            ) : rankedObjectives.map(objective => (
+              <AltObjectiveStackCard
+                key={objective.id}
+                objective={objective}
+                computeMode={prefs.computeMode}
+                pinned={pinnedObjectives.has(objective.id)}
+                dragging={draggingObjectiveId === objective.id}
+                onOpen={onOpenCard}
+                onCompute={handleObjectiveClick}
+                onPinToggle={toggleObjectivePin}
+                onDropPerson={handleDropPerson}
+                onReorder={reorderObjective}
+                onDragState={setDraggingObjectiveId}
+              />
+            ))}
+          </div>
+        </section>
+
+        <AltPersonalWidget
+          notesPreview={notesPreview}
+          loading={notesStore.loading}
+          onOpen={openNotes}
+          onNewNote={createPs2Note}
+        />
+
+        <aside className="alt-panel alt-trend-panel">
+          <div className="alt-panel-header">
+            <div>
+              <span>Macro lens</span>
+              <strong>{selectedTimeKey.label} trends</strong>
+            </div>
+            <BarChart3 size={16} />
+          </div>
+          <AltMacroGauge summary={trendSummary} />
+        </aside>
+      </div>
+
+      <div className="alt-recents-dock">
+        <div className="alt-recents-dock-header">
+          <span>Recent</span>
+        </div>
+        <div className="alt-recent-tiles">
+          {recentTiles.map(event => <AltRecentTile key={event.id} event={event} onOpen={onOpenCard} />)}
+        </div>
+      </div>
+      <AltNotesPopup
+        open={notesOpen}
+        currentUser={currentUser}
+        objectives={objectives.filter(isActiveObjective)}
+        notesStore={notesStore}
+        notesState={prefs.notesState}
+        onNotesStateChange={updateNotesState}
+        onClose={() => setNotesOpen(false)}
+      />
+    </div>
+  );
+};
+
 // ============================================================================
 // DASHBOARD PAGE — Role-adaptive
 // ============================================================================
-export const DashboardPage = ({ objectives, okrProjects = [], currentUser, onOpenCard, onDeptClick, onKpiClick }) => {
+export const DashboardPage = ({
+  objectives,
+  okrProjects = [],
+  currentUser,
+  dashboardMode = 'standard',
+  altDashboardPreferences,
+  altDashboardPresence = [],
+  onDashboardModeChange,
+  onAltPreferenceChange,
+  onAltTagPerson,
+  onOpenCard,
+  onDeptClick,
+  onKpiClick,
+}) => {
   const [scope, setScope] = useState(currentUser.role === "executive" ? "company" : currentUser.role === "manager" ? "team" : "individual");
   const directReports = getDirectReports(currentUser.id);
   const scopedObjectives = scope === "individual"
@@ -303,19 +853,56 @@ export const DashboardPage = ({ objectives, okrProjects = [], currentUser, onOpe
 
   const isExecutive = currentUser.role === "executive";
   const isManager = currentUser.role === "manager";
-
-  return (
-    <div className="dashboard-page" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      {/* KPI Strip */}
-      <div className="dashboard-scope-tabs flex-shrink-0">
+  const isAlternativeDashboard = dashboardMode === ALT_DASHBOARD_MODE;
+  const dashboardLensControls = (
+    <div className="dashboard-lens-controls flex-shrink-0">
+      <div className="dashboard-scope-tabs">
         {[
           { id: "company", label: "Company" },
           { id: "team", label: "My Team", disabled: !isExecutive && !isManager },
           { id: "individual", label: "Individual" },
         ].filter(s => !s.disabled).map(s => (
-          <button key={s.id} className={`dashboard-scope-tab ${scope === s.id ? 'active' : ''}`} onClick={() => setScope(s.id)}>{s.label}</button>
+          <button
+            key={s.id}
+            type="button"
+            className={`dashboard-scope-tab ${scope === s.id && !isAlternativeDashboard ? 'active' : ''}`}
+            onClick={() => {
+              setScope(s.id);
+              onDashboardModeChange?.('standard');
+            }}
+          >
+            {s.label}
+          </button>
         ))}
       </div>
+      <button
+        type="button"
+        className={`dashboard-alt-mode-key ${isAlternativeDashboard ? 'active' : ''}`}
+        onClick={() => onDashboardModeChange?.(isAlternativeDashboard ? 'standard' : ALT_DASHBOARD_MODE)}
+        aria-pressed={isAlternativeDashboard}
+      >
+        <span>Alt</span>
+        <strong>Alternative</strong>
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="dashboard-page" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {dashboardLensControls}
+      {isAlternativeDashboard ? (
+        <AlternativeDashboardView
+          objectives={objectives}
+          currentUser={currentUser}
+          preferences={altDashboardPreferences}
+          presence={altDashboardPresence}
+          onOpenCard={onOpenCard}
+          onPreferenceChange={onAltPreferenceChange}
+          onAltTagPerson={onAltTagPerson}
+        />
+      ) : (
+      <>
+      {/* KPI Strip */}
       <div className="kpi-grid flex gap-10 flex-shrink-0" style={{ paddingBottom: 16, overflowX: "auto", display: "grid", gridTemplateColumns: "repeat(4, minmax(150px, 1fr))", gap: 10 }}>
         <KPICard bucket="state" icon={Target} label="Active" value={allActive.length} sub="not completed or cancelled" color="#3B82F6" breakdown={statusBreakdown(allActive)} onClick={() => onKpiClick?.({ label: "Active", activeOnly: true, scope })} />
         <KPICard bucket="state" icon={CheckCircle2} label="Completed" value={completed} sub="finished work" color="#10B981" breakdown={statusBreakdown(scopedObjectives.filter(o => o.status === "completed"))} onClick={() => onKpiClick?.({ label: "Completed", status: "completed", scope })} />
@@ -506,6 +1093,8 @@ export const DashboardPage = ({ objectives, okrProjects = [], currentUser, onOpe
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

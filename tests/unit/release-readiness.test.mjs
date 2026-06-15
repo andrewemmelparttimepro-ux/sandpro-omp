@@ -45,6 +45,8 @@ test('release migration contains P0/P1 persistence surfaces', () => {
     'objective_agent_runs',
     'notification_preferences',
     'email_delivery_log',
+    'alt_dashboard_preferences',
+    'alt_dashboard_presence',
     'message_reactions',
     'objective_message_reads',
     'fix_it_posts',
@@ -124,7 +126,11 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(pages, /Closure blockers/);
   assert.match(pages, /Signatures \/ Approvals/);
   assert.match(pages, /exportAnalyticsCsv/);
-  assert.match(pages, /Analytics PDF/);
+  assert.match(pages, /exportAnalyticsPdf/);
+  assert.match(pages, /ncr-export-group/);
+  assert.match(pages, /buildNcrTrendWatch/);
+  assert.match(pages, /Trend Watch/);
+  assert.match(pages, /Ask AI about these NCRs/);
   assert.match(pages, /Individual CSV/);
   assert.match(pages, /KPA baseline reports matched/);
   assert.match(pages, /Map \/ Location/);
@@ -135,7 +141,8 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(pages, /Internal or External Report/);
   assert.match(pages, /Non-Productive Time Amount/);
   assert.match(pages, /sandpro_ncr_analytics\.xlsx/);
-  assert.match(pages, /Ask NCR analytics/);
+  assert.match(pages, /askNcrAnalyticsAi/);
+  assert.match(pages, /ncr-ai-suggestions/);
   assert.match(pages, /\/api\/ncr\/analytics-ai/);
   assert.match(hook, /ncr_reports/);
   assert.match(hook, /ncr_action_items/);
@@ -411,7 +418,8 @@ test('org chart is a draggable tree with research-backed export options for org 
   assert.match(page, /orgTreeOrientation/);
   assert.match(page, /setOrgTreeOrientation\("vertical"\)/);
   assert.match(page, /setOrgTreeOrientation\("wide"\)/);
-  assert.match(page, /handleOrgWheel/);
+  // Wheel zoom removed per Tim Dibben decision (2026-06-09); explicit zoom controls remain.
+  assert.doesNotMatch(page, /handleOrgWheel/);
   assert.match(page, /zoomOrgCanvasAt/);
   assert.match(page, /fitOrgCanvas/);
   assert.match(page, /centerOrgRoot/);
@@ -420,7 +428,7 @@ test('org chart is a draggable tree with research-backed export options for org 
   assert.match(page, /toggleOrgCollapse/);
   assert.match(page, /collapseAllOrgBranches/);
   assert.match(page, /expandAllOrgBranches/);
-  assert.match(page, /onWheel=\{orgViewMode === "tree" \? handleOrgWheel : undefined\}/);
+  assert.doesNotMatch(page, /onWheel=\{orgViewMode === "tree"/);
   assert.match(page, /org-tree-canvas-viewport/);
   assert.match(page, /org-tree-canvas/);
   assert.match(page, /className=\{`org-tree-node/);
@@ -464,7 +472,7 @@ test('org chart is a draggable tree with research-backed export options for org 
   assert.match(page, /Chart view uses compact org-chart cards/);
   assert.match(page, /className=\{`org-tree-canvas-viewport \$\{orgTreeOrientation === "vertical" \? "vertical-tree" : "wide-tree"\}`\}/);
   assert.match(page, /Proof mode/);
-  assert.match(page, /Wheel zooms at cursor/);
+  assert.match(page, /Use the zoom controls to resize/);
   assert.match(page, /window\.open\("", "sandpro-org-chart-export"/);
   assert.match(page, /Complete reporting tree/);
   assert.match(page, /Department roster detail/);
@@ -719,6 +727,70 @@ test('dashboard KPI buckets mirror objective drill-down filters', () => {
   assert.match(app, /activeOnly: Boolean\(preset\.activeOnly\) && preset\.status !== "completed"/);
 });
 
+test('alternative dashboard mode is backed by persisted preference, presence, and objective data', () => {
+  const app = read('src/App.jsx');
+  const pages = read('src/pages.jsx');
+  const hook = read('src/hooks/useSupabase.js');
+  const helper = read('src/altDashboard.js');
+  const css = read('src/index.css');
+  const migration = read('supabase/release_ready_migration.sql');
+  const schemaCheck = read('scripts/check-release-schema.mjs');
+
+  assert.match(app, /params\.get\("dashboard"\) === ALT_DASHBOARD_MODE/);
+  assert.match(app, /params\.set\("dashboard", ALT_DASHBOARD_MODE\)/);
+  assert.match(app, /useAlternativeDashboard/);
+  assert.match(app, /lastDashboardMode/);
+  assert.match(app, /ALT_EXPLAINER_VERSION/);
+  assert.match(pages, /dashboard-alt-mode-key/);
+  assert.match(pages, /AlternativeDashboardView/);
+  assert.match(pages, /ALT_TIME_KEYS/);
+  assert.match(pages, /ALT_COMPUTE_MODES/);
+  assert.match(pages, /text\/sandpro-user-id/);
+  assert.match(pages, /text\/sandpro-objective-id/);
+  assert.match(pages, /onAltTagPerson/);
+  assert.match(hook, /alt_dashboard_preferences/);
+  assert.match(hook, /alt_dashboard_presence/);
+  assert.match(helper, /ALT_INTERACTION_WINDOW_HOURS = 80/);
+  assert.match(helper, /ALT_PRESENCE_ONLINE_MINUTES = 2/);
+  assert.match(helper, /filterAltObjectivesByTimeKey/);
+  assert.match(helper, /rankAltObjectives/);
+  assert.match(helper, /buildAltInteractionRoster/);
+  assert.match(helper, /id: 'all', label: 'A'/);
+  assert.match(helper, /id: 'open', label: 'O'/);
+  assert.match(helper, /id: 'closed', label: 'C'/);
+  assert.match(helper, /normalizeAltComputeMode/);
+  assert.match(helper, /value === 'all'\) return 'all'/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.alt_dashboard_preferences/);
+  assert.match(migration, /compute_mode TEXT NOT NULL DEFAULT 'open' CHECK \(compute_mode IN \('all', 'open', 'closed'\)\)/);
+  assert.match(migration, /ADD CONSTRAINT alt_dashboard_preferences_compute_mode_check/);
+  assert.match(migration, /WHEN compute_mode = 'compute' THEN 'closed'/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.alt_dashboard_presence/);
+  assert.match(migration, /ALTER TABLE public\.alt_dashboard_preferences ENABLE ROW LEVEL SECURITY/);
+  assert.match(migration, /ALTER TABLE public\.alt_dashboard_presence ENABLE ROW LEVEL SECURITY/);
+  assert.match(migration, /GRANT SELECT, INSERT, UPDATE, DELETE ON public\.alt_dashboard_preferences TO authenticated/);
+  assert.match(migration, /ALTER PUBLICATION supabase_realtime ADD TABLE public\.alt_dashboard_presence/);
+  assert.match(schemaCheck, /alt_dashboard_preferences table/);
+  assert.match(schemaCheck, /alt_dashboard_presence table/);
+  assert.match(css, /\.alt-dashboard-view/);
+  assert.match(css, /\.alt-orbit-stage/);
+  assert.match(css, /\.alt-recents-dock/);
+  assert.match(css, /\.alt-ps-card/);
+  assert.match(css, /\.alt-macro-sparkline/);
+  assert.doesNotMatch(css, /border-radius:\s*32% 32%/);
+  assert.doesNotMatch(css, /margin-top:\s*-28px/);
+  assert.doesNotMatch(css, /\.alt-personal-widgets/);
+  assert.doesNotMatch(css, /\.alt-signal-dots/);
+  assert.doesNotMatch(pages, /alt-objective-score/);
+  assert.match(css, /\.alt-traffic-light/);
+  assert.match(css, /\.alt-work-health-chip/);
+  assert.match(css, /\.alt-key-button/);
+  assert.match(css, /\.alt-objective-stack/);
+  assert.match(css, /\.alt-recent-tiles/);
+  assert.match(pages, /playAltKeyClick\(prefs\.soundEnabled\)/);
+  assert.match(pages, /setShuffleToken\(Date\.now\(\)\)/);
+  assert.match(pages, /updatePrefs\(\{ manualOrder: withoutSource \}\)/);
+});
+
 test('objective list can sort by created date newest and oldest', () => {
   const pages = read('src/pages.jsx');
   const hook = read('src/hooks/useSupabase.js');
@@ -835,7 +907,10 @@ test('objective messages support persisted work-appropriate reactions', () => {
   assert.match(component, /Thumbs up/);
   assert.match(component, /Heard/);
   assert.match(component, /I'm on it/);
+  assert.doesNotMatch(component, /emoji:/);
+  assert.doesNotMatch(component, /👍|👂|🛠|🙏|✅/u);
   assert.match(component, /message-reaction-menu/);
+  assert.match(css, /\.executive-symbol/);
   assert.match(app, /onSetMessageReaction=\{handleSetMessageReaction\}/);
   assert.match(app, /onRemoveMessageReaction=\{handleRemoveMessageReaction\}/);
   assert.match(css, /\.message-reaction-chip/);

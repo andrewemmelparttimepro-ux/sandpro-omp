@@ -6,6 +6,9 @@ dist/
 playwright-report/
 test-results/
 backups/
+tmp/
+tmp-*/
+tests/tmp-*.js
 
 # Environment
 .env

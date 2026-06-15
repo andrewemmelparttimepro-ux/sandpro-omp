@@ -46,6 +46,11 @@ const checks = [
   ['email_delivery_log table', 'email_delivery_log', 'id,user_id,objective_id,notification_type,dedupe_key,recipient,subject,status,sent_at'],
   ['push_subscriptions table', 'push_subscriptions', 'id,user_id,endpoint,p256dh,auth,device_label,user_agent,platform,is_pwa,active,revoked_at,last_seen_at,updated_at'],
   ['push_delivery_log table', 'push_delivery_log', 'id,user_id,notification_id,objective_id,type,subscription_id,status,error,sent_at'],
+  ['alt_dashboard_preferences table', 'alt_dashboard_preferences', 'user_id,last_dashboard_mode,selected_time_key,compute_mode,sound_enabled,widget_slots,pinned_people,pinned_objectives,manual_order,notes_state,updated_at'],
+  ['alt_dashboard_presence table', 'alt_dashboard_presence', 'user_id,last_seen_at,updated_at'],
+  ['alt_dashboard_note_folders table', 'alt_dashboard_note_folders', 'id,user_id,name,icon,sort_order,created_at,updated_at'],
+  ['alt_dashboard_notes table', 'alt_dashboard_notes', 'id,user_id,folder_id,objective_id,title,body_json,plain_text,preview,pinned,archived_at,deleted_at,created_at,updated_at,last_edited_at'],
+  ['alt_dashboard_note_attachments table', 'alt_dashboard_note_attachments', 'id,user_id,note_id,storage_path,name,mime_type,size,created_at,updated_at'],
   ['message_reactions table', 'message_reactions', 'id,message_id,user_id,reaction,created_at,updated_at'],
   ['objective_message_reads table', 'objective_message_reads', 'objective_id,user_id,last_read_at,updated_at'],
   ['fix_it_posts table', 'fix_it_posts', 'id,body,created_by,claimed_by,agent_tested_by,agent_tested_at,human_reviewed_by,human_reviewed_at,archived_by,archived_at,reopened_by,reopened_at,reopen_count,reopened_from_status,status,created_at,updated_at'],
@@ -144,11 +149,15 @@ const runClientChecks = async (key, canCheckStorage) => {
     } else if (!buckets.some((bucket) => bucket.id === 'okr-project-files' && bucket.public === false)) {
       failed = true;
       console.error('x okr-project-files bucket: missing or not private');
+    } else if (!buckets.some((bucket) => bucket.id === 'alt-note-files' && bucket.public === false)) {
+      failed = true;
+      console.error('x alt-note-files bucket: missing or not private');
     } else {
       console.log('ok private objective-files bucket');
       console.log('ok private fix-it-files bucket');
       console.log('ok private ncr-files bucket');
       console.log('ok private okr-project-files bucket');
+      console.log('ok private alt-note-files bucket');
     }
   }
 
@@ -200,6 +209,14 @@ bucket_checks as (
   select
     'private ncr-files bucket' as check_name,
     exists (select 1 from storage.buckets where id = 'ncr-files' and public = false) as ok
+  union all
+  select
+    'private okr-project-files bucket' as check_name,
+    exists (select 1 from storage.buckets where id = 'okr-project-files' and public = false) as ok
+  union all
+  select
+    'private alt-note-files bucket' as check_name,
+    exists (select 1 from storage.buckets where id = 'alt-note-files' and public = false) as ok
 )
 select * from table_checks
 union all select * from column_checks

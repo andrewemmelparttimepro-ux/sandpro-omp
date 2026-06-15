@@ -5,10 +5,11 @@ import {
   Settings, KeyRound, Smartphone, RefreshCw
 } from 'lucide-react';
 import { setProfiles, getUser, getStatusLabel, generateId } from './data';
-import { useAuth, useProfiles, useObjectives, useNotifications, usePushNotifications, useFixItFeed, useNcrReports } from './hooks/useSupabase';
+import { useAuth, useProfiles, useObjectives, useNotifications, usePushNotifications, useFixItFeed, useNcrReports, useAlternativeDashboard } from './hooks/useSupabase';
 import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer, DailyBrief, BriefErrorBoundary } from './components';
 import { supabase } from './lib/supabase';
 import { getMentionedUsers } from './mentions';
+import { ALT_DASHBOARD_MODE } from './altDashboard';
 
 // Safe localStorage — fails gracefully in incognito / strict privacy modes
 const safeStorage = {
@@ -39,6 +40,8 @@ const AI_FEATURE_STORAGE_KEY = 'sandpro-ai-features-enabled-v2';
 const FEATURE_ANNOUNCEMENT_STORAGE_PREFIX = 'sandpro-new-feature-seen';
 const FRAMEWORK_EXPLAINER_STORAGE_PREFIX = 'sandpro-framework-explainer-seen';
 const FRAMEWORK_EXPLAINER_VERSION = 'okr-project-framework-2026-06-11';
+const ALT_EXPLAINER_STORAGE_PREFIX = 'sandpro-alt-dashboard-guide-seen';
+const ALT_EXPLAINER_VERSION = 'alt-dashboard-2026-06-14';
 const PUSH_SETUP_DISMISSED_PREFIX = 'sandpro-push-setup-dismissed';
 const DAILY_BRIEF_STORAGE_VERSION = 'bulletin-2026-06-01-pwa-push-tim';
 const BRAND_LOGO_SRC = '/brand/sandpro-omp-logo.png';
@@ -62,6 +65,7 @@ const NEW_FEATURE_ANNOUNCEMENTS = [
 
 const featureAnnouncementKey = (userId, featureId) => `${FEATURE_ANNOUNCEMENT_STORAGE_PREFIX}-${userId}-${featureId}`;
 const frameworkExplainerKey = (userId) => `${FRAMEWORK_EXPLAINER_STORAGE_PREFIX}-${userId}-${FRAMEWORK_EXPLAINER_VERSION}`;
+const altExplainerKey = (userId) => `${ALT_EXPLAINER_STORAGE_PREFIX}-${userId}-${ALT_EXPLAINER_VERSION}`;
 const pushSetupDismissKey = (userId) => `${PUSH_SETUP_DISMISSED_PREFIX}-${userId}`;
 
 const isPersonalAiDashboardOwner = (userProfile) => {
@@ -79,6 +83,7 @@ const readRouteFromLocation = () => {
   const page = PAGE_IDS.includes(params.get("page")) ? params.get("page") : "dashboard";
   return {
     page,
+    dashboardMode: params.get("dashboard") === ALT_DASHBOARD_MODE ? ALT_DASHBOARD_MODE : null,
     objectiveId: params.get("objective") || null,
     objectiveTab: params.get("tab") || "messages",
     adminOpen: params.get("admin") === "1",
@@ -104,6 +109,7 @@ const readRouteFromLocation = () => {
 const writeRouteToUrl = (route, replace = false) => {
   const params = new URLSearchParams();
   if (route.page && route.page !== "dashboard") params.set("page", route.page);
+  if (route.page === "dashboard" && route.dashboardMode === ALT_DASHBOARD_MODE) params.set("dashboard", ALT_DASHBOARD_MODE);
   if (route.objectiveId) params.set("objective", route.objectiveId);
   if (route.objectiveId && route.objectiveTab && route.objectiveTab !== "messages") params.set("tab", route.objectiveTab);
   if (route.adminOpen) params.set("admin", "1");
@@ -526,6 +532,7 @@ function App() {
   const { reports: ncrReports, loading: ncrLoading, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports } = useNcrReports(Boolean(user));
   const { notifications, markRead, markAllRead, createNotification: createRawNotification } = useNotifications(profile?.id);
   const pushNotifications = usePushNotifications(profile?.id);
+  const altDashboard = useAlternativeDashboard(profile?.id);
   const fixItAgentRecipientIds = useMemo(() => (
     profiles.filter(isFixItAgentPushRecipient).map(userProfile => userProfile.id)
   ), [profiles]);
@@ -556,6 +563,7 @@ function App() {
   const [showDailyBrief, setShowDailyBrief] = useState(false);
   const [activeFeatureAnnouncement, setActiveFeatureAnnouncement] = useState(null);
   const [showFrameworkExplainer, setShowFrameworkExplainer] = useState(false);
+  const [showAltExplainer, setShowAltExplainer] = useState(false);
   const [pushSetupDismissed, setPushSetupDismissed] = useState(false);
   const [hasInteractedSinceLogin, setHasInteractedSinceLogin] = useState(false);
   const [highlightDept, setHighlightDept] = useState(null);
@@ -572,6 +580,7 @@ function App() {
     const normalized = {
       ...route,
       ...next,
+      dashboardMode: next.dashboardMode === undefined ? route.dashboardMode : next.dashboardMode,
       filters: { ...DEFAULT_OBJECTIVE_FILTERS, ...(route.filters || {}), ...(next.filters || {}) },
     };
     writeRouteToUrl(normalized, options.replace);
@@ -706,6 +715,35 @@ function App() {
     setPushSetupDismissed(profile?.id ? safeStorage.get(pushSetupDismissKey(profile.id)) === '1' : false);
   }, [profile?.id]);
 
+  const dashboardMode = route.page === "dashboard"
+    ? (route.dashboardMode || altDashboard.preferences.lastDashboardMode) === ALT_DASHBOARD_MODE ? ALT_DASHBOARD_MODE : 'standard'
+    : 'standard';
+
+  useEffect(() => {
+    if (
+      route.page === "dashboard" &&
+      dashboardMode === ALT_DASHBOARD_MODE &&
+      route.dashboardMode !== ALT_DASHBOARD_MODE
+    ) {
+      updateRoute({ page: "dashboard", dashboardMode: ALT_DASHBOARD_MODE }, { replace: true });
+    }
+  }, [dashboardMode, route.dashboardMode, route.page, updateRoute]);
+
+  const setDashboardMode = useCallback((mode) => {
+    const nextMode = mode === ALT_DASHBOARD_MODE ? ALT_DASHBOARD_MODE : 'standard';
+    updateRoute({
+      page: "dashboard",
+      dashboardMode: nextMode === ALT_DASHBOARD_MODE ? ALT_DASHBOARD_MODE : null,
+    });
+    altDashboard.savePreferences({ lastDashboardMode: nextMode });
+    altDashboard.touchPresence();
+  }, [altDashboard, updateRoute]);
+
+  const updateAltDashboardPreference = useCallback((changes) => {
+    altDashboard.savePreferences(changes);
+    altDashboard.touchPresence();
+  }, [altDashboard]);
+
   useEffect(() => {
     if (!profile) return undefined;
     const markInteraction = () => {
@@ -727,6 +765,7 @@ function App() {
       objectives.length === 0 ||
       hasInteractedSinceLogin ||
       route.page !== "dashboard" ||
+      dashboardMode !== "standard" ||
       openCard ||
       showCreateForm ||
       editingObj
@@ -739,7 +778,13 @@ function App() {
       return () => window.clearTimeout(timer);
     }
     return undefined;
-  }, [profile, mustSetPassword, objectives.length, hasInteractedSinceLogin, route.page, openCard, showCreateForm, editingObj]);
+  }, [profile, mustSetPassword, objectives.length, hasInteractedSinceLogin, route.page, dashboardMode, openCard, showCreateForm, editingObj]);
+
+  useEffect(() => {
+    if (!profile?.id || dashboardMode !== ALT_DASHBOARD_MODE || mustSetPassword || openCard || showCreateForm || editingObj) return;
+    const key = altExplainerKey(profile.id);
+    if (!safeStorage.get(key)) setShowAltExplainer(true);
+  }, [dashboardMode, editingObj, mustSetPassword, openCard, profile?.id, showCreateForm]);
 
   const dismissBrief = useCallback(() => {
     if (profile) {
@@ -758,7 +803,9 @@ function App() {
       showCreateForm ||
       editingObj ||
       activeFeatureAnnouncement ||
-      showFrameworkExplainer
+      showFrameworkExplainer ||
+      showAltExplainer ||
+      dashboardMode !== "standard"
     ) return undefined;
 
     const seenKey = frameworkExplainerKey(profile.id);
@@ -768,7 +815,7 @@ function App() {
       if (!safeStorage.get(seenKey)) setShowFrameworkExplainer(true);
     }, 650);
     return () => window.clearTimeout(timer);
-  }, [profile, mustSetPassword, showDailyBrief, openCard, showCreateForm, editingObj, activeFeatureAnnouncement, showFrameworkExplainer]);
+  }, [profile, mustSetPassword, showDailyBrief, openCard, showCreateForm, editingObj, activeFeatureAnnouncement, showFrameworkExplainer, showAltExplainer, dashboardMode]);
 
   useEffect(() => {
     if (
@@ -793,7 +840,7 @@ function App() {
       }
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [profile, mustSetPassword, showDailyBrief, showFrameworkExplainer, openCard, showCreateForm, editingObj, activeFeatureAnnouncement]);
+  }, [profile, mustSetPassword, showDailyBrief, showFrameworkExplainer, showAltExplainer, openCard, showCreateForm, editingObj, activeFeatureAnnouncement]);
 
   // Toast helpers
   const addToast = useCallback((toast) => {
@@ -813,6 +860,11 @@ function App() {
   const dismissFrameworkExplainer = useCallback(() => {
     if (profile?.id) safeStorage.set(frameworkExplainerKey(profile.id), '1');
     setShowFrameworkExplainer(false);
+  }, [profile?.id]);
+
+  const dismissAltExplainer = useCallback(() => {
+    if (profile?.id) safeStorage.set(altExplainerKey(profile.id), '1');
+    setShowAltExplainer(false);
   }, [profile?.id]);
 
   const openFrameworkObjectives = useCallback(() => {
@@ -884,8 +936,15 @@ function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
-      if (e.key === "c" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setShowCreateForm(true); }
+      const target = e.target;
+      if (
+        target?.tagName === "INPUT"
+        || target?.tagName === "TEXTAREA"
+        || target?.tagName === "SELECT"
+        || target?.isContentEditable
+        || target?.closest?.('[contenteditable="true"], .alt-notes-window')
+      ) return;
+      if (e.key.toLowerCase() === "c" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setShowCreateForm(true); }
       if (e.key === "/" && !e.metaKey) { e.preventDefault(); updateRoute({ page: "objectives" }); setTimeout(() => { const el = document.querySelector('input[placeholder*="Search"]'); if (el) el.focus(); }, 100); }
       if (e.key === "Escape") {
         setOpenCard(null);
@@ -1499,6 +1558,7 @@ function App() {
     && !showDailyBrief
     && !activeFeatureAnnouncement
     && !showFrameworkExplainer
+    && !showAltExplainer
     && !pushSetupDismissed
     && !pushNotifications.enabled
     && !pushNotifications.loading
@@ -1721,6 +1781,57 @@ function App() {
         </div>
       )}
 
+      {showAltExplainer && (
+        <div className="framework-explainer-overlay" role="dialog" aria-modal="true" aria-labelledby="alt-dashboard-explainer-title">
+          <section className="framework-explainer-card alt-dashboard-explainer-card">
+            <button type="button" className="framework-explainer-close" onClick={dismissAltExplainer} title="Dismiss Alternative dashboard guide" aria-label="Dismiss Alternative dashboard guide">
+              <X size={16} />
+            </button>
+            <div className="framework-explainer-kicker">Alternative dashboard</div>
+            <h2 id="alt-dashboard-explainer-title">A live operating lens beside the standard Dashboard</h2>
+            <p className="framework-explainer-lead">
+              Alternative uses the same objectives, projects, people, and updates as the normal Dashboard. It changes the view, not the source of truth.
+            </p>
+            <div className="framework-explainer-grid">
+              <div className="framework-explainer-step">
+                <span><LayoutDashboard size={18} /></span>
+                <div>
+                  <strong>Use the keycaps</strong>
+                  <p>Today, Next 3, and This Wk reshape the company-wide due agenda and the chart lens together.</p>
+                </div>
+              </div>
+              <div className="framework-explainer-step">
+                <span><Network size={18} /></span>
+                <div>
+                  <strong>Read the roster</strong>
+                  <p>The left side shows people from your recent 80-hour work-touch orbit with separate presence and work-health signals.</p>
+                </div>
+              </div>
+              <div className="framework-explainer-step">
+                <span><Target size={18} /></span>
+                <div>
+                  <strong>Drop to tag</strong>
+                  <p>Dragging a person onto an objective adds them as a supporting teammate. Ownership stays unchanged.</p>
+                </div>
+              </div>
+              <div className="framework-explainer-step">
+                <span><Sparkles size={18} /></span>
+                <div>
+                  <strong>All, open, or complete</strong>
+                  <p>All mode clears the focused card. Open mode opens cards. Complete mode keeps the view in place and refocuses the stack and charts around the selected objective.</p>
+                </div>
+              </div>
+            </div>
+            <div className="framework-explainer-note">
+              Your Alternative layout, sound preference, order, and pins are saved to your own dashboard preferences across devices.
+            </div>
+            <div className="framework-explainer-actions">
+              <button type="button" className="btn btn-primary" onClick={dismissAltExplainer}>Use Alternative</button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {activeFeatureAnnouncement && (
         <div className="new-feature-popover" role="status" aria-live="polite">
           <button type="button" className="new-feature-close" onClick={() => dismissFeatureAnnouncement()} title="Dismiss new feature note">
@@ -1781,7 +1892,7 @@ function App() {
           <span>{pullRefreshState.refreshing ? 'Refreshing...' : pullRefreshState.ready ? 'Release to reload' : 'Pull to refresh'}</span>
         </div>
         <main className="main-content" ref={mainContentRef}>
-          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} currentUser={currentUser} onOpenCard={handleOpenCard} onKpiClick={(preset) => showObjectivesWithFilters({
+          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} currentUser={currentUser} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onDashboardModeChange={setDashboardMode} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onKpiClick={(preset) => showObjectivesWithFilters({
             status: preset.status || "all",
             owner: preset.scope === "individual" ? currentUser.id : "all",
             due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
