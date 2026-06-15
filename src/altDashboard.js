@@ -45,19 +45,41 @@ export const playAltKeyClick = (enabled) => {
   const context = getAltAudioContext();
   if (!context) return;
   try {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
     const now = context.currentTime;
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(620, now);
-    oscillator.frequency.exponentialRampToValueAtTime(280, now + 0.035);
-    gain.gain.setValueAtTime(0.025, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(now);
-    oscillator.stop(now + 0.045);
-    window.setTimeout(() => context.close?.(), 80);
+    const body = context.createOscillator();
+    const tick = context.createOscillator();
+    const bodyGain = context.createGain();
+    const tickGain = context.createGain();
+    const master = context.createGain();
+
+    body.type = 'sine';
+    body.frequency.setValueAtTime(180, now);
+    body.frequency.exponentialRampToValueAtTime(132, now + 0.024);
+    bodyGain.gain.setValueAtTime(0.0001, now);
+    bodyGain.gain.exponentialRampToValueAtTime(0.055, now + 0.004);
+    bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.044);
+
+    tick.type = 'triangle';
+    tick.frequency.setValueAtTime(1420, now);
+    tick.frequency.exponentialRampToValueAtTime(880, now + 0.012);
+    tickGain.gain.setValueAtTime(0.0001, now);
+    tickGain.gain.exponentialRampToValueAtTime(0.018, now + 0.002);
+    tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.018);
+
+    master.gain.setValueAtTime(0.72, now);
+    master.gain.exponentialRampToValueAtTime(0.001, now + 0.052);
+
+    body.connect(bodyGain);
+    tick.connect(tickGain);
+    bodyGain.connect(master);
+    tickGain.connect(master);
+    master.connect(context.destination);
+
+    body.start(now);
+    tick.start(now);
+    body.stop(now + 0.048);
+    tick.stop(now + 0.02);
+    window.setTimeout(() => context.close?.(), 90);
   } catch {
     context.close?.();
     // Audio feedback is optional and should never block interaction.
