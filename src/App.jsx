@@ -9,7 +9,7 @@ import { useAuth, useProfiles, useObjectives, useNotifications, usePushNotificat
 import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer, DailyBrief, BriefErrorBoundary } from './components';
 import { supabase } from './lib/supabase';
 import { getMentionedUsers } from './mentions';
-import { ALT_DASHBOARD_MODE } from './altDashboard';
+import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
 
 // Safe localStorage — fails gracefully in incognito / strict privacy modes
 const safeStorage = {
@@ -46,6 +46,7 @@ const PUSH_SETUP_DISMISSED_PREFIX = 'sandpro-push-setup-dismissed';
 const DAILY_BRIEF_STORAGE_VERSION = 'bulletin-2026-06-17-company-wide-launch';
 const BRAND_LOGO_SRC = '/brand/sandpro-omp-logo.png';
 const BRAND_MARK_SRC = '/brand/sandpro-omp-mark.png';
+const ALT_DASHBOARD_HOTKEY_MEDIA = '(min-width: 769px) and (pointer: fine)';
 const NEW_FEATURE_ANNOUNCEMENTS = [
   {
     id: 'fix-it-feed-v1',
@@ -743,6 +744,57 @@ function App() {
     altDashboard.savePreferences(changes);
     altDashboard.touchPresence();
   }, [altDashboard]);
+
+  useEffect(() => {
+    if (!profile || mustSetPassword || route.page !== "dashboard") return undefined;
+    if (
+      showDailyBrief ||
+      showFrameworkExplainer ||
+      showAltExplainer ||
+      openCard ||
+      showCreateForm ||
+      editingObj ||
+      activeFeatureAnnouncement ||
+      showAccountSettings
+    ) return undefined;
+
+    const handler = (event) => {
+      if (event.key !== 'Alt' || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      const desktopHotkeyMedia = window.matchMedia?.(ALT_DASHBOARD_HOTKEY_MEDIA);
+      if (!desktopHotkeyMedia?.matches) return;
+      const target = event.target;
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT" ||
+        target?.isContentEditable ||
+        target?.closest?.('[contenteditable="true"], .alt-notes-window, [role="dialog"], .modal-overlay')
+      ) return;
+
+      event.preventDefault();
+      const nextMode = dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE;
+      setDashboardMode(nextMode);
+      playAltDashboardThunk(altDashboard.preferences.soundEnabled);
+    };
+
+    window.addEventListener("keyup", handler);
+    return () => window.removeEventListener("keyup", handler);
+  }, [
+    activeFeatureAnnouncement,
+    altDashboard.preferences.soundEnabled,
+    dashboardMode,
+    editingObj,
+    mustSetPassword,
+    openCard,
+    profile,
+    route.page,
+    setDashboardMode,
+    showAccountSettings,
+    showAltExplainer,
+    showCreateForm,
+    showDailyBrief,
+    showFrameworkExplainer,
+  ]);
 
   useEffect(() => {
     if (!profile) return undefined;

@@ -29,6 +29,87 @@ export const DEFAULT_ALT_DASHBOARD_PREFS = {
   notesState: DEFAULT_ALT_NOTES_STATE,
 };
 
+const getAltAudioContext = () => {
+  if (typeof window === 'undefined') return null;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return null;
+  try {
+    return new AudioContext();
+  } catch {
+    return null;
+  }
+};
+
+export const playAltKeyClick = (enabled) => {
+  if (!enabled) return;
+  const context = getAltAudioContext();
+  if (!context) return;
+  try {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const now = context.currentTime;
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(620, now);
+    oscillator.frequency.exponentialRampToValueAtTime(280, now + 0.035);
+    gain.gain.setValueAtTime(0.025, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.045);
+    window.setTimeout(() => context.close?.(), 80);
+  } catch {
+    context.close?.();
+    // Audio feedback is optional and should never block interaction.
+  }
+};
+
+export const playAltDashboardThunk = (enabled) => {
+  if (!enabled) return;
+  const context = getAltAudioContext();
+  if (!context) return;
+  try {
+    const now = context.currentTime;
+    const body = context.createOscillator();
+    const strike = context.createOscillator();
+    const bodyGain = context.createGain();
+    const strikeGain = context.createGain();
+    const master = context.createGain();
+
+    body.type = 'sine';
+    body.frequency.setValueAtTime(148, now);
+    body.frequency.exponentialRampToValueAtTime(68, now + 0.16);
+    bodyGain.gain.setValueAtTime(0.0001, now);
+    bodyGain.gain.linearRampToValueAtTime(0.14, now + 0.012);
+    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+    strike.type = 'triangle';
+    strike.frequency.setValueAtTime(92, now);
+    strike.frequency.exponentialRampToValueAtTime(52, now + 0.09);
+    strikeGain.gain.setValueAtTime(0.0001, now);
+    strikeGain.gain.linearRampToValueAtTime(0.08, now + 0.006);
+    strikeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+
+    master.gain.setValueAtTime(0.8, now);
+    master.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+    body.connect(bodyGain);
+    strike.connect(strikeGain);
+    bodyGain.connect(master);
+    strikeGain.connect(master);
+    master.connect(context.destination);
+
+    body.start(now);
+    strike.start(now);
+    body.stop(now + 0.24);
+    strike.stop(now + 0.12);
+    window.setTimeout(() => context.close?.(), 280);
+  } catch {
+    context.close?.();
+    // Audio feedback is optional and should never block interaction.
+  }
+};
+
 const STATUS_WEIGHTS = {
   blocked: 160,
   at_risk: 110,

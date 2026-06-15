@@ -12,6 +12,8 @@ import {
   getAltPresenceState,
   getAltWorkHealth,
   normalizeAltDashboardPreference,
+  playAltDashboardThunk,
+  playAltKeyClick,
   rankAltObjectives,
 } from '../../src/altDashboard.js';
 import {
@@ -149,6 +151,13 @@ test('alternative dashboard preferences normalize and serialize safely', () => {
   assert.deepEqual(row.notes_state, { selectedNoteId: null, selectedFolderId: 'all', search: '', sidebarCollapsed: false });
   assert.deepEqual(row.manual_order, ['risk-next3', 'blocked-today']);
   assert.match(row.updated_at, /^\d{4}-\d{2}-\d{2}T/);
+});
+
+test('alternative dashboard audio helpers are optional outside the browser', () => {
+  assert.doesNotThrow(() => playAltKeyClick(false));
+  assert.doesNotThrow(() => playAltDashboardThunk(false));
+  assert.doesNotThrow(() => playAltKeyClick(true));
+  assert.doesNotThrow(() => playAltDashboardThunk(true));
 });
 
 test('time keys filter company-wide active objectives by distinct due windows', () => {

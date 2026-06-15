@@ -40,6 +40,7 @@ import {
   getAltPresenceState,
   getAltWorkHealth,
   isActiveObjective,
+  playAltKeyClick,
   rankAltObjectives,
 } from './altDashboard';
 import { getAltNotesPreview, normalizeAltNotesState } from './altNotes';
@@ -246,29 +247,6 @@ const mergeAltPreferences = (preferences = {}) => ({
   manualOrder: Array.isArray(preferences.manualOrder) ? preferences.manualOrder : [],
   notesState: normalizeAltNotesState(preferences.notesState),
 });
-
-const playAltKeyClick = (enabled) => {
-  if (!enabled || typeof window === 'undefined') return;
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  try {
-    const context = new AudioContext();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(620, context.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(280, context.currentTime + 0.035);
-    gain.gain.setValueAtTime(0.025, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.045);
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.045);
-    window.setTimeout(() => context.close?.(), 80);
-  } catch {
-    // Audio feedback is optional and should never block interaction.
-  }
-};
 
 const getPersonName = (userId) => getUser(userId).name || 'Unknown teammate';
 

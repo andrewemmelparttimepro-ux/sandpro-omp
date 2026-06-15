@@ -744,6 +744,12 @@ test('alternative dashboard mode is backed by persisted preference, presence, an
   assert.match(app, /useAlternativeDashboard/);
   assert.match(app, /lastDashboardMode/);
   assert.match(app, /ALT_EXPLAINER_VERSION/);
+  assert.match(app, /ALT_DASHBOARD_HOTKEY_MEDIA = '\(min-width: 769px\) and \(pointer: fine\)'/);
+  assert.match(app, /window\.addEventListener\("keyup", handler\)/);
+  assert.match(app, /event\.key !== 'Alt'/);
+  assert.match(app, /setDashboardMode\(nextMode\)/);
+  assert.match(app, /playAltDashboardThunk\(altDashboard\.preferences\.soundEnabled\)/);
+  assert.match(app, /\.alt-notes-window/);
   assert.match(pages, /dashboard-alt-mode-key/);
   assert.match(pages, /AlternativeDashboardView/);
   assert.match(pages, /ALT_TIME_KEYS/);
@@ -758,6 +764,8 @@ test('alternative dashboard mode is backed by persisted preference, presence, an
   assert.match(helper, /filterAltObjectivesByTimeKey/);
   assert.match(helper, /rankAltObjectives/);
   assert.match(helper, /buildAltInteractionRoster/);
+  assert.match(helper, /export const playAltKeyClick/);
+  assert.match(helper, /export const playAltDashboardThunk/);
   assert.match(helper, /id: 'all', label: 'A'/);
   assert.match(helper, /id: 'open', label: 'O'/);
   assert.match(helper, /id: 'closed', label: 'C'/);
