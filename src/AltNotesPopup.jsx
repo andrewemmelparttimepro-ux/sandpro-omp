@@ -153,11 +153,6 @@ const AltNotesSidebar = ({
   const systemCount = (id) => counts[id] || 0;
   return (
     <aside className="alt-notes-sidebar">
-      <div className="alt-notes-window-dots" aria-hidden="true">
-        <span className="red" />
-        <span className="yellow" />
-        <span className="green" />
-      </div>
       {showGuide ? <AltNotesGuide onDismiss={onDismissGuide} /> : null}
       <nav className="alt-notes-folder-nav" aria-label="Notes folders">
         <button

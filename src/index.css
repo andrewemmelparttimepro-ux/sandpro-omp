@@ -1220,23 +1220,6 @@ button.alt-command-body:disabled {
   background: rgba(246,246,244,0.9);
 }
 
-.alt-notes-window-dots {
-  display: flex;
-  gap: 10px;
-  padding: 0 4px 4px;
-}
-
-.alt-notes-window-dots span {
-  width: 15px;
-  height: 15px;
-  border-radius: 999px;
-  border: 1px solid rgba(15,23,42,0.12);
-}
-
-.alt-notes-window-dots .red { background: #ff5f57; }
-.alt-notes-window-dots .yellow { background: #ffbd2e; }
-.alt-notes-window-dots .green { background: #28c840; }
-
 .alt-notes-guide {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 28px;

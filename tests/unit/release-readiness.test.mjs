@@ -783,6 +783,8 @@ test('alternative dashboard mode is backed by persisted preference, presence, an
   assert.doesNotMatch(css, /margin-top:\s*-28px/);
   assert.doesNotMatch(css, /\.alt-personal-widgets/);
   assert.doesNotMatch(css, /\.alt-signal-dots/);
+  assert.doesNotMatch(css, /\.alt-notes-window-dots/);
+  assert.doesNotMatch(read('src/AltNotesPopup.jsx'), /alt-notes-window-dots/);
   assert.doesNotMatch(pages, /alt-objective-score/);
   assert.match(css, /\.alt-traffic-light/);
   assert.match(css, /\.alt-work-health-chip/);

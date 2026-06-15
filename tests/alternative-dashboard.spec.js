@@ -141,6 +141,7 @@ test.describe('alternative dashboard mode', () => {
     await expect(page.locator('.alt-ps2-card')).not.toContainText('To-do');
     await page.locator('.alt-notes-launcher').click();
     await expect(page.locator('.alt-notes-window')).toBeVisible();
+    await expect(page.locator('.alt-notes-window-dots')).toHaveCount(0);
     await expect(page.locator('.alt-notes-sidebar')).toContainText('All Notes');
     await expect(page.locator('.alt-notes-list-pane')).toBeVisible();
     await expect(page.locator('.alt-notes-editor-pane')).toBeVisible();
