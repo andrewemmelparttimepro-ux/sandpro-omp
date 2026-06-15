@@ -2074,16 +2074,19 @@ button.alt-command-body:disabled {
 
 .alt-lens-state {
   grid-column: 2;
-  grid-row: 2;
+  grid-row: 1;
+  justify-self: start;
+  align-self: start;
+  width: min(330px, calc(100% - 188px));
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  min-height: 54px;
-  padding: 10px 13px;
+  gap: 8px;
+  min-height: 42px;
+  padding: 7px 10px;
   border: 1px solid rgba(var(--sandpro-orange-rgb),0.18);
-  border-radius: 999px;
+  border-radius: 24px;
   background:
     linear-gradient(90deg, rgba(var(--sandpro-orange-rgb),0.12), rgba(59,130,246,0.05)),
     color-mix(in srgb, var(--accent-2) 86%, #fff);
@@ -2101,15 +2104,15 @@ button.alt-command-body:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  height: 36px;
-  padding: 0 10px;
+  min-width: 36px;
+  height: 30px;
+  padding: 0 8px;
   border: 1px solid rgba(var(--sandpro-orange-rgb),0.22);
   border-radius: 8px;
   background: var(--accent-2);
   color: var(--accent-10);
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .alt-switch-row {
@@ -9635,6 +9638,11 @@ button.alt-command-body:disabled {
   .alt-switch-row {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .alt-lens-state {
+    width: 100%;
+    align-self: stretch;
   }
 
   .alt-objective-stack,
