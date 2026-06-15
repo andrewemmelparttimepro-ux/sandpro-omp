@@ -523,11 +523,13 @@ test('SandPro Daily can publish bulletin-board updates with PWA guidance', () =>
   const component = read('src/components.jsx');
   const css = read('src/index.css');
   assert.match(app, /DAILY_BRIEF_STORAGE_VERSION/);
-  assert.match(app, /bulletin-2026-06-01-pwa-push-tim/);
+  assert.match(app, /bulletin-2026-06-17-company-wide-launch/);
   assert.match(component, /DAILY_BULLETIN/);
-  assert.match(component, /Weekend Release Bulletin/);
-  assert.match(component, /Push notifications and the mobile PWA are now live/);
-  assert.match(component, /Welcome Tim to the OMP team/);
+  assert.match(component, /SandPro Times Special Edition/);
+  assert.match(component, /SandPro OMP goes company-wide this Wednesday/);
+  assert.match(component, /Wednesday, June 17, 2026/);
+  assert.match(component, /Company-Wide Launch/);
+  assert.match(component, /Company-wide/);
   assert.match(component, /iPhone Safari/);
   assert.match(component, /Android Chrome/);
   assert.match(component, /Mobile Browser vs Installed PWA/);
@@ -541,6 +543,7 @@ test('SandPro Daily can publish bulletin-board updates with PWA guidance', () =>
   assert.match(component, /brief-stat-action/);
   assert.match(app, /onOpenFilter=\{\(preset\) => showObjectivesWithFilters/);
   assert.match(css, /\.brief-pwa-graphic/);
+  assert.match(css, /\.brief-rollout-hero/);
   assert.match(css, /\.brief-bulletin-card/);
   assert.match(css, /\.brief-item-action/);
   assert.match(css, /\.brief-stat-action/);

@@ -3061,23 +3061,30 @@ const safeUser = (id) => {
 };
 
 const DAILY_BULLETIN = {
-  id: '2026-06-01-weekend-pwa-push',
-  kicker: 'Weekend Release Bulletin',
-  headline: 'Push notifications and the mobile PWA are now live',
-  byline: 'OMP Team Update',
-  intro: 'SandPro Daily is now the bulletin board for the OMP team. Today starts with the weekend release work and the quickest way to install the app so mobile users get the full experience.',
+  id: '2026-06-17-company-wide-launch',
+  kicker: 'SandPro Times Special Edition',
+  headline: 'SandPro OMP goes company-wide this Wednesday',
+  byline: 'Company-Wide Rollout · Wednesday, June 17, 2026',
+  intro: 'This is the headline item for the week: SandPro OMP moves from the working team into company-wide SandPro use on Wednesday, June 17, 2026. Every team should know where objectives live, how updates get made, and how to use the app before rollout day.',
+  rollout: {
+    eyebrow: 'Company-Wide Launch',
+    date: 'Wednesday, June 17',
+    title: 'SandPro OMP opens to all of SandPro this Wednesday',
+    body: 'The OMP dashboard is becoming a company-wide operating layer. Objectives, updates, tags, due dates, Fix-It items, NCR visibility, and mobile access all need to feel ready for people across SandPro, not just the pilot group.',
+    action: 'Treat this as the priority story: confirm your objectives, clean up stale updates, and be ready to help teammates find their work in OMP.',
+  },
   updates: [
     {
-      title: 'Quiet push notifications',
-      body: 'Push is now added on top of the in-app bell. Direct mentions, assignments, blockers, at-risk items, and urgent due work can send a phone alert while ordinary comments and digests stay lower-noise.',
+      title: 'All SandPro teams included',
+      body: 'The rollout is company-wide. The app needs to read as the operating home for SandPro, with objectives and issue follow-through visible beyond the original pilot team.',
     },
     {
-      title: 'Mobile/PWA build-out',
-      body: 'The phone experience now uses a mobile app shell with bottom navigation, mobile objective flows, Fix-It proof viewing, NCR access, org search/edit paths, and safer PWA install metadata.',
+      title: 'Clean objective hygiene before launch',
+      body: 'Owners should make sure objectives have current status, realistic due dates, supporting teammates where needed, and a clear next action before Wednesday.',
     },
     {
-      title: 'Welcome Tim to the OMP team',
-      body: 'Please welcome Tim Dibben, Quality Control Manager, to the OMP team. Tim has been credentialed so he can work in the same OMP workflows as Merci.',
+      title: 'Mobile access matters',
+      body: 'The installed PWA and push setup remain important because company-wide use means people will check work from the floor, field, and phone, not only from a desktop.',
     },
   ],
   iosSteps: [
@@ -3319,9 +3326,22 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss, onOpenCard, onO
               <div className="brief-byline">{bulletin.byline} &middot; {today.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
               <p className="brief-body-text brief-bulletin-intro">{bulletin.intro}</p>
 
+              <section className="brief-rollout-hero" aria-label="Company-wide SandPro OMP rollout">
+                <div className="brief-rollout-date">
+                  <span>{bulletin.rollout.date}</span>
+                  <strong>Company-wide</strong>
+                </div>
+                <div className="brief-rollout-copy">
+                  <div className="brief-section-head">{bulletin.rollout.eyebrow}</div>
+                  <h3>{bulletin.rollout.title}</h3>
+                  <p>{bulletin.rollout.body}</p>
+                  <b>{bulletin.rollout.action}</b>
+                </div>
+              </section>
+
               <div className="brief-bulletin-grid">
                 {bulletin.updates.map((item, index) => {
-                  const Icon = index === 0 ? Bell : index === 1 ? Smartphone : Users;
+                  const Icon = index === 0 ? Building2 : index === 1 ? CheckCircle2 : Smartphone;
                   return (
                     <div className="brief-bulletin-card" key={item.title}>
                       <div className="brief-bulletin-icon"><Icon size={18} /></div>
