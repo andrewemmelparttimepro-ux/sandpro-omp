@@ -7148,6 +7148,8 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
     const isMoving = movingUserId === user.id;
     const branchColor = getBranchColor(user);
     const branchName = getBranchName(user);
+    const hasSpanWarning = spanSummary.direct > 5 || spanSummary.average > 5;
+    const showSpanControl = hasSpanWarning || spanSummary.direct > 0 || spanSummary.average > 0;
 
     return (
       <div
@@ -7172,15 +7174,17 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
           className={`org-person-card ${user.isPlaceholder ? 'placeholder' : ''} ${spanSummary.direct > 5 ? 'span-warning' : ''} ${spanSummary.average > 5 ? 'avg-span-warning' : ''} ${isSelected ? 'selected' : ''} ${isMatch ? 'matched' : ''} ${isDropTarget ? 'drop-target' : ''} ${draggedUserId === user.id ? 'dragging' : ''}`}
           title={canEditOrg ? `Drag ${user.name} onto a reporting manager to update the org chart` : user.name}
         >
-          <span className="org-span-marker" aria-hidden="true" />
+          {hasSpanWarning && <span className="org-span-marker" aria-hidden="true" />}
           <Avatar user={user} size={32} />
           <div className="org-person-copy">
             <div className="text-md font-semibold">{user.name}</div>
             <div className="text-xs text-muted">{user.title} · {user.department}</div>
-            <div className="org-span-control">
-              <span>Span Of Control: <strong>{spanSummary.direct}</strong></span>
-              <span>Avg Span Of Control: <strong>{spanSummary.average}</strong></span>
-            </div>
+            {showSpanControl && (
+              <div className="org-span-control">
+                <span>Span Of Control: <strong>{spanSummary.direct}</strong></span>
+                <span>Avg Span Of Control: <strong>{spanSummary.average}</strong></span>
+              </div>
+            )}
             <div className="org-branch-label">Group: {branchName}</div>
           </div>
           <div className="flex items-center gap-8">
