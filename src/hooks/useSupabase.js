@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { applyAutoClassification, buildProjectGateBlockers } from '../okrFramework';
 import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
+import { parseKpiCsv } from '../kpiSystem';
 import {
   ALT_NOTES_BUCKET,
   ALT_NOTES_EDITOR_EMPTY_DOC,
@@ -19,6 +20,31 @@ const normalizeConfidenceForDb = (value) => {
 };
 
 const ATTACHMENT_MARKER = '\n__SANDPRO_ATTACHMENTS__';
+const PROFILE_AVATAR_BUCKET = 'profile-avatars';
+const MAX_PROFILE_AVATAR_BYTES = 5 * 1024 * 1024;
+const PROFILE_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
+const avatarStoragePathFromUrl = (url = '') => {
+  const marker = `/storage/v1/object/public/${PROFILE_AVATAR_BUCKET}/`;
+  const index = String(url || '').indexOf(marker);
+  if (index === -1) return '';
+  return decodeURIComponent(String(url).slice(index + marker.length).split('?')[0]);
+};
+
+const avatarExtensionForFile = (file) => {
+  const fromName = String(file?.name || '').split('.').pop()?.toLowerCase();
+  if (fromName && /^[a-z0-9]{2,5}$/.test(fromName)) return fromName === 'jpeg' ? 'jpg' : fromName;
+  if (file?.type === 'image/png') return 'png';
+  if (file?.type === 'image/webp') return 'webp';
+  if (file?.type === 'image/gif') return 'gif';
+  return 'jpg';
+};
+
+const removeAvatarObjectIfOwned = async (avatarUrl, userId) => {
+  const path = avatarStoragePathFromUrl(avatarUrl);
+  if (!path || !path.startsWith(`${userId}/`)) return;
+  await supabase.storage.from(PROFILE_AVATAR_BUCKET).remove([path]).catch(() => null);
+};
 
 const formatSize = (bytes) => {
   if (bytes < 1024) return bytes + ' B';
@@ -110,6 +136,79 @@ const getAuthRedirectOrigin = () => {
   return 'https://objectivetracker.net';
 };
 
+const mapKpiDefinition = (row = {}) => ({
+  id: row.id,
+  name: row.name,
+  description: row.description || '',
+  category: row.category || 'Operations',
+  department: row.department || 'Company',
+  ownerId: row.owner_id,
+  unit: row.unit || '',
+  direction: row.direction || 'increase',
+  targetValue: row.target_value,
+  yellowMin: row.yellow_min,
+  yellowMax: row.yellow_max,
+  redMin: row.red_min,
+  redMax: row.red_max,
+  thresholdsJson: row.thresholds_json || {},
+  sourceType: row.source_type || 'manual',
+  formulaJson: row.formula_json || {},
+  cadence: row.cadence || 'weekly',
+  status: row.status || 'active',
+  createdBy: row.created_by,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const kpiDefinitionToRow = (definition = {}, userId = null) => ({
+  name: String(definition.name || '').trim(),
+  description: definition.description || '',
+  category: definition.category || 'Operations',
+  department: definition.department || 'Company',
+  owner_id: definition.ownerId || null,
+  unit: definition.unit || '',
+  direction: definition.direction || 'increase',
+  target_value: definition.targetValue ?? null,
+  yellow_min: definition.yellowMin ?? null,
+  yellow_max: definition.yellowMax ?? null,
+  red_min: definition.redMin ?? null,
+  red_max: definition.redMax ?? null,
+  thresholds_json: definition.thresholdsJson || {},
+  source_type: definition.sourceType || 'manual',
+  formula_json: definition.formulaJson || {},
+  cadence: definition.cadence || 'weekly',
+  status: definition.status || 'active',
+  created_by: definition.createdBy || userId || null,
+});
+
+const mapKpiDatapoint = (row = {}) => ({
+  id: row.id,
+  kpiId: row.kpi_id,
+  periodStart: row.period_start,
+  periodEnd: row.period_end,
+  value: Number(row.value),
+  denominator: row.denominator === null || row.denominator === undefined ? null : Number(row.denominator),
+  dimensionsJson: row.dimensions_json || {},
+  sourceLabel: row.source_label || '',
+  sourceRef: row.source_ref || '',
+  importedBy: row.imported_by,
+  createdAt: row.created_at,
+});
+
+const mapKpiAlert = (row = {}) => ({
+  id: row.id,
+  kpiId: row.kpi_id,
+  severity: row.severity || 'watch',
+  status: row.status || 'open',
+  title: row.title || '',
+  message: row.message || '',
+  triggeredValue: row.triggered_value,
+  triggeredAt: row.triggered_at,
+  acknowledgedBy: row.acknowledged_by,
+  acknowledgedAt: row.acknowledged_at,
+  createdAt: row.created_at,
+});
+
 const profileFromAuthUser = (authUser) => ({
   id: authUser.id,
   email: authUser.email || '',
@@ -118,6 +217,7 @@ const profileFromAuthUser = (authUser) => ({
   department: authUser.user_metadata?.department || '',
   role: authUser.user_metadata?.role || 'contributor',
   color: authUser.user_metadata?.color || '#ff7900',
+  avatar_url: authUser.user_metadata?.avatar_url || '',
 });
 
 const isStandalonePwa = () => (
@@ -436,7 +536,59 @@ export function useAuth() {
     return data;
   };
 
-  return { user, profile, loading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, refetchProfile: () => user && fetchProfile(user.id, user) };
+  const uploadAvatar = useCallback(async (file) => {
+    if (!user?.id) throw new Error('Sign in before changing your profile photo.');
+    if (!file) throw new Error('Choose an image file first.');
+    if (!PROFILE_AVATAR_TYPES.has(file.type)) throw new Error('Use a JPG, PNG, WEBP, or GIF image.');
+    if (file.size > MAX_PROFILE_AVATAR_BYTES) throw new Error('Profile photos must be 5 MB or smaller.');
+
+    const extension = avatarExtensionForFile(file);
+    const path = `${user.id}/avatar-${Date.now()}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from(PROFILE_AVATAR_BUCKET)
+      .upload(path, file, {
+        cacheControl: '3600',
+        contentType: file.type,
+        upsert: false,
+      });
+    if (uploadError) throw uploadError;
+
+    const { data: publicData } = supabase.storage.from(PROFILE_AVATAR_BUCKET).getPublicUrl(path);
+    const avatarUrl = publicData?.publicUrl || '';
+    if (!avatarUrl) throw new Error('Could not resolve the uploaded profile photo URL.');
+
+    const previousAvatarUrl = profile?.avatar_url || '';
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', user.id)
+      .select('*')
+      .single();
+    if (error) {
+      await supabase.storage.from(PROFILE_AVATAR_BUCKET).remove([path]).catch(() => null);
+      throw error;
+    }
+    setProfile(data);
+    await removeAvatarObjectIfOwned(previousAvatarUrl, user.id);
+    return data;
+  }, [profile?.avatar_url, user?.id]);
+
+  const removeAvatar = useCallback(async () => {
+    if (!user?.id) throw new Error('Sign in before changing your profile photo.');
+    const previousAvatarUrl = profile?.avatar_url || '';
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: null })
+      .eq('id', user.id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    setProfile(data);
+    await removeAvatarObjectIfOwned(previousAvatarUrl, user.id);
+    return data;
+  }, [profile?.avatar_url, user?.id]);
+
+  return { user, profile, loading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile: () => user && fetchProfile(user.id, user) };
 }
 
 // ============================================================================
@@ -876,6 +1028,258 @@ export function useAltNotes(userId) {
     restoreNote,
     purgeNote,
     uploadAttachment,
+  };
+}
+
+// ============================================================================
+// KPI HOOK — durable KPI definitions, datapoints, imports, and alerts
+// ============================================================================
+export function useKpis(userId, enabled = false) {
+  const [definitions, setDefinitions] = useState([]);
+  const [datapoints, setDatapoints] = useState([]);
+  const [links, setLinks] = useState([]);
+  const [checkins, setCheckins] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [importBatches, setImportBatches] = useState([]);
+  const [loading, setLoading] = useState(Boolean(enabled));
+
+  const fetchKpis = useCallback(async () => {
+    if (!enabled) {
+      setDefinitions([]);
+      setDatapoints([]);
+      setLinks([]);
+      setCheckins([]);
+      setAlerts([]);
+      setImportBatches([]);
+      setLoading(false);
+      return {
+        definitions: [],
+        datapoints: [],
+        links: [],
+        checkins: [],
+        alerts: [],
+        importBatches: [],
+      };
+    }
+    setLoading(true);
+    const [definitionRows, datapointRows, linkRows, checkinRows, alertRows, batchRows] = await Promise.all([
+      nullableSelect(supabase.from('kpi_definitions').select('*').order('updated_at', { ascending: false }), [], 'KPI definitions fetch'),
+      nullableSelect(supabase.from('kpi_datapoints').select('*').order('period_end', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }), [], 'KPI datapoints fetch'),
+      nullableSelect(supabase.from('kpi_objective_links').select('*'), [], 'KPI objective links fetch'),
+      nullableSelect(supabase.from('kpi_checkins').select('*').order('created_at', { ascending: false }), [], 'KPI checkins fetch'),
+      nullableSelect(supabase.from('kpi_alert_events').select('*').order('created_at', { ascending: false }), [], 'KPI alerts fetch'),
+      nullableSelect(supabase.from('kpi_import_batches').select('*').order('created_at', { ascending: false }), [], 'KPI import batches fetch'),
+    ]);
+    const mappedDefinitions = definitionRows.map(mapKpiDefinition);
+    const mappedDatapoints = datapointRows.map(mapKpiDatapoint);
+    const mappedAlerts = alertRows.map(mapKpiAlert);
+    setDefinitions(mappedDefinitions);
+    setDatapoints(mappedDatapoints);
+    setLinks((linkRows || []).map(row => ({
+      id: row.id,
+      kpiId: row.kpi_id,
+      objectiveId: row.objective_id,
+      relationship: row.relationship || 'measures',
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+    })));
+    setCheckins((checkinRows || []).map(row => ({
+      id: row.id,
+      kpiId: row.kpi_id,
+      note: row.note || '',
+      status: row.status || 'note',
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+    })));
+    setAlerts(mappedAlerts);
+    setImportBatches((batchRows || []).map(row => ({
+      id: row.id,
+      sourceLabel: row.source_label || '',
+      fileName: row.file_name || '',
+      importedBy: row.imported_by,
+      totalRows: row.total_rows || 0,
+      importedRows: row.imported_rows || 0,
+      errorRows: row.error_rows || 0,
+      errors: row.errors || [],
+      status: row.status || 'complete',
+      createdAt: row.created_at,
+      completedAt: row.completed_at,
+    })));
+    setLoading(false);
+    return {
+      definitions: mappedDefinitions,
+      datapoints: mappedDatapoints,
+      links: linkRows || [],
+      checkins: checkinRows || [],
+      alerts: mappedAlerts,
+      importBatches: batchRows || [],
+    };
+  }, [enabled]);
+
+  useEffect(() => { fetchKpis(); }, [fetchKpis]);
+
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const channel = supabase
+      .channel('kpi-system-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_definitions' }, () => fetchKpis())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_datapoints' }, () => fetchKpis())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_objective_links' }, () => fetchKpis())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_checkins' }, () => fetchKpis())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_alert_events' }, () => fetchKpis())
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [enabled, fetchKpis]);
+
+  const createDefinition = async (definition = {}) => {
+    const payload = kpiDefinitionToRow(definition, userId);
+    if (!payload.name) throw new Error('KPI name is required.');
+    const { data, error } = await supabase
+      .from('kpi_definitions')
+      .insert(payload)
+      .select('*')
+      .single();
+    if (error) throw error;
+    await fetchKpis();
+    return mapKpiDefinition(data);
+  };
+
+  const addDatapoint = async (kpiId, datapoint = {}) => {
+    const { data, error } = await supabase
+      .from('kpi_datapoints')
+      .insert({
+        kpi_id: kpiId,
+        period_start: datapoint.periodStart || datapoint.periodEnd || null,
+        period_end: datapoint.periodEnd || datapoint.periodStart || null,
+        value: Number(datapoint.value),
+        denominator: datapoint.denominator ?? null,
+        dimensions_json: datapoint.dimensionsJson || datapoint.dimensions || {},
+        source_label: datapoint.sourceLabel || 'Manual KPI check-in',
+        source_ref: datapoint.sourceRef || '',
+        imported_by: datapoint.importedBy || userId || null,
+      })
+      .select('*')
+      .single();
+    if (error) throw error;
+    await fetchKpis();
+    return mapKpiDatapoint(data);
+  };
+
+  const linkObjective = async (kpiId, objectiveId, relationship = 'measures') => {
+    const { error } = await supabase
+      .from('kpi_objective_links')
+      .upsert({
+        kpi_id: kpiId,
+        objective_id: objectiveId,
+        relationship,
+        created_by: userId || null,
+      }, { onConflict: 'kpi_id,objective_id' });
+    if (error) throw error;
+    await fetchKpis();
+  };
+
+  const addCheckin = async (kpiId, note, status = 'note') => {
+    const { error } = await supabase
+      .from('kpi_checkins')
+      .insert({
+        kpi_id: kpiId,
+        note: String(note || '').trim(),
+        status,
+        created_by: userId || null,
+      });
+    if (error) throw error;
+    await fetchKpis();
+  };
+
+  const acknowledgeAlert = async (alertId) => {
+    const { error } = await supabase
+      .from('kpi_alert_events')
+      .update({
+        status: 'acknowledged',
+        acknowledged_by: userId || null,
+        acknowledged_at: new Date().toISOString(),
+      })
+      .eq('id', alertId);
+    if (error) throw error;
+    await fetchKpis();
+  };
+
+  const importKpiCsv = async (text, fileName = 'kpi-import.csv') => {
+    const parsed = parseKpiCsv(text, { importedBy: userId });
+    let batchId = null;
+    const batchPayload = {
+      source_label: 'KPI CSV import',
+      file_name: fileName,
+      imported_by: userId || null,
+      total_rows: parsed.rows.length + parsed.errors.length,
+      imported_rows: 0,
+      error_rows: parsed.errors.length,
+      errors: parsed.errors,
+      status: parsed.errors.length ? 'partial' : 'complete',
+    };
+    const { data: batch, error: batchError } = await supabase
+      .from('kpi_import_batches')
+      .insert(batchPayload)
+      .select('*')
+      .single();
+    if (batchError) throw batchError;
+    batchId = batch.id;
+
+    let importedRows = 0;
+    for (const row of parsed.rows) {
+      let definition = definitions.find(item => item.name.toLowerCase() === row.name.toLowerCase());
+      if (!definition) {
+        definition = await createDefinition({
+          name: row.name,
+          department: row.department,
+          category: row.department === 'Company' ? 'Company Scorecard' : 'Department Scorecard',
+          unit: row.unit,
+          targetValue: row.targetValue,
+          sourceType: 'csv',
+          cadence: 'quarterly',
+        });
+      }
+      await addDatapoint(definition.id, {
+        periodStart: row.periodStart,
+        periodEnd: row.periodEnd,
+        value: row.value,
+        dimensionsJson: { ...row.dimensions, importBatchId: batchId },
+        sourceLabel: row.sourceLabel,
+        sourceRef: batchId,
+        importedBy: userId,
+      });
+      importedRows += 1;
+    }
+
+    await supabase
+      .from('kpi_import_batches')
+      .update({
+        imported_rows: importedRows,
+        error_rows: parsed.errors.length,
+        errors: parsed.errors,
+        status: parsed.errors.length ? 'partial' : 'complete',
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', batchId);
+    await fetchKpis();
+    return { importedRows, errors: parsed.errors, batchId };
+  };
+
+  return {
+    definitions,
+    datapoints,
+    links,
+    checkins,
+    alerts,
+    importBatches,
+    loading,
+    refetch: fetchKpis,
+    createDefinition,
+    addDatapoint,
+    linkObjective,
+    addCheckin,
+    acknowledgeAlert,
+    importKpiCsv,
   };
 }
 

@@ -1,0 +1,1395 @@
+{
+  "source": "2026 All Group OKRs_ Consolidated_4.8.26.xlsx",
+  "sheet": "MAIN OKR SHEET",
+  "groups": [
+    {
+      "group": "COMPANY - TOP LINE",
+      "isCompany": true,
+      "okrs": [
+        {
+          "title": "Greater Net Profit of 15%",
+          "auditForm": false,
+          "baseline": 0.1,
+          "target": 0.15,
+          "owner": "JF",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": 0.0765,
+          "actuals": {
+            "jan": 0.06,
+            "feb": -0.115,
+            "mar": 0.16,
+            "apr": 0.09,
+            "may": 0.1
+          }
+        },
+        {
+          "title": "Zero TRIR",
+          "auditForm": false,
+          "baseline": 0,
+          "target": 0,
+          "owner": null,
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": 0,
+          "actuals": {
+            "jan": 0,
+            "feb": 0,
+            "mar": 0,
+            "apr": 0,
+            "may": 0
+          }
+        },
+        {
+          "title": "Employee Cost of under 27%",
+          "auditForm": false,
+          "baseline": 0.36,
+          "target": 0.27,
+          "owner": null,
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": 0.351,
+          "actuals": {
+            "jan": 0.38,
+            "feb": 0.41,
+            "mar": 0.3,
+            "apr": 0.33,
+            "may": 0.32
+          }
+        },
+        {
+          "title": "2.0 Digital Operating System",
+          "auditForm": true,
+          "baseline": "Not Active",
+          "target": "FULL ACTIVE",
+          "owner": null,
+          "manualStatus": "Near on track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        }
+      ]
+    },
+    {
+      "group": "SALES",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Well Life Cycle Posters for all clients",
+          "auditForm": false,
+          "baseline": 1,
+          "target": 7,
+          "owner": "JB/ JS",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Gross revenue of 50M",
+          "auditForm": false,
+          "baseline": "35M",
+          "target": "50M",
+          "owner": "JB / JS",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 2627976,
+            "feb": 2040556,
+            "mar": 3037972,
+            "apr": 2885081,
+            "may": "3,036,138.10"
+          }
+        },
+        {
+          "title": "Full Riger CRM-FCST-PCF",
+          "auditForm": false,
+          "baseline": "NOT DONE",
+          "target": "DONE",
+          "owner": "JB / JS",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Provide Frac Stacks for 125 wells",
+          "auditForm": false,
+          "baseline": "YTD COUNT",
+          "target": 125,
+          "owner": "JB / JS",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 12,
+            "feb": 5,
+            "mar": 11,
+            "apr": 10,
+            "may": 6
+          }
+        },
+        {
+          "title": "100% completions of CP pre qualification and direction of inventory management plan.",
+          "auditForm": false,
+          "baseline": "NOT DONE",
+          "target": 1,
+          "owner": "JB / JS",
+          "manualStatus": "At risk",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Truly update client price agreements to ensure 30% +",
+          "auditForm": false,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "JB / JS",
+          "manualStatus": "On track",
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {}
+        }
+      ]
+    },
+    {
+      "group": "Inside Sales",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Repair Card completion to Invoice 48HR Turn",
+          "auditForm": false,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "LD",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Complete Require Reporting 24Hrs prior to due date",
+          "auditForm": false,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "LD",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "100% Compliance ensuring Accurate price agreements",
+          "auditForm": false,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "LD",
+          "manualStatus": null,
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "100% parts and price Accuracy on RSA's",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "LD",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "100% Compliance ensuring build orders have required drawings and accurate client requirements",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "LD",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "100% compliance on billing for repaired or ship goods.",
+          "auditForm": false,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "LD",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        }
+      ]
+    },
+    {
+      "group": "Marketing",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "CP Warehouse Push",
+          "auditForm": false,
+          "baseline": 0,
+          "target": "15 Social Media Post a Quarter",
+          "owner": "JB",
+          "manualStatus": "On track",
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 20,
+            "apr": 24
+          }
+        },
+        {
+          "title": "Enhance General Product and CP marketing material",
+          "auditForm": false,
+          "baseline": 0,
+          "target": "All documents and videos by end of 2nd Qtr.",
+          "owner": "JB",
+          "manualStatus": "On track",
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.75,
+            "apr": 1
+          }
+        },
+        {
+          "title": "WBC plan and execute",
+          "auditForm": false,
+          "baseline": 0,
+          "target": "Successful showing (Completed in May)",
+          "owner": "JB",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.1,
+            "feb": 0.25,
+            "mar": 0.5,
+            "apr": 0.75,
+            "may": 1
+          }
+        },
+        {
+          "title": "Improve brand presence (LinkedIn)",
+          "auditForm": false,
+          "baseline": 1248,
+          "target": "Increase fans by 25% EOY",
+          "owner": "JB",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 60,
+            "feb": 60,
+            "mar": 60,
+            "apr": 60,
+            "may": 60,
+            "jun": "n/a"
+          }
+        },
+        {
+          "title": "Improve brand presence (Facebook)",
+          "auditForm": false,
+          "baseline": 1794,
+          "target": "Increase fans by 25% EOY",
+          "owner": "JB",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 20,
+            "feb": 20,
+            "mar": 20,
+            "apr": 20,
+            "may": 20,
+            "jun": "n/a"
+          }
+        },
+        {
+          "title": "Increase online engagement",
+          "auditForm": false,
+          "baseline": 39724,
+          "target": "Increase number of vistors to website by 25%",
+          "owner": "JB",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 5313,
+            "feb": 4813,
+            "mar": 7999,
+            "apr": 5788,
+            "may": 5898,
+            "jun": "n/a"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Field Trainers",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Completed Audit Proficiency  Evaluations- Start to Stop",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": "10/Month",
+          "owner": "Brad/ Bryce",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": "Monthly",
+          "actuals": {
+            "jan": 31,
+            "feb": 0,
+            "mar": 22,
+            "apr": 11,
+            "may": 15,
+            "jun": 3
+          }
+        },
+        {
+          "title": "Employee Competency Proficiency audit program",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": "30/Month",
+          "owner": "Brad/ Bryce",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": "Monthly",
+          "actuals": {
+            "jan": 25,
+            "feb": 100,
+            "mar": 105,
+            "apr": 33,
+            "may": 81,
+            "jun": 68
+          }
+        },
+        {
+          "title": "Enhance procedure content including photos, and real time descriptions in line with the competency",
+          "auditForm": true,
+          "baseline": null,
+          "target": "Define what success means - total list needed",
+          "owner": "Brad/ Bryce",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": 0.5
+          }
+        },
+        {
+          "title": "Service and Shop Competencies level increase",
+          "auditForm": false,
+          "baseline": "% of Field and Shop tech levels",
+          "target": 0.15,
+          "owner": "Brad/ Bryce",
+          "manualStatus": null,
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "apr": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "group": "Dispatch",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Customer Communication - Reduce NCR's through job scope understanding (NCR)- (AUDIT)",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "Gershom/Dustin",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "On-Time Performance Tech and Gear  - Achieve 100% on time arrival rate (NCR)",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "Gershom/Dustin",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Cross-Team Utilization, assign mentor/mentee to corresponding jobs to increase competencies(KPA)",
+          "auditForm": false,
+          "baseline": "% of Field levels",
+          "target": 0.15,
+          "owner": "Gershom/Dustin",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Cost and Capacity Management - Reduce overtime, maintain labor cost to scale. (Labor spreadsheet)",
+          "auditForm": false,
+          "baseline": 0.17,
+          "target": "14%- Key note- This is not just fixable by a absolute service reduction. It needs to be a OKR to Sales and company on revenue mix along with rev per job type.",
+          "owner": "Gershom/Dustin",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "RFID Field Tagging and Location photos - 100%, Note in callout and job completion (Tessa Link)- AUDIT",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "Gershom/Dustin",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        }
+      ]
+    },
+    {
+      "group": "Finance / Accounting",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "DSO Under 60 Days",
+          "auditForm": false,
+          "baseline": 69,
+          "target": 60,
+          "owner": "KS",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": "79.36",
+            "feb": "86.15",
+            "mar": "60.2",
+            "apr": "50.82",
+            "may": "56.90"
+          }
+        },
+        {
+          "title": "# of Disputes Under 5/ Quarter",
+          "auditForm": false,
+          "baseline": null,
+          "target": 5,
+          "owner": "KS",
+          "manualStatus": null,
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 6
+          }
+        },
+        {
+          "title": "Accuracy of 99% On AP",
+          "auditForm": false,
+          "baseline": null,
+          "target": 0.99,
+          "owner": "KS",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.94,
+            "feb": 0.93,
+            "mar": 0.91,
+            "apr": 0.98,
+            "may": 0.98
+          }
+        },
+        {
+          "title": "48 Hour Turn Around for AR & AP",
+          "auditForm": false,
+          "baseline": null,
+          "target": "48hr",
+          "owner": "KS",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": "1.22",
+            "feb": 1107,
+            "mar": 2858,
+            "apr": 1781,
+            "may": "5.38"
+          }
+        },
+        {
+          "title": "Training Program to better understand field Ops.",
+          "auditForm": false,
+          "baseline": null,
+          "target": 1,
+          "owner": "KS",
+          "manualStatus": null,
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "All KPA Trainings Completed Quarterly",
+          "auditForm": false,
+          "baseline": null,
+          "target": 1,
+          "owner": "KS",
+          "manualStatus": null,
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 1
+          }
+        }
+      ]
+    },
+    {
+      "group": "HR",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Improve Retention by 10%",
+          "auditForm": false,
+          "baseline": 0.85,
+          "target": "10% Increase",
+          "owner": "Heather",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.88,
+            "apr": 0.878
+          }
+        },
+        {
+          "title": "Accelerate Hiring to Support Rapid Growth and Project Demands",
+          "auditForm": false,
+          "baseline": null,
+          "target": "Offer-to start time <25 days. 90-day retention rate of new hires > 85%",
+          "owner": "Heather",
+          "manualStatus": "On track",
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.75,
+            "apr": 0.98
+          }
+        },
+        {
+          "title": "Improve Onboarding to Set New Hires up for Immediate Success",
+          "auditForm": false,
+          "baseline": null,
+          "target": "Increase New Hire Satisfaction (possible new hire survey). Complete better onboarding packets tailored to each department",
+          "owner": "Heather",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": "1 Department Packet completed (goal is to complete 1-2 departments a quarter",
+            "apr": "I asked about getting a survey on KPA, but havent received a response"
+          }
+        },
+        {
+          "title": "Strengthen Organic Talent Acquisition and Reduce External Recruiting Dependency",
+          "auditForm": false,
+          "baseline": 0.87,
+          "target": "15% Increase",
+          "owner": "Heather",
+          "manualStatus": "On track",
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.875,
+            "apr": 0.98
+          }
+        },
+        {
+          "title": "Increase Employee Engagement",
+          "auditForm": false,
+          "baseline": null,
+          "target": "Success means achieving strong employee participation, positive engagement survey results, and actionable feedback that leads to workplace improvements.",
+          "owner": "Heather",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": "Implementation phase (baseline)",
+            "apr": "Still waiting on KPA"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Inventory / Logistics",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Parts Picked Accuracy - AUDIT",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "AA",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 1,
+            "feb": 1,
+            "mar": 0.99,
+            "apr": 0.99,
+            "may": 1,
+            "jun": 0.98
+          }
+        },
+        {
+          "title": "Clearly Label and Designate all Inventory w/Unique Identifier- AUDIT",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "AA",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.4,
+            "feb": 0.75,
+            "mar": 0.9,
+            "apr": 0.9,
+            "may": 0.9,
+            "jun": 0.9
+          }
+        },
+        {
+          "title": "Reduce Slow moving inventory by 50%. Monthly Sales Team monthly meetings",
+          "auditForm": false,
+          "baseline": "DEFINED LIST WITH STARTING VALUE",
+          "target": "$50,000/quarter",
+          "owner": "AA",
+          "manualStatus": null,
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": "Complete",
+            "apr": "In Progress"
+          }
+        },
+        {
+          "title": "Serialized Inventory Entered into RigER/Tessa link within 48hrs - AUDIT",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "AA",
+          "manualStatus": null,
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": "N/A",
+            "feb": "N/A",
+            "mar": 1,
+            "apr": 1,
+            "may": 1,
+            "jun": 1
+          }
+        },
+        {
+          "title": "System Inventory Accuracy vs Hard Count",
+          "auditForm": false,
+          "baseline": "On Target",
+          "target": "98% Accurate",
+          "owner": "AA",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.99,
+            "feb": 0.99,
+            "mar": 0.99,
+            "apr": 0.99,
+            "may": 0.99,
+            "jun": 0.99
+          }
+        }
+      ]
+    },
+    {
+      "group": "Safety",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Behavior Based Safety Observations",
+          "auditForm": false,
+          "baseline": null,
+          "target": 33,
+          "owner": "Casey",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "feb": "2 Completed",
+            "mar": "2 Completed",
+            "apr": "1 Completed",
+            "may": "3 Completed",
+            "jun": "1 Completed"
+          }
+        },
+        {
+          "title": "Achieve 100% Bill back for Exxon Training.",
+          "auditForm": false,
+          "baseline": "Implementation phase",
+          "target": "Success means all Exxon-related training expenses are identified, documented, submitted, and fully billed back with no missing charges.",
+          "owner": "Casey",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0
+          }
+        },
+        {
+          "title": "All safety policies, programs, documentation must be converted to controlled document that aligns with API Q2 standards.",
+          "auditForm": false,
+          "baseline": "Development",
+          "target": "46 Completed",
+          "owner": "Casey",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.87,
+            "jun": 0.87
+          }
+        },
+        {
+          "title": "Measure and improve company Safety culture",
+          "auditForm": true,
+          "baseline": "Development",
+          "target": "Develop task list base on survey results",
+          "owner": "Casey",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Implement monthly micro-learning",
+          "auditForm": false,
+          "baseline": "In Progress",
+          "target": 10,
+          "owner": "Casey",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "feb": "1 Completed",
+            "mar": "1 Completed",
+            "apr": "2 Completed",
+            "may": "1 Completed"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Facility/Yard",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "100% Load out readiness - AUDIT/ NCR",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "Jaelen",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": 1
+          }
+        },
+        {
+          "title": "100% Compliance on reporting Equipment Damage",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "Jaelen",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": 1
+          }
+        },
+        {
+          "title": "Yard Organization",
+          "auditForm": true,
+          "baseline": null,
+          "target": "Define what success means",
+          "owner": "Jaelen",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0,
+            "feb": 0,
+            "mar": 0.2,
+            "apr": 0.35,
+            "may": 0.65,
+            "jun": 0.75
+          }
+        },
+        {
+          "title": "100% Return Zone Compliance- 24HR Turn & Asset Tracking Return",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "Aiden",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "mar": 0.9,
+            "apr": 0.9,
+            "may": 0.6,
+            "jun": 0.95
+          }
+        },
+        {
+          "title": "Optimized Truck Loadouts - AUDIT",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 1,
+          "owner": "Jaelen/Thomas",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": 0
+          }
+        }
+      ]
+    },
+    {
+      "group": "Quality / Compliance",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "NCR Closures",
+          "auditForm": false,
+          "baseline": 0.55,
+          "target": 0.8,
+          "owner": "Tim",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.55,
+            "feb": 0.53,
+            "mar": 0.56,
+            "apr": 0.56,
+            "may": 0.51
+          }
+        },
+        {
+          "title": "Quality Level of QC Inspections- AUDIT",
+          "auditForm": true,
+          "baseline": "Needs Improvement",
+          "target": 20,
+          "owner": "Brad/ Bryce",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "apr": "Doing first Audit"
+          }
+        },
+        {
+          "title": "Vendor evaluations (Q2)",
+          "auditForm": false,
+          "baseline": "Define what success means - total list needed",
+          "target": 0.05,
+          "owner": "Tim",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0,
+            "feb": 0,
+            "mar": 0,
+            "apr": 0,
+            "may": 0
+          }
+        },
+        {
+          "title": "Internal Audit improvement (Q2)",
+          "auditForm": false,
+          "baseline": 0.78,
+          "target": 1,
+          "owner": "Tim",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0,
+            "feb": 0,
+            "mar": 0,
+            "apr": 0,
+            "may": 0
+          }
+        }
+      ]
+    },
+    {
+      "group": "Field Ops",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Reduction in Field NCR's",
+          "auditForm": false,
+          "baseline": 0.05,
+          "target": 0.01,
+          "owner": "Malcolm/Field Service Managers",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.05,
+            "feb": 0.04,
+            "mar": 0.04,
+            "apr": 0.04,
+            "may": 0.04
+          }
+        },
+        {
+          "title": "Field Service Q2 Audit",
+          "auditForm": true,
+          "baseline": 0.3,
+          "target": 1,
+          "owner": "Malcolm/Field Service Managers",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0.3,
+            "feb": 0.3,
+            "mar": 0.3,
+            "apr": 0.3,
+            "may": 0.3
+          }
+        },
+        {
+          "title": "Tablet/Riger Integration 100%",
+          "auditForm": true,
+          "baseline": 0.9,
+          "target": 1,
+          "owner": "Malcolm/Field Service Managers",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "apr": 0.9,
+            "may": 0.9
+          }
+        },
+        {
+          "title": "Field Service Labor Cost to Revenue Ratio",
+          "auditForm": false,
+          "baseline": 0.17,
+          "target": "14%- Key note- This is not just fixable by a absolute service reduction. It needs to be a OKR to Sales and company on revenue mix along with rev per job type.",
+          "owner": "Malcolm/Field Service Managers",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "apr": 0.17,
+            "may": 0.14
+          }
+        },
+        {
+          "title": "BBS",
+          "auditForm": true,
+          "baseline": 0,
+          "target": 0,
+          "owner": "Malcolm/Field Service Managers",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "apr": 0,
+            "may": 0
+          }
+        }
+      ]
+    },
+    {
+      "group": "I&E- Panels",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Achieve 100% on time delivery",
+          "auditForm": true,
+          "baseline": 0.7,
+          "target": 1,
+          "owner": "HUNTER/DREW",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": 1
+          }
+        },
+        {
+          "title": "Value Engineer -10% Cost reduction out of (2) Solutions",
+          "auditForm": false,
+          "baseline": "BASELINE BOM FOR THE 2 SOLUTIONS MUST BE COMPLETED",
+          "target": -0.15,
+          "owner": "HUNTER/DREW",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": "DATA PENDING"
+          }
+        },
+        {
+          "title": "Qualify Key Vendors 1,2,3 for commonly used parts.",
+          "auditForm": false,
+          "baseline": 0,
+          "target": 3,
+          "owner": "HUNTER/DREW",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": "DATA PENDING"
+          }
+        },
+        {
+          "title": "Optimized New Builds with 20% time reduction.",
+          "auditForm": false,
+          "baseline": "BASELINE NEEDED",
+          "target": -0.2,
+          "owner": "HUNTER/DREW",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": 0.25
+          }
+        },
+        {
+          "title": "Product documentation packets for all products- BOM- Manual Etc.",
+          "auditForm": true,
+          "baseline": "Define what success means - total list needed",
+          "target": 1,
+          "owner": "HUNTER/DREW",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": 0.75
+          }
+        }
+      ]
+    },
+    {
+      "group": "CP Warehouse",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "CP Warehouse asset throughput per day- Create baseline",
+          "auditForm": false,
+          "baseline": "Define what success means & Baseline Needed",
+          "target": 1,
+          "owner": "KK",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": 13
+          }
+        },
+        {
+          "title": "Top (5) Routers - Time start to time completed.",
+          "auditForm": false,
+          "baseline": "Define what success means & Baseline Needed",
+          "target": 1,
+          "owner": "KK",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": "N/A"
+          }
+        },
+        {
+          "title": "CP Stored Client SMI- Idle time.",
+          "auditForm": false,
+          "baseline": "Define what success means & Baseline Needed",
+          "target": 1,
+          "owner": "KK",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": "N/A"
+          }
+        },
+        {
+          "title": "Meeting 100% of client stock level readiness",
+          "auditForm": true,
+          "baseline": "Define what success means & Baseline Needed",
+          "target": 1,
+          "owner": "KK",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": "N/A"
+          }
+        },
+        {
+          "title": "Decreasing the number of Events identifying RFID function issues.",
+          "auditForm": true,
+          "baseline": "Define what success means & Baseline Needed",
+          "target": 1,
+          "owner": "KK",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": 0.95
+          }
+        }
+      ]
+    },
+    {
+      "group": "R&D/Engineering / Design",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Successful completion of (3) Mvp pilot deployments.",
+          "auditForm": false,
+          "baseline": null,
+          "target": 1,
+          "owner": "JPL",
+          "manualStatus": null,
+          "reportingCadence": "Quarterly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Review and Enhance current Q2 Compliance Design and Development planning process workflow to ensure clear direction, assigned owners  accountability and required pre build and Final Product Documentation requirements are outlined.",
+          "auditForm": false,
+          "baseline": "NOT DONE",
+          "target": 1,
+          "owner": "JPL",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "100% Compliance utilizing Q2 Compliance Design and Development planning process workflow and group sign off of Scope of Work. PRIOR to work starting.",
+          "auditForm": true,
+          "baseline": "NOT DONE",
+          "target": 1,
+          "owner": "JPL",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        }
+      ]
+    },
+    {
+      "group": "Flowback Repair",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Number of bands",
+          "auditForm": false,
+          "baseline": 500,
+          "target": 1000,
+          "owner": "Matt",
+          "manualStatus": "At risk",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "mar": 436,
+            "apr": 657,
+            "jun": 47
+          }
+        },
+        {
+          "title": "Iron recertification time - spreadsheet- baseline",
+          "auditForm": false,
+          "baseline": "BASELINE NEEDED (On hold until Digital Work Orders)",
+          "target": "Needs goal",
+          "owner": "Matt",
+          "manualStatus": null,
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Pieces of iron inspected/turned",
+          "auditForm": false,
+          "baseline": 500,
+          "target": 1000,
+          "owner": "Matt",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": 754
+          }
+        },
+        {
+          "title": "Percentage of iron packages ready to deploy",
+          "auditForm": true,
+          "baseline": 0,
+          "target": "4 wells of iron package ready to deploy",
+          "owner": "Matt",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0,
+            "feb": 0,
+            "mar": 0,
+            "apr": 0,
+            "jun": 1
+          }
+        },
+        {
+          "title": "Plug Valve failures after rebuild",
+          "auditForm": false,
+          "baseline": 2,
+          "target": 0,
+          "owner": "Matt",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0,
+            "feb": 0.01,
+            "mar": 0,
+            "apr": 0,
+            "jun": 0
+          }
+        }
+      ]
+    },
+    {
+      "group": "Frac Repair",
+      "isCompany": false,
+      "okrs": [
+        {
+          "title": "Number of tests per day- baseline",
+          "auditForm": false,
+          "baseline": "Needs baseline",
+          "target": 10,
+          "owner": "Jaelen",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": 10
+          }
+        },
+        {
+          "title": "Number of valves Repaired per day- baseline",
+          "auditForm": false,
+          "baseline": "Needs baseline",
+          "target": "Needs goal",
+          "owner": "Jaelen",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "may": 5,
+            "jun": 5
+          }
+        },
+        {
+          "title": "Assets ready to deploy- baseline- *MIN/MAX of Valves per Size*",
+          "auditForm": true,
+          "baseline": 0,
+          "target": "Needs goal Per Valve Size",
+          "owner": "Jaelen",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {}
+        },
+        {
+          "title": "Throughput achievement metric from standard to service less ( we are moving x valves through now and want to get to Y with removing repair in cycle)",
+          "auditForm": false,
+          "baseline": "Needs baseline",
+          "target": "Needs goal",
+          "owner": "Jaelen",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": "N/A"
+          }
+        },
+        {
+          "title": "test failures after rebuilds- baseline",
+          "auditForm": false,
+          "baseline": 4,
+          "target": 0,
+          "owner": "Jaelen",
+          "manualStatus": "On track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jan": 0,
+            "feb": 0,
+            "mar": 0,
+            "apr": 0,
+            "may": 4,
+            "jun": 0
+          }
+        },
+        {
+          "title": "time to complete Repair Cards",
+          "auditForm": true,
+          "baseline": "Needs Baseline - Waiting on Digital Work Orders",
+          "target": "30 Days",
+          "owner": "Jaelen",
+          "manualStatus": "Off track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": "N/A"
+          }
+        },
+        {
+          "title": "Achieve avg Lifecyle of (6) Deployments or greater for Service less Valves. - NCR for any valve that doesn’t achieve 6 dots.",
+          "auditForm": false,
+          "baseline": "n/a",
+          "target": 6,
+          "owner": "Jaelen",
+          "manualStatus": "Near on track",
+          "reportingCadence": "Monthly",
+          "ytdAvg": null,
+          "actuals": {
+            "jun": "In Progress - There are (3) 710 Sandshields that are on their 5th rotation."
+          }
+        }
+      ]
+    }
+  ]
+}

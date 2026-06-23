@@ -3,6 +3,9 @@
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
 ALTER TABLE public.objectives
   ADD COLUMN IF NOT EXISTS measurement_cadence TEXT NOT NULL DEFAULT 'monthly',
   ADD COLUMN IF NOT EXISTS rollup_method TEXT NOT NULL DEFAULT 'average',
@@ -112,6 +115,103 @@ CREATE TABLE IF NOT EXISTS public.objective_metric_checkins (
   note TEXT DEFAULT '',
   created_by UUID REFERENCES public.profiles(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.kpi_definitions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL DEFAULT 'Operations',
+  department TEXT NOT NULL DEFAULT 'Company',
+  owner_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  unit TEXT NOT NULL DEFAULT '',
+  direction TEXT NOT NULL DEFAULT 'increase' CHECK (direction IN ('increase', 'decrease', 'target_band')),
+  target_value NUMERIC,
+  yellow_min NUMERIC,
+  yellow_max NUMERIC,
+  red_min NUMERIC,
+  red_max NUMERIC,
+  thresholds_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  source_type TEXT NOT NULL DEFAULT 'manual',
+  formula_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  cadence TEXT NOT NULL DEFAULT 'weekly' CHECK (cadence IN ('daily', 'weekly', 'monthly', 'quarterly')),
+  status TEXT NOT NULL DEFAULT 'active',
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.kpi_datapoints (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  kpi_id UUID NOT NULL REFERENCES public.kpi_definitions(id) ON DELETE CASCADE,
+  period_start DATE,
+  period_end DATE,
+  value NUMERIC NOT NULL,
+  denominator NUMERIC,
+  dimensions_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  source_label TEXT NOT NULL DEFAULT 'Manual KPI check-in',
+  source_ref TEXT NOT NULL DEFAULT '',
+  imported_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.kpi_objective_links (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  kpi_id UUID NOT NULL REFERENCES public.kpi_definitions(id) ON DELETE CASCADE,
+  objective_id UUID NOT NULL REFERENCES public.objectives(id) ON DELETE CASCADE,
+  relationship TEXT NOT NULL DEFAULT 'measures',
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(kpi_id, objective_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.kpi_checkins (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  kpi_id UUID NOT NULL REFERENCES public.kpi_definitions(id) ON DELETE CASCADE,
+  note TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'note',
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.kpi_alert_rules (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  kpi_id UUID NOT NULL REFERENCES public.kpi_definitions(id) ON DELETE CASCADE,
+  severity TEXT NOT NULL DEFAULT 'watch',
+  condition_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.kpi_alert_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  kpi_id UUID REFERENCES public.kpi_definitions(id) ON DELETE CASCADE,
+  rule_id UUID REFERENCES public.kpi_alert_rules(id) ON DELETE SET NULL,
+  severity TEXT NOT NULL DEFAULT 'watch',
+  status TEXT NOT NULL DEFAULT 'open',
+  title TEXT NOT NULL DEFAULT '',
+  message TEXT NOT NULL DEFAULT '',
+  triggered_value NUMERIC,
+  triggered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  acknowledged_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  acknowledged_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.kpi_import_batches (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  source_label TEXT NOT NULL DEFAULT 'KPI CSV import',
+  file_name TEXT NOT NULL DEFAULT '',
+  imported_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  total_rows INT NOT NULL DEFAULT 0,
+  imported_rows INT NOT NULL DEFAULT 0,
+  error_rows INT NOT NULL DEFAULT 0,
+  errors JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'complete',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS public.objective_workflow_steps (
@@ -723,6 +823,16 @@ CREATE INDEX IF NOT EXISTS idx_files_agent_run ON public.files(agent_run_id);
 CREATE INDEX IF NOT EXISTS idx_members_objective ON public.objective_members(objective_id);
 CREATE INDEX IF NOT EXISTS idx_members_user ON public.objective_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_metric_checkins_objective ON public.objective_metric_checkins(objective_id);
+CREATE INDEX IF NOT EXISTS idx_kpi_definitions_status ON public.kpi_definitions(status, category, department);
+CREATE INDEX IF NOT EXISTS idx_kpi_definitions_owner ON public.kpi_definitions(owner_id);
+CREATE INDEX IF NOT EXISTS idx_kpi_datapoints_kpi_period ON public.kpi_datapoints(kpi_id, period_end DESC, period_start DESC);
+CREATE INDEX IF NOT EXISTS idx_kpi_datapoints_imported_by ON public.kpi_datapoints(imported_by);
+CREATE INDEX IF NOT EXISTS idx_kpi_objective_links_kpi ON public.kpi_objective_links(kpi_id);
+CREATE INDEX IF NOT EXISTS idx_kpi_objective_links_objective ON public.kpi_objective_links(objective_id);
+CREATE INDEX IF NOT EXISTS idx_kpi_checkins_kpi ON public.kpi_checkins(kpi_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kpi_alert_rules_kpi ON public.kpi_alert_rules(kpi_id, enabled);
+CREATE INDEX IF NOT EXISTS idx_kpi_alert_events_kpi ON public.kpi_alert_events(kpi_id, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kpi_import_batches_created ON public.kpi_import_batches(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_workflow_steps_objective ON public.objective_workflow_steps(objective_id, step_order);
 CREATE INDEX IF NOT EXISTS idx_workflow_steps_owner ON public.objective_workflow_steps(owner_id);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_objective ON public.objective_agent_runs(objective_id);
@@ -986,6 +1096,13 @@ ON CONFLICT (objective_id, step_order) DO NOTHING;
 
 ALTER TABLE public.objective_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_metric_checkins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kpi_definitions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kpi_datapoints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kpi_objective_links ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kpi_checkins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kpi_alert_rules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kpi_alert_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kpi_import_batches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_workflow_steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_agent_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.okr_projects ENABLE ROW LEVEL SECURITY;
@@ -1083,6 +1200,138 @@ CREATE POLICY "Metric checkins viewable by all authenticated"
 DROP POLICY IF EXISTS "Authenticated can insert metric checkins" ON public.objective_metric_checkins;
 CREATE POLICY "Authenticated can insert metric checkins"
   ON public.objective_metric_checkins FOR INSERT TO authenticated WITH CHECK (auth.uid() = created_by);
+
+DROP POLICY IF EXISTS "KPI definitions viewable by authenticated" ON public.kpi_definitions;
+CREATE POLICY "KPI definitions viewable by authenticated"
+  ON public.kpi_definitions FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "KPI owners and executives manage definitions" ON public.kpi_definitions;
+CREATE POLICY "KPI owners and executives manage definitions"
+  ON public.kpi_definitions FOR ALL TO authenticated
+  USING (
+    created_by = auth.uid()
+    OR owner_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  )
+  WITH CHECK (
+    created_by = auth.uid()
+    OR owner_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  );
+
+DROP POLICY IF EXISTS "KPI datapoints viewable by authenticated" ON public.kpi_datapoints;
+CREATE POLICY "KPI datapoints viewable by authenticated"
+  ON public.kpi_datapoints FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "KPI datapoint actors and executives manage datapoints" ON public.kpi_datapoints;
+CREATE POLICY "KPI datapoint actors and executives manage datapoints"
+  ON public.kpi_datapoints FOR ALL TO authenticated
+  USING (
+    imported_by = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.kpi_definitions k
+      WHERE k.id = kpi_id AND (k.created_by = auth.uid() OR k.owner_id = auth.uid())
+    )
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  )
+  WITH CHECK (
+    imported_by = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.kpi_definitions k
+      WHERE k.id = kpi_id AND (k.created_by = auth.uid() OR k.owner_id = auth.uid())
+    )
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  );
+
+DROP POLICY IF EXISTS "KPI objective links viewable by authenticated" ON public.kpi_objective_links;
+CREATE POLICY "KPI objective links viewable by authenticated"
+  ON public.kpi_objective_links FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "KPI owners and executives manage objective links" ON public.kpi_objective_links;
+CREATE POLICY "KPI owners and executives manage objective links"
+  ON public.kpi_objective_links FOR ALL TO authenticated
+  USING (
+    created_by = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.kpi_definitions k
+      WHERE k.id = kpi_id AND (k.created_by = auth.uid() OR k.owner_id = auth.uid())
+    )
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  )
+  WITH CHECK (
+    created_by = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.kpi_definitions k
+      WHERE k.id = kpi_id AND (k.created_by = auth.uid() OR k.owner_id = auth.uid())
+    )
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  );
+
+DROP POLICY IF EXISTS "KPI checkins viewable by authenticated" ON public.kpi_checkins;
+CREATE POLICY "KPI checkins viewable by authenticated"
+  ON public.kpi_checkins FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated can insert KPI checkins" ON public.kpi_checkins;
+CREATE POLICY "Authenticated can insert KPI checkins"
+  ON public.kpi_checkins FOR INSERT TO authenticated WITH CHECK (created_by = auth.uid());
+
+DROP POLICY IF EXISTS "KPI alert rules viewable by authenticated" ON public.kpi_alert_rules;
+CREATE POLICY "KPI alert rules viewable by authenticated"
+  ON public.kpi_alert_rules FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "KPI owners and executives manage alert rules" ON public.kpi_alert_rules;
+CREATE POLICY "KPI owners and executives manage alert rules"
+  ON public.kpi_alert_rules FOR ALL TO authenticated
+  USING (
+    created_by = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.kpi_definitions k
+      WHERE k.id = kpi_id AND (k.created_by = auth.uid() OR k.owner_id = auth.uid())
+    )
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  )
+  WITH CHECK (
+    created_by = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.kpi_definitions k
+      WHERE k.id = kpi_id AND (k.created_by = auth.uid() OR k.owner_id = auth.uid())
+    )
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  );
+
+DROP POLICY IF EXISTS "KPI alert events viewable by authenticated" ON public.kpi_alert_events;
+CREATE POLICY "KPI alert events viewable by authenticated"
+  ON public.kpi_alert_events FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Authenticated can manage KPI alert events" ON public.kpi_alert_events;
+CREATE POLICY "Authenticated can manage KPI alert events"
+  ON public.kpi_alert_events FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "KPI import batches viewable by authenticated" ON public.kpi_import_batches;
+CREATE POLICY "KPI import batches viewable by authenticated"
+  ON public.kpi_import_batches FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "KPI import actors manage import batches" ON public.kpi_import_batches;
+CREATE POLICY "KPI import actors manage import batches"
+  ON public.kpi_import_batches FOR ALL TO authenticated
+  USING (
+    imported_by = auth.uid()
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  )
+  WITH CHECK (
+    imported_by = auth.uid()
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'executive')
+  );
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
+  public.kpi_definitions,
+  public.kpi_datapoints,
+  public.kpi_objective_links,
+  public.kpi_checkins,
+  public.kpi_alert_rules,
+  public.kpi_alert_events,
+  public.kpi_import_batches
+TO authenticated;
 
 DROP POLICY IF EXISTS "Workflow steps viewable by all authenticated" ON public.objective_workflow_steps;
 CREATE POLICY "Workflow steps viewable by all authenticated"
@@ -1577,6 +1826,43 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('alt-note-files', 'alt-note-files', false)
 ON CONFLICT (id) DO UPDATE SET public = false;
 
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'profile-avatars',
+  'profile-avatars',
+  true,
+  5242880,
+  ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']::TEXT[]
+)
+ON CONFLICT (id) DO UPDATE
+SET
+  public = true,
+  file_size_limit = 5242880,
+  allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']::TEXT[];
+
+DROP POLICY IF EXISTS "Anyone can read profile avatar objects" ON storage.objects;
+CREATE POLICY "Anyone can read profile avatar objects"
+  ON storage.objects FOR SELECT TO public
+  USING (bucket_id = 'profile-avatars');
+
+DROP POLICY IF EXISTS "Users can upload own profile avatar objects" ON storage.objects;
+CREATE POLICY "Users can upload own profile avatar objects"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'profile-avatars'
+    AND owner = auth.uid()
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+DROP POLICY IF EXISTS "Users can delete own profile avatar objects" ON storage.objects;
+CREATE POLICY "Users can delete own profile avatar objects"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'profile-avatars'
+    AND owner = auth.uid()
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
 DROP POLICY IF EXISTS "Authenticated users can read objective file objects" ON storage.objects;
 CREATE POLICY "Authenticated users can read objective file objects"
   ON storage.objects FOR SELECT TO authenticated
@@ -1877,6 +2163,55 @@ END $$;
 DO $$
 BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE public.org_chart_updates;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.kpi_definitions;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.kpi_datapoints;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.kpi_objective_links;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.kpi_checkins;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.kpi_alert_rules;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.kpi_alert_events;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.kpi_import_batches;
 EXCEPTION WHEN duplicate_object THEN
   NULL;
 END $$;

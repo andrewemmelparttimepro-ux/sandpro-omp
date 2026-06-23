@@ -19,7 +19,28 @@ export const PRIORITY_CONFIG = {
   low: { label: "Low", color: "#94A3B8" },
 };
 
-export const DEPARTMENTS = ["Leadership", "Operations", "Automation", "Sales", "HR", "Field Operations", "Quality", "Shop", "Admin", "Safety"];
+// Legacy flat department list (pre-Framework Rev 1). Retained only for the
+// data migration / remap of existing records. See LEGACY_DEPARTMENT_REMAP.
+export const LEGACY_DEPARTMENTS = ["Leadership", "Operations", "Automation", "Sales", "HR", "Field Operations", "Quality", "Shop", "Admin", "Safety"];
+
+import { OMP_DEPARTMENTS, OMP_DEPARTMENT_CLASSES, getDepartmentClasses } from "./ompFramework.js";
+
+// Department pick list now comes from OMP Framework Rev 1 (5 departments + a
+// per-department class layer). Source: OMP_FRAME_WORK_R1.xlsx (Tim/Jake meeting,
+// relayed by Merci). See src/ompFramework.js and the framework handoff.
+// NOTE: existing records still carry legacy department values until the
+// migration runs — consumers grouping by department must handle both during the
+// transition (documented in AGENT-HANDOFF-OMP-FRAMEWORK-AND-OKRS.md).
+export const DEPARTMENTS = OMP_DEPARTMENTS;
+export const DEFAULT_DEPARTMENT = OMP_DEPARTMENTS.includes("Business Team") ? "Business Team" : OMP_DEPARTMENTS[0];
+export { OMP_DEPARTMENT_CLASSES, getDepartmentClasses };
+
+export const getDepartmentOptions = (currentValue = "") => {
+  const value = String(currentValue || "").trim();
+  return value && !OMP_DEPARTMENTS.includes(value)
+    ? [value, ...OMP_DEPARTMENTS]
+    : OMP_DEPARTMENTS;
+};
 
 export const getStatusColor = (s) => STATUS_CONFIG[s]?.color || "#6B7280";
 export const getStatusLabel = (s) => STATUS_CONFIG[s]?.label || s;

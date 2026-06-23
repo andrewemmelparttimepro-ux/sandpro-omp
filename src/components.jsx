@@ -8,7 +8,7 @@ import {
   Sparkles, AlertCircle, Users, UserPlus, HelpCircle, Bell, Home, Smartphone, SmilePlus, Languages,
   ThumbsUp, Wrench, Handshake
 } from 'lucide-react';
-import { getUser, getProfiles, getDirectReports, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId } from './data';
+import { getUser, getProfiles, getDirectReports, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT, getDepartmentOptions } from './data';
 import { findMentionCandidates, getActiveMention, getMentionedUsers, insertMentionText } from './mentions';
 import {
   OKR_LEVELS,
@@ -2682,7 +2682,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const [dueDate, setDueDate] = useState(editObj?.dueDate ? new Date(editObj.dueDate).toISOString().split("T")[0] : savedDraft?.dueDate || "");
   const [ownerId, setOwnerId] = useState(editObj?.ownerId || savedDraft?.ownerId || currentUser.id);
   const [parentId, setParentId] = useState(editObj?.parentId || savedDraft?.parentId || "");
-  const [department, setDepartment] = useState(editObj?.department || savedDraft?.department || currentUser.department);
+  const [department, setDepartment] = useState(editObj?.department || savedDraft?.department || currentUser.department || DEFAULT_DEPARTMENT);
   const [type, setType] = useState(editObj?.type || savedDraft?.type || "simple");
   const [okrLevel, setOkrLevel] = useState(normalizedInitialOkrLevel);
   const [okrPeriod, setOkrPeriod] = useState(editObj?.okrPeriod || savedDraft?.okrPeriod || getCurrentOkrPeriod());
@@ -2924,7 +2924,7 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
             <div>
               <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Department</label>
               <select value={department} onChange={e => setDepartment(e.target.value)} style={{ width: "100%" }}>
-                {["Leadership", "Operations", "Automation", "Sales", "HR", "Field Operations", "Quality", "Shop", "Admin", "Safety"].map(d => <option key={d} value={d}>{d}</option>)}
+                {getDepartmentOptions(department).map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
           </div>
@@ -3061,15 +3061,15 @@ const safeUser = (id) => {
 };
 
 const DAILY_BULLETIN = {
-  id: '2026-06-17-company-wide-launch',
+  id: '2026-06-24-company-wide-launch',
   kicker: 'SandPro Times Special Edition',
-  headline: 'SandPro OMP goes company-wide this Wednesday',
-  byline: 'Company-Wide Rollout · Wednesday, June 17, 2026',
-  intro: 'This is the headline item for the week: SandPro OMP moves from the working team into company-wide SandPro use on Wednesday, June 17, 2026. Every team should know where objectives live, how updates get made, and how to use the app before rollout day.',
+  headline: 'SandPro OMP goes company-wide next Wednesday',
+  byline: 'Company-Wide Rollout · Wednesday, June 24, 2026',
+  intro: 'This is the headline item for the week: SandPro OMP moves from the working team into company-wide SandPro use next Wednesday, June 24, 2026. Every team should know where objectives live, how updates get made, and how to use the app before rollout day.',
   rollout: {
     eyebrow: 'Company-Wide Launch',
-    date: 'Wednesday, June 17',
-    title: 'SandPro OMP opens to all of SandPro this Wednesday',
+    date: 'Wednesday, June 24',
+    title: 'SandPro OMP opens to all of SandPro next Wednesday',
     body: 'The OMP dashboard is becoming a company-wide operating layer. Objectives, updates, tags, due dates, Fix-It items, NCR visibility, and mobile access all need to feel ready for people across SandPro, not just the pilot group.',
     action: 'Treat this as the priority story: confirm your objectives, clean up stale updates, and be ready to help teammates find their work in OMP.',
   },

@@ -9,8 +9,8 @@ test.describe('SandPro Daily', () => {
     await page.getByTitle('Daily Brief').click();
     await expect(page.locator('.brief-overlay')).toBeVisible();
 
-    await expect(page.locator('.brief-bulletin-headline')).toContainText('SandPro OMP goes company-wide this Wednesday');
-    await expect(page.locator('.brief-byline')).toContainText('Wednesday, June 17, 2026');
+    await expect(page.locator('.brief-bulletin-headline')).toContainText('SandPro OMP goes company-wide next Wednesday');
+    await expect(page.locator('.brief-byline')).toContainText('Wednesday, June 24, 2026');
     await expect(page.locator('.brief-rollout-hero')).toContainText('Company-wide');
     await expect(page.locator('.brief-rollout-hero')).toContainText('all of SandPro');
 

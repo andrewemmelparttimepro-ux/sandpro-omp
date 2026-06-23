@@ -23,7 +23,11 @@ test('release code has no browser prompt/confirm dead ends', () => {
 });
 
 test('seed and admin scripts do not hardcode shared passwords or production project ids', () => {
-  const source = ['supabase/seed-users.mjs', 'api/admin/invite-user.js'].map(read).join('\n');
+  const source = [
+    'supabase/seed-users.mjs',
+    'api/admin/invite-user.js',
+    'scripts/sandpro-onboard-employees.mjs',
+  ].map(read).join('\n');
   const fromCodes = (codes) => String.fromCharCode(...codes);
   const forbiddenValues = [
     fromCodes([83, 97, 110, 100, 80, 114, 111, 79, 77, 80, 50, 48, 50, 54, 33]),
@@ -41,6 +45,13 @@ test('release migration contains P0/P1 persistence surfaces', () => {
     'objective-files',
 	    'objective_members',
 	    'objective_metric_checkins',
+    'kpi_definitions',
+    'kpi_datapoints',
+    'kpi_objective_links',
+    'kpi_checkins',
+    'kpi_alert_rules',
+    'kpi_alert_events',
+    'kpi_import_batches',
 	    'objective_workflow_steps',
     'objective_agent_runs',
     'notification_preferences',
@@ -64,6 +75,38 @@ test('release migration contains P0/P1 persistence surfaces', () => {
   ]) {
     assert.ok(migration.includes(required), `${required} missing from migration`);
   }
+});
+
+test('KPI command center is a first-class goal-linked route', () => {
+  const app = read('src/App.jsx');
+  const pages = read('src/pages.jsx');
+  const hook = read('src/hooks/useSupabase.js');
+  const kpiSystem = read('src/kpiSystem.js');
+  const migration = read('supabase/release_ready_migration.sql');
+  const schemaCheck = read('scripts/check-release-schema.mjs');
+
+  assert.match(app, /"dashboard", "objectives", "kpi", "fixit"/);
+  assert.match(app, /label: "KPI"/);
+  assert.match(app, /useKpis/);
+  assert.match(app, /KpiPage/);
+  assert.match(app, /handleCreateObjectiveFromKpi/);
+  assert.match(pages, /export const KpiPage/);
+  assert.match(pages, /KPI Command Center/);
+  assert.match(pages, /Department quarterly scorecard/);
+  assert.match(pages, /NCR quality strip/);
+  assert.match(pages, /Create objective/);
+  assert.match(pages, /Preview CSV/);
+  assert.match(hook, /export function useKpis/);
+  assert.match(hook, /kpi_definitions/);
+  assert.match(hook, /importKpiCsv/);
+  assert.match(kpiSystem, /buildOperatingKpis/);
+  assert.match(kpiSystem, /parseKpiCsv/);
+  assert.match(kpiSystem, /buildNcrKpiSummary/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.kpi_definitions/);
+  assert.match(migration, /ALTER TABLE public\.kpi_definitions ENABLE ROW LEVEL SECURITY/);
+  assert.match(migration, /GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE\s+public\.kpi_definitions/);
+  assert.match(schemaCheck, /kpi_definitions table/);
+  assert.match(schemaCheck, /kpi_import_batches table/);
 });
 
 test('NCR tracker is a database-backed production page with objective handoff', () => {
@@ -93,7 +136,7 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(pages, /Native NCR Action Items/);
   assert.match(pages, /Photos \+ Documentation/);
   assert.match(pages, /NcrEvidencePanel/);
-  assert.match(pages, /NCR_DEPARTMENT_GROUPS = \['Shop', 'Service', 'CP', 'Sales', 'Automation', 'Quality', 'Safety', 'Admin'\]/);
+  assert.match(pages, /NCR_DEPARTMENT_GROUPS = DEPARTMENTS/);
   assert.match(pages, /NCR_QUERY_ALIASES/);
   assert.match(pages, /Exxon \/ XTO/);
   assert.match(pages, /Template CSV/);
@@ -523,11 +566,11 @@ test('SandPro Daily can publish bulletin-board updates with PWA guidance', () =>
   const component = read('src/components.jsx');
   const css = read('src/index.css');
   assert.match(app, /DAILY_BRIEF_STORAGE_VERSION/);
-  assert.match(app, /bulletin-2026-06-17-company-wide-launch/);
+  assert.match(app, /bulletin-2026-06-24-company-wide-launch/);
   assert.match(component, /DAILY_BULLETIN/);
   assert.match(component, /SandPro Times Special Edition/);
-  assert.match(component, /SandPro OMP goes company-wide this Wednesday/);
-  assert.match(component, /Wednesday, June 17, 2026/);
+  assert.match(component, /SandPro OMP goes company-wide next Wednesday/);
+  assert.match(component, /Wednesday, June 24, 2026/);
   assert.match(component, /Company-Wide Launch/);
   assert.match(component, /Company-wide/);
   assert.match(component, /iPhone Safari/);

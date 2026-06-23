@@ -2,24 +2,25 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Target, Bell, Plus, LayoutDashboard, Network, ChevronDown, X,
   LogOut, Loader2, Sun, Moon, Newspaper, Sparkles, Wrench, ClipboardCheck,
-  Settings, KeyRound, Smartphone, RefreshCw
+  Settings, KeyRound, Smartphone, RefreshCw, BarChart3, Camera, Upload, Trash2
 } from 'lucide-react';
-import { setProfiles, getUser, getStatusLabel, generateId } from './data';
-import { useAuth, useProfiles, useObjectives, useNotifications, usePushNotifications, useFixItFeed, useNcrReports, useAlternativeDashboard } from './hooks/useSupabase';
+import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, getDepartmentOptions } from './data';
+import { useAuth, useProfiles, useObjectives, useNotifications, usePushNotifications, useFixItFeed, useNcrReports, useAlternativeDashboard, useKpis } from './hooks/useSupabase';
 import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer, DailyBrief, BriefErrorBoundary } from './components';
 import { supabase } from './lib/supabase';
 import { getMentionedUsers } from './mentions';
 import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
+import { formatKpiTarget, formatKpiValue } from './kpiSystem';
 
 // Safe localStorage — fails gracefully in incognito / strict privacy modes
 const safeStorage = {
   get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* noop */ } },
 };
-import { DashboardPage, ObjectivesPage, OrgPage, FixItFeedPage, NcrPage, AdminSidebar } from './pages';
+import { DashboardPage, ObjectivesPage, KpiPage, OrgPage, FixItFeedPage, NcrPage, AdminSidebar } from './pages';
 import './index.css';
 
-const PAGE_IDS = ["dashboard", "objectives", "fixit", "ncr", "organization"];
+const PAGE_IDS = ["dashboard", "objectives", "kpi", "fixit", "ncr", "organization"];
 const DEFAULT_OBJECTIVE_FILTERS = {
   search: "",
   status: "all",
@@ -43,7 +44,7 @@ const FRAMEWORK_EXPLAINER_VERSION = 'okr-project-framework-2026-06-11';
 const ALT_EXPLAINER_STORAGE_PREFIX = 'sandpro-alt-dashboard-guide-seen';
 const ALT_EXPLAINER_VERSION = 'alt-dashboard-2026-06-14';
 const PUSH_SETUP_DISMISSED_PREFIX = 'sandpro-push-setup-dismissed';
-const DAILY_BRIEF_STORAGE_VERSION = 'bulletin-2026-06-17-company-wide-launch';
+const DAILY_BRIEF_STORAGE_VERSION = 'bulletin-2026-06-24-company-wide-launch';
 const BRAND_LOGO_SRC = '/brand/sandpro-omp-logo.png';
 const BRAND_MARK_SRC = '/brand/sandpro-omp-mark.png';
 const ALT_DASHBOARD_HOTKEY_MEDIA = '(min-width: 769px) and (pointer: fine)';
@@ -148,7 +149,7 @@ const LoginScreen = ({ onSignIn, onSignUp, onResetPassword }) => {
   // Signup extras
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
-  const [department, setDepartment] = useState("Operations");
+  const [department, setDepartment] = useState(DEFAULT_DEPARTMENT);
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -223,7 +224,7 @@ const LoginScreen = ({ onSignIn, onSignUp, onResetPassword }) => {
                 <div>
                   <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Department</label>
                   <select value={department} onChange={e => setDepartment(e.target.value)} style={{ width: "100%" }}>
-                    {["Leadership", "Operations", "Automation", "Sales", "HR", "Field Operations", "Quality", "Shop", "Admin", "Safety"].map(d => <option key={d} value={d}>{d}</option>)}
+                    {getDepartmentOptions(department).map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
               </div>
@@ -313,15 +314,66 @@ const AccountSettingsModal = ({
   pushNotifications,
   onEnablePush,
   onDisablePush,
+  onUploadAvatar,
+  onRemoveAvatar,
+  onProfilePhotoChanged,
   onChangePassword,
   onClose,
   onSignOut,
 }) => {
+  const avatarInputRef = useRef(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [passwordStatus, setPasswordStatus] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarStatus, setAvatarStatus] = useState("");
+  const [avatarError, setAvatarError] = useState("");
+  const [avatarDragging, setAvatarDragging] = useState(false);
+
+  const handleAvatarFile = async (file) => {
+    setAvatarStatus("");
+    setAvatarError("");
+    if (!file) return;
+    setAvatarBusy(true);
+    try {
+      await onUploadAvatar(file);
+      await onProfilePhotoChanged?.();
+      setAvatarStatus("Profile photo updated.");
+    } catch (error) {
+      setAvatarError(error.message || "Could not update profile photo.");
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
+  const handleAvatarInput = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    await handleAvatarFile(file);
+  };
+
+  const handleAvatarDrop = async (event) => {
+    event.preventDefault();
+    setAvatarDragging(false);
+    await handleAvatarFile(event.dataTransfer.files?.[0]);
+  };
+
+  const handleAvatarRemove = async () => {
+    setAvatarStatus("");
+    setAvatarError("");
+    setAvatarBusy(true);
+    try {
+      await onRemoveAvatar();
+      await onProfilePhotoChanged?.();
+      setAvatarStatus("Profile photo removed.");
+    } catch (error) {
+      setAvatarError(error.message || "Could not remove profile photo.");
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
 
   const submitPassword = async (event) => {
     event.preventDefault();
@@ -370,6 +422,50 @@ const AccountSettingsModal = ({
               <div className="text-md font-bold">{currentUser.name}</div>
               <div className="text-sm text-muted">{currentUser.email}</div>
               <div className="text-xs text-muted">{currentUser.title} · {currentUser.department} · {currentUser.role}</div>
+            </div>
+          </section>
+
+          <section
+            className={`account-settings-card account-photo-card ${avatarDragging ? 'dragging' : ''}`}
+            onDragEnter={event => { event.preventDefault(); setAvatarDragging(true); }}
+            onDragOver={event => { event.preventDefault(); setAvatarDragging(true); }}
+            onDragLeave={event => { if (event.currentTarget === event.target) setAvatarDragging(false); }}
+            onDrop={handleAvatarDrop}
+          >
+            <div className="account-photo-preview">
+              <Avatar user={currentUser} size={72} />
+              <button
+                type="button"
+                className="account-photo-camera"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarBusy}
+                aria-label="Choose profile photo"
+              >
+                {avatarBusy ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+              </button>
+            </div>
+            <div className="account-photo-content">
+              <div>
+                <div className="text-sm font-bold">Profile photo</div>
+                <div className="text-xs text-muted">Shown app-wide in comments, owners, rosters, notes, and navigation. Drop an image here or choose one from this device.</div>
+              </div>
+              <div className="account-photo-actions">
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => avatarInputRef.current?.click()} disabled={avatarBusy}>
+                  <Upload size={14} /> Choose photo
+                </button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={handleAvatarRemove} disabled={avatarBusy || !currentUser.avatar_url}>
+                  <Trash2 size={14} /> Remove
+                </button>
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="sr-only"
+                onChange={handleAvatarInput}
+              />
+              {avatarStatus && <div className="text-xs text-success">{avatarStatus}</div>}
+              {avatarError && <div className="text-xs text-error">{avatarError}</div>}
             </div>
           </section>
 
@@ -526,7 +622,7 @@ const NotificationPanel = ({ notifications, onMarkAllRead, onClose, onClickNotif
 // ============================================================================
 function App() {
   // Supabase hooks
-  const { user, profile, loading: authLoading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, refetchProfile } = useAuth();
+  const { user, profile, loading: authLoading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile } = useAuth();
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
   const { objectives, okrProjects, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, refetch: refetchObjectives } = useObjectives();
   const { posts: fixItPosts, loading: fixItLoading, createPost: createFixItPost, createComment: createFixItComment, deleteComment: deleteFixItComment, updatePostStatus: updateFixItPostStatus, uploadValidationProof: uploadFixItValidationProof, deletePost: deleteFixItPost } = useFixItFeed(Boolean(user));
@@ -534,6 +630,7 @@ function App() {
   const { notifications, markRead, markAllRead, createNotification: createRawNotification } = useNotifications(profile?.id);
   const pushNotifications = usePushNotifications(profile?.id);
   const altDashboard = useAlternativeDashboard(profile?.id);
+  const kpiData = useKpis(profile?.id, Boolean(profile));
   const fixItAgentRecipientIds = useMemo(() => (
     profiles.filter(isFixItAgentPushRecipient).map(userProfile => userProfile.id)
   ), [profiles]);
@@ -575,6 +672,13 @@ function App() {
   const objectiveFilters = useMemo(() => ({ ...DEFAULT_OBJECTIVE_FILTERS, ...route.filters }), [route.filters]);
   const mustChangePassword = user?.user_metadata?.must_change_password === true;
   const mustSetPassword = mustChangePassword || passwordRecovery;
+  const pageLoading = route.page === "fixit"
+    ? fixItLoading
+    : route.page === "ncr"
+      ? ncrLoading || objLoading
+      : route.page === "kpi"
+        ? objLoading || ncrLoading || kpiData.loading
+      : objLoading;
 
   const updateRoute = useCallback((updater, options = {}) => {
     const next = typeof updater === "function" ? updater(route) : updater;
@@ -1377,11 +1481,62 @@ function App() {
     }
   };
 
+  const handleCreateObjectiveFromKpi = async (kpi) => {
+    try {
+      const dueDate = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      const isAction = kpi.status === 'red';
+      const created = await createObjective({
+        title: `Improve KPI: ${kpi.name}`,
+        description: [
+          `KPI: ${kpi.name}`,
+          kpi.description && `Definition: ${kpi.description}`,
+          `Current value: ${formatKpiValue(kpi.value, kpi.unit)}`,
+          formatKpiTarget(kpi),
+          kpi.narrative && `Context: ${kpi.narrative}`,
+          'Created from the KPI Command Center.',
+        ].filter(Boolean).join('\n\n'),
+        ownerId: profile.id,
+        createdBy: profile.id,
+        status: 'not_started',
+        priority: isAction ? 'high' : 'medium',
+        progress: 0,
+        dueDate,
+        department: kpi.department === 'Company' ? profile.department || DEFAULT_DEPARTMENT : kpi.department || profile.department || DEFAULT_DEPARTMENT,
+        nextAction: 'Assign the owner, confirm the target, and attach evidence from the KPI detail lens.',
+        type: 'simple',
+        baselineMetric: Number.isFinite(Number(kpi.value)) ? Number(kpi.value) : null,
+        currentMetric: Number.isFinite(Number(kpi.value)) ? Number(kpi.value) : null,
+        targetMetric: Number.isFinite(Number(kpi.targetValue)) ? Number(kpi.targetValue) : null,
+        metricUnit: kpi.unit || '',
+        measurementCadence: kpi.cadence || 'weekly',
+        rollupMethod: 'manual',
+        okrLevel: 'run_the_business',
+        okrPeriod: '',
+        okrWeight: 1,
+        classificationStatus: 'manual',
+        classificationConfidence: 1,
+        classificationReason: 'Created from KPI Command Center action loop.',
+      });
+      if (kpi.id && !String(kpi.id).startsWith('computed-')) {
+        await kpiData.linkObjective?.(kpi.id, created.id, 'drives');
+      }
+      addToast({ type: 'success', message: `Objective created from ${kpi.name}` });
+      const fresh = await refetchObjectives();
+      const obj = fresh?.find(o => o.id === created.id);
+      if (obj) handleOpenCard(obj, 'kpi');
+      return created;
+    } catch (err) {
+      addToast({ type: 'error', message: err.message || 'Could not create KPI objective' });
+      return null;
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const pages = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "objectives", label: "Objectives", icon: Target },
+    { id: "kpi", label: "KPI", icon: BarChart3 },
     { id: "fixit", label: "Fix-It Feed", icon: Wrench },
     { id: "ncr", label: "NCR", icon: ClipboardCheck },
     { id: "organization", label: "Organization", icon: Network },
@@ -1591,7 +1746,7 @@ function App() {
   if (!user) return <LoginScreen onSignIn={handleSignIn} onSignUp={handleSignUp} onResetPassword={resetPassword} />;
 
   // Waiting for profile/data
-  if (!profile || profilesLoading || objLoading || fixItLoading || ncrLoading) return <LoadingScreen />;
+  if (!profile || profilesLoading || pageLoading) return <LoadingScreen />;
 
   // Build a currentUser object matching what components expect
   const currentUser = {
@@ -1941,7 +2096,7 @@ function App() {
           </span>
           <span>{pullRefreshState.refreshing ? 'Refreshing...' : pullRefreshState.ready ? 'Release to reload' : 'Pull to refresh'}</span>
         </div>
-        <main className="main-content" ref={mainContentRef}>
+        <main className={`main-content ${route.page === "kpi" ? "main-content-scroll" : ""}`} ref={mainContentRef}>
           {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} currentUser={currentUser} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onDashboardModeChange={setDashboardMode} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onKpiClick={(preset) => showObjectivesWithFilters({
             status: preset.status || "all",
             owner: preset.scope === "individual" ? currentUser.id : "all",
@@ -1956,6 +2111,7 @@ function App() {
             label: preset.label,
           })} onDeptClick={(dept) => showObjectivesWithFilters({ department: dept, label: dept }, dept)} />}
           {currentPage === 1 && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
+          {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
           {route.page === "fixit" && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} />}
           {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
           {route.page === "organization" && <OrgPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}
@@ -1994,6 +2150,12 @@ function App() {
           pushNotifications={pushNotifications}
           onEnablePush={handleEnablePush}
           onDisablePush={handleDisablePush}
+          onUploadAvatar={uploadAvatar}
+          onRemoveAvatar={removeAvatar}
+          onProfilePhotoChanged={async () => {
+            await refetchProfile?.();
+            await refetchProfiles?.();
+          }}
           onChangePassword={updatePassword}
           onClose={() => setShowAccountSettings(false)}
           onSignOut={handleSignOut}

@@ -193,9 +193,12 @@ export const dismissDailyBrief = async (page) => {
 export const dismissGuidance = async (page) => {
   await dismissDailyBrief(page);
 
-  for (let i = 0; i < 3; i += 1) {
+  for (let i = 0; i < 5; i += 1) {
     const visibleOverlay = page.locator('.framework-explainer-overlay').filter({ visible: true }).first();
-    if (!(await visibleOverlay.isVisible({ timeout: 1000 }).catch(() => false))) break;
+    if (!(await visibleOverlay.isVisible({ timeout: 1500 }).catch(() => false))) {
+      await page.waitForTimeout(300);
+      if (!(await visibleOverlay.isVisible({ timeout: 750 }).catch(() => false))) break;
+    }
     await visibleOverlay.locator('.framework-explainer-close').click({ force: true });
     await expect(page.locator('.framework-explainer-overlay').filter({ visible: true })).toHaveCount(0, { timeout: 2500 }).catch(() => null);
   }

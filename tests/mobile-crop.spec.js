@@ -46,22 +46,28 @@ test.describe('mobile zero-day crop gates', () => {
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-03-objectives.png`), fullPage: true });
 
       await dismissGuidance(page);
+      await navItem(page, 'KPI').click();
+      await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
+      await assertNoMobileCrop(page, `kpi ${viewport.label}`);
+      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-04-kpi.png`), fullPage: true });
+
+      await dismissGuidance(page);
       await navItem(page, 'Fix-It Feed').click();
       await expect(page.locator('.fixit-page')).toBeVisible();
       await assertNoMobileCrop(page, `fix-it feed ${viewport.label}`);
-      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-04-fixit.png`), fullPage: true });
+      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-05-fixit.png`), fullPage: true });
 
       await dismissGuidance(page);
       await navItem(page, 'NCR').click();
       await expect(page.locator('.ncr-page')).toBeVisible();
       await assertNoMobileCrop(page, `ncr ${viewport.label}`);
-      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-05-ncr.png`), fullPage: true });
+      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-06-ncr.png`), fullPage: true });
 
       await dismissGuidance(page);
       await navItem(page, 'Organization').click();
       await expect(page.getByPlaceholder('Search people...')).toBeVisible();
       await assertNoMobileCrop(page, `organization ${viewport.label}`);
-      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-06-organization.png`), fullPage: true });
+      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-07-organization.png`), fullPage: true });
     });
   }
 });

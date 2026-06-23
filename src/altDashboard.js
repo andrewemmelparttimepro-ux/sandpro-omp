@@ -539,23 +539,33 @@ const collectAltObjectiveEvents = (objective = {}) => {
     title: checkin.note || `${objective.currentMetric ?? checkin.value ?? ''} ${objective.metricUnit || ''}`.trim(),
   }));
 
+  pushEvent({
+    id: 'objective-created',
+    type: 'objective',
+    at: objective.createdAt || objective.created_at,
+    actorId: objective.createdBy || objective.created_by,
+    title: objectiveTitle,
+  });
+
   if (objective.delegatedBy || objective.delegated_by) {
     pushEvent({
       id: 'delegated',
       type: 'delegation',
-      at: objective.updatedAt || objective.updated_at || objective.createdAt || objective.created_at,
+      at: objective.createdAt || objective.created_at,
       actorId: objective.delegatedBy || objective.delegated_by,
       title: objectiveTitle,
     });
   }
 
-  pushEvent({
-    id: 'objective-touch',
-    type: 'objective',
-    at: objective.updatedAt || objective.updated_at || objective.createdAt || objective.created_at,
-    actorId: objective.ownerId || objective.owner_id || objective.createdBy || objective.created_by,
-    title: objectiveTitle,
-  });
+  if ((objective.status || '').toLowerCase() === 'completed' && (objective.completedBy || objective.completed_by) && (objective.completedAt || objective.completed_at)) {
+    pushEvent({
+      id: 'objective-completed',
+      type: 'objective',
+      at: objective.completedAt || objective.completed_at,
+      actorId: objective.completedBy || objective.completed_by,
+      title: objectiveTitle,
+    });
+  }
 
   return events;
 };

@@ -31,8 +31,16 @@ if (!url) {
 }
 
 const checks = [
+  ['profiles avatar column', 'profiles', 'id,avatar_url'],
   ['objective_members table', 'objective_members', 'id,objective_id,user_id,role,created_at'],
   ['objective_metric_checkins table', 'objective_metric_checkins', 'id,objective_id,checkin_date,value,note,created_by'],
+  ['kpi_definitions table', 'kpi_definitions', 'id,name,description,category,department,owner_id,unit,direction,target_value,yellow_min,yellow_max,red_min,red_max,thresholds_json,source_type,formula_json,cadence,status,created_by,created_at,updated_at'],
+  ['kpi_datapoints table', 'kpi_datapoints', 'id,kpi_id,period_start,period_end,value,denominator,dimensions_json,source_label,source_ref,imported_by,created_at'],
+  ['kpi_objective_links table', 'kpi_objective_links', 'id,kpi_id,objective_id,relationship,created_by,created_at'],
+  ['kpi_checkins table', 'kpi_checkins', 'id,kpi_id,note,status,created_by,created_at'],
+  ['kpi_alert_rules table', 'kpi_alert_rules', 'id,kpi_id,severity,condition_json,enabled,created_by,created_at,updated_at'],
+  ['kpi_alert_events table', 'kpi_alert_events', 'id,kpi_id,rule_id,severity,status,title,message,triggered_value,triggered_at,acknowledged_by,acknowledged_at,created_at'],
+  ['kpi_import_batches table', 'kpi_import_batches', 'id,source_label,file_name,imported_by,total_rows,imported_rows,error_rows,errors,status,created_at,completed_at'],
   ['objective_workflow_steps table', 'objective_workflow_steps', 'id,objective_id,title,description,step_order,status,owner_id,due_date,completed_at,completed_by,updated_at'],
   ['objective_agent_runs table', 'objective_agent_runs', 'id,objective_id,requested_by,agent_key,run_type,status,input_snapshot,output_summary,output_json,source_links,file_id,error,completed_at'],
   ['OKR projects table', 'okr_projects', 'id,name,description,project_type,linked_kr_id,run_the_business,sponsor_id,lead_id,stage,health,health_comment,start_date,target_date,next_milestone,next_milestone_due_date,budget_estimate,created_by,created_at,updated_at'],
@@ -152,12 +160,16 @@ const runClientChecks = async (key, canCheckStorage) => {
     } else if (!buckets.some((bucket) => bucket.id === 'alt-note-files' && bucket.public === false)) {
       failed = true;
       console.error('x alt-note-files bucket: missing or not private');
+    } else if (!buckets.some((bucket) => bucket.id === 'profile-avatars' && bucket.public === true)) {
+      failed = true;
+      console.error('x profile-avatars bucket: missing or not public');
     } else {
       console.log('ok private objective-files bucket');
       console.log('ok private fix-it-files bucket');
       console.log('ok private ncr-files bucket');
       console.log('ok private okr-project-files bucket');
       console.log('ok private alt-note-files bucket');
+      console.log('ok public profile-avatars bucket');
     }
   }
 
@@ -217,6 +229,10 @@ bucket_checks as (
   select
     'private alt-note-files bucket' as check_name,
     exists (select 1 from storage.buckets where id = 'alt-note-files' and public = false) as ok
+  union all
+  select
+    'public profile-avatars bucket' as check_name,
+    exists (select 1 from storage.buckets where id = 'profile-avatars' and public = true) as ok
 )
 select * from table_checks
 union all select * from column_checks

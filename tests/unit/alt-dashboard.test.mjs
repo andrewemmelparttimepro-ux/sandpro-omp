@@ -249,6 +249,18 @@ test('trend summary follows the selected time lens and keeps comparisons visible
     tiles.map(item => item.at?.getTime() || 0),
     [...tiles.map(item => item.at?.getTime() || 0)].sort((a, b) => b - a),
   );
+
+  const noisyTiles = buildAltRecentTiles([
+    ...objectives,
+    {
+      id: 'synthetic-touch',
+      title: 'Synthetic updated_at only',
+      ownerId: 'u2',
+      status: 'on_track',
+      updatedAt: isoHoursAgo(0.1),
+    },
+  ], 5);
+  assert.equal(noisyTiles.some(item => item.title === 'Synthetic updated_at only'), false);
 });
 
 test('alt notes normalize rich text, preview, folders, filters, and date groups', () => {

@@ -22,6 +22,8 @@ test.describe('production read-only smoke', () => {
     await expect(navItem(page, 'Dashboard')).toBeVisible();
     await navItem(page, 'Objectives').click();
     await expect(visibleInput(page, 'Search objectives...')).toBeVisible();
+    await navItem(page, 'KPI').click();
+    await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible({ timeout: 45000 });
     await navItem(page, 'Organization').click();
     await expect(visibleInput(page, 'Search people...')).toBeVisible();
     await dismissDailyBrief(page);

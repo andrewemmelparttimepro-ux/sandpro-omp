@@ -34,7 +34,7 @@ test.describe('accessibility smoke', () => {
     await login(page, env.e2eEmail, env.e2ePassword);
     await suppressFirstRunGuides(page);
     await dismissGuidance(page);
-    for (const name of ['Dashboard', 'Objectives', 'Organization']) {
+    for (const name of ['Dashboard', 'Objectives', 'KPI', 'Organization']) {
       await expect(navItem(page, name)).toBeVisible();
     }
     const createButton = testInfo.project.name === 'mobile-chrome'
@@ -51,5 +51,8 @@ test.describe('accessibility smoke', () => {
       await expect(page.getByTitle('Grid View')).toBeVisible();
       await expect(page.getByTitle('Kanban View')).toBeVisible();
     }
+    await dismissGuidance(page);
+    await navItem(page, 'KPI').click();
+    await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
   });
 });
