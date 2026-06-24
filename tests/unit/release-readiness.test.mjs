@@ -128,6 +128,8 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(pages, /Create NCR/);
   assert.match(pages, /Create objective/);
   assert.match(pages, /All Groups/);
+  assert.match(pages, /departmentFilters/);
+  assert.match(pages, /ncr-multi-filter/);
   assert.match(pages, /Root Cause/);
   assert.match(pages, /Corrective Actions/);
   assert.match(pages, /NCR_LIFECYCLE_STAGES/);

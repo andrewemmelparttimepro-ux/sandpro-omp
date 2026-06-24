@@ -4360,7 +4360,7 @@ const NcrParticipationCard = ({ observerRows = [], employeeRows = [] }) => {
 export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateReport, onCreateReport, onCreateActionItem, onUpdateActionItem, onUploadAttachment, onCaptureSignature, onImportReports, onCreateObjective, onOpenObjective, addToast }) => {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('open');
-  const [department, setDepartment] = useState('all');
+  const [departmentFilters, setDepartmentFilters] = useState([]);
   const [type, setType] = useState('all');
   const [severity, setSeverity] = useState('all');
   const [worksite, setWorksite] = useState('all');
@@ -4455,18 +4455,36 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     });
     return (matched.length ? matched : analytics.byFailure).slice(0, 5);
   }, [analytics.byFailure, analyticsQuery]);
-  const departments = [...new Set(reports.map(getNcrDepartmentValue).filter(Boolean))].sort();
+  const departments = [...new Set(reports.flatMap(report => {
+    const reportDepartments = getNcrDepartmentList(report);
+    return reportDepartments.length ? reportDepartments : [getNcrDepartmentValue(report)].filter(Boolean);
+  }))].sort();
   const types = [...new Set(reports.map(report => report.eventType || 'Unspecified').filter(Boolean))].sort();
   const severities = [...new Set(reports.map(report => report.severity || 'Unspecified').filter(Boolean))].sort();
   const worksites = [...new Set(reports.map(report => report.worksiteArea).filter(Boolean))].sort();
   const people = getProfiles().filter(user => user?.id).sort((a, b) => a.name.localeCompare(b.name));
   const isAdvancedNcrView = ncrView === 'advanced';
+  const departmentFilterLabel = departmentFilters.length === 0
+    ? 'All Groups'
+    : departmentFilters.length === 1
+      ? departmentFilters[0]
+      : `${departmentFilters.length} groups selected`;
+  const departmentFilterTitle = departmentFilters.length ? departmentFilters.join(', ') : 'All Groups';
+  const toggleDepartmentFilter = (value) => {
+    setDepartmentFilters(prev => (
+      prev.includes(value) ? prev.filter(item => item !== value) : [...prev, value].sort()
+    ));
+  };
 
   const filtered = useMemo(() => reports.filter(report => {
     const stage = report.lifecycleStage || (report.closed ? 'closed' : report.status);
     const statusLabel = ncrStatusLabel(report).toLowerCase().replace(/\s+/g, '_');
     if (status !== 'all' && statusLabel !== status && stage !== status) return false;
-    if (department !== 'all' && getNcrDepartmentValue(report) !== department) return false;
+    if (departmentFilters.length) {
+      const reportDepartments = getNcrDepartmentList(report);
+      const reportDepartmentValues = reportDepartments.length ? reportDepartments : [getNcrDepartmentValue(report)].filter(Boolean);
+      if (!departmentFilters.some(value => reportDepartmentValues.includes(value))) return false;
+    }
     if (type !== 'all' && (report.eventType || 'Unspecified') !== type) return false;
     if (severity !== 'all' && (report.severity || 'Unspecified') !== severity) return false;
     if (worksite !== 'all' && (report.worksiteArea || '') !== worksite) return false;
@@ -4497,7 +4515,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       if (!haystack.includes(normalizeNcr(search))) return false;
     }
     return true;
-  }), [reports, status, department, type, severity, worksite, flagFilter, dateFrom, dateTo, search]);
+  }), [reports, status, departmentFilters, type, severity, worksite, flagFilter, dateFrom, dateTo, search]);
 
   const sorted = useMemo(() => {
     const stageRank = (report) => {
@@ -4534,7 +4552,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
 
   const trackerFilterCount = [
     status !== 'all' && status !== 'open',
-    department !== 'all',
+    departmentFilters.length > 0,
     type !== 'all',
     severity !== 'all',
     worksite !== 'all',
@@ -4547,7 +4565,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   const clearTrackerFilters = () => {
     setSearch('');
     setStatus('all');
-    setDepartment('all');
+    setDepartmentFilters([]);
     setType('all');
     setSeverity('all');
     setWorksite('all');
@@ -5317,10 +5335,27 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               <option value="in_progress">In Progress (any stage)</option>
               {NCR_LIFECYCLE_STAGES.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
             </select>
-            <select value={department} onChange={event => setDepartment(event.target.value)} aria-label="Filter by group">
-              <option value="all">All Groups</option>
-              {departments.map(value => <option key={value} value={value}>{value}</option>)}
-            </select>
+            <details className="ncr-multi-filter">
+              <summary aria-label="Filter by groups" title={departmentFilterTitle}>
+                <span>{departmentFilterLabel}</span>
+                <ChevronDown size={14} />
+              </summary>
+              <div className="ncr-multi-filter-menu" role="group" aria-label="Filter by groups">
+                <button type="button" className="ncr-multi-filter-clear" onClick={() => setDepartmentFilters([])}>
+                  All Groups
+                </button>
+                {departments.map(value => (
+                  <label key={value} className="ncr-multi-filter-option">
+                    <input
+                      type="checkbox"
+                      checked={departmentFilters.includes(value)}
+                      onChange={() => toggleDepartmentFilter(value)}
+                    />
+                    <span>{value}</span>
+                  </label>
+                ))}
+              </div>
+            </details>
             <select value={type} onChange={event => setType(event.target.value)} aria-label="Filter by event type">
               <option value="all">All Event Types</option>
               {types.map(value => <option key={value} value={value}>{value}</option>)}
