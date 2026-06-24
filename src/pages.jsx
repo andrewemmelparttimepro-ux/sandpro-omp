@@ -44,6 +44,7 @@ import {
   rankAltObjectives,
 } from './altDashboard';
 import { getAltNotesPreview, normalizeAltNotesState } from './altNotes';
+import { normalizeCsvHeader, parseCsvText, tableRowsToObjects } from './ncrImport';
 import {
   KPI_STATUS_META,
   buildDepartmentScorecard,
@@ -3494,11 +3495,6 @@ const buildNcrDetailExportHtml = ({ report, profiles = [] }) => {
 
 const normalizeNcr = (value = '') => String(value || '').toLowerCase();
 
-const normalizeCsvHeader = (value = '') => String(value || '')
-  .toLowerCase()
-  .replace(/[^a-z0-9]+/g, ' ')
-  .trim();
-
 const findFirstValue = (row = {}, candidates = []) => {
   const normalizeCell = (value) => {
     if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString();
@@ -3523,46 +3519,6 @@ const dateOnly = (value = '') => {
   const date = value instanceof Date ? value : new Date(value);
   if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
   return String(value).slice(0, 10);
-};
-
-const parseCsvText = (text = '') => {
-  const rows = [];
-  let row = [];
-  let value = '';
-  let quoted = false;
-  for (let index = 0; index < text.length; index += 1) {
-    const char = text[index];
-    const next = text[index + 1];
-    if (char === '"' && quoted && next === '"') {
-      value += '"';
-      index += 1;
-    } else if (char === '"') {
-      quoted = !quoted;
-    } else if (char === ',' && !quoted) {
-      row.push(value);
-      value = '';
-    } else if ((char === '\n' || char === '\r') && !quoted) {
-      if (char === '\r' && next === '\n') index += 1;
-      row.push(value);
-      if (row.some(cell => String(cell).trim() !== '')) rows.push(row);
-      row = [];
-      value = '';
-    } else {
-      value += char;
-    }
-  }
-  row.push(value);
-  if (row.some(cell => String(cell).trim() !== '')) rows.push(row);
-  return rows;
-};
-
-const tableRowsToObjects = (rows = []) => {
-  const [header = [], ...body] = rows;
-  const headers = header.map((value, index) => String(value || `Column ${index + 1}`).trim());
-  return body.map(cells => headers.reduce((acc, headerName, index) => {
-    acc[headerName || `Column ${index + 1}`] = cells[index] ?? '';
-    return acc;
-  }, {}));
 };
 
 const splitMultiValue = (value = '') => String(value || '')
@@ -4809,7 +4765,11 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       });
       const valid = transformed.filter(row => NCR_IMPORT_REQUIRED_FIELDS.every(field => String(row[field] || '').trim()));
       setImportPreview(valid);
-      addToast?.({ type: 'success', message: `Parsed ${valid.length} KPA NCR row${valid.length === 1 ? '' : 's'} from ${file.name}` });
+      if (valid.length) {
+        addToast?.({ type: 'success', message: `Parsed ${valid.length} KPA NCR row${valid.length === 1 ? '' : 's'} from ${file.name}` });
+      } else {
+        addToast?.({ type: 'warning', message: 'No KPA NCR rows found. Check that the file includes report number and event description columns.' });
+      }
     } catch (error) {
       addToast?.({ type: 'error', message: error.message || 'Could not parse KPA export.' });
     }
