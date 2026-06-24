@@ -2996,7 +2996,7 @@ export function useNcrReports(enabled = false) {
           field_name: 'source_batch_id',
           old_value: null,
           new_value: batch.id,
-          note: `${existedBefore ? 'Refreshed existing' : 'Imported new'} KPA row from ${fileName}`,
+          note: `${existedBefore ? 'Priority refresh from newest KPA list' : 'Imported new'} KPA row from ${fileName}`,
         });
       } catch (error) {
         errors.push({ reportNumber: row.reportNumber, error: error.message || String(error) });

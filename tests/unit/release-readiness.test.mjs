@@ -149,9 +149,11 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(pages, /Detail PDF packet/);
   assert.match(pages, /KPA Historical Import/);
   assert.match(pages, /Upload the complete KPA Excel or CSV export whenever possible/);
-  assert.match(pages, /existing report numbers are refreshed instead of duplicated/);
-  assert.match(pages, /Refresh existing/);
-  assert.match(pages, /KPA import complete: \$\{result\.created \|\| 0\} new, \$\{result\.refreshed \|\| 0\} refreshed/);
+  assert.match(pages, /newest KPA list takes priority/);
+  assert.match(pages, /Export visible list/);
+  assert.match(pages, /sandpro_ncr_tracker_list_/);
+  assert.match(pages, /Replace existing/);
+  assert.match(pages, /KPA import complete: \$\{result\.created \|\| 0\} new, \$\{result\.refreshed \|\| 0\} replaced from newest list/);
   assert.match(pages, /NCR Analytics/);
   assert.match(pages, /FieldKeyProvider/);
   assert.match(pages, /DefinedTerm/);
@@ -197,6 +199,7 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(hook, /ncr_signatures/);
   assert.match(hook, /importReports/);
   assert.match(hook, /\.upsert\(payload, \{ onConflict: 'report_number' \}\)/);
+  assert.match(hook, /Priority refresh from newest KPA list/);
   assert.match(hook, /let created = 0/);
   assert.match(hook, /let refreshed = 0/);
   assert.match(hook, /return \{ batchId: batch\.id, imported, created, refreshed/);

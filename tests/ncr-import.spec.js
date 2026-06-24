@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { dismissGuidance, env, login, requireCredentials } from './helpers.js';
@@ -43,6 +43,22 @@ test.describe('NCR tracker presentation filters', () => {
     await expect(page.getByRole('button', { name: /Clear filters \(1\)/i })).toBeVisible();
   });
 
+  test('exports the visible NCR tracker list', async ({ page }) => {
+    await openNcrPage(page);
+
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: /Export visible list/i }).click(),
+    ]);
+    const path = await download.path();
+    expect(path).toBeTruthy();
+    const csv = readFileSync(path, 'utf8');
+
+    expect(download.suggestedFilename()).toMatch(/^sandpro_ncr_tracker_list_\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(csv).toContain('"reportNumber"');
+    expect(csv).toContain('"eventDescription"');
+  });
+
   test('previews a KPA export with metadata rows', async ({ page }) => {
     const dir = mkdtempSync(join(tmpdir(), 'sandpro-ncr-import-fixture-'));
     const uploadPath = join(dir, 'NCR Summary 6.23.2026 Close Out.csv');
@@ -60,6 +76,7 @@ test.describe('NCR tracker presentation filters', () => {
     await page.locator('input[accept=".xlsx,.xls,.csv"]').setInputFiles(uploadPath);
     await expect(page.getByText(/1 preview row/i)).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('82008371')).toBeVisible();
+    await expect(page.getByText(/Newest list wins/i)).toBeVisible();
     await expect(page.getByText(/map is not a function/i)).toHaveCount(0);
   });
 });

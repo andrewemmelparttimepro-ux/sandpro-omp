@@ -4778,7 +4778,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
         const draft = transformImportedNcrRow(row, index, currentUser);
         return {
           ...draft,
-          importAction: existingReportNumbers.has(String(draft.reportNumber || '').trim()) ? 'Refresh existing' : 'Create new',
+          importAction: existingReportNumbers.has(String(draft.reportNumber || '').trim()) ? 'Replace existing' : 'Create new',
         };
       });
       const valid = transformed.filter(row => NCR_IMPORT_REQUIRED_FIELDS.every(field => String(row[field] || '').trim()));
@@ -4801,7 +4801,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       setImportPreview([]);
       addToast?.({
         type: 'success',
-        message: `KPA import complete: ${result.created || 0} new, ${result.refreshed || 0} refreshed, ${result.skipped || 0} errors.`,
+        message: `KPA import complete: ${result.created || 0} new, ${result.refreshed || 0} replaced from newest list, ${result.skipped || 0} errors.`,
       });
     } catch (error) {
       addToast?.({ type: 'error', message: error.message || 'Could not import KPA NCRs.' });
@@ -4826,10 +4826,11 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     return true;
   }), [importPreview, importActionFilter, importSearch]);
 
-  const ncrExportRows = () => analyticsScope.map(report => ({
+  const buildNcrExportRow = (report) => ({
     reportNumber: report.reportNumber,
     sourceSystem: report.sourceSystem || 'OMP',
     sourceRecordId: report.sourceRecordId || '',
+    sourceBatchId: report.sourceBatchId || '',
     reportDate: report.reportDate,
     dateAndTimeEvent: report.eventAt,
     lifecycleStage: getNcrStageLabel(report.lifecycleStage),
@@ -4854,7 +4855,60 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
     repeatIssue: report.repeatIssue === true ? 'Yes' : report.repeatIssue === false ? 'No' : '',
     followUpDueDate: report.followUpDueDate,
     eventDescription: report.eventDescription,
-  }));
+    correctiveAction: report.permanentAction || report.immediateAction || '',
+    sourceUpdatedAt: report.updatedAt || '',
+  });
+
+  const toCsv = (rows, fallbackShape = {}) => {
+    const headers = Object.keys(rows[0] || fallbackShape);
+    return [
+      headers,
+      ...rows.map(row => headers.map(header => row[header] ?? '')),
+    ].map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
+  };
+
+  const downloadTextFile = (filename, contents, type = 'text/csv') => {
+    const blob = new Blob([contents], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const ncrExportRows = () => analyticsScope.map(buildNcrExportRow);
+
+  const trackerExportFallback = {
+    reportNumber: '',
+    reportDate: '',
+    lifecycleStage: '',
+    openClosed: '',
+    departmentGroup: '',
+    eventType: '',
+    criticality: '',
+    followUpCount: '',
+    followUpDueDate: '',
+    worksiteArea: '',
+    operatorLocation: '',
+    observer: '',
+    eventDescription: '',
+    rootCauseCodes: '',
+    failureGroup: '',
+    actionEffective: '',
+    correctiveAction: '',
+    sourceSystem: '',
+    sourceBatchId: '',
+    sourceUpdatedAt: '',
+  };
+
+  const exportTrackerListCsv = () => {
+    const rows = sorted.map(buildNcrExportRow);
+    const csv = toCsv(rows, trackerExportFallback);
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    downloadTextFile(`sandpro_ncr_tracker_list_${dateStamp}.csv`, csv);
+    addToast?.({ type: 'success', message: `Exported ${rows.length} visible NCR${rows.length === 1 ? '' : 's'}.` });
+  };
 
   const exportIndividualCsv = () => {
     const rows = ncrExportRows();
@@ -4887,17 +4941,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
       followUpDueDate: '',
       eventDescription: '',
     });
-    const csv = [
-      headers,
-      ...rows.map(row => headers.map(header => row[header] ?? '')),
-    ].map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sandpro_ncr_individual_results.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    const csv = toCsv(rows, headers.reduce((acc, header) => ({ ...acc, [header]: '' }), {}));
+    downloadTextFile('sandpro_ncr_individual_results.csv', csv);
   };
 
   const exportKpaImportTemplate = () => {
@@ -5382,6 +5427,9 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           <div className="ncr-filter-summary">
             <span>Showing <strong>{sorted.length}</strong> of {reports.length} NCR{reports.length === 1 ? '' : 's'}</span>
             <FieldKeyHint label="What do these filters mean?" termId="status_open" />
+            <button type="button" className="btn btn-secondary btn-xs" onClick={exportTrackerListCsv}>
+              <Download size={12} /> Export visible list
+            </button>
             {trackerFilterCount > 0 && (
               <button type="button" className="btn btn-ghost btn-xs" onClick={clearTrackerFilters}>
                 <X size={12} /> Clear filters ({trackerFilterCount})
@@ -5945,7 +5993,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           <div className="ncr-import-head">
             <div>
               <h2>KPA Historical Import</h2>
-              <p>Upload the complete KPA Excel or CSV export whenever possible. OMP keys each row by NCR report number, so existing report numbers are refreshed instead of duplicated, new report numbers are created, and the raw KPA source record stays auditable. For day-to-day catch-up, use the newest KPA export after the last imported report number to fill only the gap.</p>
+              <p>Upload the complete KPA Excel or CSV export whenever possible. OMP keys each row by NCR report number, so the newest KPA list takes priority: matching report numbers replace the imported NCR fields in bulk, new report numbers are created, and the raw KPA source record stays auditable. Evidence, signatures, action items, and audit history stay attached to the NCR.</p>
             </div>
             <div className="ncr-import-head-actions">
               <button type="button" className="btn btn-secondary" onClick={exportKpaImportTemplate}>
@@ -5959,6 +6007,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           </div>
           <div className="ncr-import-status">
             <Badge color="var(--brand)">Source: KPA</Badge>
+            <Badge color="var(--warning)">Newest list wins</Badge>
             <Badge color={importPreview.length ? 'var(--success)' : 'var(--accent-7)'}>{importPreview.length} preview row{importPreview.length === 1 ? '' : 's'}</Badge>
             <span>{importFileName || 'No file selected yet'}</span>
           </div>
@@ -5972,7 +6021,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <select value={importActionFilter} onChange={event => setImportActionFilter(event.target.value)} aria-label="Filter by import action">
                   <option value="all">All Import Actions</option>
                   <option value="Create new">Create new</option>
-                  <option value="Refresh existing">Refresh existing</option>
+                  <option value="Replace existing">Replace existing</option>
                 </select>
                 <span className="ncr-import-count">
                   {filteredImportPreview.length === importPreview.length
@@ -5992,7 +6041,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                     {filteredImportPreview.slice(0, 20).map((row, index) => (
                       <tr key={`${row.reportNumber}-${index}`}>
                         <td>{row.reportNumber}</td>
-                        <td><Badge color={row.importAction === 'Refresh existing' ? 'var(--warning)' : 'var(--success)'}>{row.importAction || 'Create new'}</Badge></td>
+                        <td><Badge color={row.importAction === 'Replace existing' ? 'var(--warning)' : 'var(--success)'}>{row.importAction || 'Create new'}</Badge></td>
                         <td>{row.reportDate}</td>
                         <td>{row.departmentGroup}</td>
                         <td>{row.eventType}</td>
@@ -6012,7 +6061,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               <div className="ncr-import-actions">
                 <button type="button" className="btn btn-secondary" onClick={() => { setImportPreview([]); setImportSearch(''); setImportActionFilter('all'); }}>Clear preview</button>
                 <button type="button" className="btn btn-primary" onClick={commitImport} disabled={importing}>
-                  {importing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Commit KPA import batch ({importPreview.length} row{importPreview.length === 1 ? '' : 's'})
+                  {importing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Apply KPA as priority list ({importPreview.length} row{importPreview.length === 1 ? '' : 's'})
                 </button>
               </div>
             </>
