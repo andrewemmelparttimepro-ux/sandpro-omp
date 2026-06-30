@@ -2062,7 +2062,43 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
               </div>
             </div>
             <div className="okr-tree-body">
-              {okrTree.length === 0 ? <EmptyState icon={Network} text={emptyText} action={emptyAction} /> : okrTree.map(node => <OkrTreeNode key={node.objective.id} node={node} />)}
+              {okrTree.length === 0 ? <EmptyState icon={Network} text={emptyText} action={emptyAction} /> : (() => {
+                // Bucket the OKR tree roots into the company top-line and the 17
+                // operating groups (okr_group) so the scorecards read as sections.
+                const isCompany = (n) => (n.objective.okrLevel || n.objective.okr_level) === 'company';
+                const companyNodes = okrTree.filter(isCompany);
+                const groupOrder = [];
+                const byGroup = new Map();
+                okrTree.forEach(n => {
+                  if (isCompany(n)) return;
+                  const g = n.objective.okrGroup || n.objective.okr_group || 'Other work';
+                  if (!byGroup.has(g)) { byGroup.set(g, []); groupOrder.push(g); }
+                  byGroup.get(g).push(n);
+                });
+                const sectionHeader = (Icon, label, count) => (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '16px 0 6px', padding: '6px 10px', background: 'var(--brand-bg)', border: '1px solid var(--brand-border)', borderRadius: 8, fontWeight: 600, fontSize: 12, letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--text)' }}>
+                    <Icon size={13} color="var(--brand)" />
+                    <span style={{ flex: 1 }}>{label}</span>
+                    <Badge color="#64748B">{count}</Badge>
+                  </div>
+                );
+                return (
+                  <>
+                    {companyNodes.length > 0 && (
+                      <div className="okr-tree-group">
+                        {sectionHeader(Building2, 'Company top-line', companyNodes.length)}
+                        {companyNodes.map(node => <OkrTreeNode key={node.objective.id} node={node} />)}
+                      </div>
+                    )}
+                    {groupOrder.map(g => (
+                      <div className="okr-tree-group" key={g}>
+                        {sectionHeader(Users, g, byGroup.get(g).length)}
+                        {byGroup.get(g).map(node => <OkrTreeNode key={node.objective.id} node={node} />)}
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
             </div>
           </div>
         )}
