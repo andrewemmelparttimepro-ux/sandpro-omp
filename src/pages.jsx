@@ -1343,22 +1343,97 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
       ...departmentRows,
     ]);
   };
-  const exportRndPipeline = () => {
-    const rndProjects = visibleProjects.filter(project => project.projectType === 'rnd');
-    const rndRows = rndProjects.length ? rndProjects.map(project => [
-      project.name,
-      getProjectStageMeta(project.stage).label,
-      project.health || 'green',
-      getUser(project.leadId).name,
-      getUser(project.sponsorId).name,
-      project.targetDate || '',
-      project.nextMilestone || '',
-      buildProjectGateBlockers(project).join(' | ') || 'Gate clear',
-    ]) : [['No R&D projects in current lens', '', '', '', '', '', '', '']];
-    downloadRows('sandpro_rd_pipeline.csv', [
-      ['Project', 'Stage', 'Health', 'Lead', 'Sponsor', 'Target Date', 'Next Milestone', 'Gate blockers'],
-      ...rndRows,
-    ]);
+  // ── Guided export ─────────────────────────────────────────────────────────
+  // One "Export" button → pick a clearly-described report, pick a format,
+  // generate. Each report states exactly what it includes so there is no
+  // guessing about what gets grabbed. Everything respects the current filters.
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportReport, setExportReport] = useState('current');
+  const [exportFormat, setExportFormat] = useState('pdf');
+
+  const exportReports = [
+    { id: 'current', label: 'Goals — current view', desc: 'Everything matching your filters right now', formats: ['pdf', 'excel', 'csv'], count: filtered.length, unit: filtered.length === 1 ? 'goal' : 'goals' },
+    { id: 'company', label: 'Company summary', desc: 'Your top-line company goals and their status', formats: ['pdf', 'csv'], count: filtered.filter(o => o.okrLevel === 'company').length, unit: 'company goals' },
+    { id: 'team', label: 'Team scorecard', desc: 'One row per team: count, progress, on-track, stale', formats: ['pdf', 'excel', 'csv'], count: new Set(filtered.map(o => o.okrGroup || o.department || 'Unassigned')).size, unit: 'teams' },
+    { id: 'attention', label: 'Needs attention', desc: 'Stale goals and blocked projects to follow up', formats: ['pdf', 'csv'], count: filtered.filter(isKeyResultStale).length + visibleProjects.filter(p => buildProjectGateBlockers(p).length > 0).length, unit: 'items' },
+    { id: 'projects', label: 'Projects', desc: 'Stage, owner, and gate blockers', formats: ['excel', 'csv'], count: visibleProjects.length, unit: visibleProjects.length === 1 ? 'project' : 'projects' },
+  ];
+  const currentExportReport = exportReports.find(r => r.id === exportReport) || exportReports[0];
+  const effectiveExportFormat = currentExportReport.formats.includes(exportFormat) ? exportFormat : currentExportReport.formats[0];
+
+  const buildReportData = (id) => {
+    if (id === 'company') {
+      const co = filtered.filter(o => o.okrLevel === 'company');
+      return {
+        title: 'Company summary', filename: 'sandpro_company_summary',
+        headers: ['Company goal', 'Owner', 'Status', 'Target', 'Progress'],
+        stats: [['Company goals', co.length]],
+        rows: co.map(o => [o.title, getUser(o.ownerId).name, getStatusLabel(o.status), o.targetText ?? o.target_text ?? (o.targetMetric != null ? `${o.targetMetric}${o.metricUnit || ''}` : ''), `${o.progress || 0}%`]),
+      };
+    }
+    if (id === 'team') {
+      const keys = [...new Set(filtered.map(o => o.okrGroup || o.department || 'Unassigned'))].sort();
+      return {
+        title: 'Team scorecard', filename: 'sandpro_team_scorecard',
+        headers: ['Team', 'Department', 'Goals', 'Avg progress', 'On track', 'Stale'],
+        stats: [['Teams', keys.length], ['Goals', filtered.length]],
+        rows: keys.map(key => {
+          const items = filtered.filter(o => (o.okrGroup || o.department || 'Unassigned') === key);
+          const avg = items.length ? Math.round(items.reduce((s, o) => s + Number(o.progress || 0), 0) / items.length) : 0;
+          return [key, items[0]?.department || '—', items.length, `${avg}%`, items.filter(o => o.status === 'on_track').length, items.filter(isKeyResultStale).length];
+        }),
+      };
+    }
+    if (id === 'attention') {
+      const stale = filtered.filter(isKeyResultStale);
+      const blocked = visibleProjects.filter(p => buildProjectGateBlockers(p).length > 0);
+      return {
+        title: 'Needs attention', filename: 'sandpro_needs_attention',
+        headers: ['Type', 'Name', 'Owner', 'What needs attention'],
+        stats: [['Stale goals', stale.length], ['Blocked projects', blocked.length]],
+        rows: [
+          ...stale.map(o => ['Stale goal', o.title, getUser(o.ownerId).name, `No recent update — ${o.okrGroup || o.department || o.okrPeriod || ''}`]),
+          ...blocked.map(p => ['Blocked project', p.name, getUser(p.leadId).name, buildProjectGateBlockers(p).join('; ')]),
+        ],
+      };
+    }
+    if (id === 'projects') {
+      return {
+        title: 'Projects', filename: 'sandpro_projects',
+        headers: ['Project', 'Stage', 'Health', 'Lead', 'Sponsor', 'Gate blockers'],
+        stats: [['Projects', visibleProjects.length]],
+        rows: visibleProjects.map(p => [p.name, getProjectStageMeta(p.stage).label, p.health || 'green', getUser(p.leadId).name, getUser(p.sponsorId).name, buildProjectGateBlockers(p).join('; ') || 'Gate clear']),
+      };
+    }
+    return {
+      title: 'Goals — current view', filename: 'sandpro_goals_current',
+      headers: ['Goal', 'Owner', 'Team', 'Department', 'Status', 'Progress', 'Due'],
+      stats: [['Goals', filtered.length], ['Stale', filtered.filter(isKeyResultStale).length], ['Projects', visibleProjects.length]],
+      rows: filtered.map(o => [o.title, getUser(o.ownerId).name, o.okrGroup || '—', o.department || '—', getStatusLabel(o.status), `${o.progress || 0}%`, o.dueDate ? formatDate(o.dueDate) : '—']),
+    };
+  };
+
+  const printReport = ({ title, headers, rows, stats }) => {
+    const win = window.open('', 'sandpro-report-export', 'width=1100,height=800');
+    if (!win) return;
+    const statHtml = (stats || []).map(([l, v]) => `<div class="stat"><span>${escapeExportHtml(l)}</span><strong>${escapeExportHtml(v)}</strong></div>`).join('');
+    const head = headers.map(h => `<th>${escapeExportHtml(h)}</th>`).join('');
+    const body = rows.length ? rows.map(r => `<tr>${r.map(c => `<td>${escapeExportHtml(c)}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}">Nothing to show for this report yet.</td></tr>`;
+    win.document.write(`<!doctype html><html><head><title>SandPro OMP — ${escapeExportHtml(title)}</title><style>@page{size:letter;margin:.45in}body{font-family:Inter,Arial,sans-serif;color:#111827}h1{font-size:22px;margin:0 0 4px}.meta{color:#64748b;font-size:12px;margin-bottom:18px}.grid{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}.stat{border:1px solid #d1d5db;border-radius:8px;padding:10px;min-width:90px}.stat span{color:#64748b;font-size:10px;text-transform:uppercase}.stat strong{display:block;font-size:20px;color:#ff7f02}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border-bottom:1px solid #e5e7eb;padding:7px;text-align:left}th{color:#64748b;text-transform:uppercase;font-size:9px}</style></head><body><h1>SandPro OMP — ${escapeExportHtml(title)}</h1><div class="meta">Generated ${escapeExportHtml(new Date().toLocaleString())} from the Objectives view.</div><div class="grid">${statHtml}</div><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table><script>window.onload=()=>setTimeout(()=>window.print(),250)</script></body></html>`);
+    win.document.close();
+  };
+
+  const runExport = (id, fmt) => {
+    if (id === 'current' && fmt === 'pdf') return exportQuarterlyPdf();
+    if (id === 'current' && fmt === 'excel') return exportQuarterlyExcel();
+    if (id === 'team' && fmt === 'csv') return exportDepartmentScorecard();
+    if (id === 'attention' && fmt === 'csv') return exportJakeWeeklyOnePager();
+    const data = buildReportData(id);
+    if (fmt === 'csv') return downloadRows(`${data.filename}.csv`, [data.headers, ...data.rows]);
+    if (fmt === 'excel') {
+      return writeXlsxFile([{ sheet: data.title.slice(0, 28), data: [data.headers.map(value => ({ value, fontWeight: 'bold' })), ...data.rows.map(r => r.map(value => ({ value })))] }]).toFile(`${data.filename}.xlsx`);
+    }
+    return printReport(data);
   };
   const exportQuarterlyPdf = () => {
     const rows = buildQuarterlyScorecardRows(filtered, visibleProjects);
@@ -1780,13 +1855,41 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
           <button className={`icon-btn ${viewMode === 'kanban' ? 'active' : ''}`} onClick={() => updateFilter("view", "kanban")} title="Kanban View"><Columns3 size={16} /></button>
           <button className={`icon-btn ${viewMode === 'tree' ? 'active' : ''}`} onClick={() => updateFilter("view", "tree")} title="OKR Tree View"><Network size={16} /></button>
         </div>
-        <div className="okr-export-group">
-          <span><Download size={12} /> Export</span>
-          <button type="button" className="btn btn-xs btn-secondary" onClick={exportJakeWeeklyOnePager}>Jake 1-pager</button>
-          <button type="button" className="btn btn-xs btn-secondary" onClick={exportDepartmentScorecard}>Dept scorecard</button>
-          <button type="button" className="btn btn-xs btn-secondary" onClick={exportRndPipeline}>R&D</button>
-          <button type="button" className="btn btn-xs btn-secondary" onClick={exportQuarterlyPdf}>PDF</button>
-          <button type="button" className="btn btn-xs btn-secondary" onClick={exportQuarterlyExcel}>Excel</button>
+        <div className="okr-export-group" style={{ position: 'relative' }}>
+          <button type="button" className="btn btn-xs btn-secondary" onClick={() => setExportOpen(o => !o)}>
+            <Download size={12} /> Export
+          </button>
+          {exportOpen && (
+            <>
+              <div onClick={() => setExportOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 60 }} />
+              <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 61, width: 320, background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 10, padding: 12, boxShadow: '0 10px 28px rgba(0,0,0,0.22)' }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Export a report</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: '1px 0 9px' }}>Pick what you want, then the format.</div>
+                <div style={{ display: 'grid', gap: 6 }}>
+                  {exportReports.map(r => (
+                    <button key={r.id} type="button" onClick={() => setExportReport(r.id)} style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 8, cursor: 'pointer', background: exportReport === r.id ? 'var(--brand-bg)' : 'transparent', border: `1px solid ${exportReport === r.id ? 'var(--brand)' : 'var(--border)'}` }}>
+                      <div style={{ fontWeight: 600, fontSize: 12.5, color: 'var(--text)' }}>{r.label}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.desc}</div>
+                      <div style={{ fontSize: 10.5, color: 'var(--brand)', marginTop: 2 }}>{r.count} {r.unit}</div>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 6, margin: '10px 0 9px' }}>
+                  {['pdf', 'excel', 'csv'].map(f => {
+                    const ok = currentExportReport.formats.includes(f);
+                    const active = effectiveExportFormat === f;
+                    return (
+                      <button key={f} type="button" disabled={!ok} onClick={() => setExportFormat(f)} style={{ flex: 1, padding: '6px 0', borderRadius: 7, fontSize: 11.5, fontWeight: 600, textTransform: 'uppercase', cursor: ok ? 'pointer' : 'not-allowed', opacity: ok ? 1 : 0.35, color: active ? '#fff' : 'var(--text)', background: active ? 'var(--brand)' : 'transparent', border: `1px solid ${active ? 'var(--brand)' : 'var(--border)'}` }}>{f === 'excel' ? 'Excel' : f.toUpperCase()}</button>
+                    );
+                  })}
+                </div>
+                <button type="button" className="btn btn-sm btn-primary" style={{ width: '100%' }} onClick={() => { runExport(exportReport, effectiveExportFormat); setExportOpen(false); }}>
+                  Generate {effectiveExportFormat === 'excel' ? 'Excel' : effectiveExportFormat.toUpperCase()}
+                </button>
+                <div style={{ fontSize: 10.5, color: 'var(--text-muted)', textAlign: 'center', marginTop: 6 }}>Respects your current filters.</div>
+              </div>
+            </>
+          )}
         </div>
         {viewMode === "list" && (
           <label className="objective-description-toggle">
