@@ -4496,6 +4496,50 @@ const NcrParticipationCard = ({ observerRows = [], employeeRows = [] }) => {
   );
 };
 
+// Reusable guided export chooser: one button → pick a described report → pick a
+// format → generate. Each report states exactly what it includes. Shared so the
+// export experience is identical across the app.
+const ExportMenu = ({ reports = [], onExport, label = 'Export', align = 'right' }) => {
+  const [open, setOpen] = useState(false);
+  const [reportId, setReportId] = useState(reports[0]?.id);
+  const [format, setFormat] = useState(reports[0]?.formats?.[0] || 'pdf');
+  if (!reports.length) return null;
+  const current = reports.find(r => r.id === reportId) || reports[0];
+  const effFmt = current.formats.includes(format) ? format : current.formats[0];
+  const fmtLabel = (f) => (f === 'excel' ? 'Excel' : f.toUpperCase());
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button type="button" className="btn btn-xs btn-secondary" onClick={() => setOpen(o => !o)}><Download size={12} /> {label}</button>
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 60 }} />
+          <div style={{ position: 'absolute', top: 'calc(100% + 6px)', [align]: 0, zIndex: 61, width: 320, background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 10, padding: 12, boxShadow: '0 10px 28px rgba(0,0,0,0.22)' }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Export a report</div>
+            <div style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: '1px 0 9px' }}>Pick what you want, then the format.</div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              {reports.map(r => (
+                <button key={r.id} type="button" onClick={() => setReportId(r.id)} style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 8, cursor: 'pointer', background: current.id === r.id ? 'var(--brand-bg)' : 'transparent', border: `1px solid ${current.id === r.id ? 'var(--brand)' : 'var(--border)'}` }}>
+                  <div style={{ fontWeight: 600, fontSize: 12.5, color: 'var(--text)' }}>{r.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.desc}</div>
+                  {r.count != null && <div style={{ fontSize: 10.5, color: 'var(--brand)', marginTop: 2 }}>{r.count} {r.unit || ''}</div>}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 6, margin: '10px 0 9px' }}>
+              {['pdf', 'excel', 'csv'].map(f => {
+                const ok = current.formats.includes(f);
+                const active = effFmt === f;
+                return <button key={f} type="button" disabled={!ok} onClick={() => setFormat(f)} style={{ flex: 1, padding: '6px 0', borderRadius: 7, fontSize: 11.5, fontWeight: 600, textTransform: 'uppercase', cursor: ok ? 'pointer' : 'not-allowed', opacity: ok ? 1 : 0.35, color: active ? '#fff' : 'var(--text)', background: active ? 'var(--brand)' : 'transparent', border: `1px solid ${active ? 'var(--brand)' : 'var(--border)'}` }}>{fmtLabel(f)}</button>;
+              })}
+            </div>
+            <button type="button" className="btn btn-sm btn-primary" style={{ width: '100%' }} onClick={() => { onExport?.(current.id, effFmt); setOpen(false); }}>Generate {fmtLabel(effFmt)}</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateReport, onCreateReport, onCreateActionItem, onUpdateActionItem, onUploadAttachment, onCaptureSignature, onImportReports, onCreateObjective, onOpenObjective, addToast }) => {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('open');
@@ -5912,11 +5956,24 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               <p>Trend detection, KPA-style breakdowns, open/closed aging, and AI failure grouping. Mirrors the full KPA report set while improving it with normalized failure language.</p>
             </div>
             <div className="ncr-export-group" role="group" aria-label="Analytics exports">
-              <span className="ncr-export-label"><Download size={13} /> Export</span>
-              <button type="button" className="btn btn-secondary btn-xs" onClick={exportAnalyticsPdf}>PDF</button>
-              <button type="button" className="btn btn-secondary btn-xs" onClick={exportAnalyticsExcel}>Excel</button>
-              <button type="button" className="btn btn-secondary btn-xs" onClick={exportAnalyticsCsv}>Summary CSV</button>
-              <button type="button" className="btn btn-secondary btn-xs" onClick={exportIndividualCsv}>Individual CSV</button>
+              <ExportMenu
+                label="Export"
+                reports={[
+                  { id: 'analytics', label: 'Analytics summary', desc: 'Open / closed, criticality, and aging rollup', formats: ['pdf', 'excel', 'csv'] },
+                  { id: 'list', label: 'Full NCR list', desc: 'Every NCR with all its fields', formats: ['csv'], count: reports.length, unit: reports.length === 1 ? 'NCR' : 'NCRs' },
+                  { id: 'individual', label: 'Individual responses', desc: 'One row per NCR response', formats: ['csv'] },
+                  { id: 'trends', label: 'Issue trends', desc: 'Repeating failure themes', formats: ['csv'] },
+                ]}
+                onExport={(id, fmt) => {
+                  if (id === 'analytics' && fmt === 'pdf') return exportAnalyticsPdf();
+                  if (id === 'analytics' && fmt === 'excel') return exportAnalyticsExcel();
+                  if (id === 'analytics' && fmt === 'csv') return exportAnalyticsCsv();
+                  if (id === 'list') return exportTrackerListCsv();
+                  if (id === 'individual') return exportIndividualCsv();
+                  if (id === 'trends') return exportIssueTrendCsv();
+                  return undefined;
+                }}
+              />
             </div>
           </div>
           <div className="ncr-analytics-filters card">
