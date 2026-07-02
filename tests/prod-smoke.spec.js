@@ -19,10 +19,10 @@ test.describe('production read-only smoke', () => {
   test('release smoke admin can log in and reach core read-only surfaces', async ({ page }, testInfo) => {
     requireCredentials(env.smokeAdminEmail, env.smokeAdminPassword, 'SANDPRO_SMOKE_ADMIN_EMAIL and SANDPRO_SMOKE_ADMIN_PASSWORD');
     await login(page, env.smokeAdminEmail, env.smokeAdminPassword);
-    await expect(navItem(page, 'Dashboard')).toBeVisible();
+    await expect(navItem(page, 'Tasks & Projects')).toBeVisible();
     await dismissGuidance(page);
-    await navItem(page, 'Objectives').click();
-    await expect(visibleInput(page, 'Search objectives...')).toBeVisible();
+    await navItem(page, 'OKR').click();
+    await expect(page.getByRole('button', { name: 'Presentation view' })).toBeVisible();
     await dismissGuidance(page);
     await navItem(page, 'KPI').click();
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible({ timeout: 45000 });
@@ -45,6 +45,6 @@ test.describe('production read-only smoke', () => {
   test('release smoke member credentials reach the app or the required password-change gate', async ({ page }) => {
     requireCredentials(env.smokeMemberEmail, env.smokeMemberPassword, 'SANDPRO_SMOKE_MEMBER_EMAIL and SANDPRO_SMOKE_MEMBER_PASSWORD');
     await login(page, env.smokeMemberEmail, env.smokeMemberPassword);
-    await expect(navItem(page, 'Dashboard')).toBeVisible();
+    await expect(navItem(page, 'Tasks & Projects')).toBeVisible();
   });
 });

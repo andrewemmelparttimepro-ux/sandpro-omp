@@ -103,8 +103,8 @@ const waitForVisible = async (locator, timeout = 12000) => {
 };
 
 const isSignedInShellVisible = async (page, timeout = 12000) => Promise.any([
-  waitForVisible(navItem(page, 'Dashboard'), timeout),
-  waitForVisible(page.locator('.brief-overlay, .brief-paper, .mobile-topbar, .dashboard-page').first(), timeout),
+  waitForVisible(navItem(page, 'Tasks & Projects'), timeout),
+  waitForVisible(page.locator('.brief-overlay, .brief-paper, .mobile-topbar, .dashboard-page, .global-kpi-strip').first(), timeout),
   waitForVisible(page.getByRole('button', { name: 'User settings' }), timeout),
 ]).then(() => true).catch(() => false);
 

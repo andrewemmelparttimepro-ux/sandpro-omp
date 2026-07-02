@@ -17,7 +17,7 @@ const safeStorage = {
   get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* noop */ } },
 };
-import { DashboardPage, ObjectivesPage, KpiPage, OrgPage, FixItFeedPage, NcrPage, AdminSidebar } from './pages';
+import { DashboardPage, ObjectivesPage, KpiPage, OrgPage, FixItFeedPage, NcrPage, AdminSidebar, GlobalKpiStrip, CreateWizardModal, OkrPage } from './pages';
 import './index.css';
 
 const PAGE_IDS = ["dashboard", "objectives", "kpi", "fixit", "ncr", "organization"];
@@ -824,6 +824,14 @@ function App() {
     ? (route.dashboardMode || altDashboard.preferences.lastDashboardMode) === ALT_DASHBOARD_MODE ? ALT_DASHBOARD_MODE : 'standard'
     : 'standard';
 
+  // View type scope — shared by the global KPI strip and the Tasks & Projects list
+  const [viewScope, setViewScope] = useState("company");
+  useEffect(() => {
+    if (!profile?.role) return;
+    setViewScope(profile.role === "executive" ? "company" : profile.role === "manager" ? "team" : "individual");
+  }, [profile?.role]);
+  const [wizardInitialType, setWizardInitialType] = useState(null);
+
   useEffect(() => {
     if (
       route.page === "dashboard" &&
@@ -1409,6 +1417,59 @@ function App() {
     }
   }, [fixItPosts, sendFixItPushEvent, summarizeFixItPost, updateFixItPostStatus]);
 
+  // ── Create New wizard handlers (the one door in) ──────────────────────────
+  const handleWizardCreateTask = async ({ title, description, department, class: klass, ownerId, dueDate, link, parentId }) => {
+    const created = await createObjective({
+      title, description, ownerId,
+      createdBy: profile.id,
+      delegatedBy: ownerId !== profile.id ? profile.id : null,
+      status: 'not_started', priority: 'medium', progress: 0,
+      dueDate, department, class: klass, okrGroup: null,
+      nextAction: '', type: 'simple', rollupMethod: 'average',
+      parentId: link === 'okr' ? parentId : null,
+      okrLevel: link === 'okr' ? 'department' : 'run_the_business',
+    });
+    if (link === 'project' && parentId) {
+      const proj = okrProjects.find(pr => pr.id === parentId);
+      await updateOkrProject(parentId, { linkedObjectiveIds: [...new Set([...(proj?.linkedObjectiveIds || []), created.id])], userId: profile.id });
+    }
+    if (link === 'ncr' && parentId) {
+      await updateNcrReport(parentId, { linkedObjectiveId: created.id, updatedBy: profile.id });
+    }
+    addToast({ type: 'success', message: 'Task created' });
+    const fresh = await refetchObjectives();
+    const obj = fresh?.find(o => o.id === created.id);
+    if (obj) handleOpenCard(obj);
+    return created;
+  };
+
+  const handleWizardCreateOkr = async ({ title, description, department, class: klass, ownerId, dueDate }) => {
+    const created = await createObjective({
+      title, description, ownerId,
+      createdBy: profile.id,
+      delegatedBy: ownerId !== profile.id ? profile.id : null,
+      status: 'not_started', priority: 'medium', progress: 0,
+      dueDate, department, class: klass,
+      nextAction: '', type: 'simple', rollupMethod: 'average',
+      okrLevel: 'company',
+    });
+    addToast({ type: 'success', message: 'Main OKR created' });
+    await refetchObjectives();
+    return created;
+  };
+
+  const handleWizardCreateProject = async ({ title, description, ownerId, dueDate, linkedOkrId }) => {
+    const created = await createOkrProject({
+      name: title, description,
+      leadId: ownerId, sponsorId: profile.id,
+      stage: 'idea', targetDate: dueDate || null,
+      linkedObjectiveIds: linkedOkrId ? [linkedOkrId] : [],
+    });
+    addToast({ type: 'success', message: 'Project created' });
+    await refetchObjectives();
+    return created;
+  };
+
   const handleSaveObjective = async (obj) => {
     try {
       const exists = objectives.find(o => o.id === obj.id);
@@ -1536,19 +1597,19 @@ function App() {
   // OMP bridge plan, Domain 2 (IA): NCR lives UNDER Objectives, not as a
   // top-level concern. It renders via an Objectives sub-nav and the Objectives
   // pill stays active while on it.
+  // Top-level nav = modules (Jake): Tasks & Projects is the home/list view,
+  // OKR and NCR are their own dashboards. "Objectives" never appears as a tab
+  // (the page stays routable for deep links and drill-downs).
   const pages = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "objectives", label: "Objectives", icon: Target },
+    { id: "dashboard", label: "Tasks & Projects", icon: LayoutDashboard },
+    { id: "okr", label: "OKR", icon: Target },
+    { id: "ncr", label: "NCR", icon: ClipboardCheck },
     { id: "kpi", label: "KPI", icon: BarChart3 },
     { id: "fixit", label: "Fix-It Feed", icon: Wrench },
     { id: "organization", label: "Organization", icon: Network },
   ];
-  // Sub-pages that hang under a top-level page (child id -> parent id).
-  const NAV_PARENT = { ncr: "objectives" };
-  const objectivesSubNav = [
-    { id: "objectives", label: "Objectives", icon: Target },
-    { id: "ncr", label: "NCR", icon: ClipboardCheck },
-  ];
+  // Deep-linked pages that highlight a parent tab (objectives page is hidden).
+  const NAV_PARENT = { objectives: "dashboard" };
   const activeNavId = NAV_PARENT[route.page] || route.page;
   const currentPage = Math.max(0, pages.findIndex(page => page.id === activeNavId));
   const currentPageMeta = pages[currentPage] || pages[0];
@@ -1950,30 +2011,30 @@ function App() {
               <X size={16} />
             </button>
             <div className="framework-explainer-kicker">First login guide</div>
-            <h2 id="framework-explainer-title">What changed in Dashboard + Objectives</h2>
+            <h2 id="framework-explainer-title">What changed in SandPro OMP</h2>
             <p className="framework-explainer-lead">
-              Dashboard is now the command view for deciding what needs attention. Objectives is the working record for OKRs, KRs, projects, gates, files, audit, and signoffs.
+              Tasks & Projects is the home screen — one list, drillable by the standard filters down to a single line. Create New channels every entry through guided clicks, and OKR and NCR have their own dashboards.
             </p>
             <div className="framework-explainer-grid">
               <div className="framework-explainer-step">
                 <span><LayoutDashboard size={18} /></span>
                 <div>
-                  <strong>Start in Dashboard</strong>
-                  <p>Use the lenses to see active work, stale KRs, blockers, departments, and due-date pressure without changing the source records.</p>
+                  <strong>Start in Tasks &amp; Projects</strong>
+                  <p>The scoreboard rides the top of every view. Below it, drill the list by department, type, linkage, people, and aging — down to a single line.</p>
                 </div>
               </div>
               <div className="framework-explainer-step">
                 <span><Target size={18} /></span>
                 <div>
-                  <strong>Work in Objectives</strong>
-                  <p>Open the objective to manage structure, metrics, linked projects, gate blockers, evidence files, audit history, and signoffs.</p>
+                  <strong>Create through one door</strong>
+                  <p>Hit + New anywhere. Pick what it is, link it to a project, OKR, or NCR, and the standard form does the rest. No guessing, no misfiled work.</p>
                 </div>
               </div>
               <div className="framework-explainer-step">
                 <span><Network size={18} /></span>
                 <div>
-                  <strong>Review the tree</strong>
-                  <p>Company OKRs, department OKRs, key results, and linked projects now live in one hierarchy so work does not drift away from the result it supports.</p>
+                  <strong>Update your OKR line</strong>
+                  <p>The OKR tab is the spreadsheet, digitized and locked — if you're tagged on a line, enter your number each month. Presentation view prints one clean page.</p>
                 </div>
               </div>
               <div className="framework-explainer-step">
@@ -1988,7 +2049,7 @@ function App() {
               Items marked Assumed are preserved exactly as-is. They are placed in the best-fit category and are asking for a human confirmation, not saying the work is wrong.
             </div>
             <div className="framework-explainer-actions">
-              <button type="button" className="btn btn-primary" onClick={openFrameworkObjectives}>Open Objectives tree</button>
+              <button type="button" className="btn btn-primary" onClick={openFrameworkObjectives}>Open the OKR tree</button>
               <button type="button" className="btn btn-ghost" onClick={dismissFrameworkExplainer}>Got it</button>
             </div>
           </section>
@@ -2106,16 +2167,29 @@ function App() {
           <span>{pullRefreshState.refreshing ? 'Refreshing...' : pullRefreshState.ready ? 'Release to reload' : 'Pull to refresh'}</span>
         </div>
         <main className={`main-content ${route.page === "kpi" ? "main-content-scroll" : ""}`} ref={mainContentRef}>
-          {(route.page === "objectives" || route.page === "ncr") && (
-            <nav className="nav-pills objectives-subnav" style={{ marginBottom: 12 }}>
-              {objectivesSubNav.map(sub => (
-                <a key={sub.id} href={pageHref(sub.id)} onClick={(event) => handleNavClick(event, sub.id)} aria-label={sub.label} className={`nav-pill ${route.page === sub.id ? 'active' : ''}`}>
-                  <sub.icon size={14} />{sub.label}
-                </a>
-              ))}
-            </nav>
-          )}
-          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onDashboardModeChange={setDashboardMode} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onKpiClick={(preset) => showObjectivesWithFilters({
+          <GlobalKpiStrip
+            objectives={objectives}
+            okrProjects={okrProjects}
+            currentUser={currentUser}
+            scope={viewScope}
+            onScopeChange={(next) => { setViewScope(next); if (currentPage === 0) setDashboardMode('standard'); }}
+            showAltToggle={currentPage === 0}
+            isAltActive={currentPage === 0 && dashboardMode === ALT_DASHBOARD_MODE}
+            onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
+            onKpiClick={(preset) => showObjectivesWithFilters({
+              status: preset.status || "all",
+              owner: preset.scope === "individual" ? currentUser.id : "all",
+              due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
+              scope: preset.scope || "all",
+              okrLevel: preset.okrLevel || "all",
+              projectStage: preset.projectStage || "all",
+              stale: preset.stale || "all",
+              view: preset.view || DEFAULT_OBJECTIVE_FILTERS.view,
+              activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
+              label: preset.label,
+            })}
+          />
+          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onKpiClick={(preset) => showObjectivesWithFilters({
             status: preset.status || "all",
             owner: preset.scope === "individual" ? currentUser.id : "all",
             due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
@@ -2128,6 +2202,7 @@ function App() {
             activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
             label: preset.label,
           })} />}
+          {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
           {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
           {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
           {route.page === "fixit" && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} />}
@@ -2149,14 +2224,15 @@ function App() {
           </a>
         ))}
       </nav>
-      <button type="button" className="mobile-new-fab" onClick={() => setShowCreateForm(true)} aria-label="Create new objective">
+      <button type="button" className="mobile-new-fab" onClick={() => setShowCreateForm(true)} aria-label="Create new">
         <Plus size={22} />
       </button>
 
       {/* MODALS */}
       {openCard && <SuperCard obj={openCard} objectives={objectives} okrProjects={okrProjects} initialTab={route.objectiveTab} onTabChange={(tab) => updateRoute(prev => ({ ...prev, objectiveTab: tab }), { replace: true })} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} uploadObjectiveFile={uploadObjectiveFile} deleteObjectiveFile={deleteObjectiveFile} addSubtask={addSubtask} updateSubtask={updateSubtask} deleteSubtask={deleteSubtask} addMetricCheckin={addMetricCheckin} addObjectiveMember={addObjectiveMember} removeObjectiveMember={removeObjectiveMember} addWorkflowStep={addWorkflowStep} updateWorkflowStep={updateWorkflowStep} createOkrProject={createOkrProject} updateOkrProject={updateOkrProject} updateProjectArtifact={updateProjectArtifact} captureProjectSignature={captureProjectSignature} uploadProjectAttachment={uploadProjectAttachment} deleteProjectAttachment={deleteProjectAttachment} onMarkMessagesRead={markObjectiveMessagesRead} onUpdateMessage={handleUpdateMessage} onSetMessageReaction={handleSetMessageReaction} onRemoveMessageReaction={handleRemoveMessageReaction} onTranslateMessage={handleTranslateMessage} runObjectiveStarter={aiFeaturesAvailable ? runObjectiveStarter : null} aiFeaturesEnabled={aiFeaturesAvailable} createNotification={createNotification}
         onEdit={(obj) => { setEditingObj(obj); handleCloseCard(); }} />}
-      {(showCreateForm || editingObj) && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={async (obj) => { const saved = await handleSaveObjective(obj); if (saved) setEditingObj(null); return saved; }} onClose={() => { setShowCreateForm(false); setEditingObj(null); }} />}
+      {editingObj && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={async (obj) => { const saved = await handleSaveObjective(obj); if (saved) setEditingObj(null); return saved; }} onClose={() => { setEditingObj(null); }} />}
+      {showCreateForm && <CreateWizardModal objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} initialType={wizardInitialType} onClose={() => { setShowCreateForm(false); setWizardInitialType(null); }} onCreateTask={handleWizardCreateTask} onCreateProject={handleWizardCreateProject} onCreateOkr={handleWizardCreateOkr} onGoNcr={() => { setShowCreateForm(false); setWizardInitialType(null); updateRoute({ page: "ncr" }); addToast({ type: "info", message: "NCRs use the standard NCR form" }); }} />}
       {showAccountSettings && (
         <AccountSettingsModal
           currentUser={currentUser}
