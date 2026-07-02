@@ -1,0 +1,94 @@
+--- Page 1 ---
+Summary of OKR/task workflow
+Created on July 01, 2026 by Summary AI
+Action Items
+Send latest spreadsheet
+Send the latest Excel spreadsheet (cleaned filter list / pen list) to Jake and Speaker D, and confirm
+they received it.
+Overview
+Team defined a simple creation flow: users select a type (task, project, NCR, OKR) then are guided
+through relevant fields; selection drives lineage/linkage so entries feed dashboards.
+Filters and views were standardized: main department subdepartment priority/aging
+originator assigned; dashboards include edit (monthly updates) and presentation (one-page
+roll-up).
+Goal: minimize free-text choices, provide minimal selection criteria to ensure clean reporting, avoid
+confusion and duplicate entries; start simple and allow later refinement.
+Rotation ownership & groups
+Several departments run on rotations; the person on shift is the owner for a 3-week period.
+Team agreed to group-based ownership (e.g., trainers, dispatch, field ops) rather than enumerating
+every person who might rotate in/out.
+Example: some roles remain co-owned (Josh Blackaby & John Summerfield as co-owners), while
+other assignments can tag one or multiple people.
+Outlook: group ownership reduces maintenance and maps to the platform's ability to tag multiple
+assignees.
+Creation flow & guided prompts
+Creation starts with a single top-level choice (left-most): task / project / OKR / NCR.
+Based on that choice the UI should present only relevant prompts, hand-holding users through
+required fields and blacking out irrelevant options.
+Tasks can be single or recurring; projects and OKRs expose a dropdown of existing open
+projects/OKRs/NCRs to link into.
+Outlook: the guided flow prevents misclassification and supports consistent lineage for reporting.
+Linkage: tasks
+ projects
+ OKRs
+ NCRs
+Every created item must capture its association: standalone or linked to a project / OKR / NCR.
+If an item is linked, the system should expose the open list of that type (projects/OKRs/NCRs) so
+users select the specific parent — enabling filters like "tasks linked to OKR X."
+
+--- Page 2 ---
+Tasks may also be components of projects, NCRs or OKRs; the key capability is bi-directional
+drilling so a project view shows all associated tasks.
+Outlook: linkage is central — it enables meaningful dashboards and multiple filter criteria.
+Dashboards & views
+Two main presentation modes: Edit view (monthly status entry, editable fields for tagged users) and
+Presentation view (clean, non-editable one-page roll-up for meetings).
+Edit view exposes a monthly table (Jan–Sep etc.) where tagged users can update only their line(s)
+(numbers or percentages).
+Presentation view shows the same data cleaned up by department/group for executive consumption
+and printing.
+Outlook: lock/create permissions so only admins can create main OKRs; tagged users update their
+assigned lines to preserve integrity.
+Filter fields & list view structure
+Standardized filter sequence agreed: main department (division) subdepartment / group item
+type (task/project/NCR/OKR) association/linkage originator / assigned person aging /
+due-date.
+This minimal set supports quick drill-downs (by person, by group, by OKR) and reduces noise from
+free-text descriptions.
+List view (the cleaned "pen list") should be a de-duplicated master reference that the filters drive —
+i.e., a single canonical item per row.
+Outlook: filters will produce the dashboards and home-screen views (by task, by project, by NCR).
+Aging & due-date buckets
+Agreed to standard aging buckets to reduce ambiguity: due today / due next 7 days / due next 14
+days / due next 21-30 days / past due / completed.
+Aging indicates time until or past due (not a priority ranking) and supports timeline-based filtering and
+escalation.
+Outlook: default entries start as level 1 (baseline) and can be escalated to level 2 if customer
+requests or circumstances require more extensive work.
+Permissions & OKR model
+Only certain admin users can create main OKRs; general users create entries and tag people or
+groups.
+Tagging grants edit permission: a tagged user can update their assigned line(s) in the edit view
+(monthly status numbers).
+OKRs remain a separate module/tab; OKR creation should be controlled to avoid proliferation and
+ensure dashboard integrity.
+Outlook: keep OKR creation separate and restricted; use tags for status updates.
+
+--- Page 3 ---
+Item taxonomy & cleanup approach
+The team consolidated a large, duplicate-heavy "pen list" into a single de-duplicated master used
+for filters; some items still need to be created (yellow items) where no canonical entry existed.
+For product/asset categories (casing heads, drilling tools, bumper poles, floatback parts), the
+approach is: reuse existing entries when applicable; create new canonical items only when required.
+Outlook: start from the cleaned master list, add missing items iteratively, and keep categories
+consistent across groups (production, drill & rig, flowback, automation, wellhead, repair).
+Decision summary & outlook
+Keep the model simple: first select type, then department/division, then minimal selection criteria
+(group, subdepartment, aging, originator, assignee) to drive lineage and reporting.
+Use the edit and presentation views: monthly editable table for owners/tags; one-page roll-up for
+leadership.
+Treat OKR creation as an admin action; use tagging for status updates.
+Start with the cleaned master list and add missing canonical items as needed; default entries start at
+level 1 and escalate to level 2 when required.
+Outlook: this standardization aims to reduce confusion, make dashboards actionable, and enable
+reliable filtering/reporting across tasks, projects, NCRs, and OKRs.

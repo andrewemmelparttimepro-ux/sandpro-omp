@@ -1,0 +1,26 @@
+{
+  "ndai_brand_reference": {
+    "path": "/Users/andrewemmel/Documents/Claude/Projects/week before the 4th/NDAI Brand Reference.pdf",
+    "type": "pdf",
+    "pages": 10,
+    "chars": 0
+  },
+  "workflow_summary": {
+    "path": "/Users/andrewemmel/Downloads/remeeting/OKR_task workflow_ Summary.pdf",
+    "type": "pdf",
+    "pages": 3,
+    "chars": 5672
+  },
+  "workflow_transcript": {
+    "path": "/Users/andrewemmel/Downloads/remeeting/OKR_task workflow_ Transcript.pdf",
+    "type": "pdf",
+    "pages": 85,
+    "chars": 86591
+  },
+  "untitled_1_pptx": {
+    "path": "/Users/andrewemmel/Downloads/UNTITLED (1).pptx",
+    "type": "pptx",
+    "slides": 3,
+    "chars": 1154
+  }
+}

@@ -1,0 +1,108 @@
+--- Slide 1 ---
+TASK 
+PROJECT 
+NCR
+Create NEW 
+OKR
+Spread shows with detail – OKR Dashboard 
+Presentation View
+Edit View 
+DATA FIELD 
+MAIN OKR 
+Status updates- 
+NAME IS TAG   
+ Is this task associated with ? 
+A PROJECT 
+OKR 
+NCR  
+A Stand alone task   
+Standard Task form 
+If they select Project, OKR,NCR  
+Drop down selection of OPEN Either Projects, OKRs or NCR’s 
+Standard PROJECT  form 
+Standard NCR  form 
+USE PERMISSION 
+USE PERMISSION- NAME IS TAGGED  
+Either
+ 
+Number of %
+MAIN OKR 
+JAN 
+FEB 
+EDIT VIEW  
+Presentation VIEW – 1 page Clean rollup by Group 
+
+--- Slide 2 ---
+List view 
+TASK 
+PROJECT 
+NCR
+Sub Department 
+Aging
+Originator  
+Assigned
+Type 
+OKR 
+Linked to 
+PROJECT  
+Main Department 
+Automation 
+Wellhead 
+Flowback 
+CP Warehouse 
+Business Team
+Repair
+Repair
+Repair
+Repair
+HR 
+Service 
+Service 
+Service 
+Service 
+Accounting 
+Rental 
+Rental 
+Rental 
+Inventory 
+Safety 
+Inventory 
+Inventory 
+Inventory 
+Sale Goods
+Sale Team 
+Sale Goods
+Sale Goods
+Sale Goods
+Marketing 
+Quality 
+Leadership 
+Purchasing 
+Training 
+Facility 
+Maintenance 
+R&D
+Automation
+Wellhead
+Flowback
+CP Warehouse
+Business
+All users 
+All users 
+Completed
+All Due Dates 
+Due Today
+Due Next 7
+Due Next  14
+Due Next  21
+Past Due 
+VIEW TYPE
+Company  
+My Team   
+Individual
+
+--- Slide 3 ---
+Task and Projects  
+OKR 
+NCR 
+Create 

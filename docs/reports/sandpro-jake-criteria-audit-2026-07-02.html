@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SandPro OMP Jake Criteria Audit - July 2, 2026</title>
+  <style>
+    :root {
+      --paper: #f4f2ec;
+      --surface: #eae6df;
+      --surface-strong: #dfd7cc;
+      --ink: #1a1a1a;
+      --muted: #5f5549;
+      --line: #b8aa96;
+      --sand: #7a6448;
+      --sand-soft: #c9b99f;
+      --green: #238855;
+      --green-soft: #d9f2e4;
+      --amber: #9a6a14;
+      --amber-soft: #f3e2bb;
+      --red: #b8252a;
+      --red-soft: #f3d5d4;
+      --blue: #275f83;
+      --blue-soft: #d6e6ef;
+      --shadow: 0 18px 45px rgba(57, 43, 25, 0.12);
+      --radius: 8px;
+      color-scheme: light;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0) 480px),
+        var(--paper);
+      line-height: 1.52;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .page-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 22px 64px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(234, 230, 223, 0.94), rgba(244, 242, 236, 0.94));
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: clamp(24px, 4vw, 44px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--sand), var(--line), var(--green));
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      font-size: 0.76rem;
+      line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--sand);
+      font-weight: 800;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 850px;
+      font-size: clamp(2.25rem, 6vw, 5.4rem);
+      font-weight: 900;
+    }
+
+    h2 {
+      font-size: clamp(1.45rem, 3vw, 2.35rem);
+      font-weight: 850;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 850;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .hero-copy {
+      max-width: 830px;
+      margin-top: 22px;
+      font-size: clamp(1rem, 1.8vw, 1.22rem);
+      color: var(--muted);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .meta-cell {
+      border: 1px solid rgba(184, 170, 150, 0.75);
+      background: rgba(255, 255, 255, 0.34);
+      border-radius: var(--radius);
+      padding: 14px;
+      min-height: 94px;
+    }
+
+    .meta-cell span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 7px;
+    }
+
+    .meta-cell strong {
+      display: block;
+      font-size: 1.02rem;
+      line-height: 1.24;
+    }
+
+    .section {
+      margin-top: 34px;
+      padding: clamp(20px, 3vw, 30px);
+      border: 1px solid rgba(184, 170, 150, 0.78);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    .section.plain {
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .section-head p {
+      max-width: 640px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .callout {
+      border-left: 6px solid var(--red);
+      background: var(--red-soft);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-top: 22px;
+    }
+
+    .callout.good {
+      border-left-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .callout.neutral {
+      border-left-color: var(--sand);
+      background: var(--surface);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 1.02rem;
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .status-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      background: var(--paper);
+    }
+
+    .status-card strong {
+      display: block;
+      font-size: 1.45rem;
+      line-height: 1;
+      margin: 8px 0;
+    }
+
+    .status-card span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid currentColor;
+    }
+
+    .badge,
+    .source-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 850;
+      line-height: 1.1;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      border: 1px solid currentColor;
+    }
+
+    .badge.meets { color: var(--green); background: var(--green-soft); }
+    .badge.partial { color: var(--amber); background: var(--amber-soft); }
+    .badge.fail { color: var(--red); background: var(--red-soft); }
+    .badge.unknown { color: var(--blue); background: var(--blue-soft); }
+    .source-pill { color: var(--sand); background: rgba(255, 255, 255, 0.42); }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(184, 170, 150, 0.7);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid rgba(184, 170, 150, 0.58);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(223, 215, 204, 0.7);
+      color: var(--sand);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 900;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    td small {
+      display: block;
+      color: var(--muted);
+      margin-top: 5px;
+      line-height: 1.42;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .list-item {
+      border: 1px solid rgba(184, 170, 150, 0.74);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.32);
+      padding: 14px;
+    }
+
+    .list-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .list-item p {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    figure {
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.46);
+      overflow: hidden;
+    }
+
+    figure img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: top left;
+      background: var(--surface);
+      border-bottom: 1px solid rgba(184, 170, 150, 0.65);
+    }
+
+    figcaption {
+      padding: 11px 12px 13px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.38;
+    }
+
+    figcaption strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+
+    .quote-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .quote {
+      border: 1px solid rgba(184, 170, 150, 0.8);
+      border-radius: var(--radius);
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.32);
+    }
+
+    .quote strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--sand);
+    }
+
+    .quote p {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 34px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.88em;
+      background: rgba(223, 215, 204, 0.72);
+      padding: 1px 5px;
+      border-radius: 5px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .meta-cell code {
+      display: inline;
+      line-height: 1.38;
+    }
+
+    .nowrap { white-space: nowrap; }
+    .muted { color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .meta-grid,
+      .status-row,
+      .gallery,
+      .quote-grid,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      .section-head p {
+        margin-top: 10px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page-shell {
+        padding: 18px 12px 42px;
+      }
+
+      .hero,
+      .section {
+        padding: 18px;
+      }
+
+      h1 {
+        font-size: 2.15rem;
+      }
+
+      table {
+        min-width: 760px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page-shell {
+        max-width: none;
+        padding: 0;
+      }
+
+      .hero,
+      .section,
+      .status-card,
+      .list-item,
+      figure,
+      .quote {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+
+      .gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      a {
+        color: var(--ink);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <header class="hero">
+      <p class="eyebrow">NDAI Light Review Packet / SandPro OMP</p>
+      <h1>Jake Criteria Audit</h1>
+      <p class="hero-copy">A source-backed, both-surface review of the current local SandPro redesign worktree and live production at <a href="https://objectivetracker.net">objectivetracker.net</a>. Production was kept read-only throughout the audit.</p>
+
+      <div class="meta-grid" aria-label="Audit metadata">
+        <div class="meta-cell">
+          <span>Date</span>
+          <strong>July 2, 2026</strong>
+        </div>
+        <div class="meta-cell">
+          <span>Local checkout</span>
+          <strong><code>/Users/andrewemmel/Documents/New project/sandpro-omp</code></strong>
+        </div>
+        <div class="meta-cell">
+          <span>Surfaces audited</span>
+          <strong>Local redesign + live production</strong>
+        </div>
+        <div class="meta-cell">
+          <span>Final answer</span>
+          <strong>No - not all criteria are fully met yet</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Executive Verdict</p>
+          <h2>Strong redesign progress, but not a full criteria completion claim</h2>
+        </div>
+        <p>The local app now visibly represents most of Jake's workflow vision: separated OKR, Tasks & Projects as the home list, NCR and KPI dashboards, a guided Create New flow, edit/presentation OKR modes, filterable list views, and mobile scroll proof. The blockers are no longer the broad navigation surface. They are the live data contract, permission enforcement proof, and some depth in project/KR/KPI linkages.</p>
+      </div>
+
+      <div class="callout">
+        <strong>Answer to "Does SandPro OMP meet all of Jake's criteria?"</strong>
+        No. The local redesigned state partially meets the full criteria set and appears presentable as an honest redesign review. Live production is navigable and matches much of the surface redesign, but the live data behind OKR/KPI/NCR linkage is incomplete enough that SandPro OMP should not be represented as fully fulfilling Jake's criteria yet.
+      </div>
+
+      <div class="status-row">
+        <div class="status-card">
+          <span class="badge partial">Partially Meets</span>
+          <strong>Local app</strong>
+          <p class="muted">Core IA, Create New, OKR modes, filters, mobile, and smoke paths pass. Some permission and workflow depth gaps remain.</p>
+        </div>
+        <div class="status-card">
+          <span class="badge partial">Partially Meets</span>
+          <strong>Live app</strong>
+          <p class="muted">Production login/navigation/display works read-only. Live data is not yet clean or fully linked.</p>
+        </div>
+        <div class="status-card">
+          <span class="badge meets">Meets</span>
+          <strong>Trap sweep</strong>
+          <p class="muted">Broken-buttons, mobile crop, modal scroll, nav, a11y, build, unit, schema, and production smoke checks passed in tested paths.</p>
+        </div>
+        <div class="status-card">
+          <span class="badge fail">Not Done</span>
+          <strong>All criteria</strong>
+          <p class="muted">Permission model, canonical production data, KR hierarchy, KPI check-ins, and NCR-objective linkage need additional closure.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Source Ingestion</p>
+          <h2>What was read and rendered</h2>
+        </div>
+        <p>The audit criteria were built from the supplied materials before evaluating the app. The NDAI reference PDF has no extractable text layer, so its pages were rendered and visually inspected for light-mode styling cues.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Artifact</th>
+              <th>Ingestion result</th>
+              <th>Role in audit</th>
+              <th>Evidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>NDAI Brand Reference.pdf</strong></td>
+              <td>10 pages rendered; 0 extractable text characters.</td>
+              <td>Light-mode aesthetics: warm paper, dark ink, restrained chrome, sand/metal accents, semantic green/red only.</td>
+              <td><a href="../evidence/jake-criteria-audit-2026-07-02/sources/ndai-brand/page-01.png">Rendered page 1</a></td>
+            </tr>
+            <tr>
+              <td><strong>OKR_task workflow_ Summary.pdf</strong></td>
+              <td>3 pages, 5,672 extracted characters, all pages rendered.</td>
+              <td>Primary criteria spine for creation flow, linkage, edit/presentation views, filters, aging, permissions, and cleanup.</td>
+              <td><a href="../evidence/jake-criteria-audit-2026-07-02/extracts/workflow_summary.txt">Extracted text</a></td>
+            </tr>
+            <tr>
+              <td><strong>OKR_task workflow_ Transcript.pdf</strong></td>
+              <td>85 pages, 86,591 extracted characters, proof pages rendered.</td>
+              <td>Decision context for OKR separation, permission intent, task/project/NCR/OKR linkage, and dashboard taxonomy.</td>
+              <td><a href="../evidence/jake-criteria-audit-2026-07-02/extracts/workflow_transcript.txt">Extracted text</a></td>
+            </tr>
+            <tr>
+              <td><strong>UNTITLED (1).pptx</strong></td>
+              <td>3 slides, 1,154 extracted characters, all slides rendered.</td>
+              <td>Flowchart wording Jake will recognize: Create New, standard forms, linked-to prompts, OKR dashboard, edit/presentation views, list filters.</td>
+              <td><a href="../evidence/jake-criteria-audit-2026-07-02/sources/untitled-pptx/slide-1.png">Rendered slide 1</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="quote-grid">
+        <div class="quote">
+          <strong>Creation and lineage</strong>
+          <p>Summary pp. 1-2 and Deck slide 1 define the create flow as type-first, guided, and linked to open projects, OKRs, or NCRs when applicable.</p>
+        </div>
+        <div class="quote">
+          <strong>OKR dashboard</strong>
+          <p>Transcript pp. 15-16 and pp. 30-31 separate OKR from general create work and require edit and presentation modes.</p>
+        </div>
+        <div class="quote">
+          <strong>List/filter taxonomy</strong>
+          <p>Summary p. 2 and Deck slide 2 specify main department, subdepartment, type, linked-to, originator, assigned, aging, and view type.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Criteria Matrix</p>
+          <h2>Jake criteria status by surface</h2>
+        </div>
+        <p>Status definitions: Meets means verified in the current surface. Partially Meets means visible or structurally present but incomplete. Does Not Meet means the criteria is materially absent. Not Verifiable means the audit could not prove it without production mutation or missing live data.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Criterion</th>
+              <th>Source anchor</th>
+              <th>Local redesign</th>
+              <th>Live production</th>
+              <th>Reason / evidence</th>
+              <th>Next action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Module taxonomy: Tasks & Projects, OKR, NCR, KPI, Fix-It, Organization</strong></td>
+              <td>Transcript pp. 66-67; Deck slide 3.</td>
+              <td><span class="badge meets">Meets</span></td>
+              <td><span class="badge meets">Meets</span></td>
+              <td>Local and production captures show the redesigned navigation. The old generic Objectives nav is guarded by <code>tests/jake-redesign-traps.spec.js</code>.</td>
+              <td>Keep nav names stable for Jake/Tim review.</td>
+            </tr>
+            <tr>
+              <td><strong>Tasks & Projects as the canonical list/dashboard</strong></td>
+              <td>Summary p. 2; Transcript pp. 23, 32, 67.</td>
+              <td><span class="badge meets">Meets</span></td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td>Local list view implements one row per item and the filter chain. Live production renders the same surface, but linked project/KR data is mostly empty.</td>
+              <td>Backfill project/KR/NCR linkage so filters prove true from data, not only UI.</td>
+            </tr>
+            <tr>
+              <td><strong>Create New guided flow with Task, Project, NCR only</strong></td>
+              <td>Summary p. 1; Deck slide 1; Transcript pp. 20-22.</td>
+              <td><span class="badge meets">Meets</span></td>
+              <td><span class="badge meets">Meets</span></td>
+              <td>The wizard exposes Task, Project, NCR and excludes OKR from the general door. Mobile scroll and no-crop traps pass.</td>
+              <td>Extend field depth for project and NCR forms without changing the type-first flow.</td>
+            </tr>
+            <tr>
+              <td><strong>OKR remains a separate tab/module</strong></td>
+              <td>Summary p. 2; Transcript pp. 14-16.</td>
+              <td><span class="badge meets">Meets</span></td>
+              <td><span class="badge meets">Meets</span></td>
+              <td>OKR has its own route, nav item, edit mode, presentation mode, and production smoke proof.</td>
+              <td>Keep OKR creation out of general Create New.</td>
+            </tr>
+            <tr>
+              <td><strong>OKR edit view and clean one-page presentation view</strong></td>
+              <td>Summary p. 2; Transcript pp. 15, 30-31; Deck slide 1.</td>
+              <td><span class="badge meets">Meets</span></td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td>UI has Edit view, Presentation view, and print action. Live data has too few metric check-ins to make the presentation view a complete operating report.</td>
+              <td>Seed/check live OKR metric check-ins and confirm print output with real monthly values.</td>
+            </tr>
+            <tr>
+              <td><strong>Tagged users can edit only assigned OKR lines; admins create main OKRs</strong></td>
+              <td>Summary p. 2; Transcript pp. 15-16, 27; Deck slide 1.</td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td><code>src/ompPermissions.js</code> defines executive and manager as admins, but <code>CreateWizardModal</code> and <code>OkrPage</code> currently gate admin UI with executive only. Live RLS exists, but field-level tagged-line proof is not complete.</td>
+              <td>Unify UI gates with the permission helper and run a manager/member edit-denial test against staging.</td>
+            </tr>
+            <tr>
+              <td><strong>Linked-to behavior: task/project/NCR/OKR relationships</strong></td>
+              <td>Summary pp. 1-2; Transcript pp. 21-23, 52; Deck slides 1-2.</td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td><span class="badge fail">Does Not Meet</span></td>
+              <td>Local UI asks linked-to and open parent questions. Live data has no NCR-objective linkage, no objective parent hierarchy, and empty OKR project tables in the data probe.</td>
+              <td>Run a data-backfill pass that connects NCRs, projects, tasks, and OKRs to real parent records.</td>
+            </tr>
+            <tr>
+              <td><strong>Aging buckets: due today, next 7, next 14, next 21-30, past due, completed</strong></td>
+              <td>Summary p. 2; Transcript pp. 36-41, 56; Deck slide 2.</td>
+              <td><span class="badge meets">Meets</span></td>
+              <td><span class="badge meets">Meets</span></td>
+              <td>Dashboard list code implements the bucket logic and captures show the filter controls. Trap tests cover the list surface and mobile scroll.</td>
+              <td>Confirm Jake wants 21-30 retained instead of slide wording "Due Next 21" before final copy lock.</td>
+            </tr>
+            <tr>
+              <td><strong>Main department and subdepartment filter taxonomy</strong></td>
+              <td>Summary p. 2; Transcript pp. 35, 45-46, 52; Deck slide 2.</td>
+              <td><span class="badge meets">Meets</span></td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td>UI implements dependent main/subdepartment filters. Live profiles and NCR rows still have sparse canonical department/class mapping.</td>
+              <td>Normalize live profile departments and NCR department groups against the five framework departments.</td>
+            </tr>
+            <tr>
+              <td><strong>Reporting/data cleanliness: de-duplicated master list drives dashboards</strong></td>
+              <td>Summary pp. 2-3; Transcript pp. 10, 23, 62.</td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td>Local list is structured as a canonical "pen list." Live objectives are mostly seeded, but <code>class</code>, KPI rows, metric check-ins, and link tables remain incomplete.</td>
+              <td>Complete the master-list cleanup and publish a post-backfill data-quality scorecard.</td>
+            </tr>
+            <tr>
+              <td><strong>KPI command center connected to OKR/project health</strong></td>
+              <td>Transcript pp. 30-31; criteria inferred from KPI/OKR dashboard discussion.</td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td><span class="badge fail">Does Not Meet</span></td>
+              <td>KPI UI and tests pass, but live KPI definition/datapoint/link/check-in tables are empty. The visible surface exists before the data model is populated.</td>
+              <td>Define KPI records and connect them to objective metrics before claiming KPI completion.</td>
+            </tr>
+            <tr>
+              <td><strong>NCR dashboard and NCR-specific action tracking</strong></td>
+              <td>Transcript pp. 62, 66-67; Deck slide 3.</td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td><span class="badge partial">Partially Meets</span></td>
+              <td>NCR dashboard is visible locally and live. Live has 354 NCRs and 174 open/in-progress, but action items and objective links are empty in the data audit.</td>
+              <td>Create/read-only review of NCR linkage rules, then backfill or re-import action-item records.</td>
+            </tr>
+            <tr>
+              <td><strong>Mobile navigation, modals, and scroll behavior</strong></td>
+              <td>Operational quality requirement from current redesign acceptance.</td>
+              <td><span class="badge meets">Meets</span></td>
+              <td><span class="badge meets">Meets</span></td>
+              <td>Mobile crop checks passed across iPhone 12, iPhone 14 Pro, and iPhone 15 Plus widths; production desktop smoke passed.</td>
+              <td>Keep these tests as release gates for the presentation build.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">What Fully Works</p>
+          <h2>Changes that should remain</h2>
+        </div>
+        <p>These are the areas I would preserve because they align well with Jake's direction and held up under browser checks.</p>
+      </div>
+
+      <div class="split">
+        <div class="list">
+          <div class="list-item">
+            <strong>The navigation taxonomy is now understandable.</strong>
+            <p>Tasks & Projects, OKR, NCR, KPI, Fix-It Feed, and Organization match the flowchart direction and remove the confusing "everything is Objectives" framing.</p>
+          </div>
+          <div class="list-item">
+            <strong>Create New is the right mental model.</strong>
+            <p>The wizard asks what type of work this is, then only shows relevant next prompts. OKR is intentionally kept out of the general create door.</p>
+          </div>
+          <div class="list-item">
+            <strong>OKR has the two views Jake described.</strong>
+            <p>The edit/presentation toggle maps to the spreadsheet-to-dashboard idea, with print behavior for the meeting-ready roll-up.</p>
+          </div>
+          <div class="list-item">
+            <strong>Filters now support the dashboard conversation.</strong>
+            <p>Main department, subdepartment, type, linked-to, originator, assigned, and aging are present and deterministic.</p>
+          </div>
+        </div>
+
+        <div class="list">
+          <div class="list-item">
+            <strong>The redesign held up in the trap sweep.</strong>
+            <p>Build, lint, unit, schema, a11y, mobile no-crop, redesigned nav, KPI, production smoke, and capture flows passed.</p>
+          </div>
+          <div class="list-item">
+            <strong>Local and live are visually close enough to compare.</strong>
+            <p>Production is not an old unrelated surface. It shows the redesigned modules, but its live data does not yet fulfill the criteria behind those modules.</p>
+          </div>
+          <div class="list-item">
+            <strong>The evidence package is presentation-ready.</strong>
+            <p>Source renders, app screenshots, mobile screenshots, and validation outputs are organized under a single evidence folder for follow-up proof.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Gaps And Decisions</p>
+          <h2>What prevents a full criteria sign-off</h2>
+        </div>
+        <p>The remaining issues are specific enough to close without reopening the entire redesign. They are mostly data and permission-hardening problems.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Gap</th>
+              <th>Impact</th>
+              <th>Evidence</th>
+              <th>Recommended closure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Admin role mismatch</strong></td>
+              <td>Jake asked for controlled OKR creation and tagged-line updates. The shared helper says manager and executive are admins, but current OKR/Create UI checks executive only.</td>
+              <td><code>src/ompPermissions.js</code> vs <code>src/pages.jsx</code> admin gates.</td>
+              <td>Use <code>isAdminRole()</code> everywhere and add staging tests for executive, manager, tagged contributor, and untagged contributor.</td>
+            </tr>
+            <tr>
+              <td><strong>Live linkage is not populated</strong></td>
+              <td>Filtering by linked OKR/NCR/project is central to Jake's reporting vision, but live relationship tables are mostly empty.</td>
+              <td>Live probe: no NCR-objective links, no objective parent hierarchy, empty OKR project/link tables.</td>
+              <td>Run a read-reviewed backfill plan from the cleaned spreadsheet, then rerun the criteria matrix.</td>
+            </tr>
+            <tr>
+              <td><strong>KPI data tables are empty</strong></td>
+              <td>The KPI command center can render, but it cannot be claimed as fully operational without KPI definitions, datapoints, links, and check-ins.</td>
+              <td>Data/schema subagent found empty KPI production tables.</td>
+              <td>Decide KPI source of truth, load the first KPI definitions, and tie KPI check-ins to OKR metrics.</td>
+            </tr>
+            <tr>
+              <td><strong>Project detail depth is thinner than Task and OKR</strong></td>
+              <td>Jake's project and linkage model works at the top level but needs more complete project drilldown and standard project form depth.</td>
+              <td>Create wizard currently has a compact standard form; project tables are empty live.</td>
+              <td>Add project detail view acceptance criteria: parent KR/NCR, action tasks, owner, due date, stage, blockers, and roll-up behavior.</td>
+            </tr>
+            <tr>
+              <td><strong>Production taxonomy cleanup is incomplete</strong></td>
+              <td>Clean reporting depends on canonical group/class fields. Live class and profile department coverage is still sparse.</td>
+              <td>Live probe: <code>class</code> only 1 of 92 objectives; canonical profile department only 4 of 32.</td>
+              <td>Normalize people, objectives, and NCRs to the agreed department/subdepartment taxonomy.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Local vs Live</p>
+          <h2>Do not collapse these two truths</h2>
+        </div>
+        <p>The local redesign and live production are close in surface shape, but the criteria verdict changes once live data quality and production permissions are considered.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Area</th>
+              <th>Local redesign worktree</th>
+              <th>Live production read-only</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Navigation/display</strong></td>
+              <td>Passes redesigned nav, deep link, modal, mobile, KPI, and a11y checks.</td>
+              <td>Passes production smoke and visual captures for the same core modules.</td>
+            </tr>
+            <tr>
+              <td><strong>Create/update proof</strong></td>
+              <td>Create New can be inspected and tested locally without production writes.</td>
+              <td>Production was read-only; create/update mutation proof was not attempted.</td>
+            </tr>
+            <tr>
+              <td><strong>Data contract</strong></td>
+              <td>Schema and code support the model: objectives, members, projects, metric check-ins, NCR reports, action items, KPI tables.</td>
+              <td>Many tables are structurally present but under-populated: empty KPI tables, empty OKR project tables, no NCR-action rows, no objective-member rows.</td>
+            </tr>
+            <tr>
+              <td><strong>Criteria verdict</strong></td>
+              <td>Partially Meets, leaning strong on visible workflow and navigation.</td>
+              <td>Partially Meets, with live-data gaps preventing completion.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Validation Log</p>
+          <h2>Commands and browser checks run</h2>
+        </div>
+        <p>Production validation used login/navigation/display and smoke checks only. No production QA records were created.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Validation</th>
+              <th>Command / method</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Lint</strong></td>
+              <td><code>npm run lint</code></td>
+              <td><span class="badge meets">Passed</span><small>Babel deoptimized a large generated page during lint/build output; no lint failure.</small></td>
+            </tr>
+            <tr>
+              <td><strong>Build</strong></td>
+              <td><code>npm run build</code></td>
+              <td><span class="badge meets">Passed</span><small>Vite large chunk warning only.</small></td>
+            </tr>
+            <tr>
+              <td><strong>Unit suite</strong></td>
+              <td><code>npm run test:unit</code></td>
+              <td><span class="badge meets">Passed</span><small>119/119.</small></td>
+            </tr>
+            <tr>
+              <td><strong>Schema suite</strong></td>
+              <td><code>npm run test:schema</code></td>
+              <td><span class="badge meets">Passed</span></td>
+            </tr>
+            <tr>
+              <td><strong>Jake redesign traps + a11y</strong></td>
+              <td><code>SANDPRO_E2E_PORT=5224 npx playwright test tests/jake-redesign-traps.spec.js tests/a11y.spec.js --project=chromium --project=mobile-chrome --workers=1</code></td>
+              <td><span class="badge meets">Passed</span><small>8/8.</small></td>
+            </tr>
+            <tr>
+              <td><strong>KPI system browser checks</strong></td>
+              <td><code>SANDPRO_E2E_PORT=5225 npx playwright test tests/kpi-system.spec.js --project=chromium --project=mobile-chrome --workers=1</code></td>
+              <td><span class="badge meets">Passed</span><small>10 passed, 2 mutation-gated tests skipped by design.</small></td>
+            </tr>
+            <tr>
+              <td><strong>Mobile crop/screens</strong></td>
+              <td><code>SANDPRO_E2E_PORT=5223 SANDPRO_MOBILE_EVIDENCE_DIR=docs/evidence/jake-criteria-audit-2026-07-02/app/mobile npx playwright test tests/mobile-crop.spec.js --project=mobile-chrome --workers=1</code></td>
+              <td><span class="badge meets">Passed</span><small>iPhone 12, iPhone 14 Pro, and iPhone 15 Plus evidence captured.</small></td>
+            </tr>
+            <tr>
+              <td><strong>Local evidence capture</strong></td>
+              <td><code>SANDPRO_E2E_PORT=5222 SANDPRO_JAKE_AUDIT_EVIDENCE_DIR=docs/evidence/jake-criteria-audit-2026-07-02/app/local npx playwright test tests/tmp-jake-audit-capture.spec.js --project=chromium --workers=1</code></td>
+              <td><span class="badge meets">Passed</span><small>Desktop screenshots for core modules captured.</small></td>
+            </tr>
+            <tr>
+              <td><strong>Production evidence capture</strong></td>
+              <td><code>SANDPRO_SMOKE_BASE_URL=https://objectivetracker.net SANDPRO_JAKE_AUDIT_EVIDENCE_DIR=docs/evidence/jake-criteria-audit-2026-07-02/app/prod npx playwright test tests/tmp-jake-audit-capture.spec.js --project=chromium --workers=1</code></td>
+              <td><span class="badge meets">Passed</span><small>Read-only screenshots for live production captured.</small></td>
+            </tr>
+            <tr>
+              <td><strong>Production smoke</strong></td>
+              <td><code>npm run smoke:prod</code></td>
+              <td><span class="badge meets">Passed</span><small>6/6.</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Evidence Gallery</p>
+          <h2>Representative proof artifacts</h2>
+        </div>
+        <p>The full screenshot and source-render set is in <code>docs/evidence/jake-criteria-audit-2026-07-02/</code>.</p>
+      </div>
+
+      <div class="gallery">
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/app/local/01-dashboard-list-view.png"><img src="../evidence/jake-criteria-audit-2026-07-02/app/local/01-dashboard-list-view.png" alt="Local Tasks and Projects dashboard list view"></a>
+          <figcaption><strong>Local Tasks & Projects</strong>Canonical list and filter surface for Jake's home dashboard.</figcaption>
+        </figure>
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/app/local/04-create-new-top-level.png"><img src="../evidence/jake-criteria-audit-2026-07-02/app/local/04-create-new-top-level.png" alt="Create New wizard top-level choice"></a>
+          <figcaption><strong>Create New</strong>Task, Project, and NCR are visible; OKR is not part of the general create door.</figcaption>
+        </figure>
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/app/local/06-okr-edit-view.png"><img src="../evidence/jake-criteria-audit-2026-07-02/app/local/06-okr-edit-view.png" alt="OKR edit view"></a>
+          <figcaption><strong>OKR Edit View</strong>Monthly spreadsheet-style input surface.</figcaption>
+        </figure>
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/app/local/07-okr-presentation-view.png"><img src="../evidence/jake-criteria-audit-2026-07-02/app/local/07-okr-presentation-view.png" alt="OKR presentation view"></a>
+          <figcaption><strong>OKR Presentation View</strong>Clean roll-up mode for leadership meetings.</figcaption>
+        </figure>
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/app/prod/08-ncr-dashboard.png"><img src="../evidence/jake-criteria-audit-2026-07-02/app/prod/08-ncr-dashboard.png" alt="Production NCR dashboard"></a>
+          <figcaption><strong>Production NCR</strong>Live surface loads read-only; data linkage remains partial.</figcaption>
+        </figure>
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/app/mobile/iphone-12-02-create-wizard.png"><img src="../evidence/jake-criteria-audit-2026-07-02/app/mobile/iphone-12-02-create-wizard.png" alt="Mobile Create New wizard on iPhone 12 width"></a>
+          <figcaption><strong>Mobile Wizard</strong>Scroll and crop proof for the guided create flow.</figcaption>
+        </figure>
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/sources/untitled-pptx/slide-1.png"><img src="../evidence/jake-criteria-audit-2026-07-02/sources/untitled-pptx/slide-1.png" alt="Flowchart deck slide 1"></a>
+          <figcaption><strong>Flowchart Slide 1</strong>Source diagram for Create New, OKR dashboard, edit view, and presentation view.</figcaption>
+        </figure>
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/sources/workflow-summary/page-2.png"><img src="../evidence/jake-criteria-audit-2026-07-02/sources/workflow-summary/page-2.png" alt="Workflow summary page 2"></a>
+          <figcaption><strong>Workflow Summary Page 2</strong>Filter sequence, aging buckets, permissions, and OKR model.</figcaption>
+        </figure>
+        <figure>
+          <a href="../evidence/jake-criteria-audit-2026-07-02/sources/ndai-brand/page-05.png"><img src="../evidence/jake-criteria-audit-2026-07-02/sources/ndai-brand/page-05.png" alt="NDAI brand reference rendered page"></a>
+          <figcaption><strong>NDAI Reference</strong>Visual brand cue for restrained warm-light report styling.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Reviewer Lanes</p>
+          <h2>What was delegated and cross-checked</h2>
+        </div>
+        <p>Parallel review lanes were used to separate criteria extraction, UI/browser traps, and data/schema truth. The final report reconciles their findings.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Lane</th>
+              <th>Scope</th>
+              <th>Material finding</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Source criteria extraction</strong></td>
+              <td>Four supplied artifacts, source render proof, Jake criteria checklist, NDAI light styling notes.</td>
+              <td>Criteria converged around creation type, linkage, OKR separation, edit/presentation modes, permissions, list filters, aging, reporting cleanliness, and master-data cleanup.</td>
+            </tr>
+            <tr>
+              <td><strong>Local UI/browser traps</strong></td>
+              <td>Local worktree screens, routing, mobile, wizard, OKR, NCR, KPI, Fix-It, Organization, export/reporting surfaces.</td>
+              <td>Core visible redesign holds up; remaining local gaps are permission consistency and deeper project/form behavior.</td>
+            </tr>
+            <tr>
+              <td><strong>Data/schema/live consistency</strong></td>
+              <td>Schema tests, live read-only aggregate probes, RLS/policy inspection, targeted unit tests.</td>
+              <td>Schema supports the model, but production data is incomplete: empty KPI/project/check-in tables, sparse class taxonomy, no objective members, and no NCR-objective linkage.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Next Actions</p>
+          <h2>Best path to a real completion claim</h2>
+        </div>
+        <p>The current redesign is good enough to show as a disciplined progress review. It is not yet good enough to close as "all of Jake's criteria are fulfilled."</p>
+      </div>
+
+      <div class="list">
+        <div class="list-item">
+          <strong>1. Align permission enforcement end to end.</strong>
+          <p>Replace local executive-only checks with the shared executive-or-manager helper, then run explicit role-based staging tests for main OKR creation and tagged-line edit denial.</p>
+        </div>
+        <div class="list-item">
+          <strong>2. Complete live linkage and taxonomy cleanup.</strong>
+          <p>Backfill objective parents, objective members, OKR projects, KPI links, NCR action items, and NCR-objective links from the cleaned master list. Normalize departments and subdepartments.</p>
+        </div>
+        <div class="list-item">
+          <strong>3. Add project detail acceptance tests.</strong>
+          <p>Define what a standard project form and project drilldown must include, then add tests for parent linkage, associated tasks, owner, due date, blockers, and roll-up behavior.</p>
+        </div>
+        <div class="list-item">
+          <strong>4. Re-run the same both-surface matrix after backfill.</strong>
+          <p>Repeat local and production read-only validation and compare the same criteria rows so the final sign-off is evidence-backed and not based only on visual confidence.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p><strong>Report generated for SandPro OMP / NDAI.</strong> Evidence folder: <code>docs/evidence/jake-criteria-audit-2026-07-02/</code>. This report distinguishes local redesigned state from live production state and keeps production read-only.</p>
+    </footer>
+  </main>
+</body>
+</html>

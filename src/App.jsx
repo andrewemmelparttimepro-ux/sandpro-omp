@@ -1621,6 +1621,13 @@ function App() {
 
   const navigatePage = (pageId) => {
     setHighlightDept(null);
+    setOpenCard(null);
+    setShowCreateForm(false);
+    setWizardInitialType(null);
+    setEditingObj(null);
+    setShowNotifications(false);
+    setShowUserMenu(false);
+    setShowAccountSettings(false);
     updateRoute(prev => ({
       ...prev,
       page: pageId,

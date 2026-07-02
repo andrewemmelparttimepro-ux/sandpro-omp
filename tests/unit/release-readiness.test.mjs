@@ -85,7 +85,12 @@ test('KPI command center is a first-class goal-linked route', () => {
   const migration = read('supabase/release_ready_migration.sql');
   const schemaCheck = read('scripts/check-release-schema.mjs');
 
-  assert.match(app, /"dashboard", "objectives", "kpi", "fixit"/);
+  assert.match(app, /id: "dashboard", label: "Tasks & Projects"/);
+  assert.match(app, /id: "okr", label: "OKR"/);
+  assert.match(app, /id: "ncr", label: "NCR"/);
+  assert.match(app, /id: "kpi", label: "KPI"/);
+  assert.match(app, /id: "fixit", label: "Fix-It Feed"/);
+  assert.match(app, /NAV_PARENT = \{ objectives: "dashboard" \}/);
   assert.match(app, /label: "KPI"/);
   assert.match(app, /useKpis/);
   assert.match(app, /KpiPage/);
@@ -241,7 +246,7 @@ test('tag notifications follow comment and mention email preferences', () => {
   assert.equal(notificationAllowsEmail({ email_enabled: true, comment_notifications: false }, 'mention'), false);
 });
 
-test('Web Push is a quiet direct-work layer on top of in-app notifications', () => {
+test('Web Push is a visible direct-work layer on top of in-app notifications', () => {
   const pkg = JSON.parse(read('package.json'));
   const migration = read('supabase/release_ready_migration.sql');
   const baseline = read('supabase/migration.sql');
@@ -264,7 +269,7 @@ test('Web Push is a quiet direct-work layer on top of in-app notifications', () 
   assert.match(sender, /VAPID_PRIVATE_KEY/);
   assert.match(sender, /VAPID_SUBJECT/);
   assert.match(sender, /requireInteraction: urgent/);
-  assert.match(sender, /silent: !urgent/);
+  assert.match(sender, /silent: false/);
   assert.match(sender, /fixit_new/);
   assert.match(sender, /fixit_agent/);
   assert.match(endpoint, /sendPushNotifications/);
@@ -286,7 +291,7 @@ test('Web Push is a quiet direct-work layer on top of in-app notifications', () 
   assert.equal(notificationAllowsPush({ push_enabled: true, comment_notifications: true }, 'mention'), true);
   assert.equal(notificationAllowsPush({ push_enabled: true, comment_notifications: true }, 'comment'), true);
   assert.equal(notificationAllowsPush({ push_enabled: true, comment_notifications: false }, 'comment'), false);
-  assert.equal(notificationAllowsPush({ push_enabled: true, due_reminders: true }, 'due_soon', { priority: 'medium' }), false);
+  assert.equal(notificationAllowsPush({ push_enabled: true, due_reminders: true }, 'due_soon', { priority: 'medium' }), true);
   assert.equal(notificationAllowsPush({ push_enabled: true, due_reminders: true }, 'due_soon', { priority: 'high' }), true);
   assert.equal(notificationAllowsPush({ push_enabled: true }, 'fixit_new'), true);
   assert.equal(notificationAllowsPush({ push_enabled: true }, 'fixit_agent'), true);
@@ -566,7 +571,7 @@ test('new user-facing features include dismissible help that can be reopened', (
   }
 });
 
-test('SandPro Daily can publish bulletin-board updates with PWA guidance', () => {
+test('The SandPro Times can publish bulletin-board updates with PWA guidance', () => {
   const app = read('src/App.jsx');
   const component = read('src/components.jsx');
   const css = read('src/index.css');
@@ -598,16 +603,16 @@ test('SandPro Daily can publish bulletin-board updates with PWA guidance', () =>
   assert.match(css, /\.brief-objective-panel/);
 });
 
-test('daily digest cron sends the SandPro Daily with clickable objective context', () => {
+test('daily digest cron sends The SandPro Times with clickable objective context', () => {
   const digest = read('api/cron/daily-digest.js');
-  assert.match(digest, /The SandPro Daily/);
-  assert.match(digest, /Open SandPro Daily/);
-  assert.match(digest, /Top action items/);
+  assert.match(digest, /The SandPro Times/);
+  assert.match(digest, /Open SandPro OMP/);
+  assert.match(digest, /Top stories on your desk/);
   assert.match(digest, /objective_members/);
   assert.match(digest, /getScopedObjectives/);
   assert.match(digest, /getActionItems/);
   assert.doesNotMatch(digest, /if \(scoped\.length === 0\) continue/);
-  assert.match(digest, /subject: 'The SandPro Daily'/);
+  assert.match(digest, /subject: `The SandPro Times/);
 });
 
 test('Fix-It Feed is a first-class navigation page with file-backed persistence', () => {

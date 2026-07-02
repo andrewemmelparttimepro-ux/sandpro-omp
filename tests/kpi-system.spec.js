@@ -9,8 +9,10 @@ test.describe('KPI command center', () => {
     await dismissGuidance(page);
   });
 
-  test('KPI tab sits beside Objectives and loads the command center', async ({ page }) => {
-    await expect(navItem(page, 'Objectives')).toBeVisible();
+  test('KPI tab sits beside the Jake modules and loads the command center', async ({ page }) => {
+    await expect(navItem(page, 'Tasks & Projects')).toBeVisible();
+    await expect(navItem(page, 'OKR')).toBeVisible();
+    await expect(navItem(page, 'NCR')).toBeVisible();
     await expect(navItem(page, 'KPI')).toBeVisible();
     await navItem(page, 'KPI').click();
     await expect(page).toHaveURL(/page=kpi/);

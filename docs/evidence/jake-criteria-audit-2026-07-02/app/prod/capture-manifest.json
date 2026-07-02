@@ -1,0 +1,57 @@
+[
+  {
+    "name": "01-dashboard-list-view",
+    "description": "Tasks & Projects dashboard with list view, global KPI strip, and filter spine.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/01-dashboard-list-view.png"
+  },
+  {
+    "name": "02-dashboard-type-project-filter",
+    "description": "Type filter set to Project to prove dependent list filtering.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/02-dashboard-type-project-filter.png"
+  },
+  {
+    "name": "03-row-detail-drilldown",
+    "description": "First list row opens a detail/drilldown surface.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/03-row-detail-drilldown.png"
+  },
+  {
+    "name": "04-create-new-top-level",
+    "description": "Create New exposes Task, Project, NCR and excludes OKR from the general create door.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/04-create-new-top-level.png"
+  },
+  {
+    "name": "05-create-new-task-lineage",
+    "description": "Task path asks single/recurring and linked-to/standalone lineage before the standard task form.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/05-create-new-task-lineage.png"
+  },
+  {
+    "name": "06-okr-edit-view",
+    "description": "OKR edit view with monthly grid and tagged-line edit contract.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/06-okr-edit-view.png"
+  },
+  {
+    "name": "07-okr-presentation-view",
+    "description": "OKR presentation view, clean printable roll-up.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/07-okr-presentation-view.png"
+  },
+  {
+    "name": "08-ncr-dashboard",
+    "description": "NCR module as its own dashboard/tracker.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/08-ncr-dashboard.png"
+  },
+  {
+    "name": "09-kpi-command-center",
+    "description": "KPI command center surface.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/09-kpi-command-center.png"
+  },
+  {
+    "name": "10-fixit-feed",
+    "description": "Fix-It Feed surface.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/10-fixit-feed.png"
+  },
+  {
+    "name": "11-organization",
+    "description": "Organization module surface.",
+    "path": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/evidence/jake-criteria-audit-2026-07-02/app/prod/11-organization.png"
+  }
+]

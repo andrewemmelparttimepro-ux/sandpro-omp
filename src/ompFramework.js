@@ -246,3 +246,20 @@ export const getOkrGroupDepartment = (group) => OKR_GROUP_TO_DEPARTMENT[group] |
 export const UNMAPPED_OKR_GROUPS = Object.entries(OKR_GROUP_TO_DEPARTMENT)
   .filter(([, meta]) => !meta.companyLevel && (!meta.confirmed || !meta.department))
   .map(([group]) => group);
+
+// NCR department_group → Jake's main departments. Confirmed rows follow the
+// framework drawing (Quality/Sales/Office are Business Team classes; CP,
+// Customer Property, and warehouse Inventory live under CP Warehouse).
+// Shop / Operations / Service span multiple divisions — those need Jake's call,
+// so they stay unmapped and the list shows their real group name instead.
+export const NCR_GROUP_TO_DEPARTMENT = {
+  "Automation": "Automation",
+  "CP": "CP Warehouse",
+  "Customer Property": "CP Warehouse",
+  "Inventory": "CP Warehouse",
+  "Sales": "Business Team",
+  "Office": "Business Team",
+  "Quality Control": "Business Team",
+};
+
+export const getNcrGroupDepartment = (group) => NCR_GROUP_TO_DEPARTMENT[String(group || "").trim()] || null;

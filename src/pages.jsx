@@ -65,6 +65,7 @@ import {
   OKR_GROUP_TO_DEPARTMENT,
   OMP_RECURRENCE_REPEATS,
   getOkrGroupDepartment,
+  getNcrGroupDepartment,
 } from './ompFramework';
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -1354,11 +1355,16 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
       return getOkrGroupDepartment(o.okrGroup)?.department || null;
     };
     const resolveNcrDept = (report) => {
-      const candidates = [
+      const rawCandidates = [
         report.departmentGroup,
         report.affectedDepartments,
         ...(Array.isArray(report.affectedDepartmentList) ? report.affectedDepartmentList : []),
-      ].filter(Boolean).map(value => String(value).toLowerCase());
+      ].filter(Boolean);
+      for (const raw of rawCandidates) {
+        const mapped = getNcrGroupDepartment(raw);
+        if (mapped) return mapped;
+      }
+      const candidates = rawCandidates.map(value => String(value).toLowerCase());
       return OMP_DEPARTMENTS.find(department =>
         candidates.some(value => value === department.toLowerCase() || value.includes(department.toLowerCase()))
       ) || null;
@@ -1549,9 +1555,9 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="text-md font-medium truncate">{row.title}</div>
                 <div className="text-xs text-muted truncate">
-                  {row.dept || "Unmapped"}
+                  {row.dept || row.group || "Unmapped"}
                   {row.klass ? ` · ${row.klass}` : ""}
-                  {row.group && row.group !== row.klass ? ` · ${row.group}` : ""}
+                  {row.dept && row.group && row.group !== row.klass ? ` · ${row.group}` : ""}
                   {row.kind === "ncr" ? ` · ${linkedLabel}` : linkedLabel ? ` · Linked to ${linkedLabel}` : " · Standalone"}
                 </div>
               </div>

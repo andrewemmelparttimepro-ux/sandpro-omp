@@ -62,11 +62,6 @@ const buildSupabaseStoredSession = (payload) => ({
 });
 
 const setSupabaseSession = ({ key, session }) => {
-  Object.keys(localStorage).forEach(existingKey => {
-    if (existingKey.startsWith('sb-') && existingKey.endsWith('-auth-token') && existingKey !== key) {
-      localStorage.removeItem(existingKey);
-    }
-  });
   localStorage.setItem(key, JSON.stringify(session));
 };
 
@@ -97,6 +92,12 @@ export const navItem = (page, name) => page.getByRole('link', { name, exact: tru
   .or(page.getByRole('button', { name, exact: true }))
   .first();
 
+export const openObjectivesPage = async (page) => {
+  await page.goto('/?page=objectives', { waitUntil: 'domcontentloaded' });
+  await dismissDailyBrief(page);
+  await dismissGuidance(page);
+};
+
 const waitForVisible = async (locator, timeout = 12000) => {
   await locator.waitFor({ state: 'visible', timeout });
   return true;
@@ -125,9 +126,23 @@ const finishLoginIfSignedIn = async (page, timeout = 12000) => {
 };
 
 export const login = async (page, email, password) => {
+  const gotoRoot = async () => {
+    let lastError;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 15000 });
+        return;
+      } catch (error) {
+        lastError = error;
+        await page.waitForTimeout(750);
+      }
+    }
+    throw lastError;
+  };
+
   const authPayload = await createSupabasePasswordSession(email, password);
   if (authPayload?.access_token && await installSupabaseSession(page, authPayload)) {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await gotoRoot();
     if (await finishLoginIfSignedIn(page, 25000)) return;
   }
 
@@ -141,7 +156,7 @@ export const login = async (page, email, password) => {
   };
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    await page.goto('/');
+    await gotoRoot();
     if (await finishLoginIfSignedIn(page, 15000)) return;
     await expect(page.getByText(/Objective Management Platform|Operational Management Platform/)).toBeVisible();
     await page.waitForTimeout(1000);
@@ -208,11 +223,6 @@ export const dismissGuidance = async (page) => {
     await featureAnnouncement.click({ force: true });
   }
 
-  for (let i = 0; i < 4; i += 1) {
-    const closeButton = page.locator('.feature-help-close').first();
-    if (!(await closeButton.isVisible({ timeout: 500 }).catch(() => false))) break;
-    await closeButton.click();
-  }
 };
 
 export const signOutIfPossible = async (page) => {
