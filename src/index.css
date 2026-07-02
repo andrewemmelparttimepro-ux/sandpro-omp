@@ -12301,6 +12301,25 @@ button.alt-command-body:disabled {
   .wiz-body { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
 }
 
+/* NCR legacy department triage */
+.ncr-triage-card { padding: 16px; }
+.ncr-triage-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.ncr-triage-list { display: flex; flex-direction: column; max-height: 68vh; overflow-y: auto; }
+.ncr-triage-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 4px; border-top: 1px solid var(--accent-4);
+}
+.ncr-triage-info { flex: 1; min-width: 0; }
+.ncr-triage-row select {
+  background: var(--accent-3); color: var(--text);
+  border: 1px solid var(--accent-5); border-radius: 8px;
+  padding: 6px 10px; font-size: 13px; min-width: 160px;
+}
+@media (max-width: 640px) {
+  .ncr-triage-row { flex-wrap: wrap; }
+  .ncr-triage-info { flex-basis: 100%; }
+}
+
 /* ============================================================================
    OKR PAGE — monthly edit grid + printable presentation view
    ========================================================================= */

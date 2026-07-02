@@ -2424,6 +2424,7 @@ const mapNcrReport = (row) => ({
   affectedDepartments: row.affected_departments || '',
   affectedDepartmentList: Array.isArray(row.affected_department_list) ? row.affected_department_list : [],
   departmentGroup: row.department_group || '',
+  mainDepartment: row.main_department || '',
   longTermFollowUp: row.long_term_follow_up || '',
   actionEffective: row.action_effective || '',
   dateInitialCorrectiveAction: row.date_initial_corrective_action,
@@ -2541,6 +2542,7 @@ const ncrDbChanges = (changes = {}) => {
   if (changes.affectedDepartments !== undefined) db.affected_departments = changes.affectedDepartments || '';
   if (changes.affectedDepartmentList !== undefined) db.affected_department_list = changes.affectedDepartmentList || [];
   if (changes.departmentGroup !== undefined) db.department_group = changes.departmentGroup || '';
+  if (changes.mainDepartment !== undefined) db.main_department = changes.mainDepartment || null;
   if (changes.longTermFollowUp !== undefined) db.long_term_follow_up = changes.longTermFollowUp;
   if (changes.actionEffective !== undefined) db.action_effective = changes.actionEffective;
   if (changes.dateInitialCorrectiveAction !== undefined) db.date_initial_corrective_action = changes.dateInitialCorrectiveAction || null;
@@ -2606,6 +2608,7 @@ const ncrInsertPayload = (draft = {}, currentUserId = null) => ({
   affected_departments: draft.affectedDepartments || '',
   affected_department_list: draft.affectedDepartmentList || [],
   department_group: draft.departmentGroup || '',
+  main_department: draft.mainDepartment || null,
   long_term_follow_up: draft.longTermFollowUp || '',
   action_effective: draft.actionEffective || '',
   date_initial_corrective_action: draft.dateInitialCorrectiveAction || null,

@@ -232,10 +232,14 @@ export const OKR_GROUP_TO_DEPARTMENT = {
   "Flowback Repair": { department: "Flowback", class: "Repair", confirmed: true },
   "I&E- Panels": { department: "Automation", class: "Service", confirmed: true },
 
+  // Approved 2026-07-02 (Jake + Andrew): Field Ops is an ownership group, not a
+  // division — objectives keep it as their group and get the department of the
+  // work they touch, with Business Team as the default home.
+  "Field Ops": { department: "Business Team", class: null, confirmed: true },
+
   // Best-guess — needs Tim/Jake confirmation before driving prod grouping:
   "Dispatch": { department: "Business Team", class: null, confirmed: false },          // coordinates field ops; no clean class — Business Team? Field dept?
   "Inventory / Logistics": { department: "CP Warehouse", class: "Inventory", confirmed: false }, // vs Business Team/Purchasing
-  "Field Ops": { department: null, class: "Service", confirmed: false },               // spans Automation/Wellhead/Flowback — which one?
   "Frac Repair": { department: "Wellhead", class: "Repair", confirmed: false },        // frac→wellhead vs flowback
 };
 
@@ -263,3 +267,53 @@ export const NCR_GROUP_TO_DEPARTMENT = {
 };
 
 export const getNcrGroupDepartment = (group) => NCR_GROUP_TO_DEPARTMENT[String(group || "").trim()] || null;
+
+// ============================================================================
+// LEGACY NCR TRIAGE — machine-suggested main department, human-approved.
+// Keyword rules read the record's own text (event description, worksite area,
+// equipment). A suggestion is only "high" confidence when exactly one
+// department's signals fire. Humans confirm every write — this never
+// auto-assigns (Jake: "channel, don't interpret").
+// ============================================================================
+const NCR_DEPARTMENT_SIGNALS = [
+  { department: "Automation", strong: true, pattern: /\b(msafe|m-safe|esd|hru|telemetry|plc|permissive|mms1|scada|automated (choke|dump|skid|valve)|control panel|automation)\b/i },
+  { department: "Flowback", strong: true, pattern: /\b(flowback|flow back|hot oiler|sand trap|plug catcher|manifold trailer|dump skid|choke manifold|iron trailer|floatback)\b/i },
+  { department: "Wellhead", strong: true, pattern: /\b(wellhead|well head|crown valve|casing head|tubing head|tubing hanger|tie back hanger|production tree|frac tree|frac valve|gate valve|6bx|bx-?15[0-9]|greas(e|ing) (valve|tree)|lubricator|goat head|zipper)\b/i },
+  { department: "CP Warehouse", strong: true, pattern: /\b(warehouse|customer property|customer-owned|storage yard|inventory count|cp warehouse)\b/i },
+  { department: "Business Team", strong: true, pattern: /\b(invoice|billing|accounting|payroll|training evaluation|kpa|hr\b|onboarding|marketing|purchase order|sales order)\b/i },
+  { department: "Automation", strong: false, pattern: /\b(sensor|controller|software|tablet|riger)\b/i },
+  { department: "Wellhead", strong: false, pattern: /\b(valve|hanger|flange|ring gasket|stack)\b/i },
+  { department: "Business Team", strong: false, pattern: /\b(office|audit|paperwork|documentation)\b/i },
+];
+
+export const suggestNcrDepartment = (report = {}) => {
+  const text = [
+    report.eventDescription,
+    report.normalizedFailureSummary,
+    report.affectedEquipment,
+    report.affectedProduct,
+    report.worksiteArea,
+    report.eventType,
+    report.immediateAction,
+  ].filter(Boolean).join(" \n ");
+  if (!text.trim()) return null;
+
+  const hits = new Map(); // department -> { count, strong, reasons }
+  for (const rule of NCR_DEPARTMENT_SIGNALS) {
+    const match = text.match(rule.pattern);
+    if (!match) continue;
+    const entry = hits.get(rule.department) || { count: 0, strong: false, reasons: [] };
+    entry.count += 1;
+    entry.strong = entry.strong || rule.strong;
+    entry.reasons.push(`"${match[0].trim()}"`);
+    hits.set(rule.department, entry);
+  }
+  if (hits.size === 0) return null;
+
+  const ranked = [...hits.entries()].sort((a, b) =>
+    (Number(b[1].strong) - Number(a[1].strong)) || (b[1].count - a[1].count));
+  const [department, top] = ranked[0];
+  const conflicted = ranked.length > 1 && ranked[1][1].strong === top.strong && ranked[1][1].count === top.count;
+  const confidence = conflicted ? "low" : top.strong && hits.size === 1 ? "high" : top.strong ? "medium" : "low";
+  return { department, confidence, reason: `matched ${top.reasons.slice(0, 3).join(", ")}` };
+};

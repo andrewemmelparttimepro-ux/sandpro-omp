@@ -6,7 +6,8 @@ import {
   Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3,
   Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText,
   Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw,
-  PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio
+  PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio,
+  ClipboardCheck
 } from 'lucide-react';
 import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDepartmentOptions, getDirectReports, canManageOrgChart, canManagePermissions } from './data';
 import { Avatar, Badge, ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from './components';
@@ -66,6 +67,7 @@ import {
   OMP_RECURRENCE_REPEATS,
   getOkrGroupDepartment,
   getNcrGroupDepartment,
+  suggestNcrDepartment,
 } from './ompFramework';
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -1355,6 +1357,7 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
       return getOkrGroupDepartment(o.okrGroup)?.department || null;
     };
     const resolveNcrDept = (report) => {
+      if (OMP_DEPARTMENTS.includes(report.mainDepartment)) return report.mainDepartment;
       const rawCandidates = [
         report.departmentGroup,
         report.affectedDepartments,
@@ -4331,6 +4334,7 @@ const NCR_CREATE_REQUIRED_FIELDS = [
   { id: 'reportDate', label: 'Report date', isPresent: report => Boolean(String(report.reportDate || '').trim()) },
   { id: 'observer', label: 'Observer', isPresent: report => Boolean(String(report.observer || '').trim()) },
   { id: 'author', label: 'Author', isPresent: report => Boolean(String(report.author || '').trim()) },
+  { id: 'mainDepartment', label: 'Main department', isPresent: report => OMP_DEPARTMENTS.includes(report.mainDepartment) },
   { id: 'primaryGroupAffected', label: 'Primary group affected', isPresent: report => Boolean(getNcrPrimaryGroupValue(report)) },
   { id: 'eventType', label: 'Type of event', isPresent: hasNcrEventType },
   { id: 'criticality', label: 'Criticality', isPresent: hasNcrCriticality },
@@ -4810,6 +4814,7 @@ const buildDefaultNcrDraft = (currentUser, reports = []) => {
     affectedDepartments: defaultDepartment,
     affectedDepartmentList: defaultDepartment ? [defaultDepartment] : [],
     departmentGroup: defaultDepartment,
+    mainDepartment: getNcrGroupDepartment(defaultDepartment) || '',
     longTermFollowUp: '',
     actionEffective: '',
     dateInitialCorrectiveAction: '',
@@ -5151,6 +5156,105 @@ const ExportMenu = ({ reports = [], onExport, label = 'Export', align = 'right' 
   );
 };
 
+// Legacy department triage: software suggests, a human approves — never
+// auto-assigns (Jake: "channel, don't interpret"). Approving writes
+// main_department; the legacy department_group label is left untouched.
+const NcrTriagePanel = ({ reports, currentUser, onUpdateReport, addToast }) => {
+  const [overrides, setOverrides] = useState({});
+  const [busyIds, setBusyIds] = useState(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const rows = useMemo(() => {
+    const ranked = { high: 0, medium: 1, low: 2, none: 3 };
+    return reports
+      .map(report => ({ report, suggestion: suggestNcrDepartment(report) }))
+      .sort((a, b) => (ranked[a.suggestion?.confidence || 'none'] - ranked[b.suggestion?.confidence || 'none'])
+        || String(a.report.reportNumber || '').localeCompare(String(b.report.reportNumber || '')));
+  }, [reports]);
+
+  const highRows = rows.filter(({ report, suggestion }) => suggestion?.confidence === 'high' && !overrides[report.id]);
+
+  const assign = async (report, department) => {
+    if (!department) return;
+    setBusyIds(prev => new Set(prev).add(report.id));
+    try {
+      await onUpdateReport(report.id, { mainDepartment: department, updatedBy: currentUser?.id });
+    } catch (err) {
+      addToast?.({ type: 'error', message: err?.message || 'Could not save department.' });
+    } finally {
+      setBusyIds(prev => { const next = new Set(prev); next.delete(report.id); return next; });
+    }
+  };
+
+  const approveAllHigh = async () => {
+    setBulkBusy(true);
+    let done = 0;
+    for (const { report, suggestion } of highRows) {
+      try {
+        await onUpdateReport(report.id, { mainDepartment: suggestion.department, updatedBy: currentUser?.id });
+        done += 1;
+      } catch { /* keep going; row stays in the queue */ }
+    }
+    setBulkBusy(false);
+    addToast?.({ type: 'success', message: `${done} NCR${done === 1 ? '' : 's'} assigned.` });
+  };
+
+  if (!reports.length) {
+    return (
+      <div className="card" style={{ padding: 24, textAlign: 'center' }}>
+        <h3 style={{ margin: '0 0 6px' }}>All caught up</h3>
+        <p className="text-sm text-muted" style={{ margin: 0 }}>Every NCR has a main department. New NCRs require one at creation.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card ncr-triage-card">
+      <div className="ncr-triage-head">
+        <div>
+          <h3 style={{ margin: 0 }}>Legacy department triage</h3>
+          <p className="text-sm text-muted" style={{ margin: '4px 0 0' }}>
+            {reports.length} older NCR{reports.length === 1 ? '' : 's'} predate the five-department framework. The suggestion is read from the record's own text — confirm it, or pick the right department. Nothing is assigned without a human click.
+          </p>
+        </div>
+        {highRows.length > 0 && (
+          <button type="button" className="btn btn-primary" disabled={bulkBusy} onClick={approveAllHigh}>
+            {bulkBusy ? 'Assigning…' : `Approve ${highRows.length} high-confidence`}
+          </button>
+        )}
+      </div>
+      <div className="ncr-triage-list">
+        {rows.map(({ report, suggestion }) => {
+          const chosen = overrides[report.id] ?? suggestion?.department ?? '';
+          const busy = busyIds.has(report.id);
+          return (
+            <div key={report.id} className="ncr-triage-row">
+              <div className="ncr-triage-info">
+                <div className="text-md font-medium truncate">
+                  {report.reportNumber ? `#${report.reportNumber} — ` : ''}{(report.eventDescription || report.normalizedFailureSummary || 'No description').slice(0, 110)}
+                </div>
+                <div className="text-xs text-muted">
+                  Legacy group: {report.departmentGroup || '—'}
+                  {suggestion
+                    ? <> · Suggests <strong>{suggestion.department}</strong> ({suggestion.confidence}) — {suggestion.reason}</>
+                    : <> · No signal in the record — needs a human read</>}
+                </div>
+              </div>
+              <select value={chosen} onChange={e => setOverrides(prev => ({ ...prev, [report.id]: e.target.value }))}>
+                <option value="">Pick department…</option>
+                {OMP_DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <button type="button" className="btn btn-secondary btn-sm" disabled={!chosen || busy} onClick={() => assign(report, chosen)}>
+                {busy ? 'Saving…' : 'Confirm'}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateReport, onCreateReport, onCreateActionItem, onUpdateActionItem, onUploadAttachment, onCaptureSignature, onImportReports, onCreateObjective, onOpenObjective, addToast }) => {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('open');
@@ -5171,6 +5275,8 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
   const [importActionFilter, setImportActionFilter] = useState('all');
   const [ncrMode, setNcrMode] = useState('tracker');
   const [ncrView, setNcrView] = useState('advanced');
+  const canTriage = ['executive', 'manager'].includes(currentUser?.role);
+  const untriagedReports = useMemo(() => reports.filter(r => !OMP_DEPARTMENTS.includes(r.mainDepartment)), [reports]);
   const [selectedId, setSelectedId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -6127,6 +6233,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
             { id: 'tracker', label: 'Tracker', icon: FileText },
             { id: 'analytics', label: 'Analytics', icon: BarChart3 },
             { id: 'import', label: 'KPA Import', icon: Upload },
+            ...(canTriage && untriagedReports.length ? [{ id: 'triage', label: `Dept triage (${untriagedReports.length})`, icon: ClipboardCheck }] : []),
           ].map(tab => (
             <button key={tab.id} type="button" className={`ncr-mode-tab ${ncrMode === tab.id ? 'active' : ''}`} onClick={() => setNcrMode(tab.id)} aria-selected={ncrMode === tab.id}>
               <tab.icon size={14} /> {tab.label}
@@ -6141,6 +6248,9 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
           </div>
         </div>
       </div>
+      {ncrMode === 'triage' && canTriage && (
+        <NcrTriagePanel reports={untriagedReports} currentUser={currentUser} onUpdateReport={onUpdateReport} addToast={addToast} />
+      )}
       {ncrMode === 'tracker' && (
         <>
       <FeatureHelp
@@ -6905,9 +7015,10 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 <label className={ncrRequiredFieldClass(createDraft, 'reportDate')}><NcrRequiredLabel>Report Date</NcrRequiredLabel><input required type="date" value={createDraft.reportDate} onChange={event => setCreateDraft(prev => ({ ...prev, reportDate: event.target.value }))} /></label>
                 <label className={ncrRequiredFieldClass(createDraft, 'observer')}><NcrRequiredLabel>Observer</NcrRequiredLabel><input required value={createDraft.observer} onChange={event => setCreateDraft(prev => ({ ...prev, observer: event.target.value }))} /></label>
                 <label className={ncrRequiredFieldClass(createDraft, 'author')}><NcrRequiredLabel>Author</NcrRequiredLabel><input required value={createDraft.author} onChange={event => setCreateDraft(prev => ({ ...prev, author: event.target.value }))} /></label>
+                <label className={ncrRequiredFieldClass(createDraft, 'mainDepartment')}><NcrRequiredLabel>Main Department</NcrRequiredLabel><select required value={createDraft.mainDepartment || ''} onChange={event => setCreateDraft(prev => ({ ...prev, mainDepartment: event.target.value }))}><option value="">Select…</option>{OMP_DEPARTMENTS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                 <label className={ncrRequiredFieldClass(createDraft, 'primaryGroupAffected')}><NcrRequiredLabel>Primary Group Affected</NcrRequiredLabel><select required value={createDraft.departmentGroup} onChange={event => setCreateDraft(prev => {
                   const nextDepartments = mergeNcrPrimaryGroup(event.target.value, prev.affectedDepartmentList || []);
-                  return { ...prev, departmentGroup: event.target.value, affectedDepartmentList: nextDepartments, affectedDepartments: nextDepartments.join(', ') };
+                  return { ...prev, departmentGroup: event.target.value, affectedDepartmentList: nextDepartments, affectedDepartments: nextDepartments.join(', '), mainDepartment: prev.mainDepartment || getNcrGroupDepartment(event.target.value) || '' };
                 })}><option value="">Unspecified</option>{NCR_DEPARTMENT_GROUPS.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                 <label className={ncrRequiredFieldClass(createDraft, 'eventType')}><NcrRequiredLabel>Type of Event</NcrRequiredLabel><select required value={createDraft.eventType} onChange={event => setCreateDraft(prev => ({ ...prev, eventType: event.target.value, eventTypes: event.target.value ? [event.target.value] : [] }))}><option value="">Unspecified</option>{NCR_EVENT_TYPES.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
                 <label className={ncrRequiredFieldClass(createDraft, 'criticality')}><NcrRequiredLabel>Criticality</NcrRequiredLabel><select required value={createDraft.criticality} onChange={event => setCreateDraft(prev => ({ ...prev, criticality: event.target.value, severity: event.target.value }))}><option value="">Unspecified</option>{NCR_CRITICALITY.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
