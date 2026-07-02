@@ -45,6 +45,9 @@ const ALT_EXPLAINER_STORAGE_PREFIX = 'sandpro-alt-dashboard-guide-seen';
 const ALT_EXPLAINER_VERSION = 'alt-dashboard-2026-06-14';
 const PUSH_SETUP_DISMISSED_PREFIX = 'sandpro-push-setup-dismissed';
 const DAILY_BRIEF_STORAGE_VERSION = 'bulletin-2026-06-24-company-wide-launch';
+// SandPro Times / Daily Brief overlay pulled 2026-07-02 (may be reimplemented later).
+// Flip to true to restore the auto-open on login and the header newspaper button.
+const DAILY_BRIEF_ENABLED = false;
 const BRAND_LOGO_SRC = '/brand/sandpro-omp-logo.png';
 const BRAND_MARK_SRC = '/brand/sandpro-omp-mark.png';
 const ALT_DASHBOARD_HOTKEY_MEDIA = '(min-width: 769px) and (pointer: fine)';
@@ -922,6 +925,7 @@ function App() {
   // Show Daily Brief on first login of the day
   useEffect(() => {
     if (
+      !DAILY_BRIEF_ENABLED ||
       !profile ||
       mustSetPassword ||
       objectives.length === 0 ||
@@ -1866,9 +1870,11 @@ function App() {
         </button>
 
         {/* Daily Brief Recall */}
-        <button className="icon-btn" onClick={() => setShowDailyBrief(true)} title="Daily Brief">
-          <Newspaper size={18} />
-        </button>
+        {DAILY_BRIEF_ENABLED && (
+          <button className="icon-btn" onClick={() => setShowDailyBrief(true)} title="Daily Brief">
+            <Newspaper size={18} />
+          </button>
+        )}
 
         {/* Theme Toggle */}
         <button className="icon-btn" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} title="Toggle theme">
