@@ -32,8 +32,11 @@ test.describe('production read-only smoke', () => {
     await dismissDailyBrief(page);
     if (testInfo.project.name !== 'mobile-chrome') {
       await page.getByTitle('Toggle theme').click();
-      await page.getByTitle('Daily Brief').click();
-      await page.keyboard.press('Escape');
+      const dailyBriefButton = page.getByTitle('Daily Brief');
+      if (await dailyBriefButton.isVisible().catch(() => false)) {
+        await dailyBriefButton.click();
+        await page.keyboard.press('Escape');
+      }
       await page.getByTitle('Open Admin').click();
       await expect(page.getByText('Admin Panel')).toBeVisible();
       await signOutIfPossible(page);

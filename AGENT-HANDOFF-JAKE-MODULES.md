@@ -40,6 +40,33 @@ Playwright QA trap: never `.remove()` React-managed DOM (e.g. `.brief-overlay`)
 — it crashes React reconciliation and blanks the app. Dismiss overlays through
 their own buttons.
 
+## Notifications (fixed 2026-07-02)
+
+Jake's "not receiving push notifications or daily briefing email":
+
+- **Push root causes (both fixed in `api/_shared/push.js` + crons):** (1) the
+  reminder (`api/cron/reminders.js`, 14:00 UTC) and daily-digest
+  (`api/cron/daily-digest.js`, 13:00 UTC) crons only sent email — push only
+  fired on in-app events via `send-event.js`; both crons now fan out
+  `sendPushNotifications` per recipient (skipped when that day's email
+  deduped). (2) `buildPushPayload` set `silent: true` on every non-urgent push
+  — the service worker honors it, so pushes arrived as invisible ghosts. Now
+  `silent: false` always. Also: a missing `notification_preferences` row no
+  longer blocks all pushes (defaults on); `due_soon` no longer requires high
+  priority (priority is dead per Jake); `stale` + `daily_digest` push types
+  added.
+- **Email root cause:** delivery is healthy (Resend, DKIM/SPF/DMARC verified,
+  every send logged `sent` in `email_delivery_log`) — Jake's digests land in
+  M365 junk/quarantine. Fix is on SandPro IT: allow-list objectivetracker.net.
+- Verify with `push_delivery_log` / `email_delivery_log` in Supabase
+  (`whgrkfhuzgwmbelocnhq`).
+
+## SandPro Times / Daily Brief (pulled 2026-07-02)
+
+The newspaper overlay is disabled via `DAILY_BRIEF_ENABLED = false` in
+`src/App.jsx` (flag gates the login auto-open and the header Newspaper
+button). All code kept — flip the flag to bring it back.
+
 ## Deploy
 
 `vercel deploy --prod`, then move the pinned aliases:
