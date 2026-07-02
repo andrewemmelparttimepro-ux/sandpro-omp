@@ -12286,6 +12286,20 @@ button.alt-command-body:disabled {
 }
 .wiz-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 @media (max-width: 640px) { .wiz-field-grid { grid-template-columns: 1fr; } }
+/* Mobile: the wizard must stay scrollable down to the Create button. 88vh overshoots
+   the visible viewport under Safari's dynamic toolbars, trapping the bottom of the
+   form off-screen — use dvh and let the modal own the full screen. */
+@media (max-width: 768px) {
+  .wiz-modal {
+    width: 100% !important;
+    height: 100dvh;
+    max-height: 100dvh !important;
+    border-radius: 0;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .wiz-body { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+}
 
 /* ============================================================================
    OKR PAGE — monthly edit grid + printable presentation view

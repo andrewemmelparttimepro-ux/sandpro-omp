@@ -1019,7 +1019,10 @@ export const CreateWizardModal = ({
               <WizChip label="Task" selected={type === "task"} onClick={() => pickType("task")} />
               <WizChip label="Project" selected={type === "project"} onClick={() => pickType("project")} />
               <WizChip label="NCR" onClick={() => pickType("ncr")} />
-              <WizChip label={isAdmin ? "OKR" : "OKR — admins only"} locked={!isAdmin} disabled={!isAdmin} selected={type === "okr"} onClick={() => pickType("okr")} />
+              {/* Per Jake (July 1 meeting): OKR is NOT a Create New option — main OKRs are
+                  created inside the OKR module ("Add main OKR", admin-gated). The chip only
+                  appears when this wizard was opened through that door. */}
+              {type === "okr" && <WizChip label="Main OKR" selected locked={!isAdmin} onClick={() => {}} />}
             </div>
           </WizStep>
 

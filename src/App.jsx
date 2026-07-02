@@ -20,7 +20,7 @@ const safeStorage = {
 import { DashboardPage, ObjectivesPage, KpiPage, OrgPage, FixItFeedPage, NcrPage, AdminSidebar, GlobalKpiStrip, CreateWizardModal, OkrPage } from './pages';
 import './index.css';
 
-const PAGE_IDS = ["dashboard", "objectives", "kpi", "fixit", "ncr", "organization"];
+const PAGE_IDS = ["dashboard", "objectives", "okr", "kpi", "fixit", "ncr", "organization"];
 const DEFAULT_OBJECTIVE_FILTERS = {
   search: "",
   status: "all",
