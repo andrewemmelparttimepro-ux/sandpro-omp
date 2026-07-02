@@ -61,11 +61,19 @@ Jake's "not receiving push notifications or daily briefing email":
 - Verify with `push_delivery_log` / `email_delivery_log` in Supabase
   (`whgrkfhuzgwmbelocnhq`).
 
-## SandPro Times / Daily Brief (pulled 2026-07-02)
+## SandPro Times (2026-07-02)
 
-The newspaper overlay is disabled via `DAILY_BRIEF_ENABLED = false` in
-`src/App.jsx` (flag gates the login auto-open and the header Newspaper
-button). All code kept — flip the flag to bring it back.
+- The in-app newspaper **overlay is pulled**: `DAILY_BRIEF_ENABLED = false` in
+  `src/App.jsx` gates the login auto-open and the header Newspaper button. All
+  code kept — flip the flag to bring it back.
+- The Times now lives as **the daily email brief** (`buildTimesEmail` in
+  `api/cron/daily-digest.js`, weekdays 13:00 UTC): newspaper masthead + dated
+  subject, personal desk stats, top-3 stories, company-wide aggregates.
+  Sent to ALL users by default (opt-out via digest_frequency 'off' /
+  email_enabled false); robo accounts (`isRoboAccount`: release-smoke,
+  qa-agent, agent.fixit) are excluded. Layout is table-based on purpose —
+  Outlook doesn't support grid/flex. Due dates must format with
+  `timeZone: 'UTC'` or they render a day early.
 
 ## Deploy
 
