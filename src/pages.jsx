@@ -1557,7 +1557,7 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
                 <div className="text-xs text-muted truncate">
                   {row.dept || row.group || "Unmapped"}
                   {row.klass ? ` · ${row.klass}` : ""}
-                  {row.dept && row.group && row.group !== row.klass ? ` · ${row.group}` : ""}
+                  {row.dept && row.group && row.group !== row.klass && row.group !== row.dept ? ` · ${row.group}` : ""}
                   {row.kind === "ncr" ? ` · ${linkedLabel}` : linkedLabel ? ` · Linked to ${linkedLabel}` : " · Standalone"}
                 </div>
               </div>
