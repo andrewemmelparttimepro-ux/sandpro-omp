@@ -85,6 +85,34 @@ Jake's "not receiving push notifications or daily briefing email":
   Outlook doesn't support grid/flex. Due dates must format with
   `timeZone: 'UTC'` or they render a day early.
 
+## Permissions (DB-enforced, 2026-07-02)
+
+Migration `harden_okr_permissions_per_jake_spec`: RLS now enforces Jake's OKR
+rules at the database, not just the UI — only executives can INSERT
+`okr_level='company'` objectives, and metric check-ins can only be inserted by
+that objective's owner/creator/tagged member/executive. Verified live as the
+smoke member (403/403; normal task create still 201). Service role (crons)
+bypasses RLS as before. Don't loosen these.
+
+## NCR taxonomy
+
+`NCR_GROUP_TO_DEPARTMENT` in `src/ompFramework.js` maps NCR `department_group`
+into Jake's main departments (Automation; CP/Customer Property/Inventory →
+CP Warehouse; Sales/Office/Quality Control → Business Team). **Shop /
+Operations / Service (258 of 354 NCRs) intentionally stay unmapped** — they
+span divisions and need Jake's call; the list shows their real group name
+instead of "Unmapped". When Jake decides, add the three lines to the map.
+
+## Known data-entry gaps (not code)
+
+- `objective_metric_checkins` is empty — tagged users enter their monthly
+  numbers; Jan–Jun history lives in the Black Ops spreadsheet if Jake wants it
+  backfilled.
+- `okr_projects` empty and `parent_id` linkage 0 — linkage accrues as people
+  create through the wizard; retroactive linking is possible in the edit modal.
+- 5 "Field Ops" objectives have no department (mapping unconfirmed in
+  `OKR_GROUP_TO_DEPARTMENT` — Jake must pick the division).
+
 ## Deploy
 
 `vercel deploy --prod`, then move the pinned aliases:
