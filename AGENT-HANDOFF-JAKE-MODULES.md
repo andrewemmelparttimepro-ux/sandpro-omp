@@ -103,6 +103,24 @@ Operations / Service (258 of 354 NCRs) intentionally stay unmapped** — they
 span divisions and need Jake's call; the list shows their real group name
 instead of "Unmapped". When Jake decides, add the three lines to the map.
 
+## NCR two-axis classification + triage (2026-07-02, approved plan)
+
+- `ncr_reports.main_department` = which of Jake's five divisions owns it
+  (reporting axis); `department_group` stays as the legacy work-type label.
+  96 records backfilled deterministically; the rest go through triage.
+- **New NCRs require Main Department** (guided select on the Create NCR form,
+  auto-prefilled from the group when derivable) — bad data stops at the door.
+- **Dept triage tab** on the NCR page (exec/manager only, appears while
+  untriaged records exist): `suggestNcrDepartment` in `src/ompFramework.js`
+  reads the record's own text and proposes a department with confidence +
+  reason; a human confirms each row or bulk-approves high confidence. It never
+  auto-assigns. Mercy can burn the queue down; ~50 were high-confidence at
+  launch. List view prefers `mainDepartment` when resolving NCR departments.
+- Field Ops objectives classified (approved): Tablet/Riger→Automation, BBS→
+  Business Team·Safety, NCR-reduction + Q2 Audit→Business Team·Quality, labor
+  ratio→Business Team. `OKR_GROUP_TO_DEPARTMENT["Field Ops"]` confirmed →
+  Business Team default.
+
 ## Known data-entry gaps (not code)
 
 - `objective_metric_checkins` is empty — tagged users enter their monthly
