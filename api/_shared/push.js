@@ -58,7 +58,7 @@ const pushTitle = (type) => {
   if (type === 'overdue') return 'SandPro OMP overdue objective';
   if (type === 'due_soon') return 'SandPro OMP due soon';
   if (type === 'stale') return 'SandPro OMP needs an update';
-  if (type === 'daily_digest') return 'The SandPro Daily';
+  if (type === 'daily_digest') return 'The SandPro Times';
   if (type === 'fixit_new') return 'New SandPro Fix-It item';
   if (type === 'fixit_agent') return 'SandPro Fix-It update';
   return 'SandPro OMP';

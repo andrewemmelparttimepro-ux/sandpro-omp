@@ -57,45 +57,79 @@ const getActionItems = (objectives, startOfToday) => [...objectives]
   })
   .slice(0, 3);
 
-const buildDailyEmail = ({ req, profile, stats, actionItems }) => {
+const SERIF = "Georgia,'Times New Roman',serif";
+const SANS = "Arial,Helvetica,sans-serif";
+
+// QA / automation accounts that must never receive the Times.
+const isRoboAccount = (email = '') => /release-smoke|qa-agent|agent\.fixit/i.test(email);
+
+const editionDateLine = () => new Date().toLocaleDateString('en-US', {
+  weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Chicago',
+});
+
+const statCell = (label, value, color) => `
+  <td width="25%" align="center" style="border:1px solid #e5e7eb;background:#f9fafb;padding:12px 6px">
+    <div style="font-family:${SERIF};font-size:26px;font-weight:700;color:${color};line-height:1.1">${value}</div>
+    <div style="font-family:${SANS};font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;padding-top:4px">${label}</div>
+  </td>`;
+
+// Newspaper-style daily brief. Table-based layout on purpose — most of SandPro
+// reads this in Outlook, which does not support display:grid/flex.
+export const buildTimesEmail = ({ req, profile, stats, companyStats, actionItems }) => {
   const dashboardUrl = appUrl(req, { page: 'dashboard', daily: '1' });
-  const objectiveRows = actionItems.length
-    ? actionItems.map(objective => `
-      <li style="margin:0 0 10px">
-        <a href="${htmlEscape(objectiveUrl(req, objective.id, 'details'))}" style="color:#c75400;font-weight:700;text-decoration:none">${htmlEscape(objective.title)}</a>
-        <div style="color:#6b7280;font-size:13px">
-          ${htmlEscape(objective.department || 'Company')} · ${htmlEscape(objective.status?.replaceAll('_', ' ') || 'active')}${objective.due_date ? ` · Due ${htmlEscape(new Date(objective.due_date).toLocaleDateString('en-US'))}` : ''}
-        </div>
-      </li>
-    `).join('')
-    : '<li style="margin:0 0 10px;color:#6b7280">No urgent objectives are currently assigned or visible to you.</li>';
+  const stories = actionItems.length
+    ? actionItems.map((objective, index) => `
+      <tr>
+        <td style="padding:0 0 14px">
+          <div style="font-family:${SERIF};font-size:12px;color:#9ca3af">No. ${index + 1}</div>
+          <a href="${htmlEscape(objectiveUrl(req, objective.id, 'details'))}" style="font-family:${SERIF};font-size:17px;font-weight:700;color:#111827;text-decoration:none">${htmlEscape(objective.title)}</a>
+          <div style="font-family:${SANS};font-size:12px;color:#6b7280;padding-top:2px">
+            ${htmlEscape(objective.department || 'Company')} · ${htmlEscape(objective.status?.replaceAll('_', ' ') || 'active')}${objective.due_date ? ` · Due ${htmlEscape(new Date(objective.due_date).toLocaleDateString('en-US', { timeZone: 'UTC' }))}` : ''}
+          </div>
+        </td>
+      </tr>`).join('')
+    : `<tr><td style="font-family:${SANS};font-size:13px;color:#6b7280;padding:0 0 14px">A quiet edition — nothing on your desk needs urgent attention today.</td></tr>`;
 
   return `
-    <div style="font-family:Arial,sans-serif;line-height:1.5;color:#111827;max-width:680px;margin:0 auto;padding:24px;background:#ffffff">
-      <div style="font-weight:800;color:#ff7f02;font-size:18px;margin-bottom:6px">SandPro OMP</div>
-      <div style="display:none;max-height:0;overflow:hidden">Your SandPro Daily is ready: ${stats.active} active, ${stats.pastDue} past due, ${stats.blockedAtRisk} blocked or at risk.</div>
-      <h1 style="font-size:24px;margin:0 0 4px">The SandPro Daily</h1>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 20px">Prepared for ${htmlEscape(profile.name || 'SandPro team member')}</p>
+    <div style="max-width:680px;margin:0 auto;padding:24px;background:#ffffff;color:#111827">
+      <div style="display:none;max-height:0;overflow:hidden">The SandPro Times: ${stats.active} active, ${stats.pastDue} past due, ${stats.blockedAtRisk} blocked or at risk on your desk.</div>
 
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 22px">
-        ${[
-          ['Active', stats.active, '#2563eb'],
-          ['On Track', stats.onTrack, '#059669'],
-          ['Past Due', stats.pastDue, '#dc2626'],
-          ['Blocked / At Risk', stats.blockedAtRisk, '#d97706'],
-        ].map(([label, value, color]) => `
-          <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;background:#f9fafb">
-            <div style="font-size:22px;font-weight:800;color:${color}">${value}</div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">${label}</div>
-          </div>
-        `).join('')}
-      </div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr><td align="center" style="border-top:3px double #111827;border-bottom:1px solid #111827;padding:16px 0 12px">
+          <div style="font-family:${SERIF};font-size:34px;font-weight:700;letter-spacing:.01em;color:#111827">The SandPro Times</div>
+          <div style="font-family:${SANS};font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;padding-top:6px">${editionDateLine()} &nbsp;·&nbsp; SandPro OMP Daily Brief</div>
+        </td></tr>
+        <tr><td style="border-bottom:3px double #111827;height:3px;font-size:0;line-height:0">&nbsp;</td></tr>
+      </table>
 
-      <h2 style="font-size:17px;margin:0 0 10px">Top action items</h2>
-      <ol style="padding-left:20px;margin:0 0 22px">${objectiveRows}</ol>
+      <p style="font-family:${SANS};font-size:13px;color:#6b7280;margin:16px 0 18px">Prepared for <strong style="color:#111827">${htmlEscape(profile.name || 'SandPro team member')}</strong> — here is what is on your desk this morning.</p>
 
-      <a href="${htmlEscape(dashboardUrl)}" style="display:inline-block;background:#ff7f02;color:white;text-decoration:none;border-radius:8px;padding:12px 16px;font-weight:800">Open SandPro Daily</a>
-      <p style="font-size:12px;color:#6B7280;margin-top:24px">This weekday brief follows your SandPro OMP email and digest preferences. Manage notification settings in the app.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px"><tr>
+        ${statCell('Active', stats.active, '#2563eb')}
+        ${statCell('On Track', stats.onTrack, '#059669')}
+        ${statCell('Past Due', stats.pastDue, '#dc2626')}
+        ${statCell('Blocked / At Risk', stats.blockedAtRisk, '#d97706')}
+      </tr></table>
+
+      <div style="font-family:${SANS};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#c75400;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px">Top stories on your desk</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${stories}</table>
+
+      <div style="font-family:${SANS};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#c75400;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin:10px 0 12px">Around the company</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px"><tr>
+        <td style="font-family:${SANS};font-size:13px;color:#374151;line-height:1.7">
+          ${companyStats.dueToday} item${companyStats.dueToday === 1 ? '' : 's'} due across SandPro today · ${companyStats.pastDue} past due company-wide · ${companyStats.blockedAtRisk} blocked or at risk · ${companyStats.completedYesterday} completed in the last day
+        </td>
+      </tr></table>
+
+      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+        <td style="background:#ff7f02;border-radius:8px">
+          <a href="${htmlEscape(dashboardUrl)}" style="display:inline-block;font-family:${SANS};font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;padding:12px 18px">Open SandPro OMP</a>
+        </td>
+      </tr></table>
+
+      <p style="font-family:${SANS};font-size:11px;color:#9ca3af;margin-top:26px;border-top:1px solid #e5e7eb;padding-top:12px">
+        The SandPro Times goes to every active SandPro OMP user each weekday morning. To opt out, open SandPro OMP → Settings → turn the daily brief off.
+      </p>
     </div>
   `;
 };
@@ -105,21 +139,30 @@ export default async function handler(req, res) {
   try {
     if (!assertCron(req)) return json(res, 401, { error: 'Unauthorized cron request.' });
     const supabase = getSupabaseAdmin();
-    const [{ data: profiles = [] }, { data: prefs = [] }, { data: objectives = [] }, { data: objectiveMembers = [] }] = await Promise.all([
+    const [{ data: profiles = [] }, { data: prefs = [] }, { data: allObjectives = [] }, { data: objectiveMembers = [] }] = await Promise.all([
       supabase.from('profiles').select('*'),
       supabase.from('notification_preferences').select('*'),
-      supabase.from('objectives').select('*').not('status', 'eq', 'completed').not('status', 'eq', 'cancelled'),
+      supabase.from('objectives').select('*').not('status', 'eq', 'cancelled'),
       supabase.from('objective_members').select('objective_id,user_id'),
     ]);
+    const objectives = allObjectives.filter(o => o.status !== 'completed');
     const prefByUser = new Map(prefs.map(p => [p.user_id, p]));
     const today = new Date().toISOString().slice(0, 10);
     const isMonday = new Date().getDay() === 1;
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(startOfToday.getTime() + 86400000);
+    const dayAgo = new Date(Date.now() - 86400000);
+    const companyStats = {
+      dueToday: objectives.filter(o => o.due_date && new Date(o.due_date) >= startOfToday && new Date(o.due_date) < endOfToday).length,
+      pastDue: objectives.filter(o => isPastDue(o, startOfToday)).length,
+      blockedAtRisk: objectives.filter(o => o.blocker_flag || o.status === 'blocked' || o.status === 'at_risk').length,
+      completedYesterday: allObjectives.filter(o => o.status === 'completed' && o.updated_at && new Date(o.updated_at) >= dayAgo).length,
+    };
     const results = [];
 
     for (const profile of profiles) {
-      if (!profile.email) continue;
+      if (!profile.email || isRoboAccount(profile.email)) continue;
       const pref = prefByUser.get(profile.id);
       const emailAllowed = pref?.email_enabled !== false;
       const frequency = pref?.digest_frequency || 'daily';
@@ -138,7 +181,7 @@ export default async function handler(req, res) {
       };
       const actionItems = getActionItems(scoped, startOfToday);
       const firstObjective = actionItems[0] || scoped[0] || null;
-      const html = buildDailyEmail({ req, profile, stats, actionItems });
+      const html = buildTimesEmail({ req, profile, stats, companyStats, actionItems });
       let emailResult = null;
       if (emailAllowed) {
         emailResult = await sendLoggedEmail({
@@ -147,7 +190,7 @@ export default async function handler(req, res) {
           type: 'daily_digest',
           dedupeKey: `daily_digest:${profile.id}:${today}:${frequency}`,
           to: profile.email,
-          subject: 'The SandPro Daily',
+          subject: `The SandPro Times — ${editionDateLine()}`,
           html,
         });
         results.push(emailResult);
@@ -159,7 +202,7 @@ export default async function handler(req, res) {
           type: 'daily_digest',
           objective: firstObjective || {},
           prefs: pref,
-          message: `Your daily brief is ready — ${stats.active} active, ${stats.pastDue} past due, ${stats.blockedAtRisk} blocked or at risk.`,
+          message: `Today's edition is out — ${stats.active} active, ${stats.pastDue} past due, ${stats.blockedAtRisk} blocked or at risk on your desk.`,
           url: appUrl(req, { page: 'dashboard' }),
         }).catch((error) => ({ channel: 'push', error: error.message })));
       }
