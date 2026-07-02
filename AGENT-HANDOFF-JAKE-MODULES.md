@@ -17,11 +17,21 @@ OKR/task-workflow meeting) so the next agent doesn't undo it.
   old New-Objective modal for creation (`showCreateForm` opens the wizard;
   `ObjectiveFormModal` is edit-only now). Guided steps: what-is-it →
   single/recurring → associated-with → open-parents dropdown → standard form.
-  **No priority field** — do not add one. Linkage on create: OKR → `parentId`,
-  project → `updateOkrProject({ linkedObjectiveIds })`, NCR →
+  **Line 1 is Task / Project / NCR only** — Jake explicitly banned OKR as an
+  original prompt (July 1 meeting, 18:03); main OKRs are created ONLY through
+  the OKR page's admin-gated "Add main OKR" button (which opens this wizard
+  with `initialType="okr"` and a locked Main OKR chip). Do not re-add an OKR
+  chip. **No priority field** — do not add one. Linkage on create: OKR →
+  `parentId`, project → `updateOkrProject({ linkedObjectiveIds })`, NCR →
   `updateNcrReport({ linkedObjectiveId })`. Recurring is stored as a
   `[Recurring — every X]` description note (no schema support yet). Choosing
   NCR routes to the NCR page's standard form.
+  **Mobile:** `.wiz-modal` is full-screen `100dvh` + scrollable under 768px —
+  88vh overshot Safari's visible viewport and trapped the Create button
+  off-screen (Jake's rollout blocker). Keep the dvh units.
+- **Deep links**: `PAGE_IDS` in `src/App.jsx` must contain every routable page
+  ("okr" was missing — reload/shared links on ?page=okr silently landed on the
+  dashboard).
 - **OKR page** (`OkrPage` in `src/pages.jsx`, route `?page=okr`): company-level
   objectives × Jan–Dec grid backed by `objective_metric_checkins`
   (`addMetricCheckin`; a cell shows the month's latest check-in). Cells editable
