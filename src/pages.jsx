@@ -4570,6 +4570,14 @@ const transformImportedNcrRow = (row = {}, index = 0, currentUser) => {
     permanentAction: findFirstValue(row, ['Permanent Corrective Action', 'Permanent Action']),
     affectedDepartments: departments.join(', '),
     departmentGroup: departments[0] || sanitizeNcrDepartmentList([findFirstValue(row, ['Department', 'Group'])])[0] || 'Quality',
+    // Main department (Jake's five divisions). Explicit column wins; otherwise
+    // derived from the group when deterministic; otherwise the record lands in
+    // the Dept triage queue — never guessed.
+    mainDepartment: (() => {
+      const explicit = findFirstValue(row, ['Main Department', 'Main Dept', 'Division']);
+      if (OMP_DEPARTMENTS.includes(explicit)) return explicit;
+      return getNcrGroupDepartment(explicit) || getNcrGroupDepartment(departments[0]) || '';
+    })(),
     longTermFollowUp: findFirstValue(row, ['Long-Term Follow-Up', 'Long Term Follow Up', 'Follow-Up', 'Follow Up']),
     actionEffective: importedActionEffective,
     effectivenessSummary: findFirstValue(row, ['Effectiveness Verification', 'Verification of Effectiveness', 'Effectiveness Summary']) || (importedActionEffectiveRaw && !importedActionEffective ? importedActionEffectiveRaw : ''),
@@ -6953,13 +6961,14 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
               </div>
               <div className="ncr-import-table-wrap">
                 <table className="objectives-table ncr-import-table">
-                  <thead><tr><th>Report</th><th>Import Action</th><th>Date</th><th>Group</th><th>Type</th><th>Failure Group</th><th>Description</th></tr></thead>
+                  <thead><tr><th>Report</th><th>Import Action</th><th>Date</th><th>Main Department</th><th>Group</th><th>Type</th><th>Failure Group</th><th>Description</th></tr></thead>
                   <tbody>
                     {filteredImportPreview.slice(0, 20).map((row, index) => (
                       <tr key={`${row.reportNumber}-${index}`}>
                         <td>{row.reportNumber}</td>
                         <td><Badge color={row.importAction === 'Replace existing' ? 'var(--warning)' : 'var(--success)'}>{row.importAction || 'Create new'}</Badge></td>
                         <td>{row.reportDate}</td>
+                        <td>{row.mainDepartment || <span className="text-muted">→ triage</span>}</td>
                         <td>{row.departmentGroup}</td>
                         <td>{row.eventType}</td>
                         <td>{row.normalizedFailureSummary}</td>
