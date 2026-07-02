@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-06-12T14:04:30.919Z",
+  "since": "2026-06-11T14:00:55.841Z",
+  "counts": {
+    "fixItPostsTouched": 0,
+    "fixItComments": 5,
+    "fixItAttachments": 0,
+    "objectiveMessages": 0,
+    "objectiveUpdates": 0,
+    "objectivesTouched": 15,
+    "orgChartUpdates": 0,
+    "emailLogs": 55,
+    "pushLogs": 15,
+    "activeFixItNow": 1
+  },
+  "newActivity": {
+    "fixItPosts": [],
+    "fixItComments": [
+      {
+        "id": "ee8cdf9d-66af-429f-b904-67afd4a22e1a",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "created_at": "2026-06-11T18:38:29.190324+00:00",
+        "createdBy": "SandPro QA Agent",
+        "body": "Agent recheck on June 11, 2026: production still behaves as one centralized Objective Lens rather than a broken split workflow. From Dashboard, the Active card currently opens /?page=objectives&scope=company&active=1, and the 7 DAYS card opens /?page=objectives&due=7&scope=compa…"
+      },
+      {
+        "id": "2613fe5d-bf6e-4000-872e-ce9f29119da5",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "created_at": "2026-06-12T00:51:14.839401+00:00",
+        "createdBy": "SandPro QA Agent",
+        "body": "Agent recheck on June 11, 2026: I re-ran this in live production by clicking the Dashboard cards themselves. ACTIVE opens /?page=objectives&scope=company&active=1, and 7 DAYS opens /?page=objectives&due=7&scope=company&active=1. Both routes land in the centralized Objective Lens…"
+      },
+      {
+        "id": "8e48075e-e7d4-4bef-8e92-4f009fc904ae",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "created_at": "2026-06-12T03:51:38.640032+00:00",
+        "createdBy": "SandPro QA Agent",
+        "body": "Agent recheck on June 11, 2026: I re-ran this in live production from the Dashboard cards. ACTIVE opens /?page=objectives&scope=company&active=1, and 7 DAYS opens /?page=objectives&due=7&scope=company&active=1. Both routes land in the centralized Objective Lens and still keep th…"
+      },
+      {
+        "id": "4b2d3375-3365-449b-9a4f-f9cf2eb6761f",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "created_at": "2026-06-12T04:50:59.479737+00:00",
+        "createdBy": "Andrew Emmel",
+        "body": "Agent recheck on June 11, 2026: production still behaves like one centralized Objective List rather than a broken split workflow. Dashboard ACTIVE opens /?page=objectives&scope=company&active=1, and Dashboard 7 DAYS opens /?page=objectives&due=7&scope=company&active=1. Both rout…"
+      },
+      {
+        "id": "c6aeac52-cf62-4400-9d80-d547a5219762",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "created_at": "2026-06-12T11:56:10.339763+00:00",
+        "createdBy": "SandPro QA Agent",
+        "body": "Agent recheck on June 12, 2026: I validated this again in live production from the Dashboard cards. ACTIVE currently shows 6 and opens /?page=objectives&scope=company&active=1, and 7 DAYS currently shows 1 and opens /?page=objectives&due=7&scope=company&active=1. Both routes lan…"
+      }
+    ],
+    "fixItAttachments": [],
+    "messages": [],
+    "objectiveUpdates": [],
+    "objectiveTouchesWithoutAudit": {
+      "touchedCount": 15,
+      "sharedUpdatedAt": [
+        "2026-06-11T15:31:42.479396+00:00"
+      ],
+      "sampleTitles": [
+        "Finalize April expense report — personal CC items + remaining receipts",
+        "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "Enable @mentions while writing objective descriptions",
+        "org chart breakdown",
+        "Review password reset flow"
+      ]
+    },
+    "orgChartUpdates": []
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 55
+    },
+    "emailTypeCounts": {
+      "daily_digest": 32,
+      "mention": 1,
+      "overdue": 22
+    },
+    "pushStatusCounts": {
+      "sent": 15
+    },
+    "pushTypeCounts": {
+      "fixit_agent": 15
+    },
+    "failedPushes": []
+  },
+  "unresolved": {
+    "activeFixIt": [
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "status": "in_progress",
+        "created_at": "2026-05-28T17:59:58.482556+00:00",
+        "updated_at": "2026-06-10T06:55:21.359424+00:00",
+        "createdBy": "Jake Feil",
+        "claimedBy": "SandPro QA Agent",
+        "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion. The objective task categories currently displayed on the main dashboard are: Open Overdue Due Today Due Within 7 Days Due Within 14 Days Due Within 28 Days Completed These are good and should be considered the core visuals for team productivity. Howeve…"
+      }
+    ],
+    "pendingApproval": [
+      {
+        "kind": "fix_it_product_direction",
+        "source": "Jake Feil",
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "summary": "Dashboard/Objectives filter IA request remains product-direction, not a proven broken workflow.",
+        "latestCommentAt": "2026-06-12T11:56:10.339763+00:00"
+      },
+      {
+        "kind": "objective_product_direction",
+        "source": "Jake Feil",
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "summary": "OKRs and Projects tracking/R&D is a planning and process-design objective, not an obvious bug fix.",
+        "created_at": "2026-06-10T19:43:08.518705+00:00",
+        "due_date": "2026-06-16T00:00:00+00:00"
+      }
+    ],
+    "safeToImplementNow": [],
+    "conflicts": []
+  },
+  "assessment": {
+    "summary": "No new user-generated production bugs or clear Jake/Mercileidy implementation asks appeared since the last 9 AM review. Activity was limited to repeated agent/admin comments on the already-open Dashboard/Objectives IA card plus normal delivery logs.",
+    "notes": [
+      "No new Fix-It posts, attachments, objective messages, objective_updates, or org_chart_updates were created in this window.",
+      "Five new comments landed on the same active Fix-It card 23903eed-1900-4fa6-964e-7beafaa1e7e9; all were agent/admin rechecks reaffirming that production already behaves like a centralized Objective Lens.",
+      "Fifteen objectives share the same updated_at timestamp (2026-06-11T15:31:42.479396+00:00) without matching objective_updates or messages; treat that as system-side churn unless future audits show substantive field deltas."
+    ]
+  }
+}

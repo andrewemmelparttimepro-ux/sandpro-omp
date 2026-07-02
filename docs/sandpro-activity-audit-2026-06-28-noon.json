@@ -1,0 +1,1075 @@
+{
+  "runAt": "2026-06-28T17:05:18.090Z",
+  "automationId": "sandpro-omp-activity-review-noon",
+  "since": "2026-06-27T17:00:53.804Z",
+  "productionUrl": "https://objectivetracker.net",
+  "supabaseProject": "whgrkfhuzgwmbelocnhq",
+  "profileProbe": {
+    "count": 32,
+    "rows": [
+      {
+        "id": "745972c6-488d-4f0c-82cd-fcc773834d3d",
+        "email": "aallan@sandpro.com",
+        "role": "contributor",
+        "department": "Operations",
+        "title": "Inventory Manager"
+      },
+      {
+        "id": "614e3a17-2ab4-4711-b860-20ea28033250",
+        "email": "agent.fixit.20260604.2050@gmail.com",
+        "role": "contributor",
+        "department": "Operations",
+        "title": "Automation Agent"
+      },
+      {
+        "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "email": "andrew@ndai.pro",
+        "role": "executive",
+        "department": "Leadership",
+        "title": "Platform Admin"
+      },
+      {
+        "id": "a9bfd416-cac4-479b-92bf-105cb27199fa",
+        "email": "bschatz@sandpro.com",
+        "role": "contributor",
+        "department": "Admin",
+        "title": "Field Coordinator"
+      },
+      {
+        "id": "c18e76bb-4392-4691-8dff-336516f1f9c5",
+        "email": "cloving@sandpro.com",
+        "role": "contributor",
+        "department": "Safety",
+        "title": "Safety Coordinator"
+      },
+      {
+        "id": "c502a70a-ef45-4d03-bf36-7f1630b3b7d3",
+        "email": "danderson@sandpro.com",
+        "role": "manager",
+        "department": "Automation",
+        "title": "Director of Automated Solutions & Project Development"
+      },
+      {
+        "id": "789240b1-b488-4c3f-8587-f700f9529593",
+        "email": "dsaunders@sandpro.com",
+        "role": "contributor",
+        "department": "Operations",
+        "title": "Dispatch"
+      },
+      {
+        "id": "3fc57711-20c2-4d2a-8132-41d6fb845def",
+        "email": "gdingal@sandpro.com",
+        "role": "contributor",
+        "department": "Operations",
+        "title": "Operations Coordinator & Dispatch"
+      },
+      {
+        "id": "593699b0-69c0-4f1b-847b-158f1ecec66d",
+        "email": "hallard-kotaska@sandpro.com",
+        "role": "manager",
+        "department": "HR",
+        "title": "HR Manager"
+      },
+      {
+        "id": "973dd91e-6508-4468-8d9b-d681e78f45d0",
+        "email": "ibadillo@sandpro.com",
+        "role": "contributor",
+        "department": "Field Operations",
+        "title": "Field Service Manager"
+      },
+      {
+        "id": "3463c626-ecaf-4b51-88e9-f9699180e729",
+        "email": "jblackaby@sandpro.com",
+        "role": "executive",
+        "department": "Leadership",
+        "title": "Vice President"
+      },
+      {
+        "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "email": "jfeil@sandpro.com",
+        "role": "executive",
+        "department": "Leadership",
+        "title": "CEO"
+      },
+      {
+        "id": "00bec0ad-a8f1-4a02-8a10-d7e81d524e90",
+        "email": "jlatz@sandpro.com",
+        "role": "contributor",
+        "department": "Automation",
+        "title": "I & E Technician"
+      },
+      {
+        "id": "80216ffc-c756-40e8-81e9-777d84f54221",
+        "email": "jmaslowski@sandpro.com",
+        "role": "manager",
+        "department": "Shop",
+        "title": "Shop Manager"
+      },
+      {
+        "id": "ea3b5407-2fa3-4dfa-aefd-88aa4550bd48",
+        "email": "jostby@sandpro.com",
+        "role": "contributor",
+        "department": "Sales",
+        "title": "Field Coordinator"
+      },
+      {
+        "id": "e6fa252b-4d42-4a35-b247-398685ea7cf6",
+        "email": "jpfeifer@sandpro.com",
+        "role": "contributor",
+        "department": "Sales",
+        "title": "Account Manager"
+      },
+      {
+        "id": "886e9613-b13f-439b-bbf6-e7c86ce89188",
+        "email": "jsommerfeld@sandpro.com",
+        "role": "contributor",
+        "department": "Sales",
+        "title": "Business Development Manager"
+      },
+      {
+        "id": "105258b3-e6e7-48c0-8354-9187d4cb1897",
+        "email": "kkraft@sandpro.com",
+        "role": "manager",
+        "department": "Sales",
+        "title": "CP Operations Manager"
+      },
+      {
+        "id": "b02579c7-0788-493f-8a5b-34656d098a2a",
+        "email": "kmappes@sandpro.com",
+        "role": "contributor",
+        "department": "Automation",
+        "title": "I&E Technician"
+      },
+      {
+        "id": "5873c1d8-a1b2-41fb-9e71-3974bfc66f99",
+        "email": "ksebastian@sandpro.com",
+        "role": "manager",
+        "department": "Admin",
+        "title": "Office Manager"
+      },
+      {
+        "id": "600b7e2e-a692-4292-92b4-c5ab990bb6f4",
+        "email": "ldebold@sandpro.com",
+        "role": "contributor",
+        "department": "Sales",
+        "title": "Inside Sales"
+      },
+      {
+        "id": "0f7c0d15-8fde-4325-85a1-9a0496077a72",
+        "email": "mblackaby@sandpro.com",
+        "role": "manager",
+        "department": "Operations",
+        "title": "Operations Manager"
+      },
+      {
+        "id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "email": "mjimenez@sandpro.com",
+        "role": "manager",
+        "department": "Admin",
+        "title": "Executive Assistant"
+      },
+      {
+        "id": "266811d8-99a2-4402-b512-0e602adb42c6",
+        "email": "polson-cramer@sandpro.com",
+        "role": "contributor",
+        "department": "Admin",
+        "title": "Accounts Payable"
+      },
+      {
+        "id": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+        "email": "release-smoke-admin@objectivetracker.net",
+        "role": "executive",
+        "department": "Admin",
+        "title": "Production Release Validator"
+      },
+      {
+        "id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+        "email": "release-smoke-member@objectivetracker.net",
+        "role": "manager",
+        "department": "Operations",
+        "title": "Production Release Reviewer"
+      },
+      {
+        "id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+        "email": "sandpro-qa-agent@ndai.pro",
+        "role": "executive",
+        "department": "Leadership",
+        "title": "Release QA"
+      },
+      {
+        "id": "39c11929-3c9f-45e8-8e7a-16c0632569f6",
+        "email": "sjohnson@sandpro.com",
+        "role": "contributor",
+        "department": "Automation",
+        "title": "I&E Technician"
+      },
+      {
+        "id": "c24d32b7-1fd9-4b49-9611-bcbd6b0cbcec",
+        "email": "slaumb@sandpro.com",
+        "role": "contributor",
+        "department": "Admin",
+        "title": "Accounts Receivable"
+      },
+      {
+        "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+        "email": "tdibben@sandpro.com",
+        "role": "manager",
+        "department": "Quality",
+        "title": "Facilities Operations Manager"
+      },
+      {
+        "id": "9c242872-2eb0-4e0e-aa2d-a0960a2eb03b",
+        "email": "tgoldsberry@sandpro.com",
+        "role": "contributor",
+        "department": "Operations",
+        "title": "Field Service Technicians"
+      },
+      {
+        "id": "60e26b2d-1bf0-46da-8811-5d83c9c7d1ff",
+        "email": "zharris@sandpro.com",
+        "role": "contributor",
+        "department": "Field Operations",
+        "title": "Field Service Manager"
+      }
+    ]
+  },
+  "knownPeople": [
+    {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com"
+    },
+    {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com"
+    }
+  ],
+  "watchedTables": [
+    "fix_it_posts",
+    "fix_it_comments",
+    "fix_it_attachments",
+    "messages",
+    "objective_updates",
+    "objectives",
+    "org_chart_updates",
+    "org_chart_placeholders",
+    "notifications",
+    "email_delivery_log",
+    "push_delivery_log",
+    "alt_dashboard_preferences",
+    "alt_dashboard_presence",
+    "alt_dashboard_notes",
+    "ncr_reports",
+    "ncr_action_items",
+    "ncr_audit_events",
+    "ncr_import_batches",
+    "kpi_checkins",
+    "kpi_alert_events",
+    "kpi_datapoints",
+    "kpi_import_batches",
+    "okr_projects",
+    "okr_project_audit_events",
+    "objective_agent_runs"
+  ],
+  "activeFixIt": {
+    "count": 0,
+    "rows": []
+  },
+  "openJakeMerciObjectives": [
+    {
+      "id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+      "title": "Project Test",
+      "status": "not_started",
+      "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+      "due_date": null,
+      "created_at": "2026-06-18T13:45:59.112551+00:00",
+      "updated_at": "2026-06-18T13:45:59.112551+00:00"
+    },
+    {
+      "id": "d8712120-4d53-4d77-8aba-06a15839776d",
+      "title": "test",
+      "status": "not_started",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "due_date": null,
+      "created_at": "2026-06-17T13:55:28.692222+00:00",
+      "updated_at": "2026-06-17T13:55:28.692222+00:00"
+    },
+    {
+      "id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+      "title": "Build HRU 14.3",
+      "status": "not_started",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "due_date": "2026-08-14T00:00:00+00:00",
+      "created_at": "2026-06-17T13:38:22.671965+00:00",
+      "updated_at": "2026-06-17T13:38:22.671965+00:00"
+    },
+    {
+      "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+      "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+      "status": "on_track",
+      "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+      "due_date": "2026-05-28T00:00:00+00:00",
+      "created_at": "2026-05-13T22:09:22.321543+00:00",
+      "updated_at": "2026-06-11T15:31:42.479396+00:00"
+    },
+    {
+      "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+      "title": "NCR #82007431 - Process Loss - Chord Hoff",
+      "status": "not_started",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "due_date": "2026-05-28T00:00:00+00:00",
+      "created_at": "2026-06-04T16:02:31.707271+00:00",
+      "updated_at": "2026-06-11T15:31:42.479396+00:00"
+    },
+    {
+      "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+      "title": "OKRs and Projects tracking/ R&D",
+      "status": "not_started",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "due_date": "2026-06-16T00:00:00+00:00",
+      "created_at": "2026-06-10T19:43:08.518705+00:00",
+      "updated_at": "2026-06-11T15:31:42.479396+00:00"
+    }
+  ],
+  "activity": [
+    {
+      "table": "fix_it_posts",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_posts",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_posts",
+      "col": "reopened_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_comments",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_comments",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_attachments",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "messages",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objective_updates",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objectives",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objectives",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "org_chart_updates",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "org_chart_placeholders",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "org_chart_placeholders",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "notifications",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "count": 39,
+      "returned": 39,
+      "rows": [
+        {
+          "id": "2f244c47-bbc3-431d-9ce4-763bf8208427",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782663317773@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T16:15:22.651+00:00",
+          "created_at": "2026-06-28T16:15:22.470598+00:00"
+        },
+        {
+          "id": "74618a52-0f0f-4b88-9bfb-d37ad2905030",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782659648155@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T15:14:14.261+00:00",
+          "created_at": "2026-06-28T15:14:13.780993+00:00"
+        },
+        {
+          "id": "460a5ee0-ec93-4e45-991b-a87c30e0c1c2",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782656027448@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:13:51.836+00:00",
+          "created_at": "2026-06-28T14:13:51.654791+00:00"
+        },
+        {
+          "id": "2d82bdec-a0aa-4a7b-8d49-cdbd517cd744",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:51.27+00:00",
+          "created_at": "2026-06-28T14:00:51.131665+00:00"
+        },
+        {
+          "id": "62bf9489-4b83-4de7-82a6-4d3b5c7b43cd",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:50.995+00:00",
+          "created_at": "2026-06-28T14:00:50.859273+00:00"
+        },
+        {
+          "id": "e09be9ed-c85c-4556-a780-2b54f2b70b19",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:50.707+00:00",
+          "created_at": "2026-06-28T14:00:50.523401+00:00"
+        },
+        {
+          "id": "36c56079-fe59-4e44-a5f7-160e4c5d1d58",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:50.359+00:00",
+          "created_at": "2026-06-28T14:00:50.203524+00:00"
+        },
+        {
+          "id": "8760d391-f9b3-405d-b487-182ae090efa2",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+          "notification_type": "stale",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:50.061+00:00",
+          "created_at": "2026-06-28T14:00:49.907466+00:00"
+        },
+        {
+          "id": "2b668013-0a6e-4097-ab7e-e202fbc6697f",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:49.756+00:00",
+          "created_at": "2026-06-28T14:00:49.584646+00:00"
+        },
+        {
+          "id": "b0f077f4-8516-4e95-8cee-ac2b46d95ce3",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:49.445+00:00",
+          "created_at": "2026-06-28T14:00:49.30222+00:00"
+        },
+        {
+          "id": "d03a97a3-19de-4c8c-be7f-2c80aeeaff3b",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:48.977+00:00",
+          "created_at": "2026-06-28T14:00:48.834071+00:00"
+        },
+        {
+          "id": "ea7381d5-3f48-4306-995c-25b02e31e59b",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+          "notification_type": "overdue",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:48.498+00:00",
+          "created_at": "2026-06-28T14:00:48.336279+00:00"
+        },
+        {
+          "id": "21746f02-136b-4ab2-bfd2-fb93eccf8f79",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:48.001+00:00",
+          "created_at": "2026-06-28T14:00:47.848373+00:00"
+        },
+        {
+          "id": "2663269d-570f-4ff1-9569-e83218fce278",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:47.685+00:00",
+          "created_at": "2026-06-28T14:00:47.547598+00:00"
+        },
+        {
+          "id": "e8e04c44-8250-4c5a-ac6c-1908a6f39fef",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:47.415+00:00",
+          "created_at": "2026-06-28T14:00:47.251057+00:00"
+        },
+        {
+          "id": "8d9bc9e5-d007-417e-ac1f-0151f25e7a52",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:46.91+00:00",
+          "created_at": "2026-06-28T14:00:46.775605+00:00"
+        },
+        {
+          "id": "e664e5bd-08c3-4bf6-8a49-b22f1c072048",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:46.617+00:00",
+          "created_at": "2026-06-28T14:00:46.430001+00:00"
+        },
+        {
+          "id": "0967389f-2d01-4cfd-ad39-1a6c37df62f3",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:46.083+00:00",
+          "created_at": "2026-06-28T14:00:45.866104+00:00"
+        },
+        {
+          "id": "bd86f194-25af-42f6-8c84-8da08acc056c",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "notification_type": "stale",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:45.302+00:00",
+          "created_at": "2026-06-28T14:00:45.103235+00:00"
+        },
+        {
+          "id": "ce41c8c8-053a-46bd-811a-40bf82b3e956",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "notification_type": "stale",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:44.588+00:00",
+          "created_at": "2026-06-28T14:00:44.29874+00:00"
+        },
+        {
+          "id": "38897a8f-ed33-4e51-a6da-7fab16513503",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782652409936@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T13:13:36.954+00:00",
+          "created_at": "2026-06-28T13:13:36.740452+00:00"
+        },
+        {
+          "id": "930602d5-b82e-4851-b31f-f29d9003af05",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782648749488@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T12:12:41.649+00:00",
+          "created_at": "2026-06-28T12:12:40.896487+00:00"
+        },
+        {
+          "id": "09637816-1083-4d07-9a93-85ef6bbfa315",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782645294930@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T11:15:00.527+00:00",
+          "created_at": "2026-06-28T11:15:00.256487+00:00"
+        },
+        {
+          "id": "9921f60b-0ac4-44dd-bd6e-7e449e907ec8",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782641485330@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T10:11:31.964+00:00",
+          "created_at": "2026-06-28T10:11:31.744527+00:00"
+        },
+        {
+          "id": "e0d88dfb-7d67-4cd5-ab02-c5b78ab3caab",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782637815460@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T09:10:20.521+00:00",
+          "created_at": "2026-06-28T09:10:20.324609+00:00"
+        },
+        {
+          "id": "6886367a-e294-4d1f-a29d-dc549b2a5814",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782634087042@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T08:08:12.231+00:00",
+          "created_at": "2026-06-28T08:08:12.023646+00:00"
+        },
+        {
+          "id": "2a2b6299-58d7-420f-a04f-50de8f927096",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782630561019@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T07:09:26.468+00:00",
+          "created_at": "2026-06-28T07:09:26.220125+00:00"
+        },
+        {
+          "id": "2fcbe25f-776e-4075-9719-450cce8d4bb4",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782626766757@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T06:06:12.306+00:00",
+          "created_at": "2026-06-28T06:06:12.080281+00:00"
+        },
+        {
+          "id": "8a47ed6d-fb1c-4e4f-af5c-bec13a2b955d",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782623215373@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T05:07:04.913+00:00",
+          "created_at": "2026-06-28T05:07:04.655326+00:00"
+        },
+        {
+          "id": "2b7ed569-4c65-472a-b33a-ebd156f00132",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782615853897@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T03:04:36.404+00:00",
+          "created_at": "2026-06-28T03:04:35.956125+00:00"
+        },
+        {
+          "id": "ea0fa91a-6512-4870-8208-ca156922c8dc",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782612146437@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T02:02:32.457+00:00",
+          "created_at": "2026-06-28T02:02:32.20461+00:00"
+        },
+        {
+          "id": "d0a85d9a-1bd1-46d4-a83d-acd24d0c5291",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782608564131@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T01:03:00.846+00:00",
+          "created_at": "2026-06-28T01:03:00.666119+00:00"
+        },
+        {
+          "id": "f27d23be-004d-4ce2-93c7-5fe21cf38e87",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782604931571@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T00:02:16.832+00:00",
+          "created_at": "2026-06-28T00:02:16.640758+00:00"
+        },
+        {
+          "id": "8eceb3a8-fac3-4a7f-9c90-255d9749e24a",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782601982477@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T23:13:11.242+00:00",
+          "created_at": "2026-06-27T23:13:10.855011+00:00"
+        },
+        {
+          "id": "67eef268-ab4e-4e6c-8028-f84ef0362aa6",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782597652348@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T22:01:44.466+00:00",
+          "created_at": "2026-06-27T22:01:43.973175+00:00"
+        },
+        {
+          "id": "73592b50-0f4a-49fa-a265-60637d391d98",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782593989243@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T20:59:54.99+00:00",
+          "created_at": "2026-06-27T20:59:54.788553+00:00"
+        },
+        {
+          "id": "531fe90c-10e0-485b-a9f7-20820cdefc21",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782590329573@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T19:58:55.179+00:00",
+          "created_at": "2026-06-27T19:58:54.98581+00:00"
+        },
+        {
+          "id": "9fe110a0-2bac-4268-a20c-d82e49ed9dee",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782586733220@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T18:58:58.864+00:00",
+          "created_at": "2026-06-27T18:58:58.627084+00:00"
+        },
+        {
+          "id": "7e81405d-a5e4-4e20-87ae-80b27a6ceac7",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "recipient": "qa+push-smoke-1782582978922@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T17:56:23.782+00:00",
+          "created_at": "2026-06-27T17:56:23.592894+00:00"
+        }
+      ]
+    },
+    {
+      "table": "push_delivery_log",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_preferences",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_presence",
+      "col": "updated_at",
+      "count": 4,
+      "returned": 4,
+      "rows": [
+        {
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "last_seen_at": "2026-06-28T17:05:20.634+00:00",
+          "created_at": "2026-06-14T20:41:33.801576+00:00",
+          "updated_at": "2026-06-28T17:05:20.95524+00:00"
+        },
+        {
+          "user_id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "last_seen_at": "2026-06-28T16:15:09.25+00:00",
+          "created_at": "2026-06-14T20:40:04.743153+00:00",
+          "updated_at": "2026-06-28T16:15:09.448485+00:00"
+        },
+        {
+          "user_id": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+          "last_seen_at": "2026-06-28T16:14:56.067+00:00",
+          "created_at": "2026-06-14T20:39:48.728709+00:00",
+          "updated_at": "2026-06-28T16:14:56.253522+00:00"
+        },
+        {
+          "user_id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "last_seen_at": "2026-06-27T20:58:58.112+00:00",
+          "created_at": "2026-06-14T19:13:45.534789+00:00",
+          "updated_at": "2026-06-27T20:58:58.306925+00:00"
+        }
+      ]
+    },
+    {
+      "table": "alt_dashboard_notes",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_notes",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_reports",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_reports",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_action_items",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_action_items",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_audit_events",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_import_batches",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "kpi_checkins",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "kpi_alert_events",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "kpi_datapoints",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "kpi_import_batches",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "okr_projects",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "okr_projects",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "okr_project_audit_events",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objective_agent_runs",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "generatedAt": "2026-06-18T17:05:08Z",
+  "since": "2026-06-17T17:00:56.281Z",
+  "counts": {
+    "fixItPostsCreated": 0,
+    "fixItPostsUpdated": 1,
+    "fixItComments": 0,
+    "fixItAttachments": 0,
+    "objectiveMessages": 0,
+    "objectiveUpdates": 1,
+    "objectivesTouched": 1,
+    "orgChartUpdates": 0,
+    "okrProjectAuditEvents": 0,
+    "ncrAuditEvents": 0,
+    "altDashboardNotes": 0,
+    "notifications": 0,
+    "emailLogs": 69,
+    "pushLogs": 3,
+    "activeFixItNow": 0,
+    "archivedFixItNow": 28,
+    "openJakeMerciObjectives": 6
+  },
+  "newActivity": {
+    "fixItPostsCreated": [],
+    "fixItPostsUpdated": [
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "status": "archived",
+        "createdBy": "Jake Feil",
+        "humanReviewedBy": "Andrew Emmel",
+        "humanReviewedAt": "2026-06-18T15:49:22.451+00:00",
+        "archivedBy": "Andrew Emmel",
+        "archivedAt": "2026-06-18T15:49:22.451+00:00",
+        "summary": "Jake's Dashboard/Objectives navigation Fix-It item was human-reviewed and archived by Andrew, so it is no longer an active SandPro queue item."
+      }
+    ],
+    "fixItComments": [],
+    "fixItAttachments": [],
+    "messages": [],
+    "objectiveUpdates": [
+      {
+        "objectiveId": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+        "title": "Project Test",
+        "owner": "Mercileidy Jimenez",
+        "activityCount": 1,
+        "windowStart": "2026-06-18T13:45:59.470963+00:00",
+        "windowEnd": "2026-06-18T13:45:59.470963+00:00",
+        "actions": [
+          "create: null -> Project Test"
+        ],
+        "actors": [
+          "Mercileidy Jimenez"
+        ]
+      }
+    ],
+    "orgChartUpdates": [],
+    "okrProjectAuditEvents": [],
+    "ncrAuditEvents": [],
+    "altDashboardNotes": []
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 69
+    },
+    "emailTypeCounts": {
+      "mention": 26,
+      "overdue": 11,
+      "daily_digest": 32
+    },
+    "pushStatusCounts": {
+      "sent": 3
+    },
+    "pushTypeCounts": {
+      "fixit_agent": 3
+    },
+    "notificationTypeCounts": {},
+    "notificationRecipients": {
+      "Andrew Emmel": 3
+    },
+    "failedEmails": [],
+    "failedPushes": [],
+    "notes": [
+      "No failed email or push deliveries were recorded in this window.",
+      "All three push deliveries were Andrew-facing `fixit_agent` sends emitted immediately after the archived Fix-It review at 2026-06-18T15:49:22.451+00:00.",
+      "No user-authored notification fan-out or message traffic appeared after the last noon checkpoint."
+    ]
+  },
+  "unresolved": {
+    "activeFixIt": [],
+    "openJakeMerciObjectives": [
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "status": "on_track",
+        "owner": "Mercileidy Jimenez",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+        "title": "NCR #82007431 - Process Loss - Chord Hoff",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "title": "OKRs and Projects tracking/ R&D",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-06-16T00:00:00+00:00"
+      },
+      {
+        "id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+        "title": "Build HRU 14.3",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-08-14T00:00:00+00:00"
+      },
+      {
+        "id": "d8712120-4d53-4d77-8aba-06a15839776d",
+        "title": "test",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": null
+      },
+      {
+        "id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+        "title": "Project Test",
+        "status": "not_started",
+        "owner": "Mercileidy Jimenez",
+        "dueDate": null
+      }
+    ],
+    "approvalQueue": [
+      "No new user-authored Fix-It posts/comments, objective messages, org-chart edits, or alt-dashboard notes appeared after the last noon checkpoint.",
+      "Mercileidy Jimenez created a new objective titled \"Project Test\" before the 9 AM checkpoint; this looks like routine content creation, not a bug report or safe product-change request to auto-implement.",
+      "Andrew completed the human review/archive step for Jake's long-running Dashboard/Objectives Fix-It card at 2026-06-18T15:49:22.451+00:00, so there is no longer an active Fix-It backlog item waiting on that review.",
+      "No Jake/Mercileidy conflicts, ambiguous requests, or obvious broken production behaviors surfaced in this window."
+    ]
+  },
+  "actionsTaken": {
+    "codeChanges": [],
+    "dataChanges": [],
+    "cleanup": [],
+    "deploys": []
+  },
+  "validation": {
+    "checks": [
+      {
+        "command": "npm run test:schema",
+        "result": "passed"
+      },
+      {
+        "command": "npm run smoke:prod",
+        "result": "passed"
+      },
+      {
+        "command": "npm run smoke:push:prod",
+        "result": "passed_with_expected_failed_fake_endpoint"
+      }
+    ],
+    "deployRequired": false
+  }
+}

@@ -1,0 +1,95 @@
+Summary of OMP_ 2nd meeting_
+Notifications & Tracker
+Created on May 22, 2026 by Summary AI
+Action Items
+Andrew Compile action list from recording
+Review this meeting recording and notes, compile a clear prioritized list of action items and missing
+clarifications, and email that list to the team.
+Mercy Share updated links and meeting assets
+Resend the live objective-tracker.net link and the updated goal document to Jake (and others with old links),
+and share the meeting transcript and audio with Andrew and the team.
+Overview
+Meeting length 50:10, participants: Mercy, Jake, Andrew, Speaker D. Main focus: getting the
+objective tracker stable, sorting notifications/tagging, and validating mobile behavior.
+Team moved the app to objective-tracker.net and tested access; credentials remained the same for
+users.
+Key product problems: notification noise vs relevance, tagging workflow, mobile/PWA install &
+rotation bugs, and lack of a clear semantic progress-tracking rule.
+Immediate deliverables: update/share the goal document and produce an action list from this
+recording (see action_items).
+Technical/setup & audio
+Early meeting had audio/unmute issues; participants troubleshot (unmute, mixer) and confirmed audio
+recording was live.
+Recording enabled for later review and to extract action items.
+Outcome: audio issues resolved during the call; meeting captured for follow-up.
+Platform / access
+The team switched the environment to objective-tracker.net (live URL) to simplify rollouts and
+demos.
+Users keep the same credentials; some attendees had to use password reset flows from mobile to
+gain access.
+The live link was shared during the meeting; Mercy offered to re-send updated links where attendees
+had old links.
+Next: confirm everyone has the updated link and can log in from desktop and mobile.
+Notifications & tagging
+Tagging was added so users receive in-app notifications via the platform bell when @-mentioned.
+Current behavior: tagging produces platform-only alerts (no automatic email) to avoid inbox flooding;
+team discussed options for optional email fallback.
+Suggested conventions: use @name for individuals, @team / @all for group-wide messages (but use
+sparingly).
+Mobile PWA notifications discussed: ideal is a gentle transient notification that pops and vanishes (like
+map directions), avoiding accumulating hundreds in the bar.
+Forward view: define notification types and rules (personalized vs group) and train the team on
+@-mention discipline to keep noise low.
+Org chart & permissions
+Team reviewed an org chart draft in the tracker; goal is to refine titles and reporting relationships for a
+clean tree.
+Options discussed: give Mercy (Mercy) the ability to edit, or have Andrew/Jake build the tree from a
+current employee list.
+Permission model: some edits require builder/backend permissions; Andrew (internal) may need
+permission changes to edit freely.
+Next: produce most-updated employee list by department so the tree can be rebuilt or refined and
+permissions adjusted for editing.
+Progress tracking, KPIs & metrics
+There is currently no semantic rule that automatically rolls progress numbers up from activity; users
+saw zero progress values in some objectives.
+Ideas discussed: track time spent/activities and translate to incremental progress (e.g., Jake working
+20 minutes increments progress bar).
+Need clarity on whether progress updates are manual or computed automatically and what
+baseline/target metrics should display.
+Next: decide progress-tracking rules (manual update vs auto-rollup) and expose baseline/target fields
+in the objective view.
+Files, attachments & previews
+Team validated preview behavior: attachments should preview without forcing downloads to avoid
+cluttering user machines.
+Current issue: clicking an objective can surface historical attachments for the whole group, potentially
+confusing who attached which file.
+Access control: sensitive files should only be visible to users who are in the relevant group/chat;
+otherwise avoid including them in group attachments.
+Next: tighten attachment UX so a single-click opens the intended file preview and clarify group vs
+private attachments.
+Mobile UX & bugs
+Fixes implemented: cleared a mobile "filter trap" that left users on an empty objective page; added
+back-navigation behavior on mobile.
+Reported issues: rotating Android phones to landscape produced blank/unclickable views in some
+flows; Safari share/add-to-home instructions vary by OS (iOS vs Android).
+PWA behavior: team discussed installing the tracker as a PWA (add to home screen) for mobile
+push-like notifications without App Store distribution and avoiding Apple fees (33% referenced).
+Next: reproduce rotation bug on Android, test PWA install flow for both iOS and Android, and
+document user steps to add to home screen.
+Product strategy & UX tradeoffs
+Notifications are viewed as the low-hanging fruit — immediate leverage to reduce friction and
+improve adoption.
+Tension: notifications must be relevant and actionable (keep users in flow) but not so frequent they
+cause alert fatigue and abandonment.
+Team also discussed experimental AI features (auto-prompts, suggested actions); Andrew temporarily
+toggled AI features off to avoid overwhelming the demo.
+Forward view: define a lightweight notification taxonomy, train users on mention conventions, and
+iterate on a gentle mobile notification UX that balances immediacy and noise.
+Closing / Outlook
+Andrew will compile a prioritized action list and notes from the recording and circulate via email.
+Mercy will re-send the live link, the updated goal document, and share the meeting transcript/audio for
+reference.
+Short-term priorities: finalize notification rules, confirm org chart editing permissions, fix mobile
+rotation/preview bugs, and decide progress roll-up semantics.
+Team agreed to continue working in the app, iterate over the weekend, and reconvene with a refined
+action list and updates.

@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-06-27T07:52:31.910Z",
+  "url": "https://objectivetracker.net/?page=fixit",
+  "title": "SandPro OMP",
+  "bodyIncludesActive0": true,
+  "bodyIncludesEmpty": true,
+  "bodyIncludesNoActive": false,
+  "fixitCardCount": 0,
+  "buttons": [
+    "New",
+    "RA",
+    "Open tab",
+    "Got it",
+    "Active\n0",
+    "Archive\n28",
+    "Add files",
+    "Post"
+  ],
+  "textSnippet": "Dashboard\nObjectives\nKPI\nFix-It Feed\nNew\nNCR\nOrganization\nNew\nRA\nRelease Smoke Admin\nexecutive\nNew: Fix-It Feed\n\nPost screenshots, photos, and notes in one chronological place. Agent fixes, validates with proof, then a human archives.\n\nOpen tab\nGot it\nFix-It Feed\n\nChronological beta feedback wall. No DMs, no guessing, no algorithm.\n\n0\nactive\nActive\n0\nArchive\n28\nRA\nAdd files\nDrop or paste screenshots, photos, PDFs, or notes anywhere on this box.\nPost\n\nNothing active has been flagged yet.",
+  "screenshot": "/Users/andrewemmel/Documents/New project/sandpro-omp/docs/reports/evidence/fixit-closure-2026-06-27-0151/production-fixit-active-empty.png"
+}

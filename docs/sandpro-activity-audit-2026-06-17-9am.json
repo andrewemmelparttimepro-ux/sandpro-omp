@@ -1,0 +1,197 @@
+{
+  "generatedAt": "2026-06-17T16:02:43.577Z",
+  "since": "2026-06-16T14:00:26.146Z",
+  "counts": {
+    "fixItPostsCreated": 0,
+    "fixItPostsUpdated": 0,
+    "fixItComments": 0,
+    "fixItAttachments": 0,
+    "objectiveMessages": 0,
+    "objectiveUpdates": 3,
+    "objectivesTouched": 3,
+    "orgChartUpdates": 0,
+    "okrProjectAuditEvents": 0,
+    "ncrAuditEvents": 0,
+    "altDashboardNotes": 1,
+    "notifications": 3,
+    "emailLogs": 77,
+    "pushLogs": 3,
+    "activeFixItNow": 1,
+    "archivedFixItNow": 27,
+    "openJakeMerciObjectives": 5
+  },
+  "newActivity": {
+    "fixItPostsCreated": [],
+    "fixItPostsUpdated": [],
+    "fixItComments": [],
+    "fixItAttachments": [],
+    "messages": [],
+    "objectiveUpdates": [
+      {
+        "objectiveId": "339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f",
+        "title": "NCR #82008371 - Substandard Condition",
+        "owner": "Tim Dibben",
+        "activityCount": 1,
+        "windowStart": "2026-06-16T16:14:43.76534+00:00",
+        "windowEnd": "2026-06-16T16:14:43.76534+00:00",
+        "actions": [
+          "status_change: on_track -> completed"
+        ],
+        "actors": [
+          "Tim Dibben"
+        ]
+      },
+      {
+        "objectiveId": "de95e16c-86eb-4a4c-8a92-7626df486084",
+        "title": "Build HRU 14.3",
+        "owner": "Jake Feil",
+        "activityCount": 1,
+        "windowStart": "2026-06-17T13:38:23.086365+00:00",
+        "windowEnd": "2026-06-17T13:38:23.086365+00:00",
+        "actions": [
+          "create: null -> Build HRU 14.3"
+        ],
+        "actors": [
+          "Jake Feil"
+        ]
+      },
+      {
+        "objectiveId": "d8712120-4d53-4d77-8aba-06a15839776d",
+        "title": "test",
+        "owner": "Jake Feil",
+        "activityCount": 1,
+        "windowStart": "2026-06-17T13:55:29.163413+00:00",
+        "windowEnd": "2026-06-17T13:55:29.163413+00:00",
+        "actions": [
+          "create: null -> test"
+        ],
+        "actors": [
+          "Jake Feil"
+        ]
+      }
+    ],
+    "orgChartUpdates": [],
+    "okrProjectAuditEvents": [],
+    "ncrAuditEvents": [],
+    "altDashboardNotes": [
+      {
+        "id": "6ecacbef-2d92-4d8e-aded-2d4ffb199bd4",
+        "user": "Jake Feil",
+        "title": "How do you do a project and assign multiple objective assignments?",
+        "preview": "No additional text",
+        "createdAt": "2026-06-17T13:27:46.154004+00:00",
+        "updatedAt": "2026-06-17T13:28:23.140164+00:00"
+      }
+    ]
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 77
+    },
+    "emailTypeCounts": {
+      "assignment": 3,
+      "daily_digest": 32,
+      "mention": 18,
+      "overdue": 24
+    },
+    "pushStatusCounts": {
+      "sent": 3
+    },
+    "pushTypeCounts": {
+      "assignment": 3
+    },
+    "notificationTypeCounts": {
+      "assignment": 3
+    },
+    "notificationRecipients": {
+      "Mercileidy Jimenez": 2,
+      "Tim Dibben": 1
+    },
+    "failedEmails": [],
+    "failedPushes": [],
+    "notes": [
+      "18 emails in this window went to qa+push-smoke aliases and look like validation artifacts, not user-reported production issues.",
+      "No failed email or push deliveries were recorded in this window.",
+      "Push smoke uses an intentionally fake subscription endpoint; the logged delivery status was failed as expected, and cleanup completed with 0 leftover rows."
+    ]
+  },
+  "unresolved": {
+    "activeFixIt": [
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "status": "agent_done",
+        "createdBy": "Jake Feil",
+        "updatedAt": "2026-06-12T23:20:54.709898+00:00",
+        "reopenedAt": "2026-06-10T06:55:12.267+00:00",
+        "summary": "Dashboard/Objectives IA request remains non-archived and unchanged; still waiting on Andrew's human archive/review step."
+      }
+    ],
+    "openJakeMerciObjectives": [
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "status": "on_track",
+        "owner": "Mercileidy Jimenez",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+        "title": "NCR #82007431 - Process Loss - Chord Hoff",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "title": "OKRs and Projects tracking/ R&D",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-06-16T00:00:00+00:00"
+      },
+      {
+        "id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+        "title": "Build HRU 14.3",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-08-14T00:00:00+00:00"
+      },
+      {
+        "id": "d8712120-4d53-4d77-8aba-06a15839776d",
+        "title": "test",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": null
+      }
+    ],
+    "approvalQueue": [
+      "Jake created an alt-dashboard note titled \"How do you do a project and assign multiple objective assignments?\". It reads as a feature question/request but does not include enough detail to auto-implement safely.",
+      "Jake also created two new objectives, \"Build HRU 14.3\" and \"test\". The assignment notifications and push fan-out worked for those rows, so this looks like normal content creation rather than a broken workflow.",
+      "No new user-authored Fix-It posts/comments, objective messages, or org-chart edits appeared after the last 9 AM checkpoint.",
+      "No new clear Jake/Mercileidy product-change requests or bug reports were created in this window.",
+      "Objective activity in this window was workflow/status churn, not a new product change request."
+    ]
+  },
+  "actionsTaken": {
+    "codeChanges": [],
+    "dataChanges": [],
+    "cleanup": [],
+    "deploys": []
+  },
+  "validation": {
+    "checks": [
+      {
+        "command": "node scripts/check-release-schema.mjs",
+        "result": "passed"
+      },
+      {
+        "command": "npm run smoke:prod",
+        "result": "passed"
+      },
+      {
+        "command": "npm run smoke:push:prod",
+        "result": "passed_with_expected_failed_fake_endpoint"
+      }
+    ],
+    "deployRequired": false
+  }
+}

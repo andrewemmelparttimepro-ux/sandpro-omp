@@ -1,0 +1,341 @@
+{
+  "generatedAt": "2026-06-04T14:05:56.838Z",
+  "since": "2026-06-03T14:01:26.254Z",
+  "lastRun": "2026-06-03T14:01:26.254Z",
+  "counts": {
+    "fixItPosts": 1,
+    "fixItAttachments": 2,
+    "messages": 2,
+    "emailLogs": 47,
+    "pushLogs": 14
+  },
+  "newActivity": {
+    "fixItPosts": [
+      {
+        "id": "190608e2-55a3-40ee-9f52-854472079294",
+        "status": "agent_done",
+        "body": "In the reports is there a way to run analytics on NCRs for common issues or trends for a common issue, either equipment or processes. Example, run a report that looks at valve failures and can summarize into different failure groupings? Could it be subgrouped by operator?",
+        "created_at": "2026-06-03T20:27:20.997302+00:00",
+        "updated_at": "2026-06-03T21:54:53.59706+00:00",
+        "createdBy": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "email": "tdibben@sandpro.com",
+          "role": "manager",
+          "title": "Facilities Operations Manager"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null
+      }
+    ],
+    "fixItAttachments": [
+      {
+        "id": "c6bc03bc-ce2d-4f30-9f60-9684738db0a8",
+        "post_id": "190608e2-55a3-40ee-9f52-854472079294",
+        "name": "tim-ncr-common-issue-trend-proof.png",
+        "purpose": "validation_proof",
+        "created_at": "2026-06-03T21:54:53.228418+00:00",
+        "uploadedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "0285b048-d0e7-4a49-bcac-3666d647e211",
+        "post_id": "53262649-b258-49df-b480-28e8da6a80c1",
+        "name": "Org navigation validation proof.png",
+        "purpose": "validation_proof",
+        "created_at": "2026-06-03T16:57:58.29712+00:00",
+        "uploadedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      }
+    ],
+    "messages": [
+      {
+        "id": "3881c91b-c8ec-4640-8939-c371658a7fcb",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "text": "@Mercileidy Jimenez test",
+        "created_at": "2026-06-03T16:07:52.458353+00:00",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        }
+      },
+      {
+        "id": "260d1a72-c5b5-41ad-95d0-bcbf653637e7",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "text": "This is just a test @Jake Feil",
+        "created_at": "2026-06-03T15:58:38.391262+00:00",
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        }
+      }
+    ]
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 47
+    },
+    "emailTypeCounts": {
+      "overdue": 14,
+      "daily_digest": 28,
+      "mention": 2,
+      "comment": 2,
+      "assignment": 1
+    },
+    "pushStatusCounts": {
+      "sent": 12,
+      "skipped_preference": 2
+    },
+    "pushTypeCounts": {
+      "fixit_agent": 8,
+      "fixit_new": 1,
+      "mention": 2,
+      "comment": 2,
+      "assignment": 1
+    },
+    "failedEmails": [],
+    "failedPushes": []
+  },
+  "unresolved": {
+    "activeFixIt": [
+      {
+        "id": "190608e2-55a3-40ee-9f52-854472079294",
+        "status": "agent_done",
+        "body": "In the reports is there a way to run analytics on NCRs for common issues or trends for a common issue, either equipment or processes. Example, run a report that looks at valve failures and can summarize into different failure groupings? Could it be subgrouped by operator?",
+        "created_at": "2026-06-03T20:27:20.997302+00:00",
+        "updated_at": "2026-06-03T21:54:53.59706+00:00",
+        "createdBy": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "email": "tdibben@sandpro.com",
+          "role": "manager",
+          "title": "Facilities Operations Manager"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null
+      },
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "status": "agent_done",
+        "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories currently displayed on the main dashboard are:\n\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThese are good and should be considered the core visuals for team productivity.\n\nHowever, when a user clicks into Open, for example, the next screen only shows the following status options:\n\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThese should be treated as sub-filters under the main dashboard categories, not separate navigation areas.\n\nFor example, on the main dashboard, Open should show a breakdown of how many open objectives are:\n\nOn Track\nAt Risk\nBlocked\nNot Started\n\nThen, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days.\n\nWould it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform?\n\nThe suggested filter structure would be:\n\nFirst filter: Ownership / Scope\nMy Objectives\nIndividual Person\nGroup / Department\nAll Objectives\n\nSecond filter: Main Category\nAll\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThird filter: Status\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThe goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select:\n\nMy Objectives + Open + At Risk\nOperations Group + Due Within 7 Days + Blocked\nAll Objectives + Overdue + Not Started\n\nThis would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+        "created_at": "2026-05-28T17:59:58.482556+00:00",
+        "updated_at": "2026-05-31T03:37:51.172327+00:00",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null
+      }
+    ],
+    "openJakeMerciObjectives": [
+      {
+        "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "title": "Finalize April expense report — personal CC items + remaining receipts",
+        "status": "on_track",
+        "priority": "medium",
+        "progress": 50,
+        "due_date": "2026-05-20T00:00:00+00:00",
+        "updated_at": "2026-06-02T21:30:53.38429+00:00",
+        "owner": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "delegatedBy": null,
+        "next_action": "",
+        "description": "Hi Jake! wrapping up the April expense report. I already have the corporate AmEx statement and the receipts you've sent me printed and organized:\n\nSal y Pimienta Houston (04/22) — $1,943.50\nHyatt Regency Houston (04/23) — $13.57\nHyatt Regency Houston (04/23) — $12.54\nConophil Sbuck Cafe Houston (04/24) — $5.37\n\nTo close it out whenever you have a moment, I'd need:\n\nYour personal CC statement marked with the items you'd like reflected as business expenses (same approach as last time)\nA heads-up on any remaining receipts you'd like included so I can print them and add them to the packet\n\nNo rush, just keeping it on the radar so we can wrap cleanly.\n(Also doubling as an OMP test, flag anything that doesn't render right.)"
+      },
+      {
+        "id": "e06c5c6c-af16-4209-a375-701689393069",
+        "title": "Provide Tim Dibben with login credentials",
+        "status": "on_track",
+        "priority": "medium",
+        "progress": 80,
+        "due_date": "2026-06-02T00:00:00+00:00",
+        "updated_at": "2026-06-01T18:34:38.928347+00:00",
+        "owner": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "delegatedBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "next_action": "",
+        "description": "Provide Tim Dibben with login credentials for working with and providing feedback on NCR Dashboard. tdibben@sandpro. @Mercileidy Jimenez "
+      },
+      {
+        "id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Push Notifications",
+        "status": "not_started",
+        "priority": "high",
+        "progress": 0,
+        "due_date": "2026-06-04T00:00:00+00:00",
+        "updated_at": "2026-05-30T00:05:49.393966+00:00",
+        "owner": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "delegatedBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "next_action": "",
+        "description": "Phone and Desktop "
+      },
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "status": "on_track",
+        "priority": "high",
+        "progress": 0,
+        "due_date": "2026-05-28T00:00:00+00:00",
+        "updated_at": "2026-05-26T20:50:11.603043+00:00",
+        "owner": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "delegatedBy": null,
+        "next_action": "",
+        "description": "Hi Jake! Following up on the Focus Digital meeting with Brett. To kick off Week 1 of production, we need three inputs from our side:\n\nSTEP/CAD file of the wellhead type to be used\nStandard procedure sequence that sets the retrievable bridge plug\nConfirmation of the scenarios to be animated (normal deployment, worn/unretrievable replacement, alternative routine)\n\nCould you point me to the right engineering contact(s) so I can coordinate the delivery of the assets? Quote is $4,800 total, with a 4–6 week timeline once we hand the files over to Focus Digital.\n(Also doubling as an OMP test.. flag anything that doesn't render right.)"
+      }
+    ]
+  },
+  "decisions": {
+    "implemented": [],
+    "pendingApproval": [
+      {
+        "source": "Fix-It Feed",
+        "requestedBy": "Tim Dibben",
+        "requestedAt": "2026-06-03T20:27:20.997302+00:00",
+        "request": "Add NCR analytics/reporting for common issue grouping and operator subgrouping.",
+        "reason": "Non-Jake/non-Merci product change; do not implement automatically without Andrew approval."
+      }
+    ],
+    "carryover": [
+      {
+        "source": "Fix-It Feed",
+        "requestedBy": "Jake Feil",
+        "status": "agent_done",
+        "request": "Dashboard objective list/filter redesign is still awaiting human review/archival."
+      },
+      {
+        "source": "Objective",
+        "requestedBy": "Jake Feil",
+        "status": "not_started in objective record",
+        "request": "Push Notifications objective remains open even though production push/email logs show live delivery on June 3-4."
+      }
+    ],
+    "conflicts": []
+  },
+  "validation": {
+    "lint": "passed",
+    "unit": "passed (63/63)",
+    "schema": "failed in this environment with repeated fetch failed network errors during scripts/check-release-schema.mjs",
+    "deployed": false
+  }
+}

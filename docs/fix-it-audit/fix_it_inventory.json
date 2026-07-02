@@ -1,0 +1,653 @@
+[
+  {
+    "index": 1,
+    "id": "df017b7a-9312-47dc-af89-1c2eaa97fe3d",
+    "body": "I wanted to flag an issue I’ve noticed while creating an objective. Several times now, while I’m typing inside the creating a new objective/description area, if I move my mouse from right to left within that section, the chat disappears and takes me back to the main Objectives menu.\n\nWhen that happens, the draft I was working on is lost, and I have to go back into the objective and start typing everything again. This has happened multiple times, so I’m not sure if a swipe/back navigation behavior is being triggered by the mouse movement or if it’s a bug within the Objectives section.\n\nAlso, if possible, it may be helpful to have some type of draft or autosave option while writing messages or creating objectives, so the user doesn’t lose what they have already typed if the page refreshes, closes, or navigates away by accident.\n\nWould it be possible to take a look at this? Thank you!",
+    "status": "fixed",
+    "createdAt": "2026-05-29T21:05:45.250515+00:00",
+    "updatedAt": "2026-05-30T00:24:30.943748+00:00",
+    "createdBy": "801402ec-7815-44f3-8948-9daae10b4407",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "role": "manager",
+      "title": "Executive Assistant"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": []
+  },
+  {
+    "index": 2,
+    "id": "34b12f3d-4beb-4a52-ace8-0608f721b6e5",
+    "body": "I wanted to flag something I noticed while posting a few messages.\n\nIn the last few messages, I only tagged @Jake Feil  but the system automatically added the other Jake as well. I’ve had to manually remove Jake Harbaugh from the notifications each time.\n\nI’m not sure if this is related to the tagging logic, name matching, or the notification assignment, but I wanted to bring it up in case the system is auto-selecting both users because they share the same first name.\n\nCould you please take a look when you have a chance?\n\nThank you!",
+    "status": "fixed",
+    "createdAt": "2026-05-29T20:54:14.996824+00:00",
+    "updatedAt": "2026-05-30T00:24:30.943748+00:00",
+    "createdBy": "801402ec-7815-44f3-8948-9daae10b4407",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "role": "manager",
+      "title": "Executive Assistant"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "d736bdf7-fc80-4cdf-867f-0df3a74c52b8",
+        "name": "Screenshot 2026-05-29 154841.png",
+        "size": "55.0 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "34b12f3d-4beb-4a52-ace8-0608f721b6e5/1780088056553_Screenshot 2026-05-29 154841.png"
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "id": "399b0f44-281a-47d3-8b6f-740b77780b0f",
+    "body": "I have another feedback item/question regarding the unread message notifications.\n\nI noticed that after opening and reading the messages inside the message section, the system still shows them as unread. For example, it may show “4 unread messages” on the main page even after I already opened and reviewed those messages.\n\nWhen I click back into the unread notification, it still shows them as unread unless I manually mark them as read. I just wanted to confirm if this is the intended behavior. Should messages only update as read when the user manually selects “Mark as Read,” or should they automatically update once the message has been opened/viewed?\n\nNot sure if this is working as designed, but I wanted to flag it because it may be helpful if the unread count refreshes automatically after the messages are viewed.",
+    "status": "fixed",
+    "createdAt": "2026-05-29T20:37:48.514422+00:00",
+    "updatedAt": "2026-05-30T00:24:30.943748+00:00",
+    "createdBy": "801402ec-7815-44f3-8948-9daae10b4407",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "role": "manager",
+      "title": "Executive Assistant"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "c39475b7-c2d2-4808-be5b-82cd4066c7fe",
+        "name": "Screenshot 2026-05-29 153053.png",
+        "size": "163.5 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "399b0f44-281a-47d3-8b6f-740b77780b0f/1780087069991_Screenshot 2026-05-29 153053.png"
+      },
+      {
+        "id": "66d531d4-bba4-443e-8ff0-720432fd92cf",
+        "name": "Screenshot 2026-05-29 153152.png",
+        "size": "407.4 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "399b0f44-281a-47d3-8b6f-740b77780b0f/1780087070706_Screenshot 2026-05-29 153152.png"
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "id": "97583d2d-af99-45fd-99f7-5938fe314f70",
+    "body": "Hey Andrew, I have another small feedback item/question.\n\nOn some web platforms, when navigating between sections, you can right-click a tab or button and open it in a new browser tab or window. For example, if I’m working in the Objectives section, it would be helpful to right-click and open Fix-It in a separate tab without having to duplicate the entire page first. Would it be possible to add that type of option to the OMP navigation, or is the best workaround simply to duplicate the browser tab and then navigate to the section needed? It may be a small item, but I think it could make it easier to work across multiple sections at the same time.",
+    "status": "fixed",
+    "createdAt": "2026-05-29T20:29:53.85788+00:00",
+    "updatedAt": "2026-05-30T00:24:30.943748+00:00",
+    "createdBy": "801402ec-7815-44f3-8948-9daae10b4407",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "role": "manager",
+      "title": "Executive Assistant"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "335f23cf-8029-42b0-9435-fd9b288bfe3e",
+        "name": "Screenshot 2026-05-29 152818.png",
+        "size": "287.0 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "97583d2d-af99-45fd-99f7-5938fe314f70/1780086595383_Screenshot 2026-05-29 152818.png"
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "id": "732c3de6-cbb2-4c8e-b0d4-d5b72a5787dc",
+    "body": "Would it be possible to add an option to add a new person or employee to the Organization Chart? There are a few teams where I may need to add multiple members, so having an “Add Person” or “Add Employee” option would make the update process much easier. Thank you!",
+    "status": "fixed",
+    "createdAt": "2026-05-29T20:25:05.308957+00:00",
+    "updatedAt": "2026-05-30T00:24:30.943748+00:00",
+    "createdBy": "801402ec-7815-44f3-8948-9daae10b4407",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "role": "manager",
+      "title": "Executive Assistant"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "73e76862-f696-4b1e-92cd-090b288896e7",
+        "name": "Screenshot 2026-05-29 152314.png",
+        "size": "143.0 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "732c3de6-cbb2-4c8e-b0d4-d5b72a5787dc/1780086306811_Screenshot 2026-05-29 152314.png"
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "id": "849ab552-e18f-4c5d-9de8-06b41baf8f45",
+    "body": "Could you add the option to edit a message after sending it (Objectives section or any typing section that may need a quick correction, would be nice to have the option for edition), like WhatsApp does? Sometimes a typo slips through or you need to fix a word at the last minute. Thanks for everything again!",
+    "status": "fixed",
+    "createdAt": "2026-05-29T20:20:23.53448+00:00",
+    "updatedAt": "2026-05-30T00:24:30.943748+00:00",
+    "createdBy": "801402ec-7815-44f3-8948-9daae10b4407",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "role": "manager",
+      "title": "Executive Assistant"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": []
+  },
+  {
+    "index": 7,
+    "id": "6a2f29ad-4e4b-4dad-be59-ca386d100481",
+    "body": "The text box where you write messages (Objectives section) stays really small. When you paste or write a long message, you can only see one line at a time. Could it grow as you type, or have a corner you can drag to make it bigger?",
+    "status": "fixed",
+    "createdAt": "2026-05-29T20:18:48.868263+00:00",
+    "updatedAt": "2026-05-30T00:24:30.943748+00:00",
+    "createdBy": "801402ec-7815-44f3-8948-9daae10b4407",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "role": "manager",
+      "title": "Executive Assistant"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "573aea67-830e-4c1b-8642-aeb34760b9c8",
+        "name": "Screenshot 2026-05-29 150949.png",
+        "size": "159.1 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "6a2f29ad-4e4b-4dad-be59-ca386d100481/1780085930346_Screenshot 2026-05-29 150949.png"
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "id": "e6967d01-70ba-4bc1-ab88-de9297426597",
+    "body": "says fixed and its not",
+    "status": "fixed",
+    "createdAt": "2026-05-29T16:59:48.145602+00:00",
+    "updatedAt": "2026-05-29T18:53:34.259716+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "0f27a313-05cd-41bd-9086-6c2390cb5a36",
+        "name": "image.png",
+        "size": "56.1 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "e6967d01-70ba-4bc1-ab88-de9297426597/1780073987171_image.png"
+      }
+    ]
+  },
+  {
+    "index": 9,
+    "id": "db759732-cebc-4f6b-9216-81f5c269285d",
+    "body": "as you can see in the picture, the message is contradicting. It says \" Andrew is on it\" and is labeled Fixed and that is false.",
+    "status": "fixed",
+    "createdAt": "2026-05-29T16:02:16.691168+00:00",
+    "updatedAt": "2026-05-29T16:21:25.874716+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "ecd9af73-fe8d-4016-9bb2-e4c6f201cf1b",
+        "name": "image.png",
+        "size": "45.6 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "db759732-cebc-4f6b-9216-81f5c269285d/1780070535534_image.png"
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "id": "f8250fde-1f20-4597-91e6-42e5eceda6d0",
+    "body": "As you can see, I tagged Merci and Andrew in this message thread and it did not tie them to the objective",
+    "status": "fixed",
+    "createdAt": "2026-05-29T16:00:44.146496+00:00",
+    "updatedAt": "2026-05-29T16:21:25.874716+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "9f7a3c6d-5551-4a95-ac9e-a7c41a235059",
+        "name": "image.png",
+        "size": "194.9 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "f8250fde-1f20-4597-91e6-42e5eceda6d0/1780070443017_image.png"
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "id": "9df19efe-23c3-4809-a332-1366970747a4",
+    "body": "Message board needs to show difference be read and unread threads",
+    "status": "fixed",
+    "createdAt": "2026-05-29T15:30:33.228024+00:00",
+    "updatedAt": "2026-05-29T16:21:25.874716+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": []
+  },
+  {
+    "index": 12,
+    "id": "db08d686-c370-4bfa-a71b-6e443df60e36",
+    "body": "@ tag is not pulling list of employees",
+    "status": "fixed",
+    "createdAt": "2026-05-29T15:28:47.132805+00:00",
+    "updatedAt": "2026-05-29T16:21:25.874716+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "e3e5a01e-96e3-4c2f-b2b9-5a7e32a291ee",
+        "name": "Tag not working 2 .png",
+        "size": "28.9 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "db08d686-c370-4bfa-a71b-6e443df60e36/1780068525875_Tag not working 2 .png"
+      }
+    ]
+  },
+  {
+    "index": 13,
+    "id": "272d7c55-4981-4e8d-8b3f-10d26d72cabd",
+    "body": "@ tag is not pulling list of employees",
+    "status": "fixed",
+    "createdAt": "2026-05-29T15:27:38.749207+00:00",
+    "updatedAt": "2026-05-29T16:21:25.874716+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "5c0a9a31-eae8-4c2a-b63b-5eb22cff92a3",
+        "name": "Tag not working .png",
+        "size": "100.2 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "272d7c55-4981-4e8d-8b3f-10d26d72cabd/1780068457514_Tag not working .png"
+      }
+    ]
+  },
+  {
+    "index": 14,
+    "id": "05776a44-97b9-4477-b561-65739b644af1",
+    "body": "Within message board, you can't tell what message you have read and what message are unread.",
+    "status": "fixed",
+    "createdAt": "2026-05-28T18:01:10.864753+00:00",
+    "updatedAt": "2026-05-29T15:14:54.372471+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": []
+  },
+  {
+    "index": 15,
+    "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+    "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories currently displayed on the main dashboard are:\n\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThese are good and should be considered the core visuals for team productivity.\n\nHowever, when a user clicks into Open, for example, the next screen only shows the following status options:\n\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThese should be treated as sub-filters under the main dashboard categories, not separate navigation areas.\n\nFor example, on the main dashboard, Open should show a breakdown of how many open objectives are:\n\nOn Track\nAt Risk\nBlocked\nNot Started\n\nThen, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days.\n\nWould it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform?\n\nThe suggested filter structure would be:\n\nFirst filter: Ownership / Scope\nMy Objectives\nIndividual Person\nGroup / Department\nAll Objectives\n\nSecond filter: Main Category\nAll\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThird filter: Status\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThe goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select:\n\nMy Objectives + Open + At Risk\nOperations Group + Due Within 7 Days + Blocked\nAll Objectives + Overdue + Not Started\n\nThis would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+    "status": "fixed",
+    "createdAt": "2026-05-28T17:59:58.482556+00:00",
+    "updatedAt": "2026-05-29T16:21:25.874716+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "452b231d-e50d-49b2-8eb8-6d1652f3407d",
+        "name": "Dashboard view  1.png",
+        "size": "37.0 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1779991198136_Dashboard view  1.png"
+      },
+      {
+        "id": "40765b85-0dac-4dc7-80a7-7e3d856cc427",
+        "name": "Dashboard view  2.png",
+        "size": "12.4 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1779991198863_Dashboard view  2.png"
+      }
+    ]
+  },
+  {
+    "index": 16,
+    "id": "718a6b68-de01-4fdb-9e10-dd8ccbbb0cf9",
+    "body": "Make org chart editable via tree function and enable export of org chart to PDF document. Ensure org chart visual is scaled properly to fit the PDF output document of the org chart tree.",
+    "status": "fixed",
+    "createdAt": "2026-05-28T17:46:08.515592+00:00",
+    "updatedAt": "2026-05-29T14:36:42.432565+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": []
+  },
+  {
+    "index": 17,
+    "id": "79037e2d-e8c2-4641-ad28-c02e5573c396",
+    "body": "Main Dashboard needs a completed Tap.",
+    "status": "fixed",
+    "createdAt": "2026-05-28T17:40:40.544357+00:00",
+    "updatedAt": "2026-05-28T17:50:06.083514+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "b7ce9ad4-0a1b-472e-b1bc-36e02e85184c",
+        "name": "Main Dashboard .png",
+        "size": "96.8 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "79037e2d-e8c2-4641-ad28-c02e5573c396/1779990040125_Main Dashboard .png"
+      }
+    ]
+  },
+  {
+    "index": 18,
+    "id": "2be5f528-7e4f-407f-a047-ba938c908e80",
+    "body": "Enable configuration of dashboard view. I only want to see the main title subjected. User should be able to select if they want to just see the subject. Or if they also want to see preview of the details.",
+    "status": "fixed",
+    "createdAt": "2026-05-28T17:35:14.65336+00:00",
+    "updatedAt": "2026-05-28T17:50:18.88449+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "98d59479-eab3-455f-b223-382c6f566150",
+        "name": "Dashboard View .png",
+        "size": "195.1 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "2be5f528-7e4f-407f-a047-ba938c908e80/1779989714196_Dashboard View .png"
+      }
+    ]
+  },
+  {
+    "index": 19,
+    "id": "3e1722ff-cf08-4ca2-9b77-f745d3c28843",
+    "body": "CSV objective export is convoluted with having Objective ID included in the report. Remove Objective ID. Also Make sure that the Top line section is filterable.",
+    "status": "fixed",
+    "createdAt": "2026-05-28T17:31:54.674505+00:00",
+    "updatedAt": "2026-05-29T15:14:54.033167+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "23cc400c-6e42-4425-bdf7-b1ce5143559f",
+        "name": "CSV Export .png",
+        "size": "56.0 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "3e1722ff-cf08-4ca2-9b77-f745d3c28843/1779989514220_CSV Export .png"
+      }
+    ]
+  },
+  {
+    "index": 20,
+    "id": "17fa90ae-9cf7-42c8-a893-014cd7a005c5",
+    "body": "Merci doesnt have this Fix-it Feed. Ensure that all users have this..",
+    "status": "fixed",
+    "createdAt": "2026-05-27T13:38:35.184196+00:00",
+    "updatedAt": "2026-05-28T15:10:59.703163+00:00",
+    "createdBy": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+    "claimedBy": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+    "author": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "role": "executive",
+      "title": "CEO"
+    },
+    "claimedUser": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "role": "executive",
+      "title": "Platform Admin"
+    },
+    "attachments": [
+      {
+        "id": "9e17e948-2135-410f-ae70-da1533492ce5",
+        "name": "Merci FIX IT.png",
+        "size": "139.4 KB",
+        "type": "image",
+        "mime_type": "image/png",
+        "storage_path": "17fa90ae-9cf7-42c8-a893-014cd7a005c5/1779889105894_Merci FIX IT.png"
+      }
+    ]
+  }
+]

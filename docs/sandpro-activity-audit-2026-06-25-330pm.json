@@ -1,0 +1,957 @@
+{
+  "runAt": "2026-06-25T20:31:59.250Z",
+  "checkpoint": "2026-06-24T20:32:03.876Z",
+  "profileCount": 0,
+  "matchingPeople": [],
+  "activity": [
+    {
+      "table": "fix_it_posts",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_comments",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_attachments",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "messages",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "objective_updates",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "org_chart_updates",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "notifications",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "count": 74,
+      "rows": [
+        {
+          "id": "61b04b12-205b-4ba0-9875-551410711d82",
+          "at": "2026-06-24T20:34:55.861899+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "b0ae8856-34d6-42dd-aa66-e97ca5ab9424",
+          "at": "2026-06-24T21:07:13.921192+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "6276bb6a-2391-43a3-ab00-c299841b8bb8",
+          "at": "2026-06-24T22:08:23.703202+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "5ca659bf-5f83-4b8c-85c6-50a070e1394f",
+          "at": "2026-06-25T00:09:56.614836+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "65214f50-00cc-425d-b3eb-cffeda868b86",
+          "at": "2026-06-25T01:11:39.188981+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "ef661897-bbd5-46d0-a957-ad638a4094ad",
+          "at": "2026-06-25T02:12:35.764573+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "64212bad-3709-42ed-b013-c17b64a9a9fd",
+          "at": "2026-06-25T03:11:18.44332+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "5416516e-22dd-4309-84e7-27b7efcbbeda",
+          "at": "2026-06-25T04:11:44.720758+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "260c4148-f46d-450d-a3f8-ef846a03bbd0",
+          "at": "2026-06-25T05:11:02.067844+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "de8e873a-25d5-40f1-ae65-3219d7fd6a9b",
+          "at": "2026-06-25T06:12:59.091759+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "079a7981-17f4-4b04-aec1-ec0e697b567c",
+          "at": "2026-06-25T07:14:35.027193+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "197ea33f-3178-4309-8bd3-3ccbf324fc9b",
+          "at": "2026-06-25T08:14:30.518738+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "1390be4c-34d0-441f-a2d7-6389c72ed949",
+          "at": "2026-06-25T09:14:14.940759+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "b06f650d-3a6b-40d4-ba39-cb0c9baa3f37",
+          "at": "2026-06-25T10:14:32.955983+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "72860e4f-8d74-4ba5-a6a3-b5b79e8205ec",
+          "at": "2026-06-25T11:16:58.35284+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "61c170ea-c6e6-48c6-b7cd-95098eb71c9e",
+          "at": "2026-06-25T12:15:23.459968+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "fd0e1b27-514c-4e8b-b492-6376479944bd",
+          "at": "2026-06-25T13:01:45.017235+00:00",
+          "actor": "a9bfd416-cac4-479b-92bf-105cb27199fa",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "fa276ed0-5f38-4172-80bf-46db89b8adae",
+          "at": "2026-06-25T13:01:45.688844+00:00",
+          "actor": "789240b1-b488-4c3f-8587-f700f9529593",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "ffe0260c-08d2-498c-9599-74ffe66fd7cc",
+          "at": "2026-06-25T13:01:46.249933+00:00",
+          "actor": "3463c626-ecaf-4b51-88e9-f9699180e729",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "dde856f7-5c50-4f5a-ab2a-1ac4791356fe",
+          "at": "2026-06-25T13:01:46.835194+00:00",
+          "actor": "80216ffc-c756-40e8-81e9-777d84f54221",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "5303ea12-e667-4572-8008-f8fe906a3de9",
+          "at": "2026-06-25T13:01:47.334341+00:00",
+          "actor": "b02579c7-0788-493f-8a5b-34656d098a2a",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "70a5a534-5747-476f-8da0-dff61b81fbac",
+          "at": "2026-06-25T13:01:48.028492+00:00",
+          "actor": "745972c6-488d-4f0c-82cd-fcc773834d3d",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "cd0dd4de-c59d-4a2a-aef7-bef981a8262d",
+          "at": "2026-06-25T13:01:48.587264+00:00",
+          "actor": "c18e76bb-4392-4691-8dff-336516f1f9c5",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "77525804-48e0-49f4-9161-ff098239d4fa",
+          "at": "2026-06-25T13:01:49.227311+00:00",
+          "actor": "886e9613-b13f-439b-bbf6-e7c86ce89188",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "78796d6b-3497-4597-a6fe-41faa5f8f33f",
+          "at": "2026-06-25T13:01:49.793371+00:00",
+          "actor": "3fc57711-20c2-4d2a-8132-41d6fb845def",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "9b8c74b7-6230-4e69-8207-006b73fbbb9e",
+          "at": "2026-06-25T13:01:50.332884+00:00",
+          "actor": "00bec0ad-a8f1-4a02-8a10-d7e81d524e90",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "6884933a-9b19-43be-9a66-3e17374900f8",
+          "at": "2026-06-25T13:01:50.869405+00:00",
+          "actor": "c24d32b7-1fd9-4b49-9611-bcbd6b0cbcec",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "4851fde8-732a-4d4d-b374-eb15db5fb42b",
+          "at": "2026-06-25T13:01:51.480024+00:00",
+          "actor": "593699b0-69c0-4f1b-847b-158f1ecec66d",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "627db122-a199-41c7-ab2d-bfc43680f302",
+          "at": "2026-06-25T13:01:52.027988+00:00",
+          "actor": "973dd91e-6508-4468-8d9b-d681e78f45d0",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "77beeeb4-b4e1-4b6d-9718-15030050d139",
+          "at": "2026-06-25T13:01:52.707602+00:00",
+          "actor": "5873c1d8-a1b2-41fb-9e71-3974bfc66f99",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "9bfe42e2-3d56-4f6e-a751-aa3cf02a8a3f",
+          "at": "2026-06-25T13:01:53.05854+00:00",
+          "actor": "0f7c0d15-8fde-4325-85a1-9a0496077a72",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "ff3681de-77f5-48ba-93ed-b8912313818a",
+          "at": "2026-06-25T13:01:53.374112+00:00",
+          "actor": "9c242872-2eb0-4e0e-aa2d-a0960a2eb03b",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "3b07f716-d6c9-4512-aeb5-c4006a19bf38",
+          "at": "2026-06-25T13:01:53.67753+00:00",
+          "actor": "c502a70a-ef45-4d03-bf36-7f1630b3b7d3",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "737fdc99-595b-487e-b0b6-92c859621bcf",
+          "at": "2026-06-25T13:01:53.998106+00:00",
+          "actor": "ea3b5407-2fa3-4dfa-aefd-88aa4550bd48",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "8151ddf1-dd8f-4cdc-b229-e5c8b0c3c7bb",
+          "at": "2026-06-25T13:01:54.332927+00:00",
+          "actor": "e6fa252b-4d42-4a35-b247-398685ea7cf6",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "95d61a17-79d7-4d3f-87b9-0c82c1bc5e13",
+          "at": "2026-06-25T13:01:54.890662+00:00",
+          "actor": "105258b3-e6e7-48c0-8354-9187d4cb1897",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "85a43da0-327b-446b-b26e-d969ba42fca1",
+          "at": "2026-06-25T13:01:55.228112+00:00",
+          "actor": "600b7e2e-a692-4292-92b4-c5ab990bb6f4",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "3618b0ee-8984-4b01-80df-30f6799aaa7d",
+          "at": "2026-06-25T13:01:55.557782+00:00",
+          "actor": "266811d8-99a2-4402-b512-0e602adb42c6",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "0ba3135c-6250-49e4-b073-35b61412face",
+          "at": "2026-06-25T13:01:55.969559+00:00",
+          "actor": "39c11929-3c9f-45e8-8e7a-16c0632569f6",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "25999b56-bbd5-44e1-81a5-125ffeadfc72",
+          "at": "2026-06-25T13:01:56.278863+00:00",
+          "actor": "60e26b2d-1bf0-46da-8811-5d83c9c7d1ff",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "a74ca2ce-063d-4459-a2cd-9cd6a5c8ac8e",
+          "at": "2026-06-25T13:01:56.637548+00:00",
+          "actor": "614e3a17-2ab4-4711-b860-20ea28033250",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "d4a8c0f0-b1b5-427d-8765-e9bd975ee837",
+          "at": "2026-06-25T13:01:56.964117+00:00",
+          "actor": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "792138f3-4d02-402d-a321-52757d0c50b4",
+          "at": "2026-06-25T13:01:57.318754+00:00",
+          "actor": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "8ad56cb2-4851-4688-ad19-8bad5d36431c",
+          "at": "2026-06-25T13:01:57.639405+00:00",
+          "actor": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "496fa47e-4a3b-4748-8506-19e89c9f6163",
+          "at": "2026-06-25T13:01:57.949905+00:00",
+          "actor": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "48100297-aa14-49d7-8780-653b3997cddb",
+          "at": "2026-06-25T13:01:58.253106+00:00",
+          "actor": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "f8df5213-f5e9-46e3-b1fe-92c38f7708d8",
+          "at": "2026-06-25T13:01:58.66082+00:00",
+          "actor": "801402ec-7815-44f3-8948-9daae10b4407",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "11c09fb5-006c-40c2-818e-112d9751b07c",
+          "at": "2026-06-25T13:01:58.991392+00:00",
+          "actor": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "status": "sent",
+          "text": "The SandPro Daily",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "f115e351-6d3d-4b12-8153-71bd9661ac00",
+          "at": "2026-06-25T14:00:44.628498+00:00",
+          "actor": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "status": "sent",
+          "text": "SandPro OMP stale objective reminder",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "7f99db6e-67fb-4c0d-aff8-0bc51a1a83db",
+          "at": "2026-06-25T14:00:45.683364+00:00",
+          "actor": "801402ec-7815-44f3-8948-9daae10b4407",
+          "status": "sent",
+          "text": "SandPro OMP stale objective reminder",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "fc92177a-78d8-4f00-82d9-777ee12b56b5",
+          "at": "2026-06-25T14:00:46.250544+00:00",
+          "actor": "801402ec-7815-44f3-8948-9daae10b4407",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "cdf242e9-4bd5-4e31-a147-018879b58d4c",
+          "at": "2026-06-25T14:00:46.765281+00:00",
+          "actor": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "0a2066bb-71bc-4cc3-b7c3-7b975e640df8",
+          "at": "2026-06-25T14:00:47.246684+00:00",
+          "actor": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "e737c03f-cb21-4cbb-a57b-085617aeb7a9",
+          "at": "2026-06-25T14:00:47.602128+00:00",
+          "actor": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "0bc64e07-9cad-4ab8-b595-7b8fb06a5ee8",
+          "at": "2026-06-25T14:00:47.930169+00:00",
+          "actor": "801402ec-7815-44f3-8948-9daae10b4407",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "97d80071-a423-4a6c-9d66-7a095454a00b",
+          "at": "2026-06-25T14:00:48.254922+00:00",
+          "actor": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "bb002ead-a60c-4aba-a7f3-0c0b879ae827",
+          "at": "2026-06-25T14:00:48.645113+00:00",
+          "actor": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "8df04855-cacc-435c-b520-e58c4fd18d7a",
+          "at": "2026-06-25T14:00:49.133911+00:00",
+          "actor": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "status": "sent",
+          "text": "SandPro OMP stale objective reminder",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "081ac235-055c-493f-95ee-37ee9a975892",
+          "at": "2026-06-25T14:00:49.468969+00:00",
+          "actor": "801402ec-7815-44f3-8948-9daae10b4407",
+          "status": "sent",
+          "text": "SandPro OMP stale objective reminder",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "4dd20786-1f97-4ca6-90f9-ea8c1de09b34",
+          "at": "2026-06-25T14:00:49.864498+00:00",
+          "actor": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "status": "sent",
+          "text": "SandPro OMP stale objective reminder",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "fa2d03be-279d-4782-b403-87b1a6764bbc",
+          "at": "2026-06-25T14:00:50.541092+00:00",
+          "actor": "801402ec-7815-44f3-8948-9daae10b4407",
+          "status": "sent",
+          "text": "SandPro OMP stale objective reminder",
+          "objective_id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "14c60915-cb26-4345-b8c5-924301d951a3",
+          "at": "2026-06-25T14:00:50.847823+00:00",
+          "actor": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "1c38cf74-4782-4b9f-8587-8812a74cad0e",
+          "at": "2026-06-25T14:00:51.194387+00:00",
+          "actor": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "9664b2e0-e00e-48cb-95bd-734c0c7415f2",
+          "at": "2026-06-25T14:00:51.528252+00:00",
+          "actor": "801402ec-7815-44f3-8948-9daae10b4407",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "eb9106ae-8f1b-4ebb-ab44-ba2e582b6fe6",
+          "at": "2026-06-25T14:00:51.907651+00:00",
+          "actor": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "status": "sent",
+          "text": "SandPro OMP overdue alert",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "5c31b4ae-47ba-4637-bb5f-00cac6b554ac",
+          "at": "2026-06-25T14:14:25.079223+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "6dffef0f-4f05-4b35-9692-7cf708bd1520",
+          "at": "2026-06-25T14:15:10.315273+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "f6c969ae-911c-4925-aa7e-a0cf479ddb4c",
+          "at": "2026-06-25T14:17:41.364816+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "d4670f8d-534e-481b-bcf5-612fb7e8bb96",
+          "at": "2026-06-25T15:19:16.684098+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "26b00a63-1818-4c65-acb7-829bbb111e57",
+          "at": "2026-06-25T16:18:30.416886+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "57ed5bdd-243e-4228-8c8c-2407aa58ac36",
+          "at": "2026-06-25T17:22:14.146574+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "5337672b-cf64-4af7-8fd1-93e0e63bf9c1",
+          "at": "2026-06-25T18:21:48.388651+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "2f1234c7-b757-4f22-b8b0-6b7a2b5d7933",
+          "at": "2026-06-25T19:24:02.434801+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "id": "92210be5-9aca-4b9f-bd3a-c9a1eeac1cea",
+          "at": "2026-06-25T20:21:04.07775+00:00",
+          "actor": null,
+          "status": "sent",
+          "text": "You were tagged on a SandPro OMP objective",
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        }
+      ]
+    },
+    {
+      "table": "push_delivery_log",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_audit_events",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "okr_project_audit_events",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "objectives",
+      "col": "created_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_notes",
+      "col": "updated_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_preferences",
+      "col": "updated_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_presence",
+      "col": "updated_at",
+      "count": 6,
+      "rows": [
+        {
+          "at": "2026-06-14T19:13:45.534789+00:00",
+          "actor": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "text": null,
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "at": "2026-06-15T13:55:14.312861+00:00",
+          "actor": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "text": null,
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "at": "2026-06-15T03:37:20.095251+00:00",
+          "actor": "801402ec-7815-44f3-8948-9daae10b4407",
+          "text": null,
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "at": "2026-06-14T20:39:48.728709+00:00",
+          "actor": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+          "text": null,
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "at": "2026-06-14T20:40:04.743153+00:00",
+          "actor": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "text": null,
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        },
+        {
+          "at": "2026-06-14T20:41:33.801576+00:00",
+          "actor": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "text": null,
+          "objective_id": null,
+          "old_value": null,
+          "new_value": null
+        }
+      ]
+    },
+    {
+      "table": "kpi_metrics",
+      "col": "updated_at",
+      "error": "Could not find the table 'public.kpi_metrics' in the schema cache"
+    },
+    {
+      "table": "kpi_updates",
+      "col": "created_at",
+      "error": "Could not find the table 'public.kpi_updates' in the schema cache"
+    },
+    {
+      "table": "ncr_details",
+      "col": "updated_at",
+      "error": "Could not find the table 'public.ncr_details' in the schema cache"
+    },
+    {
+      "table": "ncr_actions",
+      "col": "updated_at",
+      "error": "Could not find the table 'public.ncr_actions' in the schema cache"
+    },
+    {
+      "table": "objective_agents",
+      "col": "updated_at",
+      "error": "Could not find the table 'public.objective_agents' in the schema cache"
+    },
+    {
+      "table": "objective_workflows",
+      "col": "updated_at",
+      "error": "Could not find the table 'public.objective_workflows' in the schema cache"
+    },
+    {
+      "table": "okr_projects",
+      "col": "updated_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "okr_project_comments",
+      "col": "created_at",
+      "error": "Could not find the table 'public.okr_project_comments' in the schema cache"
+    },
+    {
+      "table": "org_placeholders",
+      "col": "updated_at",
+      "error": "Could not find the table 'public.org_placeholders' in the schema cache"
+    },
+    {
+      "table": "profiles",
+      "col": "updated_at",
+      "error": "column profiles.updated_at does not exist"
+    },
+    {
+      "table": "push_subscriptions",
+      "col": "updated_at",
+      "count": 0,
+      "rows": []
+    },
+    {
+      "table": "subtasks",
+      "col": "updated_at",
+      "error": "column subtasks.updated_at does not exist"
+    }
+  ],
+  "openFix": {
+    "count": 0,
+    "rows": []
+  },
+  "openObjectives": {
+    "error": "invalid input value for enum obj_status: \"Completed\""
+  }
+}

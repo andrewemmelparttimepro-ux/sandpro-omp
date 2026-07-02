@@ -1,4 +1,5 @@
 import { buildNotificationEmail, notificationAllowsEmail, objectiveUrl, sendLoggedEmail } from '../_shared/email.js';
+import { sendPushNotifications } from '../_shared/push.js';
 import { getRequiredEnv, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
 const assertCron = (req) => {
@@ -53,23 +54,39 @@ export default async function handler(req, res) {
       for (const userId of recipientIds) {
         const profile = profileById.get(userId);
         const pref = prefByUser.get(userId);
-        if (!profile?.email || !notificationAllowsEmail(pref, type)) continue;
+        if (!profile) continue;
         const subject = type === 'stale' ? 'SandPro OMP stale objective reminder' : `SandPro OMP ${type.replace('_', ' ')} alert`;
         const body = `"${objective.title}" needs attention. Status: ${objective.status}.`;
-        results.push(await sendLoggedEmail({
-          userId,
-          objectiveId: objective.id,
-          type,
-          dedupeKey: `${type}:${userId}:${objective.id}:${dayKey()}`,
-          to: profile.email,
-          subject,
-          html: buildNotificationEmail({
-            title: subject,
-            preheader: body,
-            body,
-            ctaUrl: objectiveUrl(req, objective.id, 'details'),
-          }),
-        }));
+        const ctaUrl = objectiveUrl(req, objective.id, 'details');
+        let emailResult = null;
+        if (profile.email && notificationAllowsEmail(pref, type)) {
+          emailResult = await sendLoggedEmail({
+            userId,
+            objectiveId: objective.id,
+            type,
+            dedupeKey: `${type}:${userId}:${objective.id}:${dayKey()}`,
+            to: profile.email,
+            subject,
+            html: buildNotificationEmail({
+              title: subject,
+              preheader: body,
+              body,
+              ctaUrl,
+            }),
+          });
+          results.push(emailResult);
+        }
+        // Skip the push when the email deduped — the cron already ran today.
+        if (!emailResult?.deduped) {
+          results.push(await sendPushNotifications({
+            targetUserId: userId,
+            type,
+            objective,
+            prefs: pref,
+            message: body,
+            url: ctaUrl,
+          }).catch((error) => ({ channel: 'push', error: error.message })));
+        }
       }
     }
 

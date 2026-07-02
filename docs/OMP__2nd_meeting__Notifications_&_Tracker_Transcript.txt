@@ -1,0 +1,1621 @@
+Transcript of OMP_ 2nd meeting_
+Notifications & Tracker
+Created on May 22, 2026 by Summary AI
+Mercy (00:03)
+Hmm. I don't know. Let me see.
+Jake (00:13)
+Can you can you hear us? Hmm.
+Mercy (00:20)
+Nothing.
+Jake (00:21)
+Hmm. We can't, uh we can't hear him. Dad, just one second.
+Jake (00:35)
+I'll try to figure it out here. Can't hear you.
+Jake (00:53)
+All right. Try that, Andrew.
+Andrew (01:01)
+Hmm.
+Jake (01:03)
+Mercy, say something on your speaker, please.
+Mercy (01:05)
+Could you hear me? No, I just let me unmute this.
+Mercy (01:08)
+Um, could you hear me?
+Speaker D (01:09)
+Could you hear me?
+Andrew (01:10)
+Yeah. Okay.
+Jake (01:11)
+Yeah. So it's on his side.
+Mercy (01:15)
+Mom. Maybe.
+Jake (01:23)
+I don't know. It's something on something on his side, so.
+Jake (01:27)
+So he's working on adjusting the mixer.
+Mercy (01:37)
+He say.
+Jake (01:38)
+Yep. He said yes.
+Mercy (01:39)
+You heard that?
+Jake (01:40)
+He's working on it.
+Mercy (01:42)
+Perfect. Thank you, sir.
+Jake (02:00)
+So you have the document from the goal list from last time?
+Mercy (02:07)
+Yes. And also, I do have an update that Andrew sent me over the weekend. Um.
+Jake (02:17)
+'Cause I still haven't gotten any notifications or.
+Mercy (02:21)
+Yeah. We were yeah. He's been sending me, uh I can share with you that one.
+Mercy (02:28)
+I know that I think he has most of them down now. But, but at that moment, it was just this.
+Mercy (02:56)
+I'll send that to you.
+Jake (02:58)
+Well, I'm sure I have it. You can just share it on the thing.
+Mercy (03:00)
+Oh, okay.
+Jake (03:00)
+Everyone don't flood, yeah, my inbox. Let's just.
+Mercy (03:04)
+Okay.
+Jake (03:05)
+Well, I Mercy, look at look at my inbox. Hey.
+Jake (03:09)
+Like, I don't you know what I mean? Like, all.
+Mercy (03:11)
+Yeah.
+Jake (03:12)
+All I need is we have a meeting, we set objectives, and then every week, we figure out what's, you know.
+Mercy (03:21)
+Yeah. Yeah.
+Jake (03:21)
+What we what we need to do 'cause we gotta get this thing working. We're, we're paying for it.
+Mercy (04:12)
+This is the one that I that he shared with me.
+Jake (04:15)
+So this is this is updated?
+Mercy (04:18)
+Up yeah. That was on Saturday.
+Mercy (04:20)
+But I think he has more now. I don't have the newest one, though.
+Mercy (04:24)
+This is the last he was working on. Okay.
+Andrew (04:52)
+Okay.
+Mercy (04:53)
+Perfect.
+Andrew (04:54)
+Can you hear me now?
+Jake (04:55)
+We got you.
+Andrew (04:57)
+Nice. Well, nothing literally's changed on my end, but I started my I can restart my computer, and now it
+works, so.
+Jake (05:04)
+Yeah. I know. It's 'cause you use a MacBook, bro.
+Andrew (05:10)
+Yeah. I saw I knew that was gonna be your answer. I was sitting here waiting.
+Andrew (05:15)
+How long's it gonna take Jake to say something about a Mac while I was while I couldn't hear me?
+Jake (05:19)
+Yeah. Okay. So.
+Andrew (05:21)
+Oh, yeah.
+Jake (05:21)
+Yeah. The goal, you know, for these weeklies is now, you know, we gotta get into using and, uh, using and
+refining and kinda generating a, uh, action item list. Are you do you are you recording us, Mercy?
+Mercy (05:40)
+Yes.
+Jake (05:40)
+Are you live right now or no?
+Mercy (05:42)
+Yes, I am.
+Jake (05:42)
+Okay. So.
+Andrew (05:44)
+Nice.
+Jake (05:45)
+Yeah. The, the.
+Andrew (05:46)
+That's great.
+Jake (05:46)
+The goal is, yeah, just to review all of our action items that we, we did kinda put in place and then check the
+functionality and move to, like, a rapid, um you know, I'd like to get to deployment. I don't really wanna.
+Andrew (06:03)
+I promised France.
+Jake (06:04)
+Yeah. I don't really wanna go I mean, I, I can understand that we, you know, we can maybe have, like, three
+weeks' worth of these, you know? But.
+Andrew (06:12)
+Yeah.
+Jake (06:12)
+Then we after that, we gotta, um we, we gotta be functional. So I think right now.
+Andrew (06:19)
+I agree I agree with you totally. I'm glad to hear you say that, actually.
+Jake (06:22)
+Yeah. Right now, you know, we can kinda go over the notes from last meeting and kinda where we where
+we're at where we are at. But I would like, you know, Mercy and I to start using the system together, uh, to
+basically, quote-unquote, you know, sandbox, you know, test it before we, uh, deploy to the team, uh,
+Jake (06:49)
+to identify.
+Andrew (06:50)
+Definitely.
+Jake (06:51)
+Identify any gaps. So we can kinda let you take it from there based on the action items.
+Andrew (07:00)
+Yeah. Sure. So I guess, uh, just a couple things.
+Andrew (07:03)
+I don't know what you're aware of or not, Jake, but I was trying to test some of the messaging functionality.
+And at first, we were having success.
+Andrew (07:11)
+So then I took that to mean that she was seeing my messages and not responding. But actually, what
+happened was she was locked out.
+Mercy (07:17)
+Yeah. That's.
+Andrew (07:17)
+So after getting.
+Mercy (07:18)
+How about that later?
+Andrew (07:19)
+Getting all that taken care of, she's finally now, as of this morning, back on the platform. But the other thing
+that I should say is everything was on a placeholder URL before, right?
+Andrew (07:31)
+So it was on blah, blah, blah, dot parcel, dot app, or whatever. Now, I've moved it over to objectivetracker.net
+just to have an easy rolls-out you know, it doesn't have to stay that.
+Andrew (07:44)
+We can go something different.
+Jake (07:46)
+Do I do I have?
+Andrew (07:47)
+I just wanted.
+Jake (07:48)
+Do I have access? Um, did I get, like, a new link or?
+Andrew (07:52)
+It'll all nope. It all your credentials should be exactly the same.
+Mercy (07:57)
+Oh.
+Andrew (07:57)
+Now.
+Jake (07:58)
+How do I get there, though?
+Andrew (08:00)
+Mercy.
+Mercy (08:01)
+No, sorry. 'Cause you know that you sent me the link, but I couldn't get to the laptop.
+Mercy (08:05)
+So I use my phone, and that, that way, I could be able just to register.
+Jake (08:09)
+So you're sending me the link?
+Mercy (08:09)
+The live link? Okay.
+Jake (08:10)
+Yeah. 'Cause the 'cause all I have is the old link.
+Andrew (08:15)
+Yeah.
+Mercy (08:16)
+I'll send you that. Okay.
+Andrew (08:17)
+And the plan was to switch over to this on at this meeting, but then I kinda expedited that last night when I
+was trying to get Mercy back online.
+Jake (08:25)
+So it's www. or it's objective.
+Andrew (08:30)
+Tracker.
+Jake (08:31)
+Tracker.
+Andrew (08:32)
+Dot net.
+Mercy (08:33)
+Jake.
+Andrew (08:34)
+Dot net.
+Mercy (08:35)
+You got that message right there.
+Andrew (08:37)
+Okay.
+Jake (08:45)
+Well, I don't remember my, uh.
+Mercy (08:48)
+Your password?
+Jake (08:49)
+My password.
+Mercy (08:50)
+Well, that's it. That if you go there, it's gonna send you the reset link.
+Mercy (08:53)
+That was I was trying to do yesterday to see how it goes with your side.
+Jake (08:57)
+Yeah. Yeah. I'm gonna see if it that works here.
+Mercy (09:00)
+Because I noticed that in the computer, I couldn't. It was showing that error that I showed with you, Andrew.
+Mercy (09:06)
+And then I, I opened the link from my phone.
+Andrew (09:08)
+Yeah.
+Mercy (09:08)
+And I sent the reset request password, and it worked from my phone. Let's see.
+Mercy (09:15)
+So.
+Andrew (09:16)
+Okay.
+Mercy (09:17)
+So let's see how it works here. It's actually working great.
+Andrew (09:20)
+Oh, well, it let me in without resetting the password, which is.
+Jake (09:25)
+Okay.
+Andrew (09:26)
+Kinda.
+Jake (09:27)
+Uh, quite not quite that's a quite that's a different that's a different potential problem. We're not sure.
+Andrew (09:32)
+Yeah.
+Jake (09:33)
+But this is all being recorded. So this is all gonna be reviewed.
+Jake (09:36)
+I just Mercy, when I sent you that the other day, I had to laugh because, apparently, that I wasn't very nice to
+my agent.
+Mercy (09:42)
+Okay.
+Jake (09:42)
+When I was telling him to fix that problem.
+Mercy (09:44)
+Oh.
+Jake (09:44)
+"I'm sorry. I would be pissed too," he says.
+Jake (09:48)
+Totally unacceptable.
+Mercy (09:50)
+No, that's fine.
+Jake (09:51)
+I had to send you that, but.
+Mercy (09:52)
+That was fun.
+Jake (09:53)
+Well, okay. So let's get back into here.
+Jake (09:55)
+So, uh, you can kinda see in the objectives here. Let me just click to see what Mercy had, uh, put in here.
+Jake (10:02)
+Okay. So I had you guys are seeing what I'm clicking on, correct?
+Andrew (10:06)
+Mm-hmm. Mm-hmm.
+Jake (10:07)
+Okay. So good morning. Instead of replying to your email, I wanted to test this out.
+Jake (10:11)
+I guess, for now, it's pretty simple. This was regarding the org chart.
+Jake (10:16)
+I, I really just put that in there as kind of a trial task. I don't.
+Mercy (10:19)
+Okay.
+Jake (10:20)
+It doesn't need to get granular at this point.
+Mercy (10:21)
+Oh, okay.
+Jake (10:22)
+But basically, I just wanted you I wanted Jake to look at this org chart and just see that, like, there's first of
+all, that all these people still work there, that it has all the people that would want to be in here, and that
+they're kind of, like, at least in the neighborhood of who they're under.
+Mercy (10:40)
+That's right.
+Andrew (10:40)
+So that objective for you, Mercy, is, yeah, it should be basically.
+Mercy (10:45)
+Correct.
+Andrew (10:46)
+Refining this org chart. So Heather.
+Mercy (10:48)
+Okay.
+Andrew (10:48)
+Can get you, uh, like, the most updated an employee list.
+Mercy (10:54)
+Okay.
+Andrew (10:54)
+And who those employees are under by department, right?
+Mercy (11:00)
+Yep.
+Andrew (11:00)
+And then you can kinda I'm not, not sure, Andrew, if ma if it's best if she goes in and, like, builds a tree so
+that she can, like, be.
+Jake (11:10)
+Yeah.
+Andrew (11:11)
+You know? Actually, no, that is a that is a great point.
+Andrew (11:15)
+Um, I'm sure that her permissions wouldn't allow that right now, but I can that, that can be put on I'll make a
+note of it here.
+Jake (11:22)
+Okay. So let's.
+Andrew (11:23)
+That's she should be able to totally edit that. She shouldn't she shouldn't have to, like, get it from you, tell it to
+me, edit it, me tell her.
+Andrew (11:30)
+She looks at it, tell that's totally kinda what we're trying to avoid here, so.
+Jake (11:34)
+Yeah. So maybe, maybe what I'd like to do is maybe An like, we can basically wipe the tree, and then you
+can, you know, build the tree based on all the current employees.
+Mercy (11:47)
+Updates.
+Jake (11:48)
+Titles and who they work for. And then that would test that functionality.
+Mercy (11:53)
+Okay.
+Jake (11:54)
+Um, Andrew will just need to update, uh, your permissions.
+Andrew (12:00)
+Yeah. It'll have to be some kind of builder backend builder build, but that's not complicated. And then, yeah,
+update your permissions so that you can do whatever on there, and you're not restricted anywhere.
+Andrew (12:12)
+Okay.
+Mercy (12:15)
+Okay.
+Jake (12:16)
+Okay. I got that.
+Andrew (12:19)
+Okay. So that was just on that. And then let's just go back here.
+Andrew (12:23)
+Um, one of the things that I added in here, Jake, that wasn't really necessarily a part of that list was I just
+wanted I didn't know if Mercy was going to get, uh, a notification when I when I typed in here. And it turns out
+that she doesn't.
+Mercy (12:39)
+No.
+Andrew (12:39)
+Except if I tag her. So we've added tagging functionality.
+Andrew (12:44)
+You can just add somebody in here.
+Mercy (12:46)
+Okay.
+Andrew (12:47)
+Now. And you can be attached to this as well, basically. Now, it, it lives in here.
+Andrew (12:53)
+But you can also do that from the get-go here. So if, if Mercy wanted to add somebody else that needed to
+do something or needed to be aware that this objective was being worked.
+Jake (13:03)
+You might not have shared your entire screen. You might have just shared a window 'cause now it's blank.
+Andrew (13:10)
+Okay. Excuse me.
+Mercy (13:15)
+So if in order to everybody receive a notification in the email, we need just to tag them. That's gonna be the
+way they can have.
+Andrew (13:24)
+Yep.
+Mercy (13:24)
+They receive something.
+Andrew (13:25)
+But once but, but you would you have to do that every time you sent a message?
+Mercy (13:31)
+Like an email?
+Andrew (13:31)
+Like a no, like, if you're part of the.
+Jake (13:33)
+I was envisioning I was I was envisioning that, that, uh, as, like, a backup. The at in the actual objective, I
+don't know.
+Jake (13:42)
+I'm assuming you guys still can't see what I'm doing here.
+Andrew (13:44)
+We, we just had it. You, you whatever you now, it's gone again.
+Jake (13:51)
+There you go.
+Andrew (13:52)
+There we go. There we go.
+Andrew (13:53)
+We, we can see the chat window right now.
+Mercy (13:55)
+Okay.
+Andrew (13:57)
+So the at, to me, what I just did to you here, this would be a totally afterthought thing. Like, you wouldn't be
+necessarily part of this objective.
+Andrew (14:05)
+Maybe it's like, "Man, we've been working on this, but now, we really need Jake."
+Jake (14:10)
+Okay.
+Andrew (14:10)
+Boom. So it, it tags in there the same way.
+Jake (14:13)
+So was I supposed to would I now get a notification?
+Andrew (14:19)
+You should get a notifi you should, yes, up in this top bell.
+Jake (14:22)
+In the in the platform or via email?
+Andrew (14:27)
+This would be just platform.
+Jake (14:28)
+Okay. I did, uh.
+Andrew (14:29)
+So then I did get that. Um.
+Jake (14:34)
+Okay.
+Andrew (14:35)
+Just we, we had the conversation about how do we somehow make that prompt on.
+Mercy (14:46)
+Jane it all for everything.
+Andrew (14:48)
+Prompt on, like, you know, the like, 'cause it you would have at this point, you'd have to have this open and
+be checking, like, your notification. Like, h-how do we make a notification bar.
+Jake (15:01)
+Yes.
+Andrew (15:02)
+You know.
+Mercy (15:02)
+Awesome.
+Andrew (15:04)
+Yes. This is gonna it's you're saying the additional notification come and be email. And we had the
+conversation that we don't wanna flood.
+Jake (15:11)
+Yep.
+Andrew (15:11)
+Inboxes.
+Jake (15:13)
+Yep.
+Andrew (15:13)
+What's the nice way of doing that?
+Jake (15:15)
+Yeah.
+Andrew (15:15)
+And, and that to that question, I, I kinda kicked that can. I don't have a good answer to that yet, but it's why I
+didn't have these attached to email.
+Jake (15:24)
+But, like.
+Andrew (15:25)
+I don't.
+Jake (15:25)
+Can't we do like, how do they get like, with inside this, don't you just have something where you're, like, you
+can allow notifications? Like, how do you get it to where.
+Mercy (15:37)
+Then it.
+Jake (15:37)
+Like, just like how your email pops up on the corner of your screen, like, a new email? Like, how do you allow
+notifications?
+Mercy (15:45)
+Maybe if you tag them is gonna be.
+Andrew (15:47)
+Oh, at the system level?
+Jake (15:49)
+Yeah. So, like, let me just let me just look at an example. So, like, uh, notification example on desktop.
+Jake (16:02)
+So, um, so let me just I'm gonna do this here. One second.
+Jake (16:20)
+I'm gonna try to dump it right in this chat just so that I'm gonna try to really test this, uh so one thing to note,
+Andrew, is when you when I copy something.
+Andrew (16:33)
+Yeah.
+Jake (16:34)
+I can't I can't control V into the message space.
+Andrew (16:39)
+You can't paste?
+Jake (16:40)
+No.
+Andrew (16:40)
+Okay. Hotkey doesn't work.
+Jake (16:45)
+Okay. I'll just save this here, though, real quick and do it the, uh.
+Andrew (16:53)
+Old school. Right-click.
+Jake (16:54)
+Yeah.
+Mercy (17:04)
+Hey, Andrew. Do would you be able to see my screenshot, uh, without downloading it?
+Mercy (17:10)
+Or just.
+Andrew (17:11)
+Uh, let me.
+Jake (17:12)
+Yes.
+Andrew (17:13)
+The one you sent earlier?
+Jake (17:14)
+We, we can now. I just pulled it up.
+Jake (17:17)
+So without having to download.
+Mercy (17:19)
+So you opened it up?
+Jake (17:19)
+Look, it's, it's, it's right here.
+Mercy (17:20)
+Oh, that's yours. Perfect.
+Jake (17:21)
+Yep. So that was what our discussion was last time, being able to have a preview.
+Mercy (17:25)
+Yep.
+Jake (17:26)
+Right? Without having to go and download the files, right?
+Mercy (17:30)
+Yep.
+Jake (17:30)
+'Cause especially if something's not named, then it's like, "What are you gonna do? Download all the damn
+files?" And.
+Mercy (17:36)
+Yep. Yep.
+Jake (17:37)
+So, Andrew, I.
+Andrew (17:38)
+It's, it's it creates problems quick, fast, and in a hurry. I have more do random number PNGs and PDFs on
+my computer right now than I care to admit.
+Andrew (17:47)
+So yes.
+Jake (17:48)
+So I, you, you see what I just attached? Well, here's something weird too.
+Jake (17:55)
+When, when I go into that message and.
+Andrew (17:59)
+Yep.
+Jake (18:00)
+You can see that, like, Mercy attached something and also I attached something. So ideally.
+Andrew (18:07)
+Mm-hmm.
+Jake (18:07)
+All you would wanna see would be the one that I attached, right? But when you click on.
+Mercy (18:15)
+Files.
+Jake (18:16)
+The, the, the file that I attached.
+Mercy (18:18)
+Uh-huh.
+Jake (18:19)
+It then it then.
+Andrew (18:20)
+It pulls up both.
+Jake (18:21)
+It pulls up both. So that could be confusing to people of, like, which one did that person.
+Mercy (18:27)
+To me.
+Jake (18:28)
+Actually attach?
+Mercy (18:30)
+Oh, yeah.
+Jake (18:31)
+If it's pulling up all the historic.
+Mercy (18:33)
+Or if it's something that maybe somebody doesn't have to, to have it, like, as a-actually private, and then they
+are they get the access.
+Jake (18:40)
+Yeah. Well, the i-if they have access to this group, they're gonna have access to all the files.
+Mercy (18:46)
+Yeah. But, uh, let's say it's, like, sensitive information, accounts, numbers, or something.
+Jake (18:50)
+Well, then they wouldn't be in this group chat. No, Mercy.
+Jake (18:53)
+It's not that it took something else from my computer.
+Mercy (18:56)
+No, I'm not saying that's just that, but kind of sometimes protecting the information because.
+Jake (19:00)
+Okay.
+Mercy (19:01)
+Even I, I trust my, my employees and my, my partners. I'm not saying somebody something I sometimes is
+just required.
+Jake (19:07)
+You're o you're overcomplicating. I'm sorry.
+Mercy (19:09)
+Okay.
+Jake (19:09)
+All I'm saying is that.
+Mercy (19:12)
+Okay. I got it.
+Jake (19:13)
+See the message thing here?
+Mercy (19:14)
+Yep. Yep. That could be a process.
+Jake (19:15)
+Because if somebody's trying to look at what I attached.
+Mercy (19:17)
+Yeah.
+Jake (19:17)
+They should be able to click on just that one because what's gonna happen here if there's 50 attachments?
+You're, you're gonna have to.
+Mercy (19:25)
+Yes.
+Jake (19:26)
+Go through. So what I was saying from a notification would be the screenshot that ends in 906.
+Jake (19:33)
+You know, like, you have your computer open, at least some sort of a you know, with inside the app, the
+OMP application, you can turn on your notification settings.
+Mercy (19:48)
+Yep.
+Jake (19:48)
+Right? So that because what we need to make sure is we also want this to be a mobile thing. So just like
+how any app on your phone, you can get a notif you get a notification that pops up, right?
+Mercy (20:01)
+Yep. Yep.
+Jake (20:03)
+So do you see what I was kinda saying? Like, to me, that's the best happy medium is, like, without flooding
+your email would be, like, a, a it showing in, like, a notification display.
+Mercy (20:15)
+And do you want that's not.
+Jake (20:15)
+Yeah.
+Mercy (20:16)
+These notifications personalized? Like, uh, I, I, I would prefer to receive a notification that I know is assigned
+to me.
+Mercy (20:22)
+Or do you wanna see all the notifications to everybody?
+Jake (20:24)
+Well, you shouldn't be receiving a notification that's not assigned to you.
+Mercy (20:27)
+That's what that's the thing that you want because sometimes, you're in a group. You're gonna have a
+notification.
+Mercy (20:32)
+Maybe you're not.
+Jake (20:33)
+Yeah. Well, then you shouldn't if you don't need that notification, then you shouldn't be in that group.
+Mercy (20:37)
+Well, yeah. You need to take care of it because you are in that group for some reason.
+Jake (20:40)
+Yeah. But th-then you're not.
+Mercy (20:42)
+Maybe.
+Jake (20:42)
+You're in the group for no reason.
+Mercy (20:43)
+Yeah. You're right.
+Andrew (20:45)
+Maybe there's a way maybe there's a way to have, like and again, this is all obviously gonna depend on the
+people with the application playing ball on their notification settings. But maybe there's, like, a notification
+setting when you have this installed in its personal web app format so that it's acting like personal web app,
+right?
+Andrew (21:03)
+So it's available offline, all that jazz. That's the difference when you save it to your home screen.
+Andrew (21:09)
+And maybe there's a version of that where we can have this give you a gentle notification that pops up and
+disappears completely and doesn't even stay in your notifications bar on your phone. It just goes away, but
+you know that it's there once you've viewed it once.
+Andrew (21:24)
+And now, when you wanna further view those, you go into the app and view all your notifications just as you
+would any other app. But it's not like you're not getting, like, blown up by 30 of these things that hang out up
+in that bar.
+Jake (21:37)
+Yeah.
+Andrew (21:37)
+And then you have to go and clear all or whatever where it's, like, flooding your whole screen on your phone.
+Maybe they maybe they just go away.
+Andrew (21:44)
+And if you don't see them, that's a problem. But obviously, checking your notifications on a any kind of
+regular basis would negate that.
+Andrew (21:52)
+It would still be I, I get I, I the reason I say that's 'cause I for instance, I like the way that Apple Maps or
+whatever works on your watch. I'm driving, and I don't have to pay attention to the thing 'cause I get a little,
+you know, vibration on my wrist.
+Andrew (22:08)
+And it's a certain vibration. I know now, okay, the turn's probably coming up.
+Andrew (22:12)
+But that's not, like, a notification that then lives on in perpetuity. It just goes away.
+Mercy (22:18)
+Yeah.
+Andrew (22:18)
+You know what I'm saying? I don't I'm not saying I had this fully fleshed out.
+Andrew (22:22)
+I was just thinking out loud.
+Jake (22:23)
+Yeah. Or, or you, you build in prompts, specific prompts that we can train the team on as far as what your
+notification means. So maybe if you want everybody to get the notification, you the prompt would be
+something like, "@team."
+Andrew (22:50)
+Mm-hmm.
+Jake (22:50)
+If you wanted if this was just like a response to one individual that was in the group, you would do "@" that
+person's name.
+Andrew (23:02)
+Yes.
+Jake (23:05)
+Right.
+Andrew (23:06)
+We get it in the habit of using a-at the old school way. I was thinking of, like, there being an aside and only in
+backup, but you're saying, "No, we would use them as kind of, like, the main functionality to receive
+notifications."
+Jake (23:18)
+Yeah. Like, I think whatever you do, as long as you train people in some sort of a like, to where it was
+simple, like, if, if you're trying to respond to one person, you do "@" in their name.
+Andrew (23:31)
+Mm-hmm.
+Jake (23:31)
+If you're trying to provide information to the entire if it's something that's relevant to everybody in that group.
+Mercy (23:40)
+All.
+Jake (23:41)
+You do "@all" or "@team" or whatever.
+Andrew (23:46)
+And the same way works for replies to messages in there anyway too.
+Jake (23:50)
+Yep. Yep.
+Andrew (23:50)
+You know?
+Jake (23:50)
+Yep.
+Andrew (23:51)
+Facebook, everybody tries to do this, but it gets a little bit convoluted. But, like, it starts a, a branch of that
+conversation, essentially, right?
+Andrew (23:59)
+But now, again, the same thing everywhere.
+Jake (24:01)
+And if somebody wanted if somebody in the group still wants to go through that entire conversation, they can
+still see everything.
+Andrew (24:07)
+Mm-hmm.
+Jake (24:08)
+This is just about.
+Andrew (24:09)
+Oh, okay.
+Jake (24:09)
+This is just about, like, triaging the notifications.
+Andrew (24:14)
+Yep.
+Jake (24:15)
+So that because, yeah, if you get.
+Andrew (24:16)
+Yeah.
+Jake (24:16)
+500 notifications, then you're not gonna look at them. They have to be we have to focus on the notification
+being relevant.
+Mercy (24:24)
+Specific to the person.
+Jake (24:25)
+To your work instead of redundant and overwhelming, right? That's the whole point of us trying to.
+Andrew (24:33)
+Right.
+Jake (24:33)
+Go through this together is building a platform that, like, teams can manage you know, a team can manage.
+Andrew (24:40)
+Mm-hmm.
+Jake (24:40)
+Things without, you know, it becoming, like, overbearing and a bunch of bullshit.
+Andrew (24:47)
+Well, the second it does, you're cooked. You're cooked the second that happens, right?
+Andrew (24:50)
+Because the second that you add frustration to people's life and that and never mind that. N it's not even a
+frustration.
+Andrew (24:56)
+They know it's a new kind of frustration.
+Jake (24:58)
+Yeah.
+Andrew (24:58)
+It doesn't even it's not even frustrating in the same ways. It's just different that you're just gonna check out.
+Andrew (25:03)
+You're not gonna use it. You're not gonna convince anybody to use it, even if you want them to, boom, as the
+person sitting in the ch your chair is, you know.
+Jake (25:11)
+Yeah.
+Andrew (25:11)
+Trying to get your team to use it. If it's not good for the team and it's not good for everybody, first of all, if it
+doesn't work for you, you're not gonna pay for it.
+Andrew (25:18)
+And if it doesn't work for the team, they're not gonna use it. Like, period.
+Jake (25:21)
+Yeah.
+Andrew (25:21)
+That's.
+Jake (25:22)
+Okay. So let's we, we kinda got those points, and we got those on, uh, recording. So let's.
+Andrew (25:30)
+Yes.
+Mercy (25:30)
+The KPIs the KPIs that way that you have to click, they were.
+Jake (25:34)
+I, I don't is that one of our action items here?
+Mercy (25:37)
+Yep.
+Jake (25:37)
+What I guess hold on a second. I gotta get back to the.
+Mercy (25:41)
+Like, what whatever is active or not.
+Jake (25:42)
+So what was our next, uh, item? 'Cause I got till I only have till, uh.
+Mercy (25:48)
+The message from the mobile.
+Jake (25:50)
+11.
+Mercy (25:51)
+You open it from your objective from your phone, I think.
+Jake (25:57)
+Yeah. No, I'm, I'm talking about where's the document.
+Mercy (25:59)
+Oh.
+Jake (26:00)
+Like, that's that was our action item list, right?
+Mercy (26:03)
+Yep. You want me to show you?
+Andrew (26:06)
+Oh, it's here somewhere.
+Mercy (26:09)
+I do have it here. Uh, bad touch on okay.
+Mercy (26:18)
+So again.
+Jake (26:23)
+Okay.
+Mercy (26:26)
+So here. Core platform.
+Andrew (26:35)
+Well, he, he had, like, a summarized one, Mercy.
+Mercy (26:38)
+Well, I don't, uh.
+Jake (26:39)
+Yeah. Right there. Okay.
+Andrew (26:40)
+Right there. Right there.
+Andrew (26:41)
+Right there. Yeah.
+Jake (26:44)
+Okay. So let's so remove the old sample. Okay.
+Jake (26:48)
+So that was done. Fix the filter trap that left users stuck on the empty objective page.
+Jake (26:56)
+And that we were only experiencing, I believe, um, mobilely, right? So let me just test it.
+Jake (27:05)
+So we so you can click out of it on the desktop.
+Mercy (27:13)
+And you have the back button in the mobile.
+Jake (27:15)
+But can you let me just scale my screen down here.
+Mercy (27:22)
+It's in the messages I sent him from was from my mo-mobile.
+Jake (27:25)
+I, I, I know, but it's about this is about Mercy getting out of this, getting back to the home screen.
+Mercy (27:32)
+Oh, yeah. He had a bad he had a he had a bad button.
+Mercy (27:35)
+You can go back since in the in the mobile.
+Jake (27:38)
+Okay. That works.
+Mercy (27:39)
+From the yeah.
+Jake (27:39)
+Now you just confirm that?
+Mercy (27:41)
+Well, I, I, I did. I checked it a little bit.
+Jake (27:43)
+Okay. So that works. Okay.
+Jake (27:45)
+Good. Um, made dashboard clicks clear filters and browser. I'm not really sure what that means, Andrew, but
+it's fixed.
+Jake (27:57)
+Um, improved mobile objective details.
+Andrew (28:02)
+Yeah. So, so some of these are just, like.
+Jake (28:04)
+Okay. Okay. What else was, like, a, uh okay.
+Jake (28:10)
+Replace fragile pop-up prompts with clear in-app. So it says that was done, but it's is it is it really done, or?
+Andrew (28:27)
+Replace fragile pop-up prompt. Uh, I guess I'm not sure which one that's referring to here.
+Andrew (28:34)
+So I guess I should tell you how this list was compiled. This was just after I worked on the list of things you
+sent to me, and then I said, "Make a list of the stuff that we did."
+Jake (28:43)
+Okay.
+Andrew (28:44)
+So I'm trying to think of which one that would have been referring to here.
+Jake (28:48)
+I think that was our conversation about it, like, the prompt popping up on, like, your computer or a notification
+on your phone.
+Andrew (28:58)
+Oh, oh, oh, oh, oh.
+Jake (29:00)
+But I don't know if that's.
+Andrew (29:01)
+Yeah.
+Jake (29:01)
+Achievable until you roll it into, like, a desktop application and a mobile application, right? Like, because
+soon as you are not logged onto the site, like.
+Andrew (29:14)
+Not on the desktop.
+Jake (29:15)
+Yeah.
+Andrew (29:16)
+Not well, no. So, so you're correct on desktop but not on mobile because basically, the PWA, it's just
+acronym, personal web app, that it's basically anything not in the App Store.
+Andrew (29:29)
+And that used to mean, like, apps that kinda s were too crappy for the App Store. But what it's come to mean
+is, like, everybody that doesn't wanna pay Apple 33% of their income just to be in the App Store.
+Andrew (29:42)
+If they if I don't need their visibility, I don't need to be in there.
+Jake (29:44)
+Mm-hmm.
+Andrew (29:45)
+So basically, a personal web app takes all of those features that made, uh, visiting a mobile website in
+different than an app. It builds in the app-style features.
+Andrew (29:58)
+So it saves your phone as an app just like you downloaded it from the App Store, meaning, like, on your
+phone in the background has record of all of the things that are happening on that.
+Jake (30:09)
+Can we.
+Andrew (30:09)
+In a way that it doesn't.
+Jake (30:10)
+Can we do that yet, or what needs to be done for that to be able to take place?
+Andrew (30:16)
+Yep. And, uh, I can put that on just to double-check that that's all good to go. But it definitely should be
+already.
+Jake (30:23)
+How would I get it on my phone? How, how would I get it?
+Andrew (30:26)
+You put it on your so all you do is you put it on your phone. Is, is to go to the website, objective-tracker.net,
+just in Safari.
+Jake (30:34)
+Yeah.
+Andrew (30:35)
+And sign in. I'm just gonna do it as I'm talking to you here.
+Mercy (30:40)
+Y-you know, I noticed something, s-since I was trying to, to check every item in the phone, I didn't like in the
+objective, like, that little like, if you have four, five, you just can see one. Like, that little box is y-you cannot,
+like, try to.
+Jake (30:59)
+And then you gotta, like, screenshot that or video record it on, like, turn your screen recording on. And do
+you know how to do that?
+Mercy (31:08)
+Yeah.
+Jake (31:09)
+Yeah. And then, like.
+Mercy (31:09)
+It's unable.
+Jake (31:10)
+Show him, you know?
+Mercy (31:11)
+Okay. Okay. I'll.
+Jake (31:12)
+Half of it might be too, the type what type of phone do you have?
+Mercy (31:14)
+Uh, this is, uh, Android.
+Jake (31:16)
+Oh, that's half your damn problem.
+Mercy (31:18)
+No. This is no. I love Samsung.
+Mercy (31:20)
+Okay. Anyway.
+Jake (31:20)
+Yeah.
+Mercy (31:21)
+And then and then and then don't get me wrong. I had iPhone for nine years.
+Mercy (31:24)
+You love it, but I do love these too. So whenever I try to put it in a horizontal way, it's gone.
+Mercy (31:29)
+I it's just blank. I can do I cannot do anything.
+Mercy (31:32)
+So from my phone, if you try to be to check the website, you can see in a vertical mode. But then whenever
+you go because I just wanna see better stuff.
+Andrew (31:43)
+You're saying, uh, on Android platform, when you rotate your phone 90 degrees, it does not shift?
+Mercy (31:49)
+No. The.
+Jake (31:50)
+Okay.
+Mercy (31:51)
+In your phone works, right? Screw you both.
+Jake (31:54)
+I, I'm trying to.
+Mercy (31:55)
+So I noticed.
+Jake (31:56)
+It, it, it and the password thing, it, um I just tried to reset it again from my phone, and it just logs me in. So I
+still don't still haven't reset my password.
+Jake (32:08)
+So I don't but okay. So I got it open on my phone.
+Jake (32:12)
+Now, now we're ready.
+Andrew (32:13)
+So if you touch it so if you can scroll up and down, right? So then you see the actual URL in the bottom, and
+you see on the right those three little dots.
+Jake (32:23)
+Well, actually, I can't.
+Andrew (32:24)
+You could.
+Jake (32:25)
+Scroll. I won't scroll on my phone.
+Mercy (32:28)
+From the dashboard side?
+Andrew (32:29)
+Tap just tap the screen 'cause then the URL pop up.
+Jake (32:34)
+Um, on top, yes. Yep.
+Andrew (32:36)
+O-okay. And then tap the three dots?
+Jake (32:40)
+Hmm. I don't have that.
+Mercy (32:41)
+And yeah. Neither do I.
+Andrew (32:43)
+You have a you have an iPhone, right?
+Jake (32:45)
+Yeah. But I don't have the.
+Mercy (32:47)
+Is in the right corner top right or, uh, the three dots?
+Andrew (32:51)
+Well, mine's in the bottom right. But wherever you're like, wherever it says objective-tracker.net, like,
+however you search for, it should be right this to the right of that, three little dots that you can share, add
+bookmark, all that.
+Jake (33:04)
+I'm, I'm texting it to you, but I'll text you a screenshot of mine. But I don't, uh yeah.
+Jake (33:10)
+I don't have that.
+Mercy (33:12)
+So what happened in those three little dots, by the way? Oh, oh.
+Andrew (33:17)
+Jake, you can work on it right now.
+Mercy (33:18)
+Oh, no. I don't think this is.
+Andrew (33:20)
+Okay. You have to so, so, Jake, hit that the, the arrow to take you to the actual website?
+Jake (33:26)
+Yep. Okay. I'm there.
+Jake (33:28)
+Now oh, I can so I, I have, like, a something on my top left. It's not dots.
+Jake (33:34)
+It's like a circle. But it says, "Manage extensions," or, uh.
+Andrew (33:41)
+Are you in Safa are you on Safari?
+Jake (33:43)
+Yep. Yep. Add I can add back I can add there's tap actions now.
+Jake (33:50)
+Let me just show you what mine looks like here.
+Andrew (33:51)
+So I can add the favorites.
+Jake (33:53)
+There's the every.
+Andrew (33:53)
+Add bookmark. Yeah.
+Andrew (33:58)
+So if you're, you're in the right spot now. So what you do is, is go to share.
+Andrew (34:09)
+And then once you're in share, there'll be a bunch of things that open up, probably text messages and stuff.
+Jake (34:14)
+Right. Do I go to, like, add bookmark, or what do I?
+Andrew (34:18)
+Nope. You go to share.
+Jake (34:19)
+There's no share from right here. Um, hmm.
+Mercy (34:29)
+Yeah. Can you do that again? Say something like move to another move.
+Jake (34:34)
+No. Hmm.
+Andrew (34:38)
+It's really bizarre. I've ha I literally on every iOS app I've ever, but I.
+Jake (34:42)
+Well, it's, it's probably fucking me, dude. It's probably me.
+Jake (34:45)
+So just.
+Mercy (34:46)
+I noticed that, uh it didn't change because it was in, in the mobile way. But when I hit the desktop mode, it is
+actually turning when I put the 90 degrees.
+Jake (34:59)
+Hmm.
+Mercy (35:00)
+But in but sometimes you don't want the desktop mode because everything is small. And you want the
+mobile f mode.
+Jake (35:07)
+I can cop I can cop okay. It just okay.
+Jake (35:13)
+Option. Maybe it's.
+Andrew (35:15)
+You might have to hit, like, more. Is there anything that says more?
+Jake (35:18)
+What am I trying to ultimately do? There's, like, a web archive.
+Andrew (35:21)
+Yeah. That's why it's share. No, no.
+Jake (35:23)
+Uh.
+Andrew (35:24)
+You just gotta hit share.
+Jake (35:25)
+I do have share.
+Mercy (35:26)
+I do have share.
+Andrew (35:27)
+And say, "Add to home screen."
+Jake (35:28)
+You what? Mercy has share, right?
+Mercy (35:31)
+So share. And then you say what?
+Mercy (35:33)
+Sam.
+Andrew (35:34)
+Well, yeah. But is that Mercy have an iPhone or something else?
+Mercy (35:38)
+I have a Verizon, uh, a Samsung 25. Is it.
+Andrew (35:43)
+If, if you've got an Android, you have to go to menu, install app. It says that's the Android.
+Andrew (35:49)
+I've never done it on Android 'cause I don't have one. But that's what it says you do.
+Jake (35:54)
+I don't know.
+Andrew (35:54)
+It's you.
+Jake (35:55)
+Maybe, maybe it's 'cause I got the older, uh.
+Mercy (35:58)
+So if I hit share.
+Andrew (35:59)
+The menu is definitely on there. It's just buried in some kind of menu.
+Jake (36:04)
+So you were doing it from, like, the main maybe.
+Mercy (36:10)
+I don't know what you mean. You want me to save, like, a link, a direct link or something access.
+Jake (36:14)
+Hold on a minute.
+Mercy (36:15)
+Sorry. Is that what you wanna do?
+Andrew (36:22)
+Mercy, the process is totally different for Android than iPhone.
+Mercy (36:25)
+Okay.
+Andrew (36:26)
+Yeah. I don't know why it's, uh okay. Do you see those pictures that I sent you?
+Jake (36:32)
+Yeah. I know. But mine just doesn't look like, uh I can get all the way to, like, copy, add to bookmarks,
+message, mail.
+Jake (36:41)
+But, like, the actual share oh, hmm. Just the actual share is not working.
+Mercy (36:50)
+No.
+Jake (36:50)
+Come on in. Okay.
+Jake (36:52)
+Well, why don't you guys.
+Andrew (36:54)
+Yeah.
+Jake (36:54)
+Let's, let's, uh you guys go, go through maybe get Mercy. Mercy, you can go to your, uh.
+Andrew (37:01)
+Yeah.
+Jake (37:01)
+Office. I gotta wrap this. I only got a half hour.
+Andrew (37:04)
+Yeah.
+Jake (37:04)
+Um, and just maybe.
+Andrew (37:06)
+That's fine, Jake. We'll get a we'll get a list here.
+Jake (37:08)
+Okay.
+Andrew (37:09)
+And I'll make a list from this recording as well. And I'll enchant with an email, so.
+Jake (37:13)
+Okay.
+Andrew (37:13)
+We'll, we'll keep moving forward.
+Jake (37:14)
+Are you going to the lake this weekend?
+Andrew (37:18)
+Uh.
+Jake (37:19)
+Are you going down to.
+Andrew (37:20)
+Are you going to.
+Jake (37:21)
+Are you going to, uh.
+Andrew (37:22)
+Oh, we're gonna go to Fort Stevenson.
+Jake (37:24)
+Or?
+Andrew (37:25)
+But I don't know anything else. I don't know if we're gonna end up in the lake.
+Jake (37:28)
+Okay. I was just saying that it's unnatural, right?
+Andrew (37:30)
+If you were coming down, then you could try to get it online. Well, maybe it's just me.
+Jake (37:34)
+Absolutely.
+Andrew (37:35)
+EVV. Well, I think it's the thing is, like.
+Mercy (37:41)
+Oh, there's nothing there. Oh.
+Mercy (37:55)
+Oh, okay. Hey, Andrew.
+Mercy (38:05)
+Could you hear me?
+Andrew (38:07)
+I can. Can you still hear me?
+Mercy (38:08)
+Yes. Perfect. Just making sure.
+Mercy (38:10)
+I just have my sa my mute up for a minute. So do you wanna, uh let's see here.
+Mercy (38:35)
+Okay. Sounds like it's charging everything here. Are you still are you still there?
+Mercy (38:43)
+Or now you kind of.
+Andrew (38:44)
+I am. Yep.
+Andrew (38:45)
+I'm here.
+Mercy (38:46)
+Oh, okay. Perfect.
+Mercy (39:04)
+So at user flow, it was something let me see your I was checking the documents. It was, like.
+Mercy (39:28)
+What happened with that, uh you say for somebody else needs to recover the passpo the password, they're
+gonna be able just to take care of it with the list with the live link that you sent me yesterday?
+Andrew (39:42)
+WhatsApp?
+Mercy (39:42)
+Uh, if somebody needs the if somebody needs to, uh.
+Andrew (39:47)
+Recover a password?
+Mercy (39:49)
+Yes.
+Andrew (39:50)
+Yeah. It should be built in now. But I haven't had no, I mean, obviously, no one has done it.
+Andrew (39:54)
+So I don't know.
+Mercy (39:56)
+What's gonna be in there?
+Andrew (39:57)
+If that's yeah.
+Mercy (39:59)
+Okay. So you think the emails and notifications that you were talking the talking before is gonna be
+personalized, or it's gonna be just with the tab for now?
+Andrew (40:18)
+Well, I, I s do we wanna attach that to email? I mean, we were talking about more of the soft kind of
+notification.
+Andrew (40:26)
+I think that this notifications thing, I guess, what I'm really trying to say is I don't think we have a clue yet,
+quite frankly. I think that us talking about it and how many different, like, thoughts we've all had already at
+this point shows us that it's, like, a really big topic.
+Mercy (40:42)
+Yep.
+Andrew (40:42)
+It seems like it might it's like it, it hammers home on all the other things that I talk about. And it's, like,
+frictionless, whatever.
+Andrew (40:49)
+But it's like, "Oh, yeah, dummy." Notifications is, like, the most immediate, in-your-face, apparent, like, thing
+place to start. It's the low-hanging fruit.
+Andrew (40:57)
+It's the 80%.
+Mercy (40:59)
+Yes.
+Andrew (40:59)
+Of what drives you nuts is in the forms of notifications or not getting one. You know, I'm either mad because
+I'm annoyed, like, "Dude, I totally understand what you guys are doing.
+Andrew (41:10)
+However, I'm not at that job. And I'd prefer to, like, not get distracted every five minutes." Or it's like, "Hey,
+why wasn't I on that?" So.
+Mercy (41:19)
+Yeah. That's gonna be.
+Andrew (41:19)
+I don't think it's a problem that's, like, solvable for us, honestly. We just have to think it all the way through as
+much as we possibly can to think a ha like, "What's the best way that this can work?"
+Mercy (41:29)
+Yeah. The better the better functionality for that side in s in, in order to make people, yeah, you know,
+acknowledge of something they have to take care and not pumping them. I agree with that side also.
+Mercy (41:41)
+We don't want to have that's enough emails. So if everything is just through the phone through the phone,
+and we can have it like, you I did like that idea.
+Mercy (41:49)
+You just have it because I just hate it when I have this full of notifications.
+Andrew (41:53)
+Drives me nuts.
+Mercy (41:54)
+Insane. Same.
+Andrew (41:55)
+But you know what I don't do? Then I don't look at any of them.
+Mercy (41:58)
+Yep. Yeah.
+Andrew (41:59)
+I don't look at it. I go, "Oh, my God, dude."
+Mercy (42:01)
+I just.
+Andrew (42:01)
+I just throw it away.
+Mercy (42:02)
+Close all. I just.
+Andrew (42:03)
+On the couch. Yeah.
+Mercy (42:04)
+I close all.
+Andrew (42:05)
+Yep.
+Mercy (42:05)
+It's just annoying.
+Andrew (42:06)
+You and I mean you and me and everybody else. That's the thing.
+Andrew (42:09)
+Like, the thing like, ultimately, you, you have a job. I have a job.
+Andrew (42:14)
+Everybody has a job. And you do whatever the person paying you the money tells you that you have to do to
+get that money.
+Andrew (42:19)
+I mean, that's life.
+Mercy (42:20)
+That's, that's how it works.
+Andrew (42:21)
+But if, if, if there's, like, things that that boss is saying, "Hey, we need this, this, this, and this," and I see all
+that, but then the way he wants me to do it makes no sense, I can't stand that. So it's like the old way is the
+employee and the boss just are at odds, basically, for
+Andrew (42:39)
+the entire time of employment. But now it's like, "How do we just make this how do we get the employer what
+he wants?
+Andrew (42:49)
+How do we achieve the outcome he wants? And how do we make it as, like, painless as possible for the
+people so that it doesn't distract them from the work?
+Andrew (42:57)
+How do we get them in the flow and just keep them working all day?"
+Mercy (43:00)
+Well, it's been happy and happy-friendly for everybody. So it's kind of a challenge.
+Mercy (43:05)
+It's a challenge.
+Andrew (43:06)
+Again, that notification is, like, a source of basically half the half the strife throughout the day. You're sitting
+there.
+Andrew (43:13)
+You're trying to do something. Now, bing, bing, bing.
+Andrew (43:16)
+Your phone's going off over there. And you're like, "Ugh."
+Mercy (43:18)
+Yeah. You're good.
+Andrew (43:19)
+"I just wanna get through this thing." You know? So it's like, "How do we make it good, not bad?" And it's the
+same thing with this guy that was telling me, "Oh, I we just need an app that, like, the AI tells me exactly
+what to do every day, blah, blah, blah, blah, blah." And I said, "Well,
+Andrew (43:32)
+okay. That's super dystopian and completely disgusting as far as I'm concerned. But also, you're not gonna
+do it anyway 'cause you still have to do it." Like, the productivity apps have been good for a decade.
+Mercy (43:42)
+It's tough for you to focus.
+Andrew (43:43)
+You can use them. But if your phone keeps telling you, "Hey, you shouldn't eat that ice cream.
+Andrew (43:49)
+Hey, you need to get your butt off the couch and go for a run."
+Mercy (43:52)
+But if you don't move.
+Andrew (43:53)
+If you're not gonna do it.
+Mercy (43:54)
+Yep.
+Andrew (43:54)
+If you're if you're not gonna do it, it's annoying.
+Mercy (43:56)
+You need to take action. Yes.
+Andrew (43:56)
+The thing yeah. And, and the app is doing the same thing.
+Andrew (44:00)
+But if you're not going to do it, it's annoying. If you're gonna do it, it's not annoying.
+Andrew (44:05)
+So, like, if it helps you, and we're all on the same page, and we're all in this.
+Mercy (44:10)
+When you are actually committed to do it.
+Andrew (44:12)
+When you are actually trying to accomplish it. Yeah.
+Andrew (44:13)
+Yeah. You have so like, it's like we don't wanna make it too easy necessarily. Like, there still has to be a
+commitment, acknowledgment, you know, accountability, all of that stuff.
+Andrew (44:24)
+So.
+Mercy (44:24)
+In order to.
+Andrew (44:25)
+We need to figure out how we want basically, we have to figure out how we think it should work knowing that
+it's wrong and then unleash it and then use it and then decide how we need the changes we need to make
+before more people see it. You know?
+Mercy (44:37)
+Yep.
+Andrew (44:38)
+That is kind of how I'm feeling.
+Mercy (44:41)
+Yeah. I agree with you. Well, I, I it's glad we I think we, we all, all of us have the same idea with that because
+we want the more practice, the better.
+Mercy (44:49)
+Even though it's also, uh, true that people needs to take care of them and take actions because even though
+you make the app the easier, the user-friendly, all these, if you don't take action, it, it's not gonna work.
+Andrew (45:04)
+If they won't use it, it doesn't matter. And that's the thing.
+Andrew (45:07)
+It doesn't even matter how easy it is. It's like people just decide to do something or don't.
+Andrew (45:13)
+And they usually don't.
+Mercy (45:15)
+Don't. Just keep them.
+Andrew (45:16)
+Just given the choice. Yeah.
+Mercy (45:17)
+Just keep just keep on the skip, skip the activity. I know.
+Andrew (45:20)
+Yeah.
+Mercy (45:21)
+Oh. Well, yeah. I got you.
+Mercy (45:24)
+And again, I do appreciate, uh, your time. I don't know if you wanna.
+Andrew (45:27)
+Hey.
+Mercy (45:28)
+Mm-hmm?
+Andrew (45:28)
+I think we sh I c probably gotta run here and get a couple things done before I gotta go drag my camper to
+the lake in the rain for no apparent reason. But, but let's can you send me a copy of this transcript?
+Mercy (45:42)
+Yes. Yes. I wanna send you the.
+Andrew (45:43)
+Send you.
+Mercy (45:44)
+The entire conversation, the transcript, the summary, and probably the audio. You can just have it.
+Andrew (45:49)
+Okay. And I've got, uh, uh, some notes that I've been taking this, this time here. The one thing that gets
+sticks out to me is, like, I have it in all caps on my notes is that the notification is k I is kind of this product.
+Andrew (46:02)
+In my head now moving forward, it's how I'm gonna be thinking about the product and usability and friction
+and lack thereof and stuff. So I made my own personal notes.
+Andrew (46:12)
+I know that we've all talked. But if there's anything that's sticking out in your head that you don't think that
+was conveyed properly to me or Jake or we didn't understand what you were trying to say, go ahead and put
+that in the mail too so that we.
+Mercy (46:23)
+Clarify. Yep. Yeah.
+Mercy (46:23)
+Yeah. No. No worry.
+Mercy (46:24)
+I appreciate that. And then, in the meantime, if I see something else and since I can.
+Andrew (46:29)
+Let's just keep.
+Mercy (46:30)
+Talking.
+Andrew (46:30)
+Well, and we can yes. In, in the meantime I'm sorry.
+Andrew (46:32)
+In the meantime, we'll keep, uh, talking on the app as well.
+Mercy (46:36)
+Perfect.
+Andrew (46:36)
+Communicating on the app.
+Mercy (46:37)
+Yeah. Yeah. Let's keep trying then.
+Mercy (46:39)
+And if you see a if you add a new feature and, "Hey, Mercy," because I wanted to see, like, this one. I just,
+uh I don't wanna get this longer than.
+Mercy (46:47)
+But, uh, I know you just mentioned the add user flow, but the sub-tags and roll-up in progress, for example,
+or the metrics in the baseline and the target. Like, uh, I wanna see how is that, like, uh I now right now, I
+have zero in all of them.
+Mercy (47:02)
+But I wanna see in the one that you attached me if, uh, I'm gonna look for that information for the for the.
+Andrew (47:09)
+Okay.
+Mercy (47:09)
+You know? And then once that I put it in there, who's gonna update that number?
+Mercy (47:12)
+It's gonna be automatically? Or how it is go-- you know?
+Mercy (47:16)
+Like, uh, what is the progress that I have in that as in that, uh, activity?
+Andrew (47:21)
+How are we tracking the progress?
+Mercy (47:23)
+Yeah. What.
+Andrew (47:24)
+In the objective?
+Mercy (47:24)
+How, how is that gonna work? Like, uh, I'm gonna give you that, the update, uh, you know, uh, personal and
+who reports to who.
+Mercy (47:32)
+But, uh, I would say.
+Andrew (47:34)
+Yeah.
+Mercy (47:35)
+That, that.
+Andrew (47:36)
+The progress flow tracker. Now I understand.
+Andrew (47:38)
+Same page. Now I got you.
+Mercy (47:39)
+So I just want.
+Andrew (47:40)
+It's just.
+Mercy (47:40)
+I'm just saying it's nonexistent. Okay.
+Mercy (47:42)
+It's just because right now, I'm in zero. And I know I assigned two to Jake.
+Mercy (47:47)
+He already start working on it. And I wanted to know, like.
+Andrew (47:50)
+Right.
+Mercy (47:50)
+He worked on that, but he didn't update that. But I know he, he did because he copied an email.
+Mercy (47:55)
+And I wanted to update it. Could I update that and see if that progress goes up or.
+Andrew (48:00)
+Yeah.
+Mercy (48:00)
+If he has to hire?
+Andrew (48:01)
+Yeah. I've I yeah. No.
+Andrew (48:03)
+Do it. Go ahead.
+Andrew (48:04)
+And I don't know that, that it is going to. But I think that what's going on here is, like, I think that all of that is
+built in.
+Andrew (48:13)
+But there's, like, no semantic layer saying, like, "Hey, Jake was in here and worked for 20 minutes. So we
+should probably progress this bar slightly more." You know what I mean?
+Andrew (48:25)
+There aren't, like, rules set for that.
+Mercy (48:27)
+There is not something that you feed the information in some, uh, uh, area that can actually update it. So.
+Andrew (48:34)
+And I realized what I just broke too because I, I shut off all the AI features that touched AI at all.
+Mercy (48:40)
+Mm-hmm.
+Andrew (48:40)
+I have them in here. And I just put them off for now.
+Andrew (48:43)
+I have a switch to switch them all on or off 'cause I was kind of experimenting. And I got a little bit
+overwhelmed.
+Andrew (48:48)
+And I'm like, "Okay. We're getting way off track here.
+Andrew (48:51)
+I'm gonna come in here and show Jake these new features. And he's gonna go, 'Dude, we haven't
+addressed the ones that we've been talking about.'" So I stopped myself from doing that.
+Mercy (49:00)
+Yes.
+Andrew (49:00)
+I just turned the AI feature off.
+Mercy (49:01)
+No. But don't.
+Andrew (49:02)
+And I realized that.
+Mercy (49:03)
+Don't just stop it. Just take notes because there's gonna be for there's gonna be also an uh, we'll need it
+probably in the future when we finalize, like, the main stuff first and.
+Andrew (49:10)
+Yes.
+Mercy (49:11)
+Go keep going, you know?
+Andrew (49:12)
+I'll flip I'll be working on this all weekend too so we can communicate over oh, and.
+Mercy (49:17)
+Yeah. Sounds good.
+Andrew (49:17)
+I know I have a feature here, there, and.
+Mercy (49:19)
+Sounds good to me.
+Andrew (49:20)
+We can kinda go from there. Thank you very much, Mercy.
+Mercy (49:22)
+Yeah. Yeah. Thank you.
+Andrew (49:23)
+I don't know if you mind that I s call you Mercy or not.
+Mercy (49:25)
+No. You everybody call me Mercy. Yeah.
+Mercy (49:26)
+You're completely fine. Go ahead.
+Andrew (49:27)
+Oh, okay. Because if I have to try to spit your name out again.
+Mercy (49:31)
+It is.
+Andrew (49:31)
+More times and sound like I feel like an epic moron when I'm trying to say it. And it's like it's not hard to say, I
+don't think.
+Mercy (49:38)
+Yeah.
+Andrew (49:38)
+It looks just like it sounds.
+Mercy (49:40)
+Yes.
+Andrew (49:40)
+But for some reason.
+Mercy (49:41)
+Yes. Yes. You're fine.
+Andrew (49:43)
+There is an E and an L and a something is not.
+Mercy (49:46)
+It's my mom. I know.
+Mercy (49:48)
+I have this thing.
+Andrew (49:49)
+It's like.
+Mercy (49:49)
+That I got you.
+Andrew (49:50)
+Espanol dyslexic, but only in Espanol or something. I don't know.
+Andrew (49:54)
+I don't know.
+Mercy (49:54)
+I know. I know.
+Mercy (49:55)
+My mom made this, this thing. Yeah.
+Mercy (49:56)
+I'm just dealing with it as soft as 37 years. But everybody just call me Mercy.
+Mercy (50:02)
+Okay. Okay.
+Andrew (50:02)
+All right, Mercy.
+Mercy (50:03)
+Thank you for your time. Sorry for all the changes at the last second.
+Andrew (50:07)
+It's all good. It's all good.
+Mercy (50:08)
+Okay. Sounds good. Bye-bye.

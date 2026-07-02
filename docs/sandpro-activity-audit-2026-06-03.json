@@ -1,0 +1,2328 @@
+{
+  "generatedAt": "2026-06-03T14:08:28.371Z",
+  "since": "2026-06-02T14:01:44.284Z",
+  "counts": {
+    "objectivesCreated": 0,
+    "objectiveUpdates": 3,
+    "messages": 2,
+    "objectiveMembers": 1,
+    "orgChartUpdates": 0,
+    "fixItRecent": 6,
+    "fixItActive": 6,
+    "fixItAttachmentsRecent": 8,
+    "notifications": 0,
+    "emailLogs": 23,
+    "pushLogs": 14,
+    "ncrReports": 0
+  },
+  "openRequestsFromJakeMerci": [
+    {
+      "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+      "title": "Finalize April expense report — personal CC items + remaining receipts",
+      "description": "Hi Jake! wrapping up the April expense report. I already have the corporate AmEx statement and the receipts you've sent me printed and organized:\n\nSal y Pimienta Houston (04/22) — $1,943.50\nHyatt Regency Houston (04/23) — $13.57\nHyatt Regency Houston (04/23) — $12.54\nConophil Sbuck Cafe Houston (04/24) — $5.37\n\nTo close it out whenever you have a moment, I'd need:\n\nYour personal CC statement marked with the items you'd like reflected as business expenses (same approach as last time)\nA heads-up on any remaining receipts you'd like included so I can print them and add them to the packet\n\nNo rush, just keeping it on the radar so we can wrap cleanly.\n(Also doubling as an OMP test, flag anything that doesn't render right.)",
+      "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+      "delegated_by": null,
+      "parent_id": null,
+      "status": "on_track",
+      "priority": "medium",
+      "progress": 50,
+      "due_date": "2026-05-20T00:00:00+00:00",
+      "start_date": null,
+      "department": "Admin",
+      "acknowledged": true,
+      "blocker_flag": false,
+      "blocker_reason": "",
+      "next_action": "",
+      "type": "simple",
+      "baseline_metric": null,
+      "target_metric": null,
+      "current_metric": null,
+      "metric_unit": "",
+      "created_at": "2026-05-13T22:02:38.861148+00:00",
+      "updated_at": "2026-06-02T21:30:53.38429+00:00",
+      "measurement_cadence": "monthly",
+      "rollup_method": "average",
+      "owner": {
+        "id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "name": "Mercileidy Jimenez",
+        "email": "mjimenez@sandpro.com",
+        "role": "manager",
+        "title": "Executive Assistant"
+      },
+      "createdBy": {
+        "id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "name": "Mercileidy Jimenez",
+        "email": "mjimenez@sandpro.com",
+        "role": "manager",
+        "title": "Executive Assistant"
+      },
+      "delegatedBy": null
+    },
+    {
+      "id": "99a89a41-f6e3-40bc-93ab-b9f970d0c93d",
+      "title": "NCR #82007650 - Process Loss - Slawson Tebel",
+      "description": "Event: Bonnet cap loose\n\nImmediate action: Tighten Bonnet cap\n\nPermanent action: Educate and train shop personnel to make sure all equipment is in proper ready condition when put in deployment zone\n\nFollow-ups: Assigned to Oleg Postolatii on 5/26/26, Due 6/3/26 educate shop personnel on making sure that items set in deployment zone are ready to go - by Timothy Dibben on 5/26/26 Assigned to Thomas Goldsberry on 5/26/26, Due 5/30/26 educate shop personnel on making sure that items set in deployment zone are ready to go - by Timothy Dibben on 5/26/26",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "delegated_by": null,
+      "parent_id": null,
+      "status": "not_started",
+      "priority": "medium",
+      "progress": 0,
+      "due_date": "2026-05-30T00:00:00+00:00",
+      "start_date": null,
+      "department": "Shop",
+      "acknowledged": false,
+      "blocker_flag": false,
+      "blocker_reason": "",
+      "next_action": "Assign action owners and close NCR only after corrective actions are complete.",
+      "type": "simple",
+      "baseline_metric": null,
+      "target_metric": null,
+      "current_metric": null,
+      "metric_unit": "",
+      "created_at": "2026-06-01T22:13:03.406646+00:00",
+      "updated_at": "2026-06-01T22:13:03.406646+00:00",
+      "measurement_cadence": "monthly",
+      "rollup_method": "average",
+      "owner": {
+        "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Jake Feil",
+        "email": "jfeil@sandpro.com",
+        "role": "executive",
+        "title": "CEO"
+      },
+      "createdBy": {
+        "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Jake Feil",
+        "email": "jfeil@sandpro.com",
+        "role": "executive",
+        "title": "CEO"
+      },
+      "delegatedBy": null
+    },
+    {
+      "id": "e06c5c6c-af16-4209-a375-701689393069",
+      "title": "Provide Tim Dibben with login credentials",
+      "description": "Provide Tim Dibben with login credentials for working with and providing feedback on NCR Dashboard. tdibben@sandpro. @Mercileidy Jimenez ",
+      "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "delegated_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "parent_id": null,
+      "status": "on_track",
+      "priority": "medium",
+      "progress": 80,
+      "due_date": "2026-06-02T00:00:00+00:00",
+      "start_date": null,
+      "department": "Leadership",
+      "acknowledged": true,
+      "blocker_flag": false,
+      "blocker_reason": "",
+      "next_action": "",
+      "type": "simple",
+      "baseline_metric": null,
+      "target_metric": null,
+      "current_metric": null,
+      "metric_unit": "",
+      "created_at": "2026-06-01T14:00:48.899751+00:00",
+      "updated_at": "2026-06-01T18:34:38.928347+00:00",
+      "measurement_cadence": "monthly",
+      "rollup_method": "average",
+      "owner": {
+        "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "Andrew Emmel",
+        "email": "andrew@ndai.pro",
+        "role": "executive",
+        "title": "Platform Admin"
+      },
+      "createdBy": {
+        "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Jake Feil",
+        "email": "jfeil@sandpro.com",
+        "role": "executive",
+        "title": "CEO"
+      },
+      "delegatedBy": {
+        "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Jake Feil",
+        "email": "jfeil@sandpro.com",
+        "role": "executive",
+        "title": "CEO"
+      }
+    },
+    {
+      "id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+      "title": "Push Notifications",
+      "description": "Phone and Desktop ",
+      "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "delegated_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "parent_id": null,
+      "status": "not_started",
+      "priority": "high",
+      "progress": 0,
+      "due_date": "2026-06-04T00:00:00+00:00",
+      "start_date": null,
+      "department": "Leadership",
+      "acknowledged": true,
+      "blocker_flag": false,
+      "blocker_reason": "",
+      "next_action": "",
+      "type": "simple",
+      "baseline_metric": null,
+      "target_metric": null,
+      "current_metric": null,
+      "metric_unit": "",
+      "created_at": "2026-05-28T17:13:01.654659+00:00",
+      "updated_at": "2026-05-30T00:05:49.393966+00:00",
+      "measurement_cadence": "monthly",
+      "rollup_method": "manual",
+      "owner": {
+        "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "Andrew Emmel",
+        "email": "andrew@ndai.pro",
+        "role": "executive",
+        "title": "Platform Admin"
+      },
+      "createdBy": {
+        "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Jake Feil",
+        "email": "jfeil@sandpro.com",
+        "role": "executive",
+        "title": "CEO"
+      },
+      "delegatedBy": {
+        "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Jake Feil",
+        "email": "jfeil@sandpro.com",
+        "role": "executive",
+        "title": "CEO"
+      }
+    },
+    {
+      "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+      "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+      "description": "Hi Jake! Following up on the Focus Digital meeting with Brett. To kick off Week 1 of production, we need three inputs from our side:\n\nSTEP/CAD file of the wellhead type to be used\nStandard procedure sequence that sets the retrievable bridge plug\nConfirmation of the scenarios to be animated (normal deployment, worn/unretrievable replacement, alternative routine)\n\nCould you point me to the right engineering contact(s) so I can coordinate the delivery of the assets? Quote is $4,800 total, with a 4–6 week timeline once we hand the files over to Focus Digital.\n(Also doubling as an OMP test.. flag anything that doesn't render right.)",
+      "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+      "delegated_by": null,
+      "parent_id": null,
+      "status": "on_track",
+      "priority": "high",
+      "progress": 0,
+      "due_date": "2026-05-28T00:00:00+00:00",
+      "start_date": null,
+      "department": "Admin",
+      "acknowledged": true,
+      "blocker_flag": false,
+      "blocker_reason": "",
+      "next_action": "",
+      "type": "simple",
+      "baseline_metric": null,
+      "target_metric": null,
+      "current_metric": null,
+      "metric_unit": "",
+      "created_at": "2026-05-13T22:09:22.321543+00:00",
+      "updated_at": "2026-05-26T20:50:11.603043+00:00",
+      "measurement_cadence": "monthly",
+      "rollup_method": "average",
+      "owner": {
+        "id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "name": "Mercileidy Jimenez",
+        "email": "mjimenez@sandpro.com",
+        "role": "manager",
+        "title": "Executive Assistant"
+      },
+      "createdBy": {
+        "id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "name": "Mercileidy Jimenez",
+        "email": "mjimenez@sandpro.com",
+        "role": "manager",
+        "title": "Executive Assistant"
+      },
+      "delegatedBy": null
+    }
+  ],
+  "recent": {
+    "objectives": [],
+    "objectiveUpdates": [
+      {
+        "id": "ceb64b63-29fa-461d-a0c3-f90ec0c88c26",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "status": "on_track",
+        "progress": 0,
+        "note": "Workflow step \"Inputs\" marked done",
+        "created_at": "2026-06-02T20:09:32.026311+00:00",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "action_type": "workflow_step_updated",
+        "old_value": "current",
+        "new_value": "done",
+        "reference_id": "b311e5bb-e1fd-426c-96cd-54e923fe2706",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-05-26T20:50:11.603043+00:00"
+        }
+      },
+      {
+        "id": "b261f1f4-f1a2-4fe3-8fb7-f780ade9c833",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "status": "on_track",
+        "progress": 0,
+        "note": "Workflow moved to Execute",
+        "created_at": "2026-06-02T20:09:34.365605+00:00",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "action_type": "workflow_step_updated",
+        "old_value": null,
+        "new_value": "current",
+        "reference_id": "2a6029ac-1e20-4239-86a8-9015eb8dca37",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-05-26T20:50:11.603043+00:00"
+        }
+      },
+      {
+        "id": "d3dd957c-43c7-4111-959e-7479f7d94bc8",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "status": "on_track",
+        "progress": 50,
+        "note": "Status changed to on_track",
+        "created_at": "2026-06-02T21:30:53.630777+00:00",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "action_type": "status_change",
+        "old_value": "not_started",
+        "new_value": "on_track",
+        "reference_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+          "title": "Finalize April expense report — personal CC items + remaining receipts",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-02T21:30:53.38429+00:00"
+        }
+      }
+    ],
+    "messages": [
+      {
+        "id": "f3ed9d46-ee6c-4405-88ba-4a7c3860a053",
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "text": "@Tim Dibben  i am now adding you to this project to ensure that the org chart is correct",
+        "created_at": "2026-06-02T16:22:50.211951+00:00",
+        "user": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "objective": {
+          "id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "title": "org chart breakdown",
+          "status": "on_track",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "updated_at": "2026-05-31T17:43:47.687732+00:00"
+        }
+      },
+      {
+        "id": "9e0ba937-3f7c-4297-be7d-7240a8df330a",
+        "objective_id": "4eabb31d-2fd7-4637-9335-15bca6e88c87",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "text": "@Andrew Emmel I noticed the new voice note option in Messages, and I think this is a great feature.\n\nI tested it, but once the recording starts, I only see the recording timer, “Use voice note,” and “Discard.” I do not see a clear option to stop the recording, preview the message, see the transcribed text, or send it.\n\nI was able to start recording and discard/re-record, but I could not complete the flow because there was no clear send option after recording.\n\nSuggestion: after recording, it would be helpful to have a clear “Stop” button, then show either a playback/preview or transcription, and finally a clear “Send” or “Attach voice note” option.\n\nThis would make the voice note flow easier to understand and test.",
+        "created_at": "2026-06-02T16:35:48.9701+00:00",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "4eabb31d-2fd7-4637-9335-15bca6e88c87",
+          "title": "Voice Note Option for Messages",
+          "status": "completed",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-01T22:16:57.579242+00:00"
+        }
+      }
+    ],
+    "objectiveMembers": [
+      {
+        "id": "5c64f408-7e52-4ffc-b998-a0400df51db0",
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+        "role": "assignee",
+        "created_at": "2026-06-02T16:22:52.213096+00:00",
+        "user": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "email": "tdibben@sandpro.com",
+          "role": "manager",
+          "title": "Facilities Operations Manager"
+        },
+        "objective": {
+          "id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "title": "org chart breakdown",
+          "status": "on_track",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "updated_at": "2026-05-31T17:43:47.687732+00:00"
+        }
+      }
+    ],
+    "orgChartUpdates": [],
+    "fixItPosts": [
+      {
+        "id": "24ec11ae-0b3f-440c-8f1e-e310338bd91e",
+        "body": "Under the Admin Tab, i need to be able to export custom report, list of NCR section",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-06-02T21:59:03.228494+00:00",
+        "updated_at": "2026-06-03T03:36:49.657592+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T03:36:49.564+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      },
+      {
+        "id": "53262649-b258-49df-b480-28e8da6a80c1",
+        "body": "When looking at the org chart, it is hard to navigate and read. is there a different view that will make the operation and navigating easier. a different type of view that is more compact.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "archived",
+        "created_at": "2026-06-02T22:09:06.530141+00:00",
+        "updated_at": "2026-06-03T03:43:47.478467+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T03:36:47.737+00:00",
+        "human_reviewed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "human_reviewed_at": "2026-06-03T03:43:46.648+00:00",
+        "archived_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "archived_at": "2026-06-03T03:43:46.648+00:00",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "archivedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "3a84c1b9-4a15-475c-bb4d-ddb15d13ddb7",
+        "body": "we need a @AllCompany Tag for communication that needs to be distributed to the entire organizational chart.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "archived",
+        "created_at": "2026-06-02T21:35:04.841874+00:00",
+        "updated_at": "2026-06-03T03:45:19.630934+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T03:36:50.615+00:00",
+        "human_reviewed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "human_reviewed_at": "2026-06-03T03:45:18.876+00:00",
+        "archived_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "archived_at": "2026-06-03T03:45:18.876+00:00",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "archivedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "394da860-7f4f-4c49-8604-da7d889de8d3",
+        "body": "@Andrew Emmel I noticed the new voice note option in Messages, and I think this is a great feature.\n\nI tested it, but once the recording starts, I only see the recording timer, “Use voice note,” and “Discard.” I do not see a clear option to stop the recording, preview the message, see the transcribed text, or send it.\n\nI was able to start recording and discard/re-record, but I could not complete the flow because there was no clear send option after recording.\n\nSuggestion: after recording, it would be helpful to have a clear “Stop” button, then show either a playback/preview or transcription, and finally a clear “Send” or “Attach voice note” option.\n\nThis would make the voice note flow easier to understand and test.",
+        "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-06-02T16:36:14.221634+00:00",
+        "updated_at": "2026-06-03T04:03:06.150752+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T04:03:05.794+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      },
+      {
+        "id": "adaa4b2b-85b5-46d7-8d44-866306eadb8c",
+        "body": "NCR Section. Need to be able to Enter a NEW NCR. The fields should be all the same criteria as active NCR's that are in the system. Simply need to be able to add new NCRs to the system",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-06-02T16:20:15.503076+00:00",
+        "updated_at": "2026-06-03T04:03:07.903022+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T04:03:07.714+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      },
+      {
+        "id": "997962d7-cd8f-4370-81cb-963235e2493a",
+        "body": "Hi Andrew, Quick note from my Organization Chart testing:\n\nThe Add Employee option is working well, and I was able to add several people for testing. When adding each person, the system required an 8-digit temporary password. For testing purposes, I used 12345678 as the temporary password for all the people I added. Just noting that here in case you need to adjust or reset anything later.\n\nI also noticed one limitation while trying to recreate the structure from the official org chart. Some entries are not individual employees, but general group placeholders, such as “Field Service Technicians,” “Shop Technicians,” or similar team groups. I tried to add “Field Service Technicians” under the Field Service Manager area for visual/reference purposes, but the system requires an email address before allowing the entry to be saved.\n\nSince these group placeholders do not have individual emails, would it be possible to allow certain org chart entries to be saved without an email address? Maybe as a “group,” “team,” or “placeholder” type instead of a user account.\n\nThe idea would be only for visual org chart accuracy, not necessarily to create a login/user profile. It would help show who reports to each manager and keep the OMP Organization Chart aligned with the official SandPro org chart.\n\nOne additional visual suggestion: as the org chart grows horizontally, it may be helpful to add subtle color grouping by reporting structure. Right now, most cards look very similar, so it can be a little hard to quickly see where one leader’s group starts and ends.\n\nFor example, Malcolm’s group, Josh’s group, and Kayla’s group could each have a very light background tone, border, or small color stripe to visually separate them. This could still stay within the SandPro color palette, using soft orange, light gray, white, or other subtle tones so the chart stays clean and not too busy.\n\nThe main goal would be to make it easier to identify each reporting group at a glance while keeping the same professional look and feel.\n\nThank you!",
+        "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-06-01T19:33:55.069093+00:00",
+        "updated_at": "2026-06-03T04:03:09.357044+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T04:03:09.167+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      }
+    ],
+    "fixItAttachments": [
+      {
+        "id": "7c7bf575-a359-4123-bcdb-b13cc1505bc7",
+        "post_id": "394da860-7f4f-4c49-8604-da7d889de8d3",
+        "uploaded_by": "801402ec-7815-44f3-8948-9daae10b4407",
+        "name": "Screenshot 2026-06-02 113248.png",
+        "type": "image",
+        "mime_type": "image/png",
+        "size": "66.1 KB",
+        "storage_path": "394da860-7f4f-4c49-8604-da7d889de8d3/1780418180538_Screenshot 2026-06-02 113248.png",
+        "url": "",
+        "created_at": "2026-06-02T16:36:14.856735+00:00",
+        "purpose": "report"
+      },
+      {
+        "id": "56df3d8b-17db-45ad-bbdb-6753a2501722",
+        "post_id": "394da860-7f4f-4c49-8604-da7d889de8d3",
+        "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "sandpro-voice-stop-proof-voice-stop-proof-1780425458191-d8fa.png",
+        "type": "image",
+        "mime_type": "image/png",
+        "size": "176.8 KB",
+        "storage_path": "394da860-7f4f-4c49-8604-da7d889de8d3/1780425503272_sandpro-voice-stop-proof-voice-stop-proof-1780425458191-d8fa.png",
+        "url": "",
+        "created_at": "2026-06-02T18:38:25.141534+00:00",
+        "purpose": "validation_proof"
+      },
+      {
+        "id": "c206793e-9cac-41cc-97e5-6af5cf42bbf8",
+        "post_id": "53262649-b258-49df-b480-28e8da6a80c1",
+        "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "Validation proof - org compact view live.png",
+        "type": "image",
+        "mime_type": "image/png",
+        "size": "88.0 KB",
+        "storage_path": "53262649-b258-49df-b480-28e8da6a80c1/1780457806875_org-compact-live.png",
+        "url": "",
+        "created_at": "2026-06-03T03:36:47.676452+00:00",
+        "purpose": "validation_proof"
+      },
+      {
+        "id": "d254caa5-f998-4614-91ee-7ef66a497449",
+        "post_id": "24ec11ae-0b3f-440c-8f1e-e310338bd91e",
+        "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "Validation proof - NCR custom export live.png",
+        "type": "image",
+        "mime_type": "image/png",
+        "size": "110.9 KB",
+        "storage_path": "24ec11ae-0b3f-440c-8f1e-e310338bd91e/1780457808907_ncr-export-live.png",
+        "url": "",
+        "created_at": "2026-06-03T03:36:49.467736+00:00",
+        "purpose": "validation_proof"
+      },
+      {
+        "id": "b1a1b0c2-f8d8-4868-b6a0-788bd3ecc210",
+        "post_id": "3a84c1b9-4a15-475c-bb4d-ddb15d13ddb7",
+        "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "Validation proof - AllCompany mention live.png",
+        "type": "image",
+        "mime_type": "image/png",
+        "size": "49.9 KB",
+        "storage_path": "3a84c1b9-4a15-475c-bb4d-ddb15d13ddb7/1780457810209_allcompany-suggestion-live.png",
+        "url": "",
+        "created_at": "2026-06-03T03:36:50.545705+00:00",
+        "purpose": "validation_proof"
+      },
+      {
+        "id": "71c9bf04-de57-4e37-8f06-90e9e9e96311",
+        "post_id": "394da860-7f4f-4c49-8604-da7d889de8d3",
+        "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "Validation proof - voice note stop control live.png",
+        "type": "image",
+        "mime_type": "image/png",
+        "size": "208.6 KB",
+        "storage_path": "394da860-7f4f-4c49-8604-da7d889de8d3/1780459384969_voice-note-stop-live.png",
+        "url": "",
+        "created_at": "2026-06-03T04:03:05.818891+00:00",
+        "purpose": "validation_proof"
+      },
+      {
+        "id": "324f8434-6b3d-4fad-b235-e08c43f8ad89",
+        "post_id": "adaa4b2b-85b5-46d7-8d44-866306eadb8c",
+        "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "Validation proof - new NCR creation live.png",
+        "type": "image",
+        "mime_type": "image/png",
+        "size": "234.2 KB",
+        "storage_path": "adaa4b2b-85b5-46d7-8d44-866306eadb8c/1780459386887_ncr-new-created-live.png",
+        "url": "",
+        "created_at": "2026-06-03T04:03:07.777066+00:00",
+        "purpose": "validation_proof"
+      },
+      {
+        "id": "94fcd216-1ae2-4862-afcc-f0af5b73c05e",
+        "post_id": "997962d7-cd8f-4370-81cb-963235e2493a",
+        "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "name": "Validation proof - org visual group placeholder live.png",
+        "type": "image",
+        "mime_type": "image/png",
+        "size": "54.3 KB",
+        "storage_path": "997962d7-cd8f-4370-81cb-963235e2493a/1780459388323_org-placeholder-created-live.png",
+        "url": "",
+        "created_at": "2026-06-03T04:03:09.217542+00:00",
+        "purpose": "validation_proof"
+      }
+    ],
+    "notifications": [],
+    "emailLogs": [
+      {
+        "id": "1dd365d6-7c1b-4697-8f27-b0d7f7da39ca",
+        "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "notification_type": "mention",
+        "dedupe_key": "129efe70-60f8-4f40-8407-1f6361c81d87:mention:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:SmFrZSBGZWlsIG1lbnRpb25lZCB5b3UgaW4gIm9y",
+        "recipient": "tdibben@sandpro.com",
+        "subject": "You were tagged on a SandPro OMP objective",
+        "provider_id": "3830a633-1550-4f4c-94a7-efb6e1ac8325",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-02T16:22:56.312+00:00",
+        "created_at": "2026-06-02T16:22:55.767767+00:00",
+        "user": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "email": "tdibben@sandpro.com",
+          "role": "manager",
+          "title": "Facilities Operations Manager"
+        },
+        "objective": {
+          "id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "title": "org chart breakdown",
+          "status": "on_track",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "updated_at": "2026-05-31T17:43:47.687732+00:00"
+        }
+      },
+      {
+        "id": "a050f67e-5817-4e58-89ff-afe0b1cc0398",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "4eabb31d-2fd7-4637-9335-15bca6e88c87",
+        "notification_type": "mention",
+        "dedupe_key": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79:mention:4eabb31d-2fd7-4637-9335-15bca6e88c87:TWVyY2lsZWlkeSBKaW1lbmV6IG1lbnRpb25lZCB5",
+        "recipient": "andrew@ndai.pro",
+        "subject": "You were tagged on a SandPro OMP objective",
+        "provider_id": "9addba20-2140-441f-a5f6-0d4d7f81fb29",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-02T16:35:54.481+00:00",
+        "created_at": "2026-06-02T16:35:54.062738+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "objective": {
+          "id": "4eabb31d-2fd7-4637-9335-15bca6e88c87",
+          "title": "Voice Note Option for Messages",
+          "status": "completed",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-01T22:16:57.579242+00:00"
+        }
+      },
+      {
+        "id": "59eed8b1-6d38-4d15-a166-f4884a1f6ed3",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "4eabb31d-2fd7-4637-9335-15bca6e88c87",
+        "notification_type": "comment",
+        "dedupe_key": "db831b29-8bf9-4192-a0e8-422a142c6fb7:comment:4eabb31d-2fd7-4637-9335-15bca6e88c87:TWVyY2lsZWlkeSBKaW1lbmV6IGNvbW1lbnRlZCBv",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "New SandPro OMP message",
+        "provider_id": "84c09194-7ab6-4473-889d-f30788f3073d",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-02T16:35:54.517+00:00",
+        "created_at": "2026-06-02T16:35:54.064269+00:00",
+        "user": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "objective": {
+          "id": "4eabb31d-2fd7-4637-9335-15bca6e88c87",
+          "title": "Voice Note Option for Messages",
+          "status": "completed",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-01T22:16:57.579242+00:00"
+        }
+      },
+      {
+        "id": "f1e39cd3-35d1-4900-8db4-5ca61e8c53c4",
+        "user_id": "3463c626-ecaf-4b51-88e9-f9699180e729",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "notification_type": "daily_digest",
+        "dedupe_key": "daily_digest:3463c626-ecaf-4b51-88e9-f9699180e729:2026-06-03:daily",
+        "recipient": "jblackaby@sandpro.com",
+        "subject": "SandPro OMP morning summary",
+        "provider_id": "bd97a0cd-03a2-46aa-89bb-ca2651d53899",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T13:00:02.366+00:00",
+        "created_at": "2026-06-03T13:00:01.995129+00:00",
+        "user": {
+          "id": "3463c626-ecaf-4b51-88e9-f9699180e729",
+          "name": "Joshua Blackaby",
+          "email": "jblackaby@sandpro.com",
+          "role": "executive",
+          "title": "Vice President"
+        },
+        "objective": {
+          "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+          "title": "Finalize April expense report — personal CC items + remaining receipts",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-02T21:30:53.38429+00:00"
+        }
+      },
+      {
+        "id": "7dca30d0-8bcd-4890-b6e3-3576dc2b8bd9",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "notification_type": "daily_digest",
+        "dedupe_key": "daily_digest:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:2026-06-03:daily",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP morning summary",
+        "provider_id": "089f1f96-3eb7-4e6b-9cab-582cfb30fa41",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T13:00:04.162+00:00",
+        "created_at": "2026-06-03T13:00:02.955224+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "objective": {
+          "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+          "title": "Finalize April expense report — personal CC items + remaining receipts",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-02T21:30:53.38429+00:00"
+        }
+      },
+      {
+        "id": "2092816b-72da-41b2-abc0-c381ed5e4a1e",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "notification_type": "daily_digest",
+        "dedupe_key": "daily_digest:db831b29-8bf9-4192-a0e8-422a142c6fb7:2026-06-03:daily",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "SandPro OMP morning summary",
+        "provider_id": "3fc9ad6f-2f77-46b7-84e3-65e31dcca22c",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T13:00:06.332+00:00",
+        "created_at": "2026-06-03T13:00:04.365322+00:00",
+        "user": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "objective": {
+          "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+          "title": "Finalize April expense report — personal CC items + remaining receipts",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-02T21:30:53.38429+00:00"
+        }
+      },
+      {
+        "id": "8ea8ba2d-3e2b-44ce-946e-c94bdb47c6ef",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "notification_type": "daily_digest",
+        "dedupe_key": "daily_digest:801402ec-7815-44f3-8948-9daae10b4407:2026-06-03:daily",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP morning summary",
+        "provider_id": "bbb6376d-00ed-45ce-bada-513b083bee2d",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T13:00:09.565+00:00",
+        "created_at": "2026-06-03T13:00:06.583185+00:00",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+          "title": "Finalize April expense report — personal CC items + remaining receipts",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-02T21:30:53.38429+00:00"
+        }
+      },
+      {
+        "id": "586b423e-b701-42ba-8e5b-40117924b025",
+        "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+        "objective_id": "339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f",
+        "notification_type": "daily_digest",
+        "dedupe_key": "daily_digest:129efe70-60f8-4f40-8407-1f6361c81d87:2026-06-03:daily",
+        "recipient": "tdibben@sandpro.com",
+        "subject": "SandPro OMP morning summary",
+        "provider_id": "b3b7b45d-8056-4723-a2b7-51d9075b4304",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T13:00:11.772+00:00",
+        "created_at": "2026-06-03T13:00:09.781637+00:00",
+        "user": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "email": "tdibben@sandpro.com",
+          "role": "manager",
+          "title": "Facilities Operations Manager"
+        },
+        "objective": {
+          "id": "339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f",
+          "title": "NCR #82008371 - Substandard Condition",
+          "status": "on_track",
+          "owner": {
+            "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+            "name": "Tim Dibben",
+            "email": "tdibben@sandpro.com",
+            "role": "manager",
+            "title": "Facilities Operations Manager"
+          },
+          "createdBy": {
+            "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+            "name": "Tim Dibben",
+            "email": "tdibben@sandpro.com",
+            "role": "manager",
+            "title": "Facilities Operations Manager"
+          },
+          "updated_at": "2026-06-02T13:50:13.30038+00:00"
+        }
+      },
+      {
+        "id": "8d5558e5-60c0-4ccf-a493-328cf132acfd",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:2577b7fb-5592-467e-a212-5f6a8732eead:2026-06-03",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "735f4cd4-f6f1-4d09-a3fe-8b1a843599eb",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:11.444+00:00",
+        "created_at": "2026-06-03T14:00:03.679433+00:00",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+          "title": "Finalize April expense report — personal CC items + remaining receipts",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-02T21:30:53.38429+00:00"
+        }
+      },
+      {
+        "id": "2add07e1-bce9-4351-b2ab-8d8107073d92",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:2577b7fb-5592-467e-a212-5f6a8732eead:2026-06-03",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "c25fb953-b5d8-4b9f-b383-8c1ac677cce1",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:15.17+00:00",
+        "created_at": "2026-06-03T14:00:12.034158+00:00",
+        "user": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "objective": {
+          "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+          "title": "Finalize April expense report — personal CC items + remaining receipts",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-06-02T21:30:53.38429+00:00"
+        }
+      },
+      {
+        "id": "47fad61d-64ef-4654-89fe-7ba7658640a5",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-03",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "23fdce46-eea2-423f-8bf1-21470ae194ef",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:18.432+00:00",
+        "created_at": "2026-06-03T14:00:15.515514+00:00",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-05-26T20:50:11.603043+00:00"
+        }
+      },
+      {
+        "id": "c4456089-f5ba-44a0-b4d5-e10db61bb590",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-03",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "6ce81429-35db-4ed8-9a63-95185e7a56a4",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:21.789+00:00",
+        "created_at": "2026-06-03T14:00:18.92477+00:00",
+        "user": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "objective": {
+          "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-05-26T20:50:11.603043+00:00"
+        }
+      },
+      {
+        "id": "b4f67ce1-4e2f-4fb2-83c4-c9392c9cbfc3",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-03",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "ebc01206-fded-4c55-93d9-c1ea451aee40",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:25.32+00:00",
+        "created_at": "2026-06-03T14:00:21.961492+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "objective": {
+          "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+          "status": "on_track",
+          "owner": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "createdBy": {
+            "id": "801402ec-7815-44f3-8948-9daae10b4407",
+            "name": "Mercileidy Jimenez",
+            "email": "mjimenez@sandpro.com",
+            "role": "manager",
+            "title": "Executive Assistant"
+          },
+          "updated_at": "2026-05-26T20:50:11.603043+00:00"
+        }
+      },
+      {
+        "id": "21682a31-d5f6-4128-b3dc-1437571b59b6",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-03",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "4cdcfa71-9ca8-4280-8ac3-0cd5e9df8d32",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:28.015+00:00",
+        "created_at": "2026-06-03T14:00:25.532478+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "objective": {
+          "id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "title": "org chart breakdown",
+          "status": "on_track",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "updated_at": "2026-05-31T17:43:47.687732+00:00"
+        }
+      },
+      {
+        "id": "39a86c56-311c-4944-a801-d43195fe0613",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-03",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "f0bb71b8-f040-4bcb-9ed1-095781acd204",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:29.848+00:00",
+        "created_at": "2026-06-03T14:00:28.224836+00:00",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "title": "org chart breakdown",
+          "status": "on_track",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "updated_at": "2026-05-31T17:43:47.687732+00:00"
+        }
+      },
+      {
+        "id": "177db8b2-fa33-4e5b-b566-e9e45d601775",
+        "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:129efe70-60f8-4f40-8407-1f6361c81d87:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-03",
+        "recipient": "tdibben@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "561e16e0-ce69-4baf-ba58-2dd6975cf461",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:32.748+00:00",
+        "created_at": "2026-06-03T14:00:30.418569+00:00",
+        "user": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "email": "tdibben@sandpro.com",
+          "role": "manager",
+          "title": "Facilities Operations Manager"
+        },
+        "objective": {
+          "id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "title": "org chart breakdown",
+          "status": "on_track",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "updated_at": "2026-05-31T17:43:47.687732+00:00"
+        }
+      },
+      {
+        "id": "28de8fca-488a-40cb-abf1-1c89ddf2ec07",
+        "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+        "objective_id": "339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:129efe70-60f8-4f40-8407-1f6361c81d87:339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f:2026-06-03",
+        "recipient": "tdibben@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "5c30f393-8b87-451a-b633-d0c24d1c5131",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:33.699+00:00",
+        "created_at": "2026-06-03T14:00:33.098009+00:00",
+        "user": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "email": "tdibben@sandpro.com",
+          "role": "manager",
+          "title": "Facilities Operations Manager"
+        },
+        "objective": {
+          "id": "339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f",
+          "title": "NCR #82008371 - Substandard Condition",
+          "status": "on_track",
+          "owner": {
+            "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+            "name": "Tim Dibben",
+            "email": "tdibben@sandpro.com",
+            "role": "manager",
+            "title": "Facilities Operations Manager"
+          },
+          "createdBy": {
+            "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+            "name": "Tim Dibben",
+            "email": "tdibben@sandpro.com",
+            "role": "manager",
+            "title": "Facilities Operations Manager"
+          },
+          "updated_at": "2026-06-02T13:50:13.30038+00:00"
+        }
+      },
+      {
+        "id": "0c17b51d-7f7d-4168-9a11-38176576d886",
+        "user_id": "80216ffc-c756-40e8-81e9-777d84f54221",
+        "objective_id": "339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:80216ffc-c756-40e8-81e9-777d84f54221:339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f:2026-06-03",
+        "recipient": "jmaslowski@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "e7664cf5-0ca4-400c-8591-388100134d6a",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:35.474+00:00",
+        "created_at": "2026-06-03T14:00:34.062909+00:00",
+        "user": {
+          "id": "80216ffc-c756-40e8-81e9-777d84f54221",
+          "name": "Jaelen Maslowski",
+          "email": "jmaslowski@sandpro.com",
+          "role": "manager",
+          "title": "Shop Manager"
+        },
+        "objective": {
+          "id": "339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f",
+          "title": "NCR #82008371 - Substandard Condition",
+          "status": "on_track",
+          "owner": {
+            "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+            "name": "Tim Dibben",
+            "email": "tdibben@sandpro.com",
+            "role": "manager",
+            "title": "Facilities Operations Manager"
+          },
+          "createdBy": {
+            "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+            "name": "Tim Dibben",
+            "email": "tdibben@sandpro.com",
+            "role": "manager",
+            "title": "Facilities Operations Manager"
+          },
+          "updated_at": "2026-06-02T13:50:13.30038+00:00"
+        }
+      },
+      {
+        "id": "8acf78e8-3fd1-4ebf-9a2c-be94650409f4",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "e06c5c6c-af16-4209-a375-701689393069",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:e06c5c6c-af16-4209-a375-701689393069:2026-06-03",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "14867710-bebc-4959-8ec9-b36e720f3228",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:40.378+00:00",
+        "created_at": "2026-06-03T14:00:37.725103+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "objective": {
+          "id": "e06c5c6c-af16-4209-a375-701689393069",
+          "title": "Provide Tim Dibben with login credentials",
+          "status": "on_track",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Jake Feil",
+            "email": "jfeil@sandpro.com",
+            "role": "executive",
+            "title": "CEO"
+          },
+          "updated_at": "2026-06-01T18:34:38.928347+00:00"
+        }
+      },
+      {
+        "id": "2d52975e-e5f9-4629-a3da-35e9175103a0",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "e06c5c6c-af16-4209-a375-701689393069",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:e06c5c6c-af16-4209-a375-701689393069:2026-06-03",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "065d3a63-bc99-4ce1-8469-039ee7fc426d",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:42.692+00:00",
+        "created_at": "2026-06-03T14:00:41.119198+00:00",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "e06c5c6c-af16-4209-a375-701689393069",
+          "title": "Provide Tim Dibben with login credentials",
+          "status": "on_track",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Jake Feil",
+            "email": "jfeil@sandpro.com",
+            "role": "executive",
+            "title": "CEO"
+          },
+          "updated_at": "2026-06-01T18:34:38.928347+00:00"
+        }
+      },
+      {
+        "id": "aa6fa03d-5c3b-4d80-b652-ee1f3362fd56",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "notification_type": "due_soon",
+        "dedupe_key": "due_soon:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:d3b723a2-539d-45d7-9f0d-124d5c974a40:2026-06-03",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP due soon alert",
+        "provider_id": "26b7f5e6-9135-4c30-ba4a-baa9b2aff203",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:43.17+00:00",
+        "created_at": "2026-06-03T14:00:42.851718+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "objective": {
+          "id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+          "title": "Push Notifications",
+          "status": "not_started",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Jake Feil",
+            "email": "jfeil@sandpro.com",
+            "role": "executive",
+            "title": "CEO"
+          },
+          "updated_at": "2026-05-30T00:05:49.393966+00:00"
+        }
+      },
+      {
+        "id": "5676ba51-3e0e-45be-8bc3-771a3ed1d7f4",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "notification_type": "due_soon",
+        "dedupe_key": "due_soon:801402ec-7815-44f3-8948-9daae10b4407:d3b723a2-539d-45d7-9f0d-124d5c974a40:2026-06-03",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP due soon alert",
+        "provider_id": "c2033ddc-575e-4d1e-85b0-ab4ff66a5136",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:44.522+00:00",
+        "created_at": "2026-06-03T14:00:43.540921+00:00",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "objective": {
+          "id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+          "title": "Push Notifications",
+          "status": "not_started",
+          "owner": {
+            "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "Andrew Emmel",
+            "email": "andrew@ndai.pro",
+            "role": "executive",
+            "title": "Platform Admin"
+          },
+          "createdBy": {
+            "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Jake Feil",
+            "email": "jfeil@sandpro.com",
+            "role": "executive",
+            "title": "CEO"
+          },
+          "updated_at": "2026-05-30T00:05:49.393966+00:00"
+        }
+      },
+      {
+        "id": "bc286ecd-6fd5-4bad-bbb0-b846763696b3",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "99a89a41-f6e3-40bc-93ab-b9f970d0c93d",
+        "notification_type": "overdue",
+        "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:99a89a41-f6e3-40bc-93ab-b9f970d0c93d:2026-06-03",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "provider_id": "4e608854-851a-400f-82a4-52709f2619bc",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T14:00:47.669+00:00",
+        "created_at": "2026-06-03T14:00:44.844993+00:00",
+        "user": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "objective": {
+          "id": "99a89a41-f6e3-40bc-93ab-b9f970d0c93d",
+          "title": "NCR #82007650 - Process Loss - Slawson Tebel",
+          "status": "not_started",
+          "owner": {
+            "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Jake Feil",
+            "email": "jfeil@sandpro.com",
+            "role": "executive",
+            "title": "CEO"
+          },
+          "createdBy": {
+            "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Jake Feil",
+            "email": "jfeil@sandpro.com",
+            "role": "executive",
+            "title": "CEO"
+          },
+          "updated_at": "2026-06-01T22:13:03.406646+00:00"
+        }
+      }
+    ],
+    "pushLogs": [
+      {
+        "id": "07682f21-6689-4b4d-bcc9-f407e8c95e1e",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "notification_id": null,
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "type": "comment",
+        "subscription_id": null,
+        "status": "skipped_preference",
+        "error": "Push is disabled for this notification type.",
+        "sent_at": null,
+        "created_at": "2026-06-02T16:22:55.163313+00:00",
+        "user": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        }
+      },
+      {
+        "id": "b7b6468c-08aa-4d8b-8407-babae4413c58",
+        "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+        "notification_id": null,
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "type": "mention",
+        "subscription_id": null,
+        "status": "skipped_preference",
+        "error": "Push is disabled for this notification type.",
+        "sent_at": null,
+        "created_at": "2026-06-02T16:22:55.468866+00:00",
+        "user": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "email": "tdibben@sandpro.com",
+          "role": "manager",
+          "title": "Facilities Operations Manager"
+        }
+      },
+      {
+        "id": "fb5818e4-7ef2-4f95-80dd-b41417ecc5e8",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "type": "comment",
+        "subscription_id": null,
+        "status": "skipped_preference",
+        "error": "Push is disabled for this notification type.",
+        "sent_at": null,
+        "created_at": "2026-06-02T16:22:55.867676+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "37fcde8d-3792-46c6-a477-47991b6af9e2",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": "4eabb31d-2fd7-4637-9335-15bca6e88c87",
+        "type": "mention",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-02T16:35:53.687+00:00",
+        "created_at": "2026-06-02T16:35:53.421871+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "492a18c2-343a-4a05-8e6b-2a83a7c7c941",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "notification_id": null,
+        "objective_id": "4eabb31d-2fd7-4637-9335-15bca6e88c87",
+        "type": "comment",
+        "subscription_id": null,
+        "status": "skipped_preference",
+        "error": "Push is disabled for this notification type.",
+        "sent_at": null,
+        "created_at": "2026-06-02T16:35:53.956052+00:00",
+        "user": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        }
+      },
+      {
+        "id": "c2855464-c111-421d-935f-fb25d1724b7c",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_new",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T03:35:13.45+00:00",
+        "created_at": "2026-06-03T03:35:13.312323+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "42982db4-7404-40f9-a76a-daae005e63b9",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_agent",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T03:36:48.743+00:00",
+        "created_at": "2026-06-03T03:36:48.278581+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "98f3fb85-8b6e-422a-ae85-4e914658927d",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_agent",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T03:36:50.019+00:00",
+        "created_at": "2026-06-03T03:36:49.905383+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "f91fbb1a-0073-4cfd-a487-5a57727c8907",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_agent",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T03:36:51.136+00:00",
+        "created_at": "2026-06-03T03:36:50.968302+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "3975305e-563e-4d83-936c-44257a594afb",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_agent",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T03:43:50.703+00:00",
+        "created_at": "2026-06-03T03:43:50.392812+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "ac0262f0-3a31-482b-a2bb-1d0d08568ed6",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_agent",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T03:45:23.567+00:00",
+        "created_at": "2026-06-03T03:45:23.267385+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "bc3380f4-1a52-4834-90cd-d702f53f33a7",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_agent",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T04:03:06.73+00:00",
+        "created_at": "2026-06-03T04:03:06.472928+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "70d39eed-f739-4fae-9ba7-f37e3652e596",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_agent",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T04:03:08.188+00:00",
+        "created_at": "2026-06-03T04:03:08.179267+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      },
+      {
+        "id": "f8d4ffd8-7b9b-4ff8-a2ed-1342b3aa9b30",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "notification_id": null,
+        "objective_id": null,
+        "type": "fixit_agent",
+        "subscription_id": "dc3f4a6e-928a-46d8-9fdf-15dc56a07a8f",
+        "status": "sent",
+        "error": null,
+        "sent_at": "2026-06-03T04:03:09.679+00:00",
+        "created_at": "2026-06-03T04:03:09.622184+00:00",
+        "user": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        }
+      }
+    ],
+    "ncrReports": []
+  },
+  "unresolved": {
+    "activeFixItPosts": [
+      {
+        "id": "24ec11ae-0b3f-440c-8f1e-e310338bd91e",
+        "body": "Under the Admin Tab, i need to be able to export custom report, list of NCR section",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-06-02T21:59:03.228494+00:00",
+        "updated_at": "2026-06-03T03:36:49.657592+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T03:36:49.564+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      },
+      {
+        "id": "394da860-7f4f-4c49-8604-da7d889de8d3",
+        "body": "@Andrew Emmel I noticed the new voice note option in Messages, and I think this is a great feature.\n\nI tested it, but once the recording starts, I only see the recording timer, “Use voice note,” and “Discard.” I do not see a clear option to stop the recording, preview the message, see the transcribed text, or send it.\n\nI was able to start recording and discard/re-record, but I could not complete the flow because there was no clear send option after recording.\n\nSuggestion: after recording, it would be helpful to have a clear “Stop” button, then show either a playback/preview or transcription, and finally a clear “Send” or “Attach voice note” option.\n\nThis would make the voice note flow easier to understand and test.",
+        "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-06-02T16:36:14.221634+00:00",
+        "updated_at": "2026-06-03T04:03:06.150752+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T04:03:05.794+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      },
+      {
+        "id": "adaa4b2b-85b5-46d7-8d44-866306eadb8c",
+        "body": "NCR Section. Need to be able to Enter a NEW NCR. The fields should be all the same criteria as active NCR's that are in the system. Simply need to be able to add new NCRs to the system",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-06-02T16:20:15.503076+00:00",
+        "updated_at": "2026-06-03T04:03:07.903022+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T04:03:07.714+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      },
+      {
+        "id": "997962d7-cd8f-4370-81cb-963235e2493a",
+        "body": "Hi Andrew, Quick note from my Organization Chart testing:\n\nThe Add Employee option is working well, and I was able to add several people for testing. When adding each person, the system required an 8-digit temporary password. For testing purposes, I used 12345678 as the temporary password for all the people I added. Just noting that here in case you need to adjust or reset anything later.\n\nI also noticed one limitation while trying to recreate the structure from the official org chart. Some entries are not individual employees, but general group placeholders, such as “Field Service Technicians,” “Shop Technicians,” or similar team groups. I tried to add “Field Service Technicians” under the Field Service Manager area for visual/reference purposes, but the system requires an email address before allowing the entry to be saved.\n\nSince these group placeholders do not have individual emails, would it be possible to allow certain org chart entries to be saved without an email address? Maybe as a “group,” “team,” or “placeholder” type instead of a user account.\n\nThe idea would be only for visual org chart accuracy, not necessarily to create a login/user profile. It would help show who reports to each manager and keep the OMP Organization Chart aligned with the official SandPro org chart.\n\nOne additional visual suggestion: as the org chart grows horizontally, it may be helpful to add subtle color grouping by reporting structure. Right now, most cards look very similar, so it can be a little hard to quickly see where one leader’s group starts and ends.\n\nFor example, Malcolm’s group, Josh’s group, and Kayla’s group could each have a very light background tone, border, or small color stripe to visually separate them. This could still stay within the SandPro color palette, using soft orange, light gray, white, or other subtle tones so the chart stays clean and not too busy.\n\nThe main goal would be to make it easier to identify each reporting group at a glance while keeping the same professional look and feel.\n\nThank you!",
+        "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-06-01T19:33:55.069093+00:00",
+        "updated_at": "2026-06-03T04:03:09.357044+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-03T04:03:09.167+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      },
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories currently displayed on the main dashboard are:\n\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThese are good and should be considered the core visuals for team productivity.\n\nHowever, when a user clicks into Open, for example, the next screen only shows the following status options:\n\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThese should be treated as sub-filters under the main dashboard categories, not separate navigation areas.\n\nFor example, on the main dashboard, Open should show a breakdown of how many open objectives are:\n\nOn Track\nAt Risk\nBlocked\nNot Started\n\nThen, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days.\n\nWould it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform?\n\nThe suggested filter structure would be:\n\nFirst filter: Ownership / Scope\nMy Objectives\nIndividual Person\nGroup / Department\nAll Objectives\n\nSecond filter: Main Category\nAll\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThird filter: Status\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThe goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select:\n\nMy Objectives + Open + At Risk\nOperations Group + Due Within 7 Days + Blocked\nAll Objectives + Overdue + Not Started\n\nThis would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-05-28T17:59:58.482556+00:00",
+        "updated_at": "2026-05-31T03:37:51.172327+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-05-29T16:21:25.874716+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      },
+      {
+        "id": "3e1722ff-cf08-4ca2-9b77-f745d3c28843",
+        "body": "CSV objective export is convoluted with having Objective ID included in the report. Remove Objective ID. Also Make sure that the Top line section is filterable.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-05-28T17:31:54.674505+00:00",
+        "updated_at": "2026-05-31T03:37:51.172327+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-05-29T15:14:54.033167+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO"
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "email": "andrew@ndai.pro",
+          "role": "executive",
+          "title": "Platform Admin"
+        },
+        "humanReviewedBy": null,
+        "archivedBy": null
+      }
+    ],
+    "timDibben": {
+      "profiles": [
+        {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "initials": "TD",
+          "email": "tdibben@sandpro.com",
+          "title": "Facilities Operations Manager",
+          "department": "Quality",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#06B6D4",
+          "created_at": "2026-04-03T03:12:20.98405+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2025/09/SandPro-Berthold-ND-Team-Headshots-03.3_result.webp"
+        }
+      ],
+      "authUsers": [
+        {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "email": "tdibben@sandpro.com",
+          "created_at": "2026-04-03T03:12:20.984386Z",
+          "last_sign_in_at": "2026-06-01T14:46:58.865212Z",
+          "email_confirmed_at": "2026-06-01T14:20:19.86412Z",
+          "user_metadata": {
+            "avatar_url": "https://sandpro.com/wp-content/uploads/2025/09/SandPro-Berthold-ND-Team-Headshots-03.3_result.webp",
+            "color": "#06B6D4",
+            "created_at": "2026-04-03T03:12:20.98405+00:00",
+            "department": "Quality",
+            "email": "tdibben@sandpro.com",
+            "email_verified": true,
+            "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+            "initials": "TD",
+            "must_change_password": false,
+            "name": "Tim Dibben",
+            "password_changed_at": "2026-06-01T14:47:31.888Z",
+            "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "role": "manager",
+            "title": "Facilities Operations Manager"
+          }
+        }
+      ]
+    }
+  }
+}

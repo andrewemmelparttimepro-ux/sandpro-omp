@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-06-24T19:04:17.872Z",
+  "url": "https://objectivetracker.net/?page=fixit",
+  "title": "SandPro OMP",
+  "assertions": [
+    "Fix-It Feed heading visible",
+    "Active 0 visible",
+    "Archive 28 visible",
+    "empty state visible",
+    ".fixit-post count is 0"
+  ],
+  "cardCount": 0,
+  "screenshotPath": "docs/reports/evidence/fixit-closure-2026-06-24-automation-1903/production-fixit-empty.png"
+}

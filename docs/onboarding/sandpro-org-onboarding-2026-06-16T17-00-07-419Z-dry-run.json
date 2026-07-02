@@ -1,0 +1,506 @@
+{
+  "generatedAt": "2026-06-16T17:00:07.419Z",
+  "apply": false,
+  "scope": "real_sandpro_org_chart_employees",
+  "targetEmployees": [
+    {
+      "name": "Adam Allan",
+      "email": "aallan@sandpro.com",
+      "title": "Inventory Manager",
+      "department": "Operations",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Brandon Schatz",
+      "email": "bschatz@sandpro.com",
+      "title": "Field Coordinator",
+      "department": "Admin",
+      "role": "contributor",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Casey Loving",
+      "email": "cloving@sandpro.com",
+      "title": "Safety Coordinator",
+      "department": "Safety",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Drew Anderson",
+      "email": "danderson@sandpro.com",
+      "title": "Director of Automated Solutions & Project Development",
+      "department": "Automation",
+      "role": "manager",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Dustin Saunders",
+      "email": "dsaunders@sandpro.com",
+      "title": "Dispatch",
+      "department": "Operations",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Gershom Dingal",
+      "email": "gdingal@sandpro.com",
+      "title": "Operations Coordinator & Dispatch",
+      "department": "Operations",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Heather Allard-Kotaska",
+      "email": "hallard-kotaska@sandpro.com",
+      "title": "HR Manager",
+      "department": "HR",
+      "role": "manager",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Isaac Badillo",
+      "email": "ibadillo@sandpro.com",
+      "title": "Field Service Manager",
+      "department": "Field Operations",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Jaelen Maslowski",
+      "email": "jmaslowski@sandpro.com",
+      "title": "Shop Manager",
+      "department": "Shop",
+      "role": "manager",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "title": "CEO",
+      "department": "Leadership",
+      "role": "executive",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "John Latz",
+      "email": "jlatz@sandpro.com",
+      "title": "I & E Technician",
+      "department": "Automation",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "John Sommerfeld",
+      "email": "jsommerfeld@sandpro.com",
+      "title": "Business Development Manager",
+      "department": "Sales",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Jon Ostby",
+      "email": "jostby@sandpro.com",
+      "title": "Field Coordinator",
+      "department": "Sales",
+      "role": "contributor",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Josh Pfeifer",
+      "email": "jpfeifer@sandpro.com",
+      "title": "Account Manager",
+      "department": "Sales",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Joshua Blackaby",
+      "email": "jblackaby@sandpro.com",
+      "title": "Vice President",
+      "department": "Leadership",
+      "role": "executive",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Kayla Sebastian",
+      "email": "ksebastian@sandpro.com",
+      "title": "Office Manager",
+      "department": "Admin",
+      "role": "manager",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Keith Mappes",
+      "email": "kmappes@sandpro.com",
+      "title": "I&E Technician",
+      "department": "Automation",
+      "role": "contributor",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Kelby Kraft",
+      "email": "kkraft@sandpro.com",
+      "title": "CP Operations Manager",
+      "department": "Sales",
+      "role": "manager",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Larry Debold",
+      "email": "ldebold@sandpro.com",
+      "title": "Inside Sales",
+      "department": "Sales",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Malcolm Blackaby",
+      "email": "mblackaby@sandpro.com",
+      "title": "Operations Manager",
+      "department": "Operations",
+      "role": "manager",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "title": "Executive Assistant",
+      "department": "Admin",
+      "role": "manager",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Paige Olson-Cramer",
+      "email": "polson-cramer@sandpro.com",
+      "title": "Accounts Payable",
+      "department": "Admin",
+      "role": "contributor",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Scott Johnson",
+      "email": "sjohnson@sandpro.com",
+      "title": "I&E Technician",
+      "department": "Automation",
+      "role": "contributor",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Serena Laumb",
+      "email": "slaumb@sandpro.com",
+      "title": "Accounts Receivable",
+      "department": "Admin",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Thomas Goldsberry",
+      "email": "tgoldsberry@sandpro.com",
+      "title": "Field Service Technicians",
+      "department": "Operations",
+      "role": "contributor",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Tim Dibben",
+      "email": "tdibben@sandpro.com",
+      "title": "Facilities Operations Manager",
+      "department": "Quality",
+      "role": "manager",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Zedek Harris",
+      "email": "zharris@sandpro.com",
+      "title": "Field Service Manager",
+      "department": "Field Operations",
+      "role": "contributor",
+      "emailSource": "production_profile_public_verified"
+    }
+  ],
+  "publicEmailFetchErrors": [],
+  "created": [],
+  "reset": [
+    {
+      "name": "Adam Allan",
+      "email": "aallan@sandpro.com",
+      "title": "Inventory Manager",
+      "department": "Operations",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Brandon Schatz",
+      "email": "bschatz@sandpro.com",
+      "title": "Field Coordinator",
+      "department": "Admin",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Casey Loving",
+      "email": "cloving@sandpro.com",
+      "title": "Safety Coordinator",
+      "department": "Safety",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Drew Anderson",
+      "email": "danderson@sandpro.com",
+      "title": "Director of Automated Solutions & Project Development",
+      "department": "Automation",
+      "role": "manager",
+      "reason": "still_must_change_password",
+      "emailSource": "production_profile_public_verified",
+      "lastSignInAt": "2026-06-04T16:45:07.25136Z"
+    },
+    {
+      "name": "Dustin Saunders",
+      "email": "dsaunders@sandpro.com",
+      "title": "Dispatch",
+      "department": "Operations",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Gershom Dingal",
+      "email": "gdingal@sandpro.com",
+      "title": "Operations Coordinator & Dispatch",
+      "department": "Operations",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Heather Allard-Kotaska",
+      "email": "hallard-kotaska@sandpro.com",
+      "title": "HR Manager",
+      "department": "HR",
+      "role": "manager",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Isaac Badillo",
+      "email": "ibadillo@sandpro.com",
+      "title": "Field Service Manager",
+      "department": "Field Operations",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Jaelen Maslowski",
+      "email": "jmaslowski@sandpro.com",
+      "title": "Shop Manager",
+      "department": "Shop",
+      "role": "manager",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "John Latz",
+      "email": "jlatz@sandpro.com",
+      "title": "I & E Technician",
+      "department": "Automation",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "John Sommerfeld",
+      "email": "jsommerfeld@sandpro.com",
+      "title": "Business Development Manager",
+      "department": "Sales",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Jon Ostby",
+      "email": "jostby@sandpro.com",
+      "title": "Field Coordinator",
+      "department": "Sales",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Josh Pfeifer",
+      "email": "jpfeifer@sandpro.com",
+      "title": "Account Manager",
+      "department": "Sales",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Joshua Blackaby",
+      "email": "jblackaby@sandpro.com",
+      "title": "Vice President",
+      "department": "Leadership",
+      "role": "executive",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Kayla Sebastian",
+      "email": "ksebastian@sandpro.com",
+      "title": "Office Manager",
+      "department": "Admin",
+      "role": "manager",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Keith Mappes",
+      "email": "kmappes@sandpro.com",
+      "title": "I&E Technician",
+      "department": "Automation",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Kelby Kraft",
+      "email": "kkraft@sandpro.com",
+      "title": "CP Operations Manager",
+      "department": "Sales",
+      "role": "manager",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Larry Debold",
+      "email": "ldebold@sandpro.com",
+      "title": "Inside Sales",
+      "department": "Sales",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Malcolm Blackaby",
+      "email": "mblackaby@sandpro.com",
+      "title": "Operations Manager",
+      "department": "Operations",
+      "role": "manager",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Paige Olson-Cramer",
+      "email": "polson-cramer@sandpro.com",
+      "title": "Accounts Payable",
+      "department": "Admin",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Scott Johnson",
+      "email": "sjohnson@sandpro.com",
+      "title": "I&E Technician",
+      "department": "Automation",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Serena Laumb",
+      "email": "slaumb@sandpro.com",
+      "title": "Accounts Receivable",
+      "department": "Admin",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    },
+    {
+      "name": "Thomas Goldsberry",
+      "email": "tgoldsberry@sandpro.com",
+      "title": "Field Service Technicians",
+      "department": "Operations",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile"
+    },
+    {
+      "name": "Zedek Harris",
+      "email": "zharris@sandpro.com",
+      "title": "Field Service Manager",
+      "department": "Field Operations",
+      "role": "contributor",
+      "reason": "no_prior_sign_in",
+      "emailSource": "production_profile_public_verified"
+    }
+  ],
+  "preservedActive": [
+    {
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "title": "CEO",
+      "department": "Leadership",
+      "role": "executive",
+      "reason": "active_prior_sign_in",
+      "emailSource": "production_profile_public_verified",
+      "lastSignInAt": "2026-06-03T16:00:10.755947Z"
+    },
+    {
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "title": "Executive Assistant",
+      "department": "Admin",
+      "role": "manager",
+      "reason": "active_prior_sign_in",
+      "emailSource": "production_profile_public_verified",
+      "lastSignInAt": "2026-06-15T20:01:26.837027Z"
+    },
+    {
+      "name": "Tim Dibben",
+      "email": "tdibben@sandpro.com",
+      "title": "Facilities Operations Manager",
+      "department": "Quality",
+      "role": "manager",
+      "reason": "active_prior_sign_in",
+      "emailSource": "production_profile_public_verified",
+      "lastSignInAt": "2026-06-15T21:37:58.352559Z"
+    }
+  ],
+  "skipped": [
+    {
+      "name": "Agent Fixit",
+      "email": "agent.fixit.20260604.2050@gmail.com",
+      "reason": "non_sandpro_account"
+    },
+    {
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "reason": "non_sandpro_account"
+    },
+    {
+      "name": "Release Smoke Admin",
+      "email": "release-smoke-admin@objectivetracker.net",
+      "reason": "non_sandpro_account"
+    },
+    {
+      "name": "Release Smoke Member",
+      "email": "release-smoke-member@objectivetracker.net",
+      "reason": "non_sandpro_account"
+    },
+    {
+      "name": "SandPro QA Agent",
+      "email": "sandpro-qa-agent@ndai.pro",
+      "reason": "non_sandpro_account"
+    }
+  ],
+  "inferredEmails": [],
+  "missingEmails": [],
+  "errors": []
+}

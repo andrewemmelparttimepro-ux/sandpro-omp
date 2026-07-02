@@ -37,14 +37,15 @@ export const isUrgentPushType = (type, objective, priority = 'normal') => (
 
 const isFixItPushType = (type) => ['fixit_new', 'fixit_agent'].includes(type);
 
-export const notificationAllowsPush = (prefs, type, objective = {}) => {
-  if (!prefs || prefs.push_enabled === false) return false;
+export const notificationAllowsPush = (prefs, type) => {
+  if (prefs && prefs.push_enabled === false) return false;
   if (isFixItPushType(type)) return true;
-  if (type === 'mention' || type === 'comment') return prefs.comment_notifications !== false;
-  if (type === 'assignment' || type === 'delegation') return prefs.delegation_alerts !== false;
-  if (type === 'blocker' || type === 'at_risk') return prefs.blocker_alerts !== false;
-  if (type === 'overdue') return prefs.overdue_alerts !== false;
-  if (type === 'due_soon') return prefs.due_reminders !== false && isHighPriorityObjective(objective);
+  if (type === 'mention' || type === 'comment') return prefs?.comment_notifications !== false;
+  if (type === 'assignment' || type === 'delegation') return prefs?.delegation_alerts !== false;
+  if (type === 'blocker' || type === 'at_risk') return prefs?.blocker_alerts !== false;
+  if (type === 'overdue') return prefs?.overdue_alerts !== false;
+  if (type === 'due_soon' || type === 'stale') return prefs?.due_reminders !== false;
+  if (type === 'daily_digest') return true;
   return false;
 };
 
@@ -56,6 +57,8 @@ const pushTitle = (type) => {
   if (type === 'at_risk') return 'SandPro OMP at-risk work';
   if (type === 'overdue') return 'SandPro OMP overdue objective';
   if (type === 'due_soon') return 'SandPro OMP due soon';
+  if (type === 'stale') return 'SandPro OMP needs an update';
+  if (type === 'daily_digest') return 'The SandPro Daily';
   if (type === 'fixit_new') return 'New SandPro Fix-It item';
   if (type === 'fixit_agent') return 'SandPro Fix-It update';
   return 'SandPro OMP';
@@ -76,7 +79,7 @@ export const buildPushPayload = ({ type, objective, message, url, notificationId
       tag: objective?.id ? `sandpro-${type}-${objective.id}` : `sandpro-${type}`,
       renotify: urgent,
       requireInteraction: urgent,
-      silent: !urgent,
+      silent: false,
       badge: '/pwa/icon-192.png',
       icon: '/pwa/icon-192.png',
     },

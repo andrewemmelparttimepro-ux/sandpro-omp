@@ -1,0 +1,3 @@
+Report Number,Report Date,Observer,Author,Event Description,Type of Event,Affected Departments,Status,Root Cause Codes,Operator and Location
+QA-KPA-EXISTING-fixit-tim-kpa-proof-1780609153087,2026-06-04,Fix-It Agent QA,Fix-It Agent QA,"Existing row should display Refresh existing and not duplicate.",Equipment Failure,Quality,Open,Faulty Equipment,QA Yard
+QA-KPA-NEW-fixit-tim-kpa-proof-1780609153087,2026-06-04,Fix-It Agent QA,Fix-It Agent QA,"New row should display Create new before commit.",Process Loss,Quality,Open,Process,QA Yard

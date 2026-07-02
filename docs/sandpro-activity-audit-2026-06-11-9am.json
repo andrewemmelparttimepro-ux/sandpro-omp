@@ -1,0 +1,214 @@
+{
+  "generatedAt": "2026-06-11T14:03:06.595Z",
+  "since": "2026-06-10T14:01:24.915Z",
+  "counts": {
+    "fixItPostsTouched": 0,
+    "fixItComments": 2,
+    "fixItAttachments": 0,
+    "messages": 0,
+    "objectiveUpdates": 1,
+    "orgChartUpdates": 0,
+    "emailLogs": 57,
+    "pushLogs": 11,
+    "activeFixItNow": 1,
+    "archivedFixItNow": 27,
+    "openJakeMerciObjectives": 4
+  },
+  "newActivity": {
+    "fixItPosts": [],
+    "fixItComments": [
+      {
+        "id": "b23c65ca-6d13-4e99-a802-c029cac476f8",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "body": "Agent follow-up on June 10, 2026: I rechecked production against this request. The current dashboard-to-objectives flow already supports the core filter stack you described: clicking the 7 days due-horizon bucket sends me to /?page=objectives&due=7&scope=company&active=1, and that Objectives view keeps the due-date lens active while still allowing additional status filters like On Track, At Risk, Blocked, and Not Started. The remaining open question is product structure, not a broken workflow: do you want the top-level Dashboard summary buckets themselves to deep-link into that same centralized list pattern more aggressively, or do you want a broader information-architecture merge between Dashboard and Objectives? I am leaving this in progress until Andrew/Jake/Tim confirm that desired structure.",
+        "created_by": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+        "created_at": "2026-06-10T20:17:31.105187+00:00",
+        "updated_at": "2026-06-10T20:17:31.105187+00:00",
+        "createdBy": {
+          "id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "name": "SandPro QA Agent",
+          "email": "sandpro-qa-agent@ndai.pro",
+          "role": "executive",
+          "title": "Release QA",
+          "department": "Leadership"
+        }
+      },
+      {
+        "id": "aae6f811-5321-438a-8b16-103b778d0a33",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "body": "Agent verification on June 10, 2026: I re-ran the live Dashboard -> Objectives flow in production. Dashboard Active opens /?page=objectives&active=1, and Dashboard 7 days opens /?page=objectives&due=7&scope=company&active=1. In both cases the Objectives view keeps the lens active and still exposes the status filters (All, On Track, At Risk, Blocked, Not Started, Completed). I do not have a fresh broken workflow to patch here; the remaining ask is a product-direction decision about whether Dashboard should become a more aggressively centralized Objective List entry point.",
+        "created_by": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+        "created_at": "2026-06-11T01:39:00.622123+00:00",
+        "updated_at": "2026-06-11T01:39:00.622123+00:00",
+        "createdBy": {
+          "id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "name": "SandPro QA Agent",
+          "email": "sandpro-qa-agent@ndai.pro",
+          "role": "executive",
+          "title": "Release QA",
+          "department": "Leadership"
+        }
+      }
+    ],
+    "fixItAttachments": [],
+    "messages": [],
+    "objectiveUpdates": [
+      {
+        "id": "837fa476-c05b-4676-8855-6232900d5a87",
+        "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "status": "not_started",
+        "progress": 0,
+        "note": "Objective created",
+        "created_at": "2026-06-10T19:43:08.888066+00:00",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "action_type": "create",
+        "old_value": null,
+        "new_value": "OKRs and Projects tracking/ R&D",
+        "reference_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "actor": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO",
+          "department": "Leadership"
+        }
+      }
+    ],
+    "orgChartUpdates": []
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 57
+    },
+    "emailTypeCounts": {
+      "overdue": 22,
+      "assignment": 3,
+      "daily_digest": 32
+    },
+    "pushStatusCounts": {
+      "sent": 11
+    },
+    "pushTypeCounts": {
+      "assignment": 5,
+      "fixit_agent": 6
+    },
+    "failedEmails": [],
+    "failedPushes": []
+  },
+  "unresolved": {
+    "activeFixIt": [
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories currently displayed on the main dashboard are:\n\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThese are good and should be considered the core visuals for team productivity.\n\nHowever, when a user clicks into Open, for example, the next screen only shows the following status options:\n\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThese should be treated as sub-filters under the main dashboard categories, not separate navigation areas.\n\nFor example, on the main dashboard, Open should show a breakdown of how many open objectives are:\n\nOn Track\nAt Risk\nBlocked\nNot Started\n\nThen, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days.\n\nWould it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform?\n\nThe suggested filter structure would be:\n\nFirst filter: Ownership / Scope\nMy Objectives\nIndividual Person\nGroup / Department\nAll Objectives\n\nSecond filter: Main Category\nAll\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThird filter: Status\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThe goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select:\n\nMy Objectives + Open + At Risk\nOperations Group + Due Within 7 Days + Blocked\nAll Objectives + Overdue + Not Started\n\nThis would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+        "status": "in_progress",
+        "created_at": "2026-05-28T17:59:58.482556+00:00",
+        "updated_at": "2026-06-10T06:55:21.359424+00:00",
+        "agent_tested_by": null,
+        "agent_tested_at": null,
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "reopened_by": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+        "reopened_at": "2026-06-10T06:55:12.267+00:00",
+        "reopen_count": 1,
+        "reopened_from_status": "agent_done",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO",
+          "department": "Leadership"
+        },
+        "claimedBy": {
+          "id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "name": "SandPro QA Agent",
+          "email": "sandpro-qa-agent@ndai.pro",
+          "role": "executive",
+          "title": "Release QA",
+          "department": "Leadership"
+        },
+        "agentTestedBy": null,
+        "humanReviewedBy": null
+      }
+    ],
+    "openJakeMerciObjectives": [
+      {
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "title": "OKRs and Projects tracking/ R&D",
+        "status": "not_started",
+        "priority": "high",
+        "progress": 0,
+        "due_date": "2026-06-16T00:00:00+00:00",
+        "updated_at": "2026-06-10T19:43:08.518705+00:00",
+        "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "owner": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO",
+          "department": "Leadership"
+        }
+      },
+      {
+        "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+        "title": "NCR #82007431 - Process Loss - Chord Hoff",
+        "status": "not_started",
+        "priority": "medium",
+        "progress": 0,
+        "due_date": "2026-05-28T00:00:00+00:00",
+        "updated_at": "2026-06-04T16:02:31.707271+00:00",
+        "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "owner": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "email": "jfeil@sandpro.com",
+          "role": "executive",
+          "title": "CEO",
+          "department": "Leadership"
+        }
+      },
+      {
+        "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "title": "Finalize April expense report — personal CC items + remaining receipts",
+        "status": "on_track",
+        "priority": "medium",
+        "progress": 50,
+        "due_date": "2026-05-20T00:00:00+00:00",
+        "updated_at": "2026-06-02T21:30:53.38429+00:00",
+        "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "owner": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant",
+          "department": "Admin"
+        }
+      },
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "status": "on_track",
+        "priority": "high",
+        "progress": 0,
+        "due_date": "2026-05-28T00:00:00+00:00",
+        "updated_at": "2026-05-26T20:50:11.603043+00:00",
+        "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "owner": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "email": "mjimenez@sandpro.com",
+          "role": "manager",
+          "title": "Executive Assistant",
+          "department": "Admin"
+        }
+      }
+    ]
+  }
+}

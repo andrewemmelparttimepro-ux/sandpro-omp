@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-06-26T08:31:42.520Z",
+  "baseUrl": "https://objectivetracker.net",
+  "url": "https://objectivetracker.net/?page=fixit",
+  "heading": "Fix-It Feed",
+  "activeText": "Active 0",
+  "archiveText": "Archive 28",
+  "postCount": 0,
+  "emptyState": "Nothing active has been flagged yet.",
+  "screenshot": "docs/reports/evidence/fixit-closure-2026-06-26-automation-0831/production-fixit-empty-active.png"
+}

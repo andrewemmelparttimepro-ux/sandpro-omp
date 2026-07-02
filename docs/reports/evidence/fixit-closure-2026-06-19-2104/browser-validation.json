@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-06-19T21:05:48.227Z",
+  "baseUrl": "https://objectivetracker.net/?page=fixit",
+  "checks": [
+    {
+      "label": "desktop",
+      "url": "https://objectivetracker.net/?page=fixit",
+      "title": "SandPro OMP",
+      "cardCount": 0,
+      "hasEmptyState": true,
+      "hasActiveZero": true,
+      "hasArchive28": true,
+      "screenshot": "docs/reports/evidence/fixit-closure-2026-06-19-2104/fixit-empty-desktop.png"
+    },
+    {
+      "label": "mobile",
+      "url": "https://objectivetracker.net/?page=fixit",
+      "title": "SandPro OMP",
+      "cardCount": 0,
+      "hasEmptyState": true,
+      "hasActiveZero": true,
+      "hasArchive28": true,
+      "screenshot": "docs/reports/evidence/fixit-closure-2026-06-19-2104/fixit-empty-mobile.png"
+    }
+  ]
+}

@@ -1,0 +1,980 @@
+{
+  "generated_at": "2026-06-29T14:04:09.922Z",
+  "checkpoint": "2026-06-28T14:01:54.386Z",
+  "scope": "SandPro OMP production activity review from all watched app tables since last run",
+  "tables_checked": [
+    "fix_it_posts",
+    "fix_it_comments",
+    "fix_it_attachments",
+    "messages",
+    "objective_updates",
+    "objectives",
+    "org_chart_updates",
+    "email_delivery_log",
+    "push_delivery_log",
+    "alt_dashboard_presence",
+    "notifications",
+    "notification_preferences",
+    "objective_members",
+    "objective_metric_checkins",
+    "objective_workflow_steps",
+    "objective_agent_runs",
+    "ncr_reports",
+    "ncr_action_items",
+    "ncr_attachments",
+    "ncr_audit_events",
+    "ncr_import_batches",
+    "ncr_signatures",
+    "ncr_failure_codes",
+    "kpi_definitions",
+    "kpi_datapoints",
+    "kpi_objective_links",
+    "kpi_checkins",
+    "kpi_alert_rules",
+    "kpi_alert_events",
+    "kpi_import_batches",
+    "okr_projects",
+    "okr_project_kr_links",
+    "okr_assessment_artifacts",
+    "okr_project_signatures",
+    "okr_project_attachments",
+    "okr_project_audit",
+    "alt_dashboard_preferences",
+    "alt_dashboard_notes",
+    "alt_dashboard_note_folders",
+    "alt_dashboard_note_attachments",
+    "message_reactions",
+    "objective_message_reads",
+    "profiles",
+    "files",
+    "subtasks"
+  ],
+  "counts": {
+    "fix_it_posts.created_at": 0,
+    "fix_it_posts.updated_at": 0,
+    "fix_it_posts.reopened_at": 0,
+    "fix_it_comments.created_at": 0,
+    "fix_it_comments.updated_at": 0,
+    "fix_it_attachments.created_at": 0,
+    "messages.created_at": 0,
+    "objective_updates.created_at": 0,
+    "objectives.created_at": 0,
+    "objectives.updated_at": 0,
+    "org_chart_updates.created_at": 0,
+    "email_delivery_log.created_at": 68,
+    "email_delivery_log.sent_at": 68,
+    "push_delivery_log.created_at": 0,
+    "push_delivery_log.sent_at": 0,
+    "alt_dashboard_presence.created_at": 0,
+    "alt_dashboard_presence.updated_at": 5,
+    "alt_dashboard_presence.last_seen_at": 5,
+    "notifications.created_at": 0,
+    "notification_preferences.updated_at": 0,
+    "objective_members.created_at": 0,
+    "objective_workflow_steps.created_at": 0,
+    "objective_workflow_steps.updated_at": 0,
+    "ncr_reports.created_at": 0,
+    "ncr_reports.updated_at": 0,
+    "ncr_audit_events.created_at": 0,
+    "ncr_failure_codes.created_at": 0,
+    "ncr_failure_codes.updated_at": 0,
+    "alt_dashboard_preferences.created_at": 0,
+    "alt_dashboard_preferences.updated_at": 0,
+    "alt_dashboard_notes.created_at": 0,
+    "alt_dashboard_notes.updated_at": 0,
+    "message_reactions.created_at": 0,
+    "message_reactions.updated_at": 0,
+    "objective_message_reads.updated_at": 0,
+    "profiles.created_at": 0,
+    "files.created_at": 0,
+    "subtasks.created_at": 0
+  },
+  "active_fix_it_error": null,
+  "active_fix_it_count": 0,
+  "active_fix_it_rows": [],
+  "jake_merci_profiles": [
+    {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "email": "jfeil@sandpro.com",
+      "role": "executive"
+    },
+    {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "email": "mjimenez@sandpro.com",
+      "role": "manager"
+    }
+  ],
+  "unresolved_preexisting_jake_merci_objectives": [
+    {
+      "id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+      "title": "Project Test",
+      "status": "not_started",
+      "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+      "department": "Admin",
+      "due_date": null,
+      "updated_at": "2026-06-18T13:45:59.112551+00:00",
+      "created_at": "2026-06-18T13:45:59.112551+00:00",
+      "type": "simple",
+      "description": "Test"
+    },
+    {
+      "id": "d8712120-4d53-4d77-8aba-06a15839776d",
+      "title": "test",
+      "status": "not_started",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "department": "Leadership",
+      "due_date": null,
+      "updated_at": "2026-06-17T13:55:28.692222+00:00",
+      "created_at": "2026-06-17T13:55:28.692222+00:00",
+      "type": "simple",
+      "description": "@Tim Dibben @Mercileidy Jimenez "
+    },
+    {
+      "id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+      "title": "Build HRU 14.3",
+      "status": "not_started",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "department": "Automation",
+      "due_date": "2026-08-14T00:00:00+00:00",
+      "updated_at": "2026-06-17T13:38:22.671965+00:00",
+      "created_at": "2026-06-17T13:38:22.671965+00:00",
+      "type": "measured",
+      "description": "@Mercileidy Jimenez "
+    },
+    {
+      "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+      "title": "NCR #82007431 - Process Loss - Chord Hoff",
+      "status": "not_started",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "department": "Shop",
+      "due_date": "2026-05-28T00:00:00+00:00",
+      "updated_at": "2026-06-11T15:31:42.479396+00:00",
+      "created_at": "2026-06-04T16:02:31.707271+00:00",
+      "type": "simple",
+      "description": "Event: Deployment Audit Flowback HWO on cross All 6 trees cranked full open for deployment, NO 1/4 turn off. Had to hand off of 2 to get them to move.\n\nImmediate action: Set valves in proper position\n\nFollow-ups: Assigned to Jaelen Maslowski on 5/26/26, Due 5/28/26 Work with both crews to understand that valves must be backed off 1/4 turn after full open or full close - by Timothy Dibben on 5/26/26 Assigned to Jaelen Maslowski on 5/25/26 Is this how we are transporting valves ? New process? - by Bryce Christoffersen on 5/25/26"
+    },
+    {
+      "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+      "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+      "status": "on_track",
+      "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+      "department": "Admin",
+      "due_date": "2026-05-28T00:00:00+00:00",
+      "updated_at": "2026-06-11T15:31:42.479396+00:00",
+      "created_at": "2026-05-13T22:09:22.321543+00:00",
+      "type": "simple",
+      "description": "Hi Jake! Following up on the Focus Digital meeting with Brett. To kick off Week 1 of production, we need three inputs from our side:\n\nSTEP/CAD file of the wellhead type to be used\nStandard procedure sequence that sets the retrievable bridge plug\nConfirmation of the scenarios to be animated (normal deployment, worn/unretrievable replacement, alternative routine)\n\nCould you point me to the right engineering contact(s) so I can coordinate the delivery of the assets? Quote is $4,800 total, with a 4–6 week timeline once we hand the files over to Focus Digital.\n(Also doubling as an OMP test.. flag anything that doesn't render right.)"
+    },
+    {
+      "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+      "title": "OKRs and Projects tracking/ R&D",
+      "status": "not_started",
+      "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "department": "Leadership",
+      "due_date": "2026-06-16T00:00:00+00:00",
+      "updated_at": "2026-06-11T15:31:42.479396+00:00",
+      "created_at": "2026-06-10T19:43:08.518705+00:00",
+      "type": "simple",
+      "description": "We need to have a discussion around how we are managing parent OKRs and how we can view OKRs through a clear, filterable structure.\n\nWe also need to discuss project management for active projects, including R&D projects. This should include how we track the required quality forms and documentation that are part of the product assessment process.\n\nFor viable product assessments, we need to make sure the process includes key items such as:\n\nEconomic evaluation\nRisk assessment\nQuality review forms\nProduct viability review\nRequired approvals\nNext steps and ownership\n\nThe main point is that I do not want us to simply request something from without first working through the proper funnel of how this should function for our business. We need to define the structure, logic, required steps, and desired reporting before we ask them to build or configure anything.\n\nThis needs to include how OKRs roll up to parent OKRs, how projects are linked to those OKRs, how project status is tracked, and how required forms or assessments are tied into the project workflow.\n\nThe goal is to make sure OKRs, projects, and product assessments are structured in a way that gives us clear visibility, accountability, and follow-through. If we map this correctly up front, we can create a system that supports how we actually manage priorities, evaluate new products, track R&D, and move projects from idea to execution.\n\nPlease begin thinking through how this should work in your areas so we can have a productive discussion @Mercileidy Jimenez @Tim Dibben @Andrew Emmel "
+    }
+  ],
+  "changed_groups": [
+    {
+      "table": "email_delivery_log",
+      "field": "created_at",
+      "count": 68,
+      "rows": [
+        {
+          "id": "47086722-3a41-4e77-9cb4-7cd412efe818",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:129efe70-60f8-4f40-8407-1f6361c81d87:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-29",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "146255cb-b847-44e7-9859-88432e64e5e4",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:59.62+00:00",
+          "created_at": "2026-06-29T14:00:59.189188+00:00"
+        },
+        {
+          "id": "91e3922f-907b-4b1b-a166-1ed85f4abfa2",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "7aa2ae1e-d487-4f0a-9a04-a14d5863aca9",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:59.018+00:00",
+          "created_at": "2026-06-29T14:00:58.87619+00:00"
+        },
+        {
+          "id": "e0e64a49-b955-4d85-9431-7821768da518",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-29",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "c9171a73-d3b3-4ac6-b72d-97855def8552",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:58.721+00:00",
+          "created_at": "2026-06-29T14:00:58.54561+00:00"
+        },
+        {
+          "id": "017cb6a7-7e0e-4198-b680-8f507b08c7f5",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "07bf5ac2-e7cb-49f0-8d2d-48f71128a6e8",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:58.388+00:00",
+          "created_at": "2026-06-29T14:00:58.185912+00:00"
+        },
+        {
+          "id": "bfca8e77-0213-47a8-a4f2-34b55227da23",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:e4c2c435-71c4-46ed-afce-545ec36b5cb1:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "c82546a0-aef3-4254-9ce3-8ad9fc06a646",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:57.994+00:00",
+          "created_at": "2026-06-29T14:00:57.824457+00:00"
+        },
+        {
+          "id": "95578833-f576-4e49-bfe3-8dfa24135841",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:129efe70-60f8-4f40-8407-1f6361c81d87:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-29",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "ef693806-76eb-44dc-bf71-bad8138710af",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:57.679+00:00",
+          "created_at": "2026-06-29T14:00:57.519067+00:00"
+        },
+        {
+          "id": "ea353838-7d1c-41de-9cd3-04d7db4fba04",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "bac1ea84-630a-46f1-a4bd-1997f0938cc3",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:57.094+00:00",
+          "created_at": "2026-06-29T14:00:56.953092+00:00"
+        },
+        {
+          "id": "9a4443eb-7dc0-410a-8407-cdde156afc38",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:db831b29-8bf9-4192-a0e8-422a142c6fb7:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "cfe17f78-eb22-44ed-b988-c370936b3486",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:56.807+00:00",
+          "created_at": "2026-06-29T14:00:56.649701+00:00"
+        },
+        {
+          "id": "38696f4a-85e0-460e-8e96-2750471eca24",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:b09bb3ea-a25e-4266-a542-e93fcd8240b7:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "bf03a869-61e3-4270-bbdc-e6a259de2655",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:56.488+00:00",
+          "created_at": "2026-06-29T14:00:56.338285+00:00"
+        },
+        {
+          "id": "9442ab95-ad3b-4a1e-a12a-9fe50a36719b",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:129efe70-60f8-4f40-8407-1f6361c81d87:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-29",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "00d4f85e-3eb8-4b4f-9570-45259acc44db",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:56.161+00:00",
+          "created_at": "2026-06-29T14:00:55.997287+00:00"
+        },
+        {
+          "id": "66b28985-6532-47cd-bf07-3919e3cecabf",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "49f10d8d-fadf-43b4-88ba-b2934d894c6d",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:55.837+00:00",
+          "created_at": "2026-06-29T14:00:55.11618+00:00"
+        },
+        {
+          "id": "85cfb280-9316-45ff-ab1c-0f03415c4811",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-29",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "14db8a1a-e3af-4e8d-96d9-75bc5062de23",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:48.964+00:00",
+          "created_at": "2026-06-29T14:00:48.692268+00:00"
+        },
+        {
+          "id": "5466da1b-d140-46eb-bbda-eeb1a9187f4e",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-29",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "59ac7d71-a51c-49c5-aeb9-f9bd1e934db8",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:48.094+00:00",
+          "created_at": "2026-06-29T14:00:47.901191+00:00"
+        },
+        {
+          "id": "7f1deea7-a96f-40a9-bb69-a482fc1d7a8d",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "0726a1e7-3320-4fb1-b780-6d2d69bef6d7",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:47.317+00:00",
+          "created_at": "2026-06-29T14:00:47.148912+00:00"
+        },
+        {
+          "id": "9783dcfb-19b0-48bc-a2b7-4d007e5d1c0e",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "35150011-f03f-47ce-b5d4-146dd5d25f3f",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:46.547+00:00",
+          "created_at": "2026-06-29T14:00:46.388805+00:00"
+        },
+        {
+          "id": "b8128288-0b3d-481c-90f4-22a8ea51ca1c",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:de95e16c-86eb-4a4c-8a92-7626df486084:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "44a282ee-6758-43d4-9a71-9b932f81d42d",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:45.845+00:00",
+          "created_at": "2026-06-29T14:00:45.593556+00:00"
+        },
+        {
+          "id": "f130b4a8-d2bf-4434-8bbe-6f4883475cbd",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "notification_type": "stale",
+          "dedupe_key": "stale:db831b29-8bf9-4192-a0e8-422a142c6fb7:de95e16c-86eb-4a4c-8a92-7626df486084:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "d8a78da2-b26f-4a62-904a-837bd528a038",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:45.031+00:00",
+          "created_at": "2026-06-29T14:00:44.760518+00:00"
+        },
+        {
+          "id": "6001d817-c806-423b-a473-99a0803a4287",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "daily_digest",
+          "dedupe_key": "daily_digest:129efe70-60f8-4f40-8407-1f6361c81d87:2026-06-29:daily",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "The SandPro Daily",
+          "provider_id": "eb718fa3-06ea-4dd5-9d86-8e8b1448768d",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T13:01:00.143+00:00",
+          "created_at": "2026-06-29T13:00:59.981077+00:00"
+        },
+        {
+          "id": "e0d98d6a-d9e0-4a09-beef-da2b7d66ecfc",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "daily_digest",
+          "dedupe_key": "daily_digest:801402ec-7815-44f3-8948-9daae10b4407:2026-06-29:daily",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "The SandPro Daily",
+          "provider_id": "f00edaa4-ec1d-4190-a79d-2750bd9c9c63",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T13:00:59.605+00:00",
+          "created_at": "2026-06-29T13:00:59.436413+00:00"
+        },
+        {
+          "id": "837d4995-16da-4dc6-a414-b9c84c8a4421",
+          "user_id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "objective_id": null,
+          "notification_type": "daily_digest",
+          "dedupe_key": "daily_digest:7fe3bded-1c47-4f76-9e10-9b674adf4f30:2026-06-29:daily",
+          "recipient": "release-smoke-member@objectivetracker.net",
+          "subject": "The SandPro Daily",
+          "provider_id": "602a57f3-7c26-49de-afb4-34e685b732e7",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T13:00:59.079+00:00",
+          "created_at": "2026-06-29T13:00:58.924065+00:00"
+        }
+      ]
+    },
+    {
+      "table": "email_delivery_log",
+      "field": "sent_at",
+      "count": 68,
+      "rows": [
+        {
+          "id": "47086722-3a41-4e77-9cb4-7cd412efe818",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:129efe70-60f8-4f40-8407-1f6361c81d87:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-29",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "146255cb-b847-44e7-9859-88432e64e5e4",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:59.62+00:00",
+          "created_at": "2026-06-29T14:00:59.189188+00:00"
+        },
+        {
+          "id": "91e3922f-907b-4b1b-a166-1ed85f4abfa2",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "7aa2ae1e-d487-4f0a-9a04-a14d5863aca9",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:59.018+00:00",
+          "created_at": "2026-06-29T14:00:58.87619+00:00"
+        },
+        {
+          "id": "e0e64a49-b955-4d85-9431-7821768da518",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-29",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "c9171a73-d3b3-4ac6-b72d-97855def8552",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:58.721+00:00",
+          "created_at": "2026-06-29T14:00:58.54561+00:00"
+        },
+        {
+          "id": "017cb6a7-7e0e-4198-b680-8f507b08c7f5",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "07bf5ac2-e7cb-49f0-8d2d-48f71128a6e8",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:58.388+00:00",
+          "created_at": "2026-06-29T14:00:58.185912+00:00"
+        },
+        {
+          "id": "bfca8e77-0213-47a8-a4f2-34b55227da23",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:e4c2c435-71c4-46ed-afce-545ec36b5cb1:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "c82546a0-aef3-4254-9ce3-8ad9fc06a646",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:57.994+00:00",
+          "created_at": "2026-06-29T14:00:57.824457+00:00"
+        },
+        {
+          "id": "95578833-f576-4e49-bfe3-8dfa24135841",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:129efe70-60f8-4f40-8407-1f6361c81d87:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-29",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "ef693806-76eb-44dc-bf71-bad8138710af",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:57.679+00:00",
+          "created_at": "2026-06-29T14:00:57.519067+00:00"
+        },
+        {
+          "id": "ea353838-7d1c-41de-9cd3-04d7db4fba04",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "bac1ea84-630a-46f1-a4bd-1997f0938cc3",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:57.094+00:00",
+          "created_at": "2026-06-29T14:00:56.953092+00:00"
+        },
+        {
+          "id": "9a4443eb-7dc0-410a-8407-cdde156afc38",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:db831b29-8bf9-4192-a0e8-422a142c6fb7:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "cfe17f78-eb22-44ed-b988-c370936b3486",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:56.807+00:00",
+          "created_at": "2026-06-29T14:00:56.649701+00:00"
+        },
+        {
+          "id": "38696f4a-85e0-460e-8e96-2750471eca24",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:b09bb3ea-a25e-4266-a542-e93fcd8240b7:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "bf03a869-61e3-4270-bbdc-e6a259de2655",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:56.488+00:00",
+          "created_at": "2026-06-29T14:00:56.338285+00:00"
+        },
+        {
+          "id": "9442ab95-ad3b-4a1e-a12a-9fe50a36719b",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:129efe70-60f8-4f40-8407-1f6361c81d87:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-29",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "00d4f85e-3eb8-4b4f-9570-45259acc44db",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:56.161+00:00",
+          "created_at": "2026-06-29T14:00:55.997287+00:00"
+        },
+        {
+          "id": "66b28985-6532-47cd-bf07-3919e3cecabf",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "49f10d8d-fadf-43b4-88ba-b2934d894c6d",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:55.837+00:00",
+          "created_at": "2026-06-29T14:00:55.11618+00:00"
+        },
+        {
+          "id": "85cfb280-9316-45ff-ab1c-0f03415c4811",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-29",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "14db8a1a-e3af-4e8d-96d9-75bc5062de23",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:48.964+00:00",
+          "created_at": "2026-06-29T14:00:48.692268+00:00"
+        },
+        {
+          "id": "5466da1b-d140-46eb-bbda-eeb1a9187f4e",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-29",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "59ac7d71-a51c-49c5-aeb9-f9bd1e934db8",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:48.094+00:00",
+          "created_at": "2026-06-29T14:00:47.901191+00:00"
+        },
+        {
+          "id": "7f1deea7-a96f-40a9-bb69-a482fc1d7a8d",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "0726a1e7-3320-4fb1-b780-6d2d69bef6d7",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:47.317+00:00",
+          "created_at": "2026-06-29T14:00:47.148912+00:00"
+        },
+        {
+          "id": "9783dcfb-19b0-48bc-a2b7-4d007e5d1c0e",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "35150011-f03f-47ce-b5d4-146dd5d25f3f",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:46.547+00:00",
+          "created_at": "2026-06-29T14:00:46.388805+00:00"
+        },
+        {
+          "id": "b8128288-0b3d-481c-90f4-22a8ea51ca1c",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:de95e16c-86eb-4a4c-8a92-7626df486084:2026-06-29",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "44a282ee-6758-43d4-9a71-9b932f81d42d",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:45.845+00:00",
+          "created_at": "2026-06-29T14:00:45.593556+00:00"
+        },
+        {
+          "id": "f130b4a8-d2bf-4434-8bbe-6f4883475cbd",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "notification_type": "stale",
+          "dedupe_key": "stale:db831b29-8bf9-4192-a0e8-422a142c6fb7:de95e16c-86eb-4a4c-8a92-7626df486084:2026-06-29",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "d8a78da2-b26f-4a62-904a-837bd528a038",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T14:00:45.031+00:00",
+          "created_at": "2026-06-29T14:00:44.760518+00:00"
+        },
+        {
+          "id": "6001d817-c806-423b-a473-99a0803a4287",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "daily_digest",
+          "dedupe_key": "daily_digest:129efe70-60f8-4f40-8407-1f6361c81d87:2026-06-29:daily",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "The SandPro Daily",
+          "provider_id": "eb718fa3-06ea-4dd5-9d86-8e8b1448768d",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T13:01:00.143+00:00",
+          "created_at": "2026-06-29T13:00:59.981077+00:00"
+        },
+        {
+          "id": "e0d98d6a-d9e0-4a09-beef-da2b7d66ecfc",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "daily_digest",
+          "dedupe_key": "daily_digest:801402ec-7815-44f3-8948-9daae10b4407:2026-06-29:daily",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "The SandPro Daily",
+          "provider_id": "f00edaa4-ec1d-4190-a79d-2750bd9c9c63",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T13:00:59.605+00:00",
+          "created_at": "2026-06-29T13:00:59.436413+00:00"
+        },
+        {
+          "id": "837d4995-16da-4dc6-a414-b9c84c8a4421",
+          "user_id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "objective_id": null,
+          "notification_type": "daily_digest",
+          "dedupe_key": "daily_digest:7fe3bded-1c47-4f76-9e10-9b674adf4f30:2026-06-29:daily",
+          "recipient": "release-smoke-member@objectivetracker.net",
+          "subject": "The SandPro Daily",
+          "provider_id": "602a57f3-7c26-49de-afb4-34e685b732e7",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-29T13:00:59.079+00:00",
+          "created_at": "2026-06-29T13:00:58.924065+00:00"
+        }
+      ]
+    },
+    {
+      "table": "alt_dashboard_presence",
+      "field": "updated_at",
+      "count": 5,
+      "rows": [
+        {
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "last_seen_at": "2026-06-29T14:03:58.322+00:00",
+          "created_at": "2026-06-14T20:41:33.801576+00:00",
+          "updated_at": "2026-06-29T14:03:58.891049+00:00"
+        },
+        {
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "last_seen_at": "2026-06-29T13:44:32.46+00:00",
+          "created_at": "2026-06-15T03:37:20.095251+00:00",
+          "updated_at": "2026-06-29T13:44:24.375691+00:00"
+        },
+        {
+          "user_id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "last_seen_at": "2026-06-29T12:37:02.296+00:00",
+          "created_at": "2026-06-14T20:40:04.743153+00:00",
+          "updated_at": "2026-06-29T12:37:02.407701+00:00"
+        },
+        {
+          "user_id": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+          "last_seen_at": "2026-06-29T12:36:45.724+00:00",
+          "created_at": "2026-06-14T20:39:48.728709+00:00",
+          "updated_at": "2026-06-29T12:36:45.970135+00:00"
+        },
+        {
+          "user_id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "last_seen_at": "2026-06-29T08:37:02.852+00:00",
+          "created_at": "2026-06-14T19:13:45.534789+00:00",
+          "updated_at": "2026-06-29T08:37:02.960053+00:00"
+        }
+      ]
+    },
+    {
+      "table": "alt_dashboard_presence",
+      "field": "last_seen_at",
+      "count": 5,
+      "rows": [
+        {
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "last_seen_at": "2026-06-29T14:03:58.322+00:00",
+          "created_at": "2026-06-14T20:41:33.801576+00:00",
+          "updated_at": "2026-06-29T14:03:58.891049+00:00"
+        },
+        {
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "last_seen_at": "2026-06-29T13:44:32.46+00:00",
+          "created_at": "2026-06-15T03:37:20.095251+00:00",
+          "updated_at": "2026-06-29T13:44:24.375691+00:00"
+        },
+        {
+          "user_id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "last_seen_at": "2026-06-29T12:37:02.296+00:00",
+          "created_at": "2026-06-14T20:40:04.743153+00:00",
+          "updated_at": "2026-06-29T12:37:02.407701+00:00"
+        },
+        {
+          "user_id": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+          "last_seen_at": "2026-06-29T12:36:45.724+00:00",
+          "created_at": "2026-06-14T20:39:48.728709+00:00",
+          "updated_at": "2026-06-29T12:36:45.970135+00:00"
+        },
+        {
+          "user_id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "last_seen_at": "2026-06-29T08:37:02.852+00:00",
+          "created_at": "2026-06-14T19:13:45.534789+00:00",
+          "updated_at": "2026-06-29T08:37:02.960053+00:00"
+        }
+      ]
+    },
+    {
+      "table": "okr_project_audit",
+      "field": "sample",
+      "error": "Could not find the table 'public.okr_project_audit' in the schema cache",
+      "code": "PGRST205"
+    }
+  ],
+  "missing_timestamp_tables": [
+    {
+      "table": "objective_metric_checkins",
+      "keys": []
+    },
+    {
+      "table": "objective_agent_runs",
+      "keys": []
+    },
+    {
+      "table": "ncr_action_items",
+      "keys": []
+    },
+    {
+      "table": "ncr_attachments",
+      "keys": []
+    },
+    {
+      "table": "ncr_import_batches",
+      "keys": []
+    },
+    {
+      "table": "ncr_signatures",
+      "keys": []
+    },
+    {
+      "table": "kpi_definitions",
+      "keys": []
+    },
+    {
+      "table": "kpi_datapoints",
+      "keys": []
+    },
+    {
+      "table": "kpi_objective_links",
+      "keys": []
+    },
+    {
+      "table": "kpi_checkins",
+      "keys": []
+    },
+    {
+      "table": "kpi_alert_rules",
+      "keys": []
+    },
+    {
+      "table": "kpi_alert_events",
+      "keys": []
+    },
+    {
+      "table": "kpi_import_batches",
+      "keys": []
+    },
+    {
+      "table": "okr_projects",
+      "keys": []
+    },
+    {
+      "table": "okr_project_kr_links",
+      "keys": []
+    },
+    {
+      "table": "okr_assessment_artifacts",
+      "keys": []
+    },
+    {
+      "table": "okr_project_signatures",
+      "keys": []
+    },
+    {
+      "table": "okr_project_attachments",
+      "keys": []
+    },
+    {
+      "table": "alt_dashboard_note_folders",
+      "keys": []
+    },
+    {
+      "table": "alt_dashboard_note_attachments",
+      "keys": []
+    }
+  ],
+  "request_like_rows": [],
+  "classification": {
+    "actionable_items": [],
+    "implemented_items": [],
+    "pending_approval": [],
+    "conflicts": [],
+    "routine_activity": [
+      {
+        "table": "email_delivery_log",
+        "field": "created_at",
+        "count": 68,
+        "status_counts": {
+          "sent": 68
+        },
+        "type_counts": {
+          "null": 68
+        },
+        "note": "Scheduled/transactional email rows only; no user-authored requested change or bug report."
+      },
+      {
+        "table": "alt_dashboard_presence",
+        "field": "updated_at",
+        "count": 5,
+        "note": "Passive dashboard presence heartbeat rows only."
+      }
+    ],
+    "unresolved_preexisting_items": [
+      {
+        "source": "objectives",
+        "count": 6,
+        "note": "Open Jake/Mercileidy-owned or Jake-created objectives remain from prior runs. They are business/workflow objectives, not new app-change requests from this review window, and require normal stakeholder discussion rather than automation edits."
+      }
+    ],
+    "decision": "No automatic implementation, production data mutation, cleanup, or deploy required.",
+    "false_positive_keyword_hits": [
+      {
+        "table": "alt_dashboard_presence",
+        "fields": [
+          "updated_at",
+          "last_seen_at"
+        ],
+        "count": 10,
+        "note": "Initial keyword scan matched timestamp field names, not user-authored request text."
+      }
+    ]
+  },
+  "summary": [
+    "Reviewed production activity since 2026-06-28T14:01:54.386Z.",
+    "Active non-archived Fix-It posts: 0.",
+    "No new non-routine production activity rows were found across Fix-It, objective comments/messages, objective_updates, objective rows, org-chart updates, NCR, KPI, OKR/project, files, or objective agent tables.",
+    "Routine activity only: 68 email_delivery_log.created_at rows and 5 alt_dashboard_presence.updated_at rows.",
+    "Preexisting open Jake/Mercileidy objective count: 6; none changed during this review window.",
+    "No clear Jake/Mercileidy implementation request, obvious bug report, keyword-backed requested change, or Jake/Merci conflict was found.",
+    "No automatic implementation, production data mutation, cleanup, or deploy required."
+  ]
+}

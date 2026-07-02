@@ -1,0 +1,153 @@
+{
+  "run": {
+    "name": "SandPro OMP Activity Review - 3:30 PM",
+    "automationId": "sandpro-omp-activity-review-3-30-pm",
+    "reviewedAt": "2026-06-20T20:32:10.844Z",
+    "reviewedAtLocal": "2026-06-20 15:32:10 CDT",
+    "since": "2026-06-19T20:30:34.398Z",
+    "supabaseProjectRef": "whgrkfhuzgwmbelocnhq",
+    "productionUrl": "https://objectivetracker.net"
+  },
+  "summary": {
+    "actionableRequests": 0,
+    "implementedChanges": 0,
+    "deployed": false,
+    "activeFixItCount": 0,
+    "jakeMerciOpenObjectiveCount": 6,
+    "conflicts": 0,
+    "pendingAndrewApproval": [
+      {
+        "source": "alt_dashboard_notes",
+        "id": "6ecacbef-2d92-4d8e-aded-2d4ffb199bd4",
+        "status": "carried_forward",
+        "summary": "Jake Feil's prior workflow question about assigning multiple objective assignments remains ambiguous and was not auto-implemented."
+      }
+    ]
+  },
+  "activitySinceCheckpoint": {
+    "fixItPostsCreated": 0,
+    "fixItPostsUpdated": 0,
+    "fixItComments": 0,
+    "fixItAttachments": 0,
+    "objectivesCreated": 0,
+    "objectivesUpdated": 0,
+    "objectiveUpdates": 0,
+    "objectiveMessages": 0,
+    "objectiveWorkflowStepsCreated": 0,
+    "objectiveWorkflowStepsUpdated": 0,
+    "objectiveAgentRuns": 0,
+    "objectiveMessageReads": 0,
+    "messageReactions": 0,
+    "orgChartUpdates": 0,
+    "orgChartPlaceholdersCreated": 0,
+    "orgChartPlaceholdersUpdated": 0,
+    "altDashboardNotesCreated": 0,
+    "altDashboardNotesUpdated": 0,
+    "altDashboardNoteAttachments": 0,
+    "okrProjectAuditEvents": 0,
+    "ncrAuditEvents": 0,
+    "notifications": 0,
+    "kpiDefinitionsCreated": 0,
+    "kpiDefinitionsUpdated": 0,
+    "kpiDatapoints": 0,
+    "kpiCheckins": 0,
+    "kpiAlertEvents": 0
+  },
+  "deliveryActivity": {
+    "emailDeliveryLog": {
+      "count": 38,
+      "byType": {
+        "mention": 27,
+        "overdue": 11
+      },
+      "byStatus": {
+        "sent": 38
+      },
+      "qaPushSmokeMentionEmails": 27,
+      "failed": 0
+    },
+    "pushDeliveryLog": {
+      "count": 0,
+      "failed": 0
+    }
+  },
+  "currentState": {
+    "activeFixItPosts": [],
+    "jakeMerciOpenObjectives": [
+      {
+        "id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+        "title": "Project Test",
+        "owner": "Mercileidy Jimenez",
+        "status": "not_started",
+        "department": "Admin"
+      },
+      {
+        "id": "d8712120-4d53-4d77-8aba-06a15839776d",
+        "title": "test",
+        "owner": "Jake Feil",
+        "status": "not_started",
+        "department": "Leadership"
+      },
+      {
+        "id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+        "title": "Build HRU 14.3",
+        "owner": "Jake Feil",
+        "status": "not_started",
+        "department": "Automation"
+      },
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "owner": "Mercileidy Jimenez",
+        "status": "on_track",
+        "department": "Admin"
+      },
+      {
+        "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+        "title": "NCR #82007431 - Process Loss - Chord Hoff",
+        "owner": "Jake Feil",
+        "status": "not_started",
+        "department": "Shop"
+      },
+      {
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "title": "OKRs and Projects tracking/ R&D",
+        "owner": "Jake Feil",
+        "status": "not_started",
+        "department": "Leadership"
+      }
+    ]
+  },
+  "classification": {
+    "autoImplemented": [],
+    "notImplemented": [
+      "No new Jake Feil or Mercileidy Jimenez implementation requests were created in the review window.",
+      "No user-reported obvious bug or broken behavior appeared in the reviewed activity tables.",
+      "Jake's carried-forward objective-assignment workflow question remains a product/workflow decision, not a safe automatic implementation."
+    ],
+    "conflicts": []
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "npm run test:schema",
+        "result": "passed"
+      },
+      {
+        "command": "npm run smoke:prod",
+        "result": "passed",
+        "details": "6 passed"
+      },
+      {
+        "command": "npm run smoke:push:prod",
+        "result": "passed",
+        "details": "Expected one failed fake-endpoint delivery attempt; cleanup verified 0 leftovers."
+      }
+    ]
+  },
+  "cleanup": {
+    "productionDataCleanup": "Push smoke cleanup verified 0 leftover QA records.",
+    "sourceChanges": "No app/source code changes were made. Existing dirty worktree changes were left untouched.",
+    "deployment": "No deployment was needed."
+  }
+}

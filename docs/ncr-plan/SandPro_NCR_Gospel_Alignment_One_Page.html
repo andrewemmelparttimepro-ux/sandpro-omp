@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>SandPro NCR Gospel Alignment One Page</title>
+<style>
+  @page { size: Letter landscape; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, Arial, sans-serif; color: #172033; background: #f4f6f8; }
+  .page { width: 11in; height: 8.5in; padding: 0.34in 0.38in; background: linear-gradient(180deg, #fff 0%, #f8fafc 100%); overflow: hidden; }
+  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; border-bottom: 3px solid #ff7f02; padding-bottom: 12px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 44px; height: 44px; border-radius: 10px; background: #ff7f02; color: white; display: grid; place-items: center; font-size: 26px; font-weight: 900; }
+  h1 { margin: 0; font-size: 27px; line-height: 1.04; letter-spacing: 0; }
+  .sub { margin-top: 4px; color: #647084; font-size: 12px; }
+  .date { text-align: right; font-size: 11px; color: #647084; line-height: 1.45; min-width: 205px; }
+  .grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 17px; margin-top: 14px; }
+  .panel { background: #fff; border: 1px solid #d9e0ea; border-radius: 12px; padding: 14px; box-shadow: 0 7px 18px rgba(23, 32, 51, 0.05); }
+  .panel h2 { margin: 0 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: #5b6576; }
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .card { border: 1px solid #e0e6ee; border-radius: 10px; padding: 9px 10px; min-height: 75px; background: #fbfcfd; }
+  .card b { display: block; color: #172033; font-size: 12px; margin-bottom: 4px; }
+  .card span { display: block; color: #5b6576; font-size: 10.7px; line-height: 1.25; }
+  .accent { border-left: 5px solid #ff7f02; }
+  .timeline { margin-top: 8px; }
+  .row { display: grid; grid-template-columns: 95px 1fr 88px; align-items: center; gap: 10px; margin: 9px 0; }
+  .label { font-weight: 800; font-size: 12px; }
+  .barTrack { height: 28px; border-radius: 999px; background: #eef2f7; overflow: hidden; position: relative; border: 1px solid #dce3ec; }
+  .bar { height: 100%; border-radius: 999px; display: flex; align-items: center; padding-left: 12px; color: white; font-size: 11px; font-weight: 800; white-space: nowrap; }
+  .ai { width: 14%; background: #ff7f02; min-width: 96px; }
+  .traditional { width: 100%; background: #344154; }
+  .cost { font-size: 11px; color: #5b6576; font-weight: 800; text-align: right; }
+  .legend { display: flex; gap: 10px; color: #647084; font-size: 10px; margin-top: 9px; }
+  .dot { width: 9px; height: 9px; border-radius: 99px; display: inline-block; margin-right: 5px; vertical-align: -1px; }
+  .orange { background: #ff7f02; }
+  .charcoal { background: #344154; }
+  .metricStrip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; margin-top: 12px; }
+  .metric { border-radius: 11px; padding: 10px 9px; background: #fff7ef; border: 1px solid rgba(255,127,2,.22); }
+  .metric strong { display: block; font-size: 21px; color: #ff7f02; line-height: 1; }
+  .metric span { display: block; color: #5b6576; font-size: 10px; margin-top: 5px; line-height: 1.22; }
+  .costBox { background: #172033; color: white; border-radius: 12px; padding: 13px 14px; margin-top: 12px; }
+  .costBox h3 { margin: 0 0 8px; font-size: 13px; color: #fff; }
+  .costGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .costItem { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 9px; padding: 9px; min-height: 68px; }
+  .costItem b { color: #ffb66d; font-size: 16px; display: block; }
+  .costItem span { color: #d8dee8; font-size: 10px; line-height: 1.25; display: block; margin-top: 4px; }
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 10px; }
+  .step { border-radius: 10px; border: 1px solid #dde4ee; background: #fbfcfd; padding: 8px; min-height: 70px; position: relative; }
+  .step:after { content: '›'; position: absolute; right: -8px; top: 24px; color: #ff7f02; font-size: 18px; font-weight: 900; }
+  .step:last-child:after { display: none; }
+  .step b { display: block; color: #172033; font-size: 11px; margin-bottom: 4px; }
+  .step span { color: #647084; font-size: 9.8px; line-height: 1.24; display: block; }
+  .bottom { display: grid; grid-template-columns: 1.15fr .85fr; gap: 17px; margin-top: 14px; }
+  .proof { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .check { display: flex; align-items: center; gap: 7px; padding: 7px 8px; border-radius: 9px; background: #f8fafc; border: 1px solid #e0e6ee; font-size: 10.5px; color: #344154; }
+  .check:before { content: '✓'; color: #12805c; font-weight: 900; }
+  .note { color: #647084; font-size: 10px; line-height: 1.32; margin-top: 10px; }
+  .callout { border-left: 5px solid #ff7f02; background: #fff7ef; border-radius: 10px; padding: 12px; font-size: 11px; color: #344154; line-height: 1.34; }
+  .callout b { color: #172033; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">◎</div>
+      <div>
+        <h1>NCR Gospel Alignment: What Shipped</h1>
+        <div class="sub">KPA migration path + Tim-facing NCR analytics + lifecycle controls, aligned to Merci/Tim’s packet.</div>
+      </div>
+    </div>
+    <div class="date"><b>SandPro OMP</b><br/>Production release: June 3, 2026<br/>Domain: objectivetracker.net</div>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>From Instruction To Implementation</h2>
+      <div class="cards">
+        <div class="card accent"><b>KPA migration ready</b><span>Excel/CSV import, preview, batch tracking, raw source preservation, rollback-ready data model.</span></div>
+        <div class="card"><b>KPA form parity</b><span>Worksite, operator, event type, criticality, NPT/cost, root cause, departments, dates, signoffs.</span></div>
+        <div class="card"><b>Quality closure controls</b><span>Action items, evidence, audit trail, required signoffs, and effectiveness review before close.</span></div>
+        <div class="card"><b>Tim analytics layer</b><span>Failure trend groupings, HRU/AWC/710 examples, filters, PDF/CSV/Excel outputs, AI API fallback.</span></div>
+      </div>
+      <div class="metricStrip">
+        <div class="metric"><strong>63/63</strong><span>unit checks passed</span></div>
+        <div class="metric"><strong>0</strong><span>prod QA leftovers</span></div>
+        <div class="metric"><strong>354</strong><span>KPA records import-ready</span></div>
+        <div class="metric"><strong>Live</strong><span>verified on production</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Timeline And Pre-AI Cost Comparison</h2>
+      <div class="timeline">
+        <div class="row"><div class="label">AI-assisted</div><div class="barTrack"><div class="bar ai">same-day sprint</div></div><div class="cost">Live today</div></div>
+        <div class="row"><div class="label">Pre-AI path</div><div class="barTrack"><div class="bar traditional">requirements → build → QA → deploy</div></div><div class="cost">3-5 weeks</div></div>
+      </div>
+      <div class="costBox">
+        <h3>Traditional delivery estimate if handled the old way</h3>
+        <div class="costGrid">
+          <div class="costItem"><b>120-180 hrs</b><span>BA/PM, database, frontend, backend/API, QA, deployment, documentation.</span></div>
+          <div class="costItem"><b>$18k-$27k</b><span>At a conservative $150/hr blended product/dev rate.</span></div>
+          <div class="costItem"><b>+$5k-$12k</b><span>Likely added cost for analytics iteration and KPA import reconciliation.</span></div>
+        </div>
+      </div>
+      <div class="legend"><span><i class="dot orange"></i>AI-assisted OMP sprint</span><span><i class="dot charcoal"></i>Traditional pre-AI implementation track</span></div>
+    </section>
+  </div>
+
+  <div class="bottom">
+    <section class="panel">
+      <h2>Traditional Pre-AI Workstream</h2>
+      <div class="flow">
+        <div class="step"><b>1. Discovery</b><span>Meetings, notes, scope rewrite, KPA field inventory.</span></div>
+        <div class="step"><b>2. Data model</b><span>Schema, migration design, import batch model.</span></div>
+        <div class="step"><b>3. Build</b><span>Forms, lifecycle, evidence, APIs, reports, analytics.</span></div>
+        <div class="step"><b>4. QA cycle</b><span>Bug passes, fixture data, production smoke, cleanup.</span></div>
+        <div class="step"><b>5. Rollout</b><span>Docs, Tim review, migration run, cutover plan.</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Proof Standard Met</h2>
+      <div class="proof">
+        <div class="check">Lint, build, schema passed</div>
+        <div class="check">63 unit tests passed</div>
+        <div class="check">PWA checks passed</div>
+        <div class="check">0 prod temp records left</div>
+        <div class="check">Production NCR verifier passed</div>
+        <div class="check">PDF report generated</div>
+      </div>
+      <div class="note">Known boundary: the real 354-record import still requires Tim’s KPA export file; the import path and governance model are ready.</div>
+    </section>
+  </div>
+
+  <div class="callout" style="margin-top: 12px;"><b>Bottom line:</b> the work moved from a generic NCR tracker to the correct KPA-replacement direction: historical migration, structured NCR capture, accountability, exports, and Tim’s trend-analysis workflow. Traditional delivery would normally require several weeks of coordinated product, engineering, QA, and reporting work before reaching this proof level.</div>
+</div>
+</body>
+</html>

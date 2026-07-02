@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-06-19T17:02:13.221Z",
+  "baseUrl": "https://objectivetracker.net",
+  "checks": [
+    {
+      "label": "desktop-fixit-empty-authenticated",
+      "url": "https://objectivetracker.net/?page=fixit",
+      "title": "SandPro OMP",
+      "hasFixIt": true,
+      "hasActiveZero": true,
+      "hasArchive28": true,
+      "hasEmpty": true,
+      "activeCards": 0,
+      "screenshot": "docs/reports/evidence/fixit-closure-2026-06-19-1700/desktop-fixit-empty-authenticated.png",
+      "bodySnippet": "Dashboard\nObjectives\nKPI\nFix-It Feed\nNCR\nOrganization\nNew\nRA\nRelease Smoke Admin\nexecutive\nFIRST LOGIN GUIDE\nWhat changed in Dashboard + Objectives\n\nDashboard is now the command view for deciding what needs attention. Objectives is the working record for OKRs, KRs, projects, gates, files, audit, and signoffs.\n\nStart in Dashboard\n\nUse the lenses to see active work, stale KRs, blockers, departments, and due-date pressure without changing the source records.\n\nWork in Objectives\n\nOpen the objective to manage structure, metrics, linked projects, gate blockers, evidence files, audit history, and signoffs.\n\nReview the tree\n\nCompany OKRs, department OKRs, key results, and linked projects now live in one hierarchy so work does not drift away from the result it supports.\n\nUse the exports\n\nJake one-pagers, department scorecards, R&D pipeline reports, quarterly scorecards, and project audit packs are built from the same live objective data.\n\nItems marked Assumed are preserved exactly as-is. They a"
+    },
+    {
+      "label": "mobile-fixit-empty-authenticated",
+      "url": "https://objectivetracker.net/?page=fixit",
+      "title": "SandPro OMP",
+      "hasFixIt": true,
+      "hasActiveZero": true,
+      "hasArchive28": true,
+      "hasEmpty": true,
+      "activeCards": 0,
+      "screenshot": "docs/reports/evidence/fixit-closure-2026-06-19-1700/mobile-fixit-empty-authenticated.png",
+      "bodySnippet": "Fix-It Feed\nRA\nFIRST LOGIN GUIDE\nWhat changed in Dashboard + Objectives\n\nDashboard is now the command view for deciding what needs attention. Objectives is the working record for OKRs, KRs, projects, gates, files, audit, and signoffs.\n\nStart in Dashboard\n\nUse the lenses to see active work, stale KRs, blockers, departments, and due-date pressure without changing the source records.\n\nWork in Objectives\n\nOpen the objective to manage structure, metrics, linked projects, gate blockers, evidence files, audit history, and signoffs.\n\nReview the tree\n\nCompany OKRs, department OKRs, key results, and linked projects now live in one hierarchy so work does not drift away from the result it supports.\n\nUse the exports\n\nJake one-pagers, department scorecards, R&D pipeline reports, quarterly scorecards, and project audit packs are built from the same live objective data.\n\nItems marked Assumed are preserved exactly as-is. They are placed in the best-fit category and are asking for a human confirmation, "
+    }
+  ]
+}

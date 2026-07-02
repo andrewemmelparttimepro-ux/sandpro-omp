@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-06-19T16:00:41.925Z",
+  "results": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "activeTextOk": true,
+      "archiveTextOk": true,
+      "cardCount": 0,
+      "screenshot": "docs/reports/evidence/fixit-closure-2026-06-19-1600/fixit-empty-desktop.png",
+      "url": "https://objectivetracker.net/?page=fixit"
+    },
+    {
+      "name": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "activeTextOk": true,
+      "archiveTextOk": true,
+      "cardCount": 0,
+      "screenshot": "docs/reports/evidence/fixit-closure-2026-06-19-1600/fixit-empty-mobile.png",
+      "url": "https://objectivetracker.net/?page=fixit"
+    }
+  ]
+}

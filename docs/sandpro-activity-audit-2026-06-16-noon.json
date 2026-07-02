@@ -1,0 +1,324 @@
+{
+  "generatedAt": "2026-06-16T17:07:27.837Z",
+  "since": "2026-06-15T18:05:28Z",
+  "counts": {
+    "fixItPostsCreated": 0,
+    "fixItPostsUpdated": 0,
+    "fixItComments": 0,
+    "fixItAttachments": 0,
+    "objectiveMessages": 0,
+    "objectiveUpdates": 11,
+    "objectivesTouched": 0,
+    "orgChartUpdates": 0,
+    "okrProjectAuditEvents": 0,
+    "ncrAuditEvents": 0,
+    "altDashboardNotes": 0,
+    "notifications": 0,
+    "emailLogs": 62,
+    "pushLogs": 0,
+    "activeFixItNow": 1,
+    "archivedFixItNow": 27,
+    "openJakeMerciObjectives": 3
+  },
+  "newActivity": {
+    "fixItPostsCreated": [],
+    "fixItPostsUpdated": [],
+    "fixItComments": [],
+    "fixItAttachments": [],
+    "messages": [],
+    "objectiveUpdates": [
+      {
+        "objectiveId": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "title": "Finalize April expense report — personal CC items + remaining receipts",
+        "owner": "Mercileidy Jimenez",
+        "activityCount": 10,
+        "windowStart": "2026-06-15T20:01:59.844305+00:00",
+        "windowEnd": "2026-06-15T20:02:26.20711+00:00",
+        "actions": [
+          "status_change: blocked -> completed",
+          "workflow_step_updated: current -> done",
+          "workflow_step_updated: todo -> done",
+          "workflow_step_updated: null -> current",
+          "workflow_step_updated: todo -> done",
+          "workflow_step_updated: null -> current",
+          "workflow_step_updated: todo -> done",
+          "workflow_step_updated: todo -> done",
+          "workflow_step_updated: null -> current",
+          "workflow_step_updated: current -> done"
+        ]
+      },
+      {
+        "objectiveId": "339f2ceb-82b8-4f9a-bfa6-1179fe3ebb3f",
+        "title": "NCR #82008371 - Substandard Condition",
+        "owner": "Tim Dibben",
+        "activityCount": 1,
+        "windowStart": "2026-06-16T16:14:43.76534+00:00",
+        "windowEnd": "2026-06-16T16:14:43.76534+00:00",
+        "actions": [
+          "status_change: on_track -> completed"
+        ]
+      }
+    ],
+    "objectiveTouchesWithoutAudit": {
+      "touchedCount": 0,
+      "sharedUpdatedAt": [],
+      "sampleTitles": []
+    },
+    "orgChartUpdates": [],
+    "okrProjectAuditEvents": [],
+    "ncrAuditEvents": [],
+    "altDashboardNotes": []
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 62
+    },
+    "emailTypeCounts": {
+      "mention": 17,
+      "overdue": 13,
+      "daily_digest": 32
+    },
+    "pushStatusCounts": {},
+    "pushTypeCounts": {},
+    "notificationTypeCounts": {},
+    "notificationRecipients": {},
+    "failedEmails": [],
+    "failedPushes": [],
+    "notes": [
+      "Mention emails in this window include 17 QA push-smoke artifacts sent to qa+push-smoke aliases.",
+      "The first non-QA delivery burst in this window was 2026-06-16T13:00:58.675+00:00."
+    ]
+  },
+  "unresolved": {
+    "activeFixIt": [
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories currently displayed on the main dashboard are:\n\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThese are good and should be considered the core visuals for team productivity.\n\nHowever, when a user clicks into Open, for example, the next screen only shows the following status options:\n\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThese should be treated as sub-filters under the main dashboard categories, not separate navigation areas.\n\nFor example, on the main dashboard, Open should show a breakdown of how many open objectives are:\n\nOn Track\nAt Risk\nBlocked\nNot Started\n\nThen, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days.\n\nWould it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform?\n\nThe suggested filter structure would be:\n\nFirst filter: Ownership / Scope\nMy Objectives\nIndividual Person\nGroup / Department\nAll Objectives\n\nSecond filter: Main Category\nAll\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThird filter: Status\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThe goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select:\n\nMy Objectives + Open + At Risk\nOperations Group + Due Within 7 Days + Blocked\nAll Objectives + Overdue + Not Started\n\nThis would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-12T23:20:52.581+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "reopened_by": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+        "reopened_at": "2026-06-10T06:55:12.267+00:00",
+        "reopen_count": 1,
+        "reopened_from_status": "agent_done",
+        "status": "agent_done",
+        "created_at": "2026-05-28T17:59:58.482556+00:00",
+        "updated_at": "2026-06-12T23:20:54.709898+00:00",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "role": "executive",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "reports_to": null
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "role": "executive",
+          "email": "andrew@ndai.pro",
+          "title": "Platform Admin",
+          "department": "Leadership",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "role": "executive",
+          "email": "andrew@ndai.pro",
+          "title": "Platform Admin",
+          "department": "Leadership",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+        },
+        "reopenedBy": {
+          "id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "name": "SandPro QA Agent",
+          "role": "executive",
+          "email": "sandpro-qa-agent@ndai.pro",
+          "title": "Release QA",
+          "department": "Leadership",
+          "reports_to": null
+        },
+        "comments": [
+          {
+            "id": "2e46678d-3f7d-45e0-9b4c-7b14d0a8ef59",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "body": "This is live now. Clicking the Dashboard Active card opens Objective Lens with the Active filter applied, and the list keeps scope, due-date, and status filters available in one place. I revalidated it today and attached fresh proof.",
+            "created_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "created_at": "2026-06-12T23:20:54.436831+00:00",
+            "updated_at": "2026-06-12T23:20:54.436831+00:00",
+            "createdBy": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "role": "executive",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+            }
+          }
+        ],
+        "attachments": [
+          {
+            "id": "452b231d-e50d-49b2-8eb8-6d1652f3407d",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "comment_id": null,
+            "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Dashboard view  1.png",
+            "purpose": "report",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "37.0 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1779991198136_Dashboard view  1.png",
+            "url": "",
+            "created_at": "2026-05-28T17:59:59.28204+00:00",
+            "uploadedBy": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "role": "executive",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "reports_to": null
+            }
+          },
+          {
+            "id": "40765b85-0dac-4dc7-80a7-7e3d856cc427",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "comment_id": null,
+            "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Dashboard view  2.png",
+            "purpose": "report",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "12.4 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1779991198863_Dashboard view  2.png",
+            "url": "",
+            "created_at": "2026-05-28T17:59:59.875818+00:00",
+            "uploadedBy": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "role": "executive",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "reports_to": null
+            }
+          },
+          {
+            "id": "25ecaf65-ebb9-4b6d-bc0d-e92b86acf347",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "comment_id": null,
+            "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "validation-proof-15-proof-dashboard-kpi-cards.png",
+            "purpose": "validation_proof",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "189.8 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/validation/1780201768843_validation-proof-15-proof-dashboard-kpi-cards.png",
+            "url": "",
+            "created_at": "2026-05-31T04:29:30.251488+00:00",
+            "uploadedBy": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "role": "executive",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+            }
+          },
+          {
+            "id": "7f46115e-6374-4254-9930-432a918896e8",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "comment_id": null,
+            "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "validation-proof-dashboard-buckets-live.png",
+            "purpose": "validation_proof",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "58 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1780613068109_validation-proof-dashboard-buckets-live.png",
+            "url": "",
+            "created_at": "2026-06-04T22:44:28.907055+00:00",
+            "uploadedBy": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "role": "executive",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+            }
+          },
+          {
+            "id": "1c12a6e1-9ace-4766-919f-e716cd01ea0d",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "comment_id": null,
+            "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "sandpro-fixit-proof-jake-objective-lens-2026-06-12.png",
+            "purpose": "validation_proof",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "98.4 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1781306453141_sandpro-fixit-proof-jake-objective-lens-2026-06-12.png",
+            "url": "",
+            "created_at": "2026-06-12T23:20:54.267208+00:00",
+            "uploadedBy": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "role": "executive",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+            }
+          }
+        ]
+      }
+    ],
+    "openJakeMerciObjectives": [
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "status": "on_track",
+        "owner": "Mercileidy Jimenez",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+        "title": "NCR #82007431 - Process Loss - Chord Hoff",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "title": "OKRs and Projects tracking/ R&D",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-06-16T00:00:00+00:00"
+      }
+    ],
+    "approvalQueue": [
+      "No new user-authored Fix-It or objective-message product requests were created in this window.",
+      "Jake's dashboard/objective-lens Fix-It card remains non-archived and unchanged; still waiting on Andrew's human archive/review step."
+    ]
+  },
+  "actionsTaken": {
+    "codeChanges": [],
+    "dataChanges": [],
+    "cleanup": [],
+    "deploys": []
+  },
+  "validation": {
+    "checks": [],
+    "deployRequired": false
+  }
+}

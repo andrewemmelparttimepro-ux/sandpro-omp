@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-06-27T01:46:45.197Z",
+  "title": "SandPro OMP",
+  "url": "https://objectivetracker.net/?page=fixit",
+  "fixitPostCount": 0,
+  "textIncludesFixItFeed": true,
+  "textIncludesEmptyState": true,
+  "activeCountVisible": true,
+  "archiveCountVisible": true,
+  "tabs": [
+    "Active\n0",
+    "0",
+    "Archive\n28",
+    "28"
+  ],
+  "bodyExcerpt": "Dashboard\nObjectives\nKPI\nFix-It Feed\nNCR\nOrganization\nNew\nRA\nRelease Smoke Admin\nexecutive\nFix-It Feed\n\nChronological beta feedback wall. No DMs, no guessing, no algorithm.\n\n0\nactive\nActive\n0\nArchive\n28\nRA\nAdd files\nDrop or paste screenshots, photos, PDFs, or notes anywhere on this box.\nPost\n\nNothing active has been flagged yet.",
+  "screenshotPath": "docs/reports/evidence/fixit-closure-2026-06-27-automation-20260627T0142Z/production-fixit-empty-playwright.png"
+}

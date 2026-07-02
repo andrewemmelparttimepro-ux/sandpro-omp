@@ -1,0 +1,96 @@
+{
+  "capturedAt": "2026-06-11T22:19:18.521Z",
+  "baseUrl": "https://objectivetracker.net",
+  "commit": "a257d66",
+  "deploymentId": "dpl_91VM6Xv8dDUyymoQ7JbtNJiH8ofQ",
+  "filterBar": {
+    "list": {
+      "selectCount": 4,
+      "labels": [
+        "All Owners",
+        "All Departments",
+        "All Priorities",
+        "All Due Dates"
+      ],
+      "countByOption": {
+        "All OKR levels": 0,
+        "All periods": 0,
+        "KR freshness": 0,
+        "All project stages": 0
+      }
+    },
+    "tree": {
+      "selectCount": 8,
+      "labels": [
+        "All Owners",
+        "All Departments",
+        "All Priorities",
+        "All Due Dates",
+        "All OKR levels",
+        "All periods",
+        "KR freshness",
+        "All project stages"
+      ],
+      "countByOption": {
+        "All OKR levels": 1,
+        "All periods": 1,
+        "KR freshness": 1,
+        "All project stages": 1
+      }
+    }
+  },
+  "unclassified": {
+    "listChips": 15,
+    "treeChips": 15,
+    "firstTreeChipTitle": "Auto-classified as Run-the-business because it is operational work without hierarchy or KR metrics.",
+    "targetTreeChecks": [
+      {
+        "title": "Finalize April expense report",
+        "found": true,
+        "hasUnclassifiedChip": true,
+        "chipTitle": "Auto-classified as Run-the-business because it is operational work without hierarchy or KR metrics."
+      },
+      {
+        "title": "Unread Message Count Not Refreshing",
+        "found": false,
+        "hasUnclassifiedChip": false,
+        "chipTitle": ""
+      }
+    ]
+  },
+  "staleLens": {
+    "url": "https://objectivetracker.net/?page=objectives&scope=company&okrLevel=key_result&stale=true",
+    "staleSelectVisible": true,
+    "staleSelectValue": "true"
+  },
+  "staleAfterClear": {
+    "staleSelectVisible": false,
+    "url": "https://objectivetracker.net/?page=objectives"
+  },
+  "seniorApprovalThreshold": 25000,
+  "noBudgetHasSeniorBlocker": false,
+  "highBudgetHasSeniorBlocker": true,
+  "noBudgetBlockers": [
+    "Economic evaluation is required.",
+    "Risk assessment is required.",
+    "Quality review forms is required.",
+    "Product viability review is required.",
+    "Required approvals is required.",
+    "Next steps + ownership is required.",
+    "Sponsor signoff is required.",
+    "Quality signoff is required.",
+    "Finance signoff is required."
+  ],
+  "highBudgetBlockers": [
+    "Economic evaluation is required.",
+    "Risk assessment is required.",
+    "Quality review forms is required.",
+    "Product viability review is required.",
+    "Required approvals is required.",
+    "Next steps + ownership is required.",
+    "Sponsor signoff is required.",
+    "Quality signoff is required.",
+    "Finance signoff is required.",
+    "Senior management signoff is required (budget at or above $25,000)."
+  ]
+}

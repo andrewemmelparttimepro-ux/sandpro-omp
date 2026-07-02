@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SandPro NCR / CAPA Build Plan</title>
+  <style>
+    :root {
+      --brand: #ff7f02;
+      --brand-dark: #c75300;
+      --ink: #121827;
+      --muted: #677181;
+      --line: #d7dde5;
+      --soft: #f5f7fa;
+      --green: #20b486;
+      --blue: #3778f6;
+      --red: #ef5350;
+      --gold: #e9a11b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .page {
+      width: 1600px;
+      min-height: 900px;
+      padding: 54px 64px 48px;
+      background:
+        linear-gradient(90deg, rgba(255,127,2,0.08), transparent 38%),
+        radial-gradient(circle at 92% 8%, rgba(255,127,2,0.12), transparent 26%),
+        #fff;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 28px;
+      padding-bottom: 26px;
+      border-bottom: 2px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+      color: var(--brand-dark);
+      font-weight: 850;
+      font-size: 28px;
+    }
+
+    .mark {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: #fff;
+      background: var(--brand);
+      font-weight: 900;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 48px;
+      line-height: 1.03;
+      letter-spacing: 0;
+    }
+
+    .sub {
+      width: 520px;
+      color: var(--muted);
+      font-size: 21px;
+      line-height: 1.35;
+      margin: 8px 0 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid rgba(255,127,2,0.32);
+      background: rgba(255,127,2,0.1);
+      color: var(--brand-dark);
+      padding: 11px 15px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 17px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.03fr 0.97fr;
+      gap: 28px;
+      margin-top: 30px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 16px 40px rgba(18,24,39,0.07);
+      overflow: hidden;
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 20px 24px 16px;
+      font-size: 24px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .lifecycle {
+      padding: 24px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .step {
+      min-height: 118px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-left: 7px solid var(--brand);
+      border-radius: 13px;
+      background: var(--soft);
+      position: relative;
+    }
+
+    .step strong {
+      display: block;
+      font-size: 19px;
+      margin-bottom: 7px;
+    }
+
+    .step span {
+      display: block;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .step:nth-child(2) { border-left-color: var(--gold); }
+    .step:nth-child(3) { border-left-color: var(--red); }
+    .step:nth-child(4) { border-left-color: var(--blue); }
+    .step:nth-child(5) { border-left-color: var(--brand); }
+    .step:nth-child(6) { border-left-color: var(--green); }
+    .step:nth-child(7) { border-left-color: #7c5cff; }
+    .step:nth-child(8) { border-left-color: var(--ink); }
+
+    .holes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      padding: 22px;
+    }
+
+    .hole {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 14px 15px;
+      background: #fff;
+    }
+
+    .hole b {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 17px;
+    }
+
+    .hole p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .phases {
+      display: grid;
+      gap: 13px;
+      padding: 22px;
+    }
+
+    .phase {
+      display: grid;
+      grid-template-columns: 104px 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .phase-num {
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .phase-body {
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--soft);
+    }
+
+    .phase-body strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .phase-body span {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.28;
+    }
+
+    .outputs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 22px;
+    }
+
+    .output {
+      min-height: 82px;
+      padding: 14px;
+      border-radius: 13px;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .output small {
+      display: block;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 13px;
+      line-height: 1.25;
+      margin-top: 5px;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      margin-top: 24px;
+      padding: 18px 22px;
+      border-radius: 16px;
+      background: var(--ink);
+      color: #fff;
+    }
+
+    footer strong {
+      color: #fff;
+      font-size: 21px;
+    }
+
+    footer span {
+      color: rgba(255,255,255,0.75);
+      font-size: 16px;
+    }
+
+    .sources {
+      text-align: right;
+      max-width: 560px;
+      font-size: 13px;
+      line-height: 1.35;
+      color: rgba(255,255,255,0.68);
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <div class="brand"><div class="mark">◎</div> SandPro OMP</div>
+        <h1>NCR / CAPA Production Build Plan</h1>
+        <p class="sub">Move the NCR side from a report tracker into a quality-manager-grade corrective action workflow.</p>
+      </div>
+      <div class="badge">Next target: Tim-ready NCR baseline</div>
+    </header>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Target NCR Lifecycle</h2>
+        <div class="lifecycle">
+          <div class="flow">
+            <div class="step"><strong>1. Draft / Intake</strong><span>Report number, event, location, severity, people involved, attachments.</span></div>
+            <div class="step"><strong>2. Submit</strong><span>Freeze core facts, notify owner, start audit trail.</span></div>
+            <div class="step"><strong>3. Containment</strong><span>Hold, rework, repair, scrap, return, or use-as-is decision.</span></div>
+            <div class="step"><strong>4. Root Cause</strong><span>Cause codes, analysis notes, recurrence risk.</span></div>
+            <div class="step"><strong>5. Corrective Action</strong><span>Assigned tasks, due dates, objective handoff, proof evidence.</span></div>
+            <div class="step"><strong>6. Effectiveness Check</strong><span>Verifier confirms action worked and recurrence risk is reduced.</span></div>
+            <div class="step"><strong>7. Approval</strong><span>Quality/manager signoff before true closure.</span></div>
+            <div class="step"><strong>8. Closed / Archived</strong><span>Locked record, searchable history, export-ready packet.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Holes To Seal</h2>
+        <div class="holes">
+          <div class="hole"><b>Closure Discipline</b><p>Replace one-click close with owner, verifier, and approval gates.</p></div>
+          <div class="hole"><b>Containment / Disposition</b><p>Add hold, rework, repair, scrap, return, concession, use-as-is.</p></div>
+          <div class="hole"><b>Native Action Items</b><p>Corrective tasks inside NCR plus objective handoff when needed.</p></div>
+          <div class="hole"><b>Evidence</b><p>Photos, PDFs, inspection records, customer docs, signed approvals.</p></div>
+          <div class="hole"><b>Audit Trail</b><p>Who changed what, when, from old value to new value.</p></div>
+          <div class="hole"><b>Trend Detection</b><p>Repeat issue, root cause, department, customer, equipment, aging.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Phased Build</h2>
+        <div class="phases">
+          <div class="phase"><div class="phase-num">Phase 1</div><div class="phase-body"><strong>Lifecycle + Roles</strong><span>Status model, NCR owner, reviewer, verifier, closure guardrails.</span></div></div>
+          <div class="phase"><div class="phase-num">Phase 2</div><div class="phase-body"><strong>Containment + Action Work</strong><span>Disposition fields, native corrective action tasks, evidence upload.</span></div></div>
+          <div class="phase"><div class="phase-num">Phase 3</div><div class="phase-body"><strong>Outputs + Packets</strong><span>PDF packets, XLSX workbook, filtered reports, management summaries.</span></div></div>
+          <div class="phase"><div class="phase-num">Phase 4</div><div class="phase-body"><strong>Trend + Escalation</strong><span>Aging, recurrence, Pareto charts, overdue alerts, quality dashboard.</span></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Output Options To Add</h2>
+        <div class="outputs">
+          <div class="output">NCR Detail PDF<small>Full record, evidence, status history.</small></div>
+          <div class="output">Corrective Action Report<small>Root cause, actions, owners, verification.</small></div>
+          <div class="output">Management Review PDF<small>Executive summary by period and risk.</small></div>
+          <div class="output">XLSX Workbook<small>Filtered tabs, charts, aging, action list.</small></div>
+          <div class="output">Aging Report<small>Open, overdue, due soon, cycle time.</small></div>
+          <div class="output">Pareto Export<small>By cause, event type, department, severity.</small></div>
+          <div class="output">Open Action Report<small>Who owes what and by when.</small></div>
+          <div class="output">Customer Packet<small>External version with internal notes hidden.</small></div>
+          <div class="output">Audit Log Export<small>Change history for compliance review.</small></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>
+        <strong>Recommendation</strong><br />
+        <span>Build NCR as a controlled corrective-action system, not just a table of reports.</span>
+      </div>
+      <div class="sources">Benchmark logic aligned to common CAPA expectations: document nonconformity, investigate cause, implement action, verify effectiveness, preserve records.</div>
+    </footer>
+  </main>
+</body>
+</html>

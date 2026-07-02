@@ -1,0 +1,51 @@
+{
+  "capturedAt": "2026-06-11T20:24:55.571Z",
+  "baseUrl": "https://objectivetracker.net",
+  "commit": "a257d66",
+  "deploymentId": "dpl_8GCtsDBTRVZAkTVsoKv1h8DfrwM1",
+  "filterBar": {
+    "hiddenInList": {
+      "All OKR levels": 0,
+      "All periods": 0,
+      "KR freshness": 0,
+      "All project stages": 0
+    },
+    "visibleInTree": {
+      "All OKR levels": 1,
+      "All periods": 1,
+      "KR freshness": 1,
+      "All project stages": 1
+    }
+  },
+  "unclassifiedTreeChips": 15,
+  "staleLens": {
+    "staleSelectVisible": true,
+    "staleSelectValue": "true"
+  },
+  "seniorApprovalThreshold": 25000,
+  "noBudgetHasSeniorBlocker": false,
+  "highBudgetHasSeniorBlocker": true,
+  "noBudgetBlockers": [
+    "Economic evaluation is required.",
+    "Risk assessment is required.",
+    "Quality review forms is required.",
+    "Product viability review is required.",
+    "Required approvals is required.",
+    "Next steps + ownership is required.",
+    "Sponsor signoff is required.",
+    "Quality signoff is required.",
+    "Finance signoff is required."
+  ],
+  "highBudgetBlockers": [
+    "Economic evaluation is required.",
+    "Risk assessment is required.",
+    "Quality review forms is required.",
+    "Product viability review is required.",
+    "Required approvals is required.",
+    "Next steps + ownership is required.",
+    "Sponsor signoff is required.",
+    "Quality signoff is required.",
+    "Finance signoff is required.",
+    "Senior management signoff is required (budget at or above $25,000)."
+  ]
+}

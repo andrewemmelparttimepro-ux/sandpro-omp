@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SandPro OMP OKR Trust Fixes Change Report</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 0.5in;
+    }
+
+    :root {
+      --brand: #ff7f02;
+      --ink: #151821;
+      --muted: #667085;
+      --line: #d7dde7;
+      --soft: #f6f8fb;
+      --green: #168a4a;
+      --amber: #b85c00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, Arial, sans-serif;
+      font-size: 11px;
+      line-height: 1.42;
+      background: #fff;
+    }
+
+    .page {
+      min-height: 9.9in;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, #fff 0%, #fff6ed 100%);
+    }
+
+    .logo {
+      height: 34px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--brand);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .meta {
+      display: grid;
+      gap: 4px;
+      min-width: 238px;
+      color: var(--muted);
+      font-size: 10px;
+      text-align: right;
+    }
+
+    .meta strong {
+      color: var(--ink);
+      font-size: 11px;
+    }
+
+    main {
+      padding: 22px 28px 24px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1.22fr 0.78fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+
+    .panel.soft {
+      background: var(--soft);
+    }
+
+    h2 {
+      margin: 0 0 9px;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .lead {
+      color: #2f3746;
+      font-size: 12px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .metric {
+      padding: 10px;
+      border: 1px solid #e2e7ef;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--brand);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      position: relative;
+      margin: 0 0 8px;
+      padding-left: 15px;
+      color: #344054;
+    }
+
+    li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand);
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 11px;
+    }
+
+    .status.pass strong {
+      color: var(--green);
+    }
+
+    .status.pending strong {
+      color: var(--amber);
+    }
+
+    .callout {
+      margin-top: 14px;
+      border: 1px solid #ffd6ac;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fff8ef;
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--brand);
+    }
+
+    .foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9px;
+    }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <header>
+      <div>
+        <p class="eyebrow">SandPro OMP Change Report</p>
+        <h1>OKR Trust Fixes</h1>
+        <div class="subtitle">Classifier restraint, cleaner filters, and approval gates that do not overstate certainty.</div>
+      </div>
+      <div class="meta">
+        <img class="logo" src="../../public/brand/sandpro-omp-logo.png" alt="SandPro OMP" />
+        <div>Report Date: <strong>June 11, 2026</strong></div>
+        <div>Production: <strong>objectivetracker.net</strong></div>
+        <div>Commit: <strong>a257d66</strong></div>
+        <div>Deployment: <strong>dpl_8GCtsDBTRVZAkTVsoKv1h8DfrwM1</strong></div>
+      </div>
+    </header>
+
+    <main>
+      <div class="summary">
+        <section class="panel">
+          <h2>Executive Summary</h2>
+          <p class="lead">This release protects user trust in the new OKR framework. The app now avoids confidently labeling ordinary operational work as Projects or KRs, shows uncertain classifications as muted review chips, keeps OKR-only filters out of the default list view, and requires senior-management signoff only when the project budget reaches the default $25,000 threshold.</p>
+        </section>
+        <section class="panel soft">
+          <h2>Live Proof Metrics</h2>
+          <div class="metrics">
+            <div class="metric"><strong>15</strong><span>Review chips live</span></div>
+            <div class="metric"><strong>$25k</strong><span>Senior gate</span></div>
+            <div class="metric"><strong>6/6</strong><span>Prod smoke</span></div>
+            <div class="metric"><strong>81/81</strong><span>Unit tests</span></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>What Changed</h2>
+          <ul>
+            <li>Narrowed project keywords to stage-gate language such as project, prototype, pilot, R&D, research, feasibility, new product, and stage gate.</li>
+            <li>Keyword matches now become review suggestions instead of authoritative project labels.</li>
+            <li>Renamed Needs Assessment to Unclassified and rendered uncertain labels as muted dashed chips in tree and list views.</li>
+            <li>Changed senior-management project signoff to trigger only at/above $25,000 or when explicitly flagged.</li>
+            <li>Scoped OKR-specific filter selects to tree view, while keeping active dashboard lens filters visible when needed.</li>
+          </ul>
+        </section>
+
+        <section class="panel">
+          <h2>Why It Matters</h2>
+          <ul>
+            <li>Jake and Tim see the app admitting uncertainty instead of pretending the classifier knows more than it does.</li>
+            <li>Rollup trust improves because questionable work is flagged for human review before it affects OKR interpretation.</li>
+            <li>The Objectives list regains a focused daily-working toolbar, while the OKR tree keeps the deeper planning controls.</li>
+            <li>The approval gate no longer overreaches by requiring senior management on every small project.</li>
+            <li>The framework remains a working prototype for Jake's approval-matrix decisions, not a hard-coded final answer.</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="status-row">
+        <div class="status pass"><strong>Code</strong><span>Pushed to main.</span></div>
+        <div class="status pass"><strong>Deploy</strong><span>Live on objectivetracker.net.</span></div>
+        <div class="status pass"><strong>Validation</strong><span>Preflight, prod smoke, and targeted live checks passed.</span></div>
+        <div class="status pending"><strong>Decision</strong><span>Jake can tune the $25k threshold later.</span></div>
+      </div>
+
+      <div class="callout">
+        <strong>Scope Note</strong>
+        No schema migration was required, no Supabase data was mutated, and no Fix-It/NCR records were changed. The live validation used read-only UI checks plus local gate-blocker logic against the deployed code.
+      </div>
+
+      <div class="foot">
+        <span>Evidence: docs/reports/evidence/okr-trust-fixes-2026-06-11.</span>
+        <span>Report: SandPro OMP OKR Trust Fixes Change Report</span>
+      </div>
+    </main>
+  </section>
+</body>
+</html>

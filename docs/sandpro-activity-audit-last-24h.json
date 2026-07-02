@@ -1,0 +1,1485 @@
+{
+  "generatedAt": "2026-05-29T14:31:28.758Z",
+  "since": "2026-05-28T14:31:28.758Z",
+  "localWindow": {
+    "from": "5/28/2026, 9:31:28 AM",
+    "to": "5/29/2026, 9:31:28 AM"
+  },
+  "env": {
+    "hasResendApiKey": false,
+    "hasEmailFrom": true
+  },
+  "signinsLast24": [
+    {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "email": "mjimenez@sandpro.com",
+      "profileName": "Mercileidy Jimenez",
+      "role": "manager",
+      "last_sign_in_at": "2026-05-29T13:39:56.457648Z",
+      "created_at": "2026-04-03T03:12:23.416153Z",
+      "updated_at": "2026-05-29T13:39:56.504816Z"
+    }
+  ],
+  "counts": {
+    "objectivesCreated": 2,
+    "objectivesUpdated": 3,
+    "messages": 0,
+    "subtasks": 0,
+    "objectiveUpdates": 3,
+    "files": 0,
+    "objectiveMembers": 2,
+    "metricCheckins": 0,
+    "workflowStepsCreated": 12,
+    "workflowStepsUpdated": 12,
+    "agentRuns": 0,
+    "notifications": 8,
+    "emailLogs": 31,
+    "fixItPostsCreated": 6,
+    "fixItPostsUpdated": 7,
+    "fixItAttachments": 5,
+    "orgUpdates": 0
+  },
+  "errors": {},
+  "byPerson": [
+    {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "events": [
+        {
+          "kind": "fix_it_post_created",
+          "detail": "Within message board, you can't tell what message you have read and what message are unread.",
+          "at": "2026-05-28T18:01:10.864753+00:00"
+        },
+        {
+          "kind": "fix_it_attachment",
+          "detail": "Dashboard view  2.png",
+          "at": "2026-05-28T17:59:59.875818+00:00"
+        },
+        {
+          "kind": "fix_it_attachment",
+          "detail": "Dashboard view  1.png",
+          "at": "2026-05-28T17:59:59.28204+00:00"
+        },
+        {
+          "kind": "fix_it_post_created",
+          "detail": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories cu",
+          "at": "2026-05-28T17:59:58.482556+00:00"
+        },
+        {
+          "kind": "fix_it_post_created",
+          "detail": "Make org chart editable via tree function and enable export of org chart to PDF document. Ensure org chart visual is scaled properly to fit ",
+          "at": "2026-05-28T17:46:08.515592+00:00"
+        },
+        {
+          "kind": "fix_it_attachment",
+          "detail": "Main Dashboard .png",
+          "at": "2026-05-28T17:40:41.536923+00:00"
+        },
+        {
+          "kind": "fix_it_post_created",
+          "detail": "Main Dashboard needs a completed Tap.",
+          "at": "2026-05-28T17:40:40.544357+00:00"
+        },
+        {
+          "kind": "fix_it_attachment",
+          "detail": "Dashboard View .png",
+          "at": "2026-05-28T17:35:15.510315+00:00"
+        },
+        {
+          "kind": "fix_it_post_created",
+          "detail": "Enable configuration of dashboard view. I only want to see the main title subjected. User should be able to select if they want to just see ",
+          "at": "2026-05-28T17:35:14.65336+00:00"
+        },
+        {
+          "kind": "fix_it_attachment",
+          "detail": "CSV Export .png",
+          "at": "2026-05-28T17:31:55.604141+00:00"
+        },
+        {
+          "kind": "fix_it_post_created",
+          "detail": "CSV objective export is convoluted with having Objective ID included in the report. Remove Objective ID. Also Make sure that the Top line se",
+          "at": "2026-05-28T17:31:54.674505+00:00"
+        },
+        {
+          "kind": "objective_update",
+          "detail": "Org Chart Editing. Enable Remove Employee function: delegation Objective delegated",
+          "at": "2026-05-28T17:24:01.479158+00:00"
+        },
+        {
+          "kind": "objective_created",
+          "detail": "Org Chart Editing. Enable Remove Employee function",
+          "at": "2026-05-28T17:24:01.302065+00:00"
+        },
+        {
+          "kind": "objective_update",
+          "detail": "Push Notifications: delegation Objective delegated",
+          "at": "2026-05-28T17:13:01.892996+00:00"
+        },
+        {
+          "kind": "objective_created",
+          "detail": "Push Notifications",
+          "at": "2026-05-28T17:13:01.654659+00:00"
+        }
+      ],
+      "eventCount": 15
+    },
+    {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "events": [
+        {
+          "kind": "fix_it_marked_fixed_or_claimed",
+          "detail": "Enable configuration of dashboard view. I only want to see the main title subjected. User should be able to select if they want to just see ",
+          "at": "2026-05-28T17:50:18.88449+00:00"
+        },
+        {
+          "kind": "fix_it_marked_fixed_or_claimed",
+          "detail": "Main Dashboard needs a completed Tap.",
+          "at": "2026-05-28T17:50:06.083514+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Org Chart Editing. Enable Remove Employee function: Complete",
+          "at": "2026-05-28T17:24:01.302065+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Org Chart Editing. Enable Remove Employee function: Scope",
+          "at": "2026-05-28T17:24:01.302065+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Org Chart Editing. Enable Remove Employee function: Plan",
+          "at": "2026-05-28T17:24:01.302065+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Org Chart Editing. Enable Remove Employee function: Inputs",
+          "at": "2026-05-28T17:24:01.302065+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Org Chart Editing. Enable Remove Employee function: Execute",
+          "at": "2026-05-28T17:24:01.302065+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Org Chart Editing. Enable Remove Employee function: Review",
+          "at": "2026-05-28T17:24:01.302065+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Push Notifications: Scope",
+          "at": "2026-05-28T17:13:01.654659+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Push Notifications: Plan",
+          "at": "2026-05-28T17:13:01.654659+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Push Notifications: Inputs",
+          "at": "2026-05-28T17:13:01.654659+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Push Notifications: Execute",
+          "at": "2026-05-28T17:13:01.654659+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Push Notifications: Review",
+          "at": "2026-05-28T17:13:01.654659+00:00"
+        },
+        {
+          "kind": "workflow_step_owned",
+          "detail": "Push Notifications: Complete",
+          "at": "2026-05-28T17:13:01.654659+00:00"
+        },
+        {
+          "kind": "fix_it_marked_fixed_or_claimed",
+          "detail": "Merci doesnt have this Fix-it Feed. Ensure that all users have this..",
+          "at": "2026-05-28T15:10:59.703163+00:00"
+        }
+      ],
+      "eventCount": 15
+    },
+    {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "events": [
+        {
+          "kind": "sign_in",
+          "detail": "Signed in",
+          "at": "2026-05-29T13:39:56.457648Z"
+        },
+        {
+          "kind": "tagged_on_objective",
+          "detail": "Org Chart Editing. Enable Remove Employee function: assignee",
+          "at": "2026-05-28T17:27:06.947312+00:00"
+        },
+        {
+          "kind": "tagged_on_objective",
+          "detail": "Push Notifications: watcher",
+          "at": "2026-05-28T17:14:05.314+00:00"
+        },
+        {
+          "kind": "objective_update",
+          "detail": "Enable @mentions while writing objective descriptions: status_change Status changed to completed",
+          "at": "2026-05-28T17:03:20.655822+00:00"
+        }
+      ],
+      "eventCount": 4
+    }
+  ],
+  "tables": {
+    "objectivesCreated": [
+      {
+        "id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Org Chart Editing. Enable Remove Employee function",
+        "status": "not_started",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "delegated_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "department": "Leadership",
+        "priority": "medium",
+        "due_date": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Push Notifications",
+        "status": "not_started",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "delegated_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "department": "Leadership",
+        "priority": "high",
+        "due_date": "2026-06-04T00:00:00+00:00",
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Push Notifications",
+        "created_by_name": "Jake Feil"
+      }
+    ],
+    "objectivesUpdated": [
+      {
+        "id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Org Chart Editing. Enable Remove Employee function",
+        "status": "not_started",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "delegated_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "department": "Leadership",
+        "priority": "medium",
+        "due_date": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Push Notifications",
+        "status": "not_started",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "delegated_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "department": "Leadership",
+        "priority": "high",
+        "due_date": "2026-06-04T00:00:00+00:00",
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Push Notifications",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "fac8b328-f7c5-4ae2-9643-18fc2862e303",
+        "title": "Enable @mentions while writing objective descriptions",
+        "status": "completed",
+        "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+        "delegated_by": null,
+        "department": "Admin",
+        "priority": "medium",
+        "due_date": "2026-06-03T00:00:00+00:00",
+        "created_at": "2026-05-26T21:19:17.351915+00:00",
+        "updated_at": "2026-05-28T17:03:20.209917+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Enable @mentions while writing objective descriptions",
+        "created_by_name": "Mercileidy Jimenez"
+      }
+    ],
+    "messages": [],
+    "subtasks": [],
+    "objectiveUpdates": [
+      {
+        "id": "6459f33e-4a6b-4e85-8072-0f4e111200d8",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "action_type": "delegation",
+        "status": "not_started",
+        "progress": 0,
+        "note": "Objective delegated",
+        "old_value": null,
+        "new_value": "Org Chart Editing. Enable Remove Employee function",
+        "reference_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "created_at": "2026-05-28T17:24:01.479158+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "3ff410b8-2433-4b46-a5e3-126e7d0f5ffa",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "action_type": "delegation",
+        "status": "not_started",
+        "progress": 0,
+        "note": "Objective delegated",
+        "old_value": null,
+        "new_value": "Push Notifications",
+        "reference_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "created_at": "2026-05-28T17:13:01.892996+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "aced1fbd-8659-4169-8b87-2318b2bf130f",
+        "objective_id": "fac8b328-f7c5-4ae2-9643-18fc2862e303",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "action_type": "status_change",
+        "status": "completed",
+        "progress": 100,
+        "note": "Status changed to completed",
+        "old_value": "not_started",
+        "new_value": "completed",
+        "reference_id": "fac8b328-f7c5-4ae2-9643-18fc2862e303",
+        "created_at": "2026-05-28T17:03:20.655822+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Enable @mentions while writing objective descriptions"
+      }
+    ],
+    "files": [],
+    "objectiveMembers": [
+      {
+        "id": "3cdb985b-a637-4dcd-9b81-8d659f6c5804",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "role": "assignee",
+        "created_at": "2026-05-28T17:27:06.947312+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "7a21c4b8-aad3-4a5e-94ae-15c32ffe8791",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "role": "watcher",
+        "created_at": "2026-05-28T17:14:05.314+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Push Notifications"
+      }
+    ],
+    "metricCheckins": [],
+    "workflowStepsCreated": [
+      {
+        "id": "ccd9f2e9-ca8f-4138-bd77-2e0075a45ef6",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Complete",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "618b274d-fe60-4544-847a-5d55399f10ae",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Scope",
+        "status": "current",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "8051cb08-1b94-41fa-8ebb-46f642067973",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Plan",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "0329efea-581a-419a-8580-f1499123b6a9",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Inputs",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "d26a173f-e16f-4920-a7a3-2ef4df340104",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Execute",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "69e1855c-097b-48f7-8268-2f1c8a4e6f82",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Review",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "bcef9946-c882-4e02-b459-841c285e80ec",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Scope",
+        "status": "current",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "96198ccd-6134-4b1d-81de-508aea72de2d",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Plan",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "387b3297-f2ad-4b06-a145-4810c14e81d3",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Inputs",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "f8a7ee55-9354-4514-85e4-8c86872c1a7c",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Execute",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "cc562112-e1f6-4298-99fd-489b73554c9e",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Review",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "76b79350-da8c-4e26-bccd-895f76d0ccdd",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Complete",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      }
+    ],
+    "workflowStepsUpdated": [
+      {
+        "id": "ccd9f2e9-ca8f-4138-bd77-2e0075a45ef6",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Complete",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "618b274d-fe60-4544-847a-5d55399f10ae",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Scope",
+        "status": "current",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "8051cb08-1b94-41fa-8ebb-46f642067973",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Plan",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "0329efea-581a-419a-8580-f1499123b6a9",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Inputs",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "d26a173f-e16f-4920-a7a3-2ef4df340104",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Execute",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "69e1855c-097b-48f7-8268-2f1c8a4e6f82",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "title": "Review",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:24:01.302065+00:00",
+        "updated_at": "2026-05-28T17:24:01.302065+00:00",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "bcef9946-c882-4e02-b459-841c285e80ec",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Scope",
+        "status": "current",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "96198ccd-6134-4b1d-81de-508aea72de2d",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Plan",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "387b3297-f2ad-4b06-a145-4810c14e81d3",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Inputs",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "f8a7ee55-9354-4514-85e4-8c86872c1a7c",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Execute",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "cc562112-e1f6-4298-99fd-489b73554c9e",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Review",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "76b79350-da8c-4e26-bccd-895f76d0ccdd",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "title": "Complete",
+        "status": "todo",
+        "owner_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "completed_by": null,
+        "completed_at": null,
+        "created_at": "2026-05-28T17:13:01.654659+00:00",
+        "updated_at": "2026-05-28T17:13:01.654659+00:00",
+        "objective_title": "Push Notifications"
+      }
+    ],
+    "agentRuns": [],
+    "notifications": [
+      {
+        "id": "cd7c61d6-895a-49bf-984f-eac7aeb69f78",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "type": "assignment",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "message": "Jake Feil tagged you on \"Org Chart Editing. Enable Remove Employee function\" as assigned.",
+        "is_read": false,
+        "created_at": "2026-05-28T17:27:07.631519+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "1a1dbc88-3ba3-462d-944c-ba9be627ec0f",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "type": "assignment",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "message": "Jake Feil tagged you on \"Org Chart Editing. Enable Remove Employee function\" as assigned member.",
+        "is_read": false,
+        "created_at": "2026-05-28T17:24:58.982477+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "1c050e48-45d1-4a45-b379-e11b3bc4087d",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "type": "mention",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "message": "Jake Feil mentioned you in objective \"Org Chart Editing. Enable Remove Employee function\"",
+        "is_read": true,
+        "created_at": "2026-05-28T17:24:02.541281+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "bb83b3e4-4561-44d9-ae6e-c3626f32b3e6",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "type": "assignment",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "message": "Jake Feil assigned you \"Org Chart Editing. Enable Remove Employee function\"",
+        "is_read": false,
+        "created_at": "2026-05-28T17:24:01.494869+00:00",
+        "actor": "Andrew Emmel",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "67c92012-7ba8-4135-866f-6c706bc7dea9",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "type": "mention",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "message": "Jake Feil tagged you on \"Push Notifications\" as watcher.",
+        "is_read": false,
+        "created_at": "2026-05-28T17:14:05.989783+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "f569e50e-fb00-4169-a00b-69a231006996",
+        "user_id": "80216ffc-c756-40e8-81e9-777d84f54221",
+        "type": "assignment",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "message": "Jake Feil tagged you on \"Push Notifications\" as assigned member.",
+        "is_read": false,
+        "created_at": "2026-05-28T17:13:21.764449+00:00",
+        "actor": "Jaelen Maslowski",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "2daac6e7-92d4-40be-9eee-a070eee66ef6",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "type": "assignment",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "message": "Jake Feil assigned you \"Push Notifications\"",
+        "is_read": false,
+        "created_at": "2026-05-28T17:13:01.828505+00:00",
+        "actor": "Andrew Emmel",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "fe4e11da-c049-4c60-8aca-bf571dd9c042",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "type": "assignment",
+        "objective_id": "fac8b328-f7c5-4ae2-9643-18fc2862e303",
+        "message": "Test assignment notification: Enable @mentions while writing objective descriptions",
+        "is_read": true,
+        "created_at": "2026-05-28T17:08:19.163784+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Enable @mentions while writing objective descriptions"
+      }
+    ],
+    "emailLogs": [
+      {
+        "id": "c569a1e6-52a6-4f1f-8d48-0fe32e9a8e71",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "notification_type": "overdue",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:29.752508+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "org chart breakdown"
+      },
+      {
+        "id": "16e3d0d8-5e70-4267-abce-25bc1734d455",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+        "notification_type": "overdue",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:29.144918+00:00",
+        "actor": "Andrew Emmel",
+        "objective_title": "org chart breakdown"
+      },
+      {
+        "id": "56632392-8192-4df2-9aff-90d4122bbf39",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "notification_type": "overdue",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:28.722345+00:00",
+        "actor": "Andrew Emmel",
+        "objective_title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)"
+      },
+      {
+        "id": "4b051363-d48d-416d-83f6-1bdb0aad6c58",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "notification_type": "overdue",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:28.125023+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)"
+      },
+      {
+        "id": "1d1d2a57-fc69-4ab0-850c-146c3645644f",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "notification_type": "overdue",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:27.539045+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)"
+      },
+      {
+        "id": "d0a3bc9a-feb7-487a-b0ac-4fc71fb1834a",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "6f0aee57-5501-4f2d-97b5-a6ff2e077d59",
+        "notification_type": "overdue",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:27.164154+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Review password reset flow"
+      },
+      {
+        "id": "4a91f333-b274-4f3c-a675-67286c9865a7",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "6f0aee57-5501-4f2d-97b5-a6ff2e077d59",
+        "notification_type": "overdue",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:26.777686+00:00",
+        "actor": "Andrew Emmel",
+        "objective_title": "Review password reset flow"
+      },
+      {
+        "id": "71af4bc3-e19c-4564-b3b6-396463eb5e92",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "6f0aee57-5501-4f2d-97b5-a6ff2e077d59",
+        "notification_type": "overdue",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:26.396471+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Review password reset flow"
+      },
+      {
+        "id": "7ee2c393-6431-4d0f-9027-0e02bf95a3b6",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "notification_type": "overdue",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:25.964652+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Finalize April expense report — personal CC items + remaining receipts"
+      },
+      {
+        "id": "fd86aa15-75a3-4259-ac77-dec84393a8c7",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "notification_type": "overdue",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP overdue alert",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T14:00:25.293204+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Finalize April expense report — personal CC items + remaining receipts"
+      },
+      {
+        "id": "af55a272-42e3-4873-b33b-8aafaeba5a43",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "47c0a990-50d6-44a2-9322-4f7f1a621a3b",
+        "notification_type": "daily_digest",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "SandPro OMP morning summary",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T13:00:27.403482+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Subtask functionality feedback:"
+      },
+      {
+        "id": "f877974e-17a8-4406-a79f-d8909b07b7cc",
+        "user_id": "3463c626-ecaf-4b51-88e9-f9699180e729",
+        "objective_id": "47c0a990-50d6-44a2-9322-4f7f1a621a3b",
+        "notification_type": "daily_digest",
+        "recipient": "jblackaby@sandpro.com",
+        "subject": "SandPro OMP morning summary",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T13:00:27.17455+00:00",
+        "actor": "Joshua Blackaby",
+        "objective_title": "Subtask functionality feedback:"
+      },
+      {
+        "id": "4e9b32b5-3dad-4533-ae7c-55cd4b8d026b",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "47c0a990-50d6-44a2-9322-4f7f1a621a3b",
+        "notification_type": "daily_digest",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "SandPro OMP morning summary",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T13:00:26.726369+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Subtask functionality feedback:"
+      },
+      {
+        "id": "58c21b2c-eca8-4b21-8edf-1665725df777",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "47c0a990-50d6-44a2-9322-4f7f1a621a3b",
+        "notification_type": "daily_digest",
+        "recipient": "andrew@ndai.pro",
+        "subject": "SandPro OMP morning summary",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-29T13:00:26.185417+00:00",
+        "actor": "Andrew Emmel",
+        "objective_title": "Subtask functionality feedback:"
+      },
+      {
+        "id": "f3d0ad31-0f36-48b3-b796-f28f3dd0cb3a",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "notification_type": "assignment",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:27:08.841693+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "87a9a952-4ed0-476f-ba24-9fa09af1a27e",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "notification_type": "assignment",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:24:59.929039+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "fc483cbd-283d-46af-bfd0-0b55bd97c302",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "notification_type": "mention",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "You were tagged on a SandPro OMP objective",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:24:03.347913+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "b697a095-531b-4934-89f2-30db0698ddbc",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "2714cb7f-8be7-46c5-9a19-4342f3cf5412",
+        "notification_type": "assignment",
+        "recipient": "andrew@ndai.pro",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:24:02.873559+00:00",
+        "actor": "Andrew Emmel",
+        "objective_title": "Org Chart Editing. Enable Remove Employee function"
+      },
+      {
+        "id": "f87d4426-ef35-4467-8e32-5b5741eeb1bd",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "assignment",
+        "recipient": "qa+1779988767974-1e2fdc@objectivetracker.net",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:20:21.597173+00:00"
+      },
+      {
+        "id": "de5e9d01-3d29-4629-9027-ce7908bf7150",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "comment",
+        "recipient": "qa+1779988768772-4fabfd@objectivetracker.net",
+        "subject": "New SandPro OMP message",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:19:42.920092+00:00"
+      },
+      {
+        "id": "8ebb9228-8927-4a63-9bf3-4c8f1c7fa189",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "mention",
+        "recipient": "qa+1779988768772-4fabfd@objectivetracker.net",
+        "subject": "You were tagged on a SandPro OMP objective",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:19:40.726491+00:00"
+      },
+      {
+        "id": "f96ed030-64ab-452f-b5e8-8eb1650ceeb0",
+        "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "notification_type": "mention",
+        "recipient": "mjimenez@sandpro.com",
+        "subject": "You were tagged on a SandPro OMP objective",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:14:07.042312+00:00",
+        "actor": "Mercileidy Jimenez",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "85dc1536-3f99-4c9b-b531-5bb413d37ce3",
+        "user_id": "80216ffc-c756-40e8-81e9-777d84f54221",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "notification_type": "assignment",
+        "recipient": "jmaslowski@sandpro.com",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:13:22.963256+00:00",
+        "actor": "Jaelen Maslowski",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "d9b7f666-de72-4573-ae0f-c0ff2d804a3c",
+        "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "objective_id": "d3b723a2-539d-45d7-9f0d-124d5c974a40",
+        "notification_type": "assignment",
+        "recipient": "andrew@ndai.pro",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:13:02.968254+00:00",
+        "actor": "Andrew Emmel",
+        "objective_title": "Push Notifications"
+      },
+      {
+        "id": "667e58f2-0361-4e4d-bbfa-729eb3ed65bc",
+        "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "objective_id": "fac8b328-f7c5-4ae2-9643-18fc2862e303",
+        "notification_type": "assignment",
+        "recipient": "jfeil@sandpro.com",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T17:08:21.099244+00:00",
+        "actor": "Jake Feil",
+        "objective_title": "Enable @mentions while writing objective descriptions"
+      },
+      {
+        "id": "6fce6630-f133-4938-83f9-5a555c470a6f",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "assignment",
+        "recipient": "qa+1779979347899-3e75c3@objectivetracker.net",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T14:43:35.344864+00:00"
+      },
+      {
+        "id": "a2ed8f9d-56f6-47e1-a5e6-626d3426894a",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "comment",
+        "recipient": "qa+1779979348645-ddd592@objectivetracker.net",
+        "subject": "New SandPro OMP message",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T14:42:49.562817+00:00"
+      },
+      {
+        "id": "4037c1ec-95cb-4b97-bfac-7a2e1b1d2bfc",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "mention",
+        "recipient": "qa+1779979348645-ddd592@objectivetracker.net",
+        "subject": "You were tagged on a SandPro OMP objective",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T14:42:41.635449+00:00"
+      },
+      {
+        "id": "c07a3420-3bf0-4352-b22d-6408bf9531a7",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "assignment",
+        "recipient": "qa+1779979119847-f678e3@objectivetracker.net",
+        "subject": "New SandPro OMP objective assignment",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T14:39:31.038592+00:00"
+      },
+      {
+        "id": "5b28da7f-329c-4bad-82c6-fe188ef8c88f",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "comment",
+        "recipient": "qa+1779979120590-ad6207@objectivetracker.net",
+        "subject": "New SandPro OMP message",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T14:38:54.080487+00:00"
+      },
+      {
+        "id": "54a15eb2-67cb-456e-8fba-e1bc38f445c2",
+        "user_id": null,
+        "objective_id": null,
+        "notification_type": "mention",
+        "recipient": "qa+1779979120590-ad6207@objectivetracker.net",
+        "subject": "You were tagged on a SandPro OMP objective",
+        "status": "skipped_no_provider",
+        "error": "RESEND_API_KEY is not configured.",
+        "sent_at": null,
+        "created_at": "2026-05-28T14:38:52.222603+00:00"
+      }
+    ],
+    "fixItPostsCreated": [
+      {
+        "id": "05776a44-97b9-4477-b561-65739b644af1",
+        "body": "Within message board, you can't tell what message you have read and what message are unread.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": null,
+        "status": "open",
+        "created_at": "2026-05-28T18:01:10.864753+00:00",
+        "updated_at": "2026-05-28T18:01:10.864753+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories currently displayed on the main dashboard are:\n\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThese are good and should be considered the core visuals for team productivity.\n\nHowever, when a user clicks into Open, for example, the next screen only shows the following status options:\n\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThese should be treated as sub-filters under the main dashboard categories, not separate navigation areas.\n\nFor example, on the main dashboard, Open should show a breakdown of how many open objectives are:\n\nOn Track\nAt Risk\nBlocked\nNot Started\n\nThen, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days.\n\nWould it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform?\n\nThe suggested filter structure would be:\n\nFirst filter: Ownership / Scope\nMy Objectives\nIndividual Person\nGroup / Department\nAll Objectives\n\nSecond filter: Main Category\nAll\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThird filter: Status\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThe goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select:\n\nMy Objectives + Open + At Risk\nOperations Group + Due Within 7 Days + Blocked\nAll Objectives + Overdue + Not Started\n\nThis would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": null,
+        "status": "open",
+        "created_at": "2026-05-28T17:59:58.482556+00:00",
+        "updated_at": "2026-05-28T17:59:58.482556+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "718a6b68-de01-4fdb-9e10-dd8ccbbb0cf9",
+        "body": "Make org chart editable via tree function and enable export of org chart to PDF document. Ensure org chart visual is scaled properly to fit the PDF output document of the org chart tree.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": null,
+        "status": "open",
+        "created_at": "2026-05-28T17:46:08.515592+00:00",
+        "updated_at": "2026-05-28T21:25:26.802421+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "79037e2d-e8c2-4641-ad28-c02e5573c396",
+        "body": "Main Dashboard needs a completed Tap.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "fixed",
+        "created_at": "2026-05-28T17:40:40.544357+00:00",
+        "updated_at": "2026-05-28T17:50:06.083514+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil",
+        "claimed_by_name": "Andrew Emmel"
+      },
+      {
+        "id": "2be5f528-7e4f-407f-a047-ba938c908e80",
+        "body": "Enable configuration of dashboard view. I only want to see the main title subjected. User should be able to select if they want to just see the subject. Or if they also want to see preview of the details.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "fixed",
+        "created_at": "2026-05-28T17:35:14.65336+00:00",
+        "updated_at": "2026-05-28T17:50:18.88449+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil",
+        "claimed_by_name": "Andrew Emmel"
+      },
+      {
+        "id": "3e1722ff-cf08-4ca2-9b77-f745d3c28843",
+        "body": "CSV objective export is convoluted with having Objective ID included in the report. Remove Objective ID. Also Make sure that the Top line section is filterable.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": null,
+        "status": "open",
+        "created_at": "2026-05-28T17:31:54.674505+00:00",
+        "updated_at": "2026-05-28T17:31:54.674505+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil"
+      }
+    ],
+    "fixItPostsUpdated": [
+      {
+        "id": "718a6b68-de01-4fdb-9e10-dd8ccbbb0cf9",
+        "body": "Make org chart editable via tree function and enable export of org chart to PDF document. Ensure org chart visual is scaled properly to fit the PDF output document of the org chart tree.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": null,
+        "status": "open",
+        "created_at": "2026-05-28T17:46:08.515592+00:00",
+        "updated_at": "2026-05-28T21:25:26.802421+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "05776a44-97b9-4477-b561-65739b644af1",
+        "body": "Within message board, you can't tell what message you have read and what message are unread.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": null,
+        "status": "open",
+        "created_at": "2026-05-28T18:01:10.864753+00:00",
+        "updated_at": "2026-05-28T18:01:10.864753+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories currently displayed on the main dashboard are:\n\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThese are good and should be considered the core visuals for team productivity.\n\nHowever, when a user clicks into Open, for example, the next screen only shows the following status options:\n\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThese should be treated as sub-filters under the main dashboard categories, not separate navigation areas.\n\nFor example, on the main dashboard, Open should show a breakdown of how many open objectives are:\n\nOn Track\nAt Risk\nBlocked\nNot Started\n\nThen, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days.\n\nWould it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform?\n\nThe suggested filter structure would be:\n\nFirst filter: Ownership / Scope\nMy Objectives\nIndividual Person\nGroup / Department\nAll Objectives\n\nSecond filter: Main Category\nAll\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThird filter: Status\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThe goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select:\n\nMy Objectives + Open + At Risk\nOperations Group + Due Within 7 Days + Blocked\nAll Objectives + Overdue + Not Started\n\nThis would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": null,
+        "status": "open",
+        "created_at": "2026-05-28T17:59:58.482556+00:00",
+        "updated_at": "2026-05-28T17:59:58.482556+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "2be5f528-7e4f-407f-a047-ba938c908e80",
+        "body": "Enable configuration of dashboard view. I only want to see the main title subjected. User should be able to select if they want to just see the subject. Or if they also want to see preview of the details.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "fixed",
+        "created_at": "2026-05-28T17:35:14.65336+00:00",
+        "updated_at": "2026-05-28T17:50:18.88449+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil",
+        "claimed_by_name": "Andrew Emmel"
+      },
+      {
+        "id": "79037e2d-e8c2-4641-ad28-c02e5573c396",
+        "body": "Main Dashboard needs a completed Tap.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "fixed",
+        "created_at": "2026-05-28T17:40:40.544357+00:00",
+        "updated_at": "2026-05-28T17:50:06.083514+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil",
+        "claimed_by_name": "Andrew Emmel"
+      },
+      {
+        "id": "3e1722ff-cf08-4ca2-9b77-f745d3c28843",
+        "body": "CSV objective export is convoluted with having Objective ID included in the report. Remove Objective ID. Also Make sure that the Top line section is filterable.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": null,
+        "status": "open",
+        "created_at": "2026-05-28T17:31:54.674505+00:00",
+        "updated_at": "2026-05-28T17:31:54.674505+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil"
+      },
+      {
+        "id": "17fa90ae-9cf7-42c8-a893-014cd7a005c5",
+        "body": "Merci doesnt have this Fix-it Feed. Ensure that all users have this..",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "fixed",
+        "created_at": "2026-05-27T13:38:35.184196+00:00",
+        "updated_at": "2026-05-28T15:10:59.703163+00:00",
+        "actor": "Jake Feil",
+        "created_by_name": "Jake Feil",
+        "claimed_by_name": "Andrew Emmel"
+      }
+    ],
+    "fixItAttachments": [
+      {
+        "id": "40765b85-0dac-4dc7-80a7-7e3d856cc427",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Dashboard view  2.png",
+        "type": "image",
+        "size": "12.4 KB",
+        "created_at": "2026-05-28T17:59:59.875818+00:00",
+        "actor": "Jake Feil"
+      },
+      {
+        "id": "452b231d-e50d-49b2-8eb8-6d1652f3407d",
+        "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Dashboard view  1.png",
+        "type": "image",
+        "size": "37.0 KB",
+        "created_at": "2026-05-28T17:59:59.28204+00:00",
+        "actor": "Jake Feil"
+      },
+      {
+        "id": "b7ce9ad4-0a1b-472e-b1bc-36e02e85184c",
+        "post_id": "79037e2d-e8c2-4641-ad28-c02e5573c396",
+        "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Main Dashboard .png",
+        "type": "image",
+        "size": "96.8 KB",
+        "created_at": "2026-05-28T17:40:41.536923+00:00",
+        "actor": "Jake Feil"
+      },
+      {
+        "id": "98d59479-eab3-455f-b223-382c6f566150",
+        "post_id": "2be5f528-7e4f-407f-a047-ba938c908e80",
+        "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "Dashboard View .png",
+        "type": "image",
+        "size": "195.1 KB",
+        "created_at": "2026-05-28T17:35:15.510315+00:00",
+        "actor": "Jake Feil"
+      },
+      {
+        "id": "23cc400c-6e42-4425-bdf7-b1ce5143559f",
+        "post_id": "3e1722ff-cf08-4ca2-9b77-f745d3c28843",
+        "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "name": "CSV Export .png",
+        "type": "image",
+        "size": "56.0 KB",
+        "created_at": "2026-05-28T17:31:55.604141+00:00",
+        "actor": "Jake Feil"
+      }
+    ],
+    "orgUpdates": []
+  },
+  "fixItAll": [
+    {
+      "id": "05776a44-97b9-4477-b561-65739b644af1",
+      "body": "Within message board, you can't tell what message you have read and what message are unread.",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "claimed_by": null,
+      "status": "open",
+      "created_at": "2026-05-28T18:01:10.864753+00:00",
+      "updated_at": "2026-05-28T18:01:10.864753+00:00",
+      "created_by_name": "Jake Feil",
+      "claimed_by_name": null
+    },
+    {
+      "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+      "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion. The objective task categories currently displayed on the main dashboard are: Open Overdue Due Today Due Within 7 Days Due Within 14 Days Due Within 28 Days Completed These are good and should be considered the core visuals for team productivity. However, when a user clicks into Open, for example, the next screen only shows the following status options: All On Track At Risk Blocked Not Started Completed These should be treated as sub-filters under the main dashboard categories, not separate navigation areas. For example, on the main dashboard, Open should show a breakdown of how many open objectives are: On Track At Risk Blocked Not Started Then, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days. Would it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform? The suggested filter structure would be: First filter: Ownership / Scope My Objectives Individual Person Group / Department All Objectives Second filter: Main Category All Open Overdue Due Today Due Within 7 Days Due Within 14 Days Due Within 28 Days Completed Third filter: Status All On Track At Risk Blocked Not Started Completed The goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select: My Objectives + Open + At Risk Operations Group + Due Within 7 Days + Blocked All Objectives + Overdue + Not Started This would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "claimed_by": null,
+      "status": "open",
+      "created_at": "2026-05-28T17:59:58.482556+00:00",
+      "updated_at": "2026-05-28T17:59:58.482556+00:00",
+      "created_by_name": "Jake Feil",
+      "claimed_by_name": null
+    },
+    {
+      "id": "718a6b68-de01-4fdb-9e10-dd8ccbbb0cf9",
+      "body": "Make org chart editable via tree function and enable export of org chart to PDF document. Ensure org chart visual is scaled properly to fit the PDF output document of the org chart tree.",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "claimed_by": null,
+      "status": "open",
+      "created_at": "2026-05-28T17:46:08.515592+00:00",
+      "updated_at": "2026-05-28T21:25:26.802421+00:00",
+      "created_by_name": "Jake Feil",
+      "claimed_by_name": null
+    },
+    {
+      "id": "79037e2d-e8c2-4641-ad28-c02e5573c396",
+      "body": "Main Dashboard needs a completed Tap.",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "status": "fixed",
+      "created_at": "2026-05-28T17:40:40.544357+00:00",
+      "updated_at": "2026-05-28T17:50:06.083514+00:00",
+      "created_by_name": "Jake Feil",
+      "claimed_by_name": "Andrew Emmel"
+    },
+    {
+      "id": "2be5f528-7e4f-407f-a047-ba938c908e80",
+      "body": "Enable configuration of dashboard view. I only want to see the main title subjected. User should be able to select if they want to just see the subject. Or if they also want to see preview of the details.",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "status": "fixed",
+      "created_at": "2026-05-28T17:35:14.65336+00:00",
+      "updated_at": "2026-05-28T17:50:18.88449+00:00",
+      "created_by_name": "Jake Feil",
+      "claimed_by_name": "Andrew Emmel"
+    },
+    {
+      "id": "3e1722ff-cf08-4ca2-9b77-f745d3c28843",
+      "body": "CSV objective export is convoluted with having Objective ID included in the report. Remove Objective ID. Also Make sure that the Top line section is filterable.",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "claimed_by": null,
+      "status": "open",
+      "created_at": "2026-05-28T17:31:54.674505+00:00",
+      "updated_at": "2026-05-28T17:31:54.674505+00:00",
+      "created_by_name": "Jake Feil",
+      "claimed_by_name": null
+    },
+    {
+      "id": "17fa90ae-9cf7-42c8-a893-014cd7a005c5",
+      "body": "Merci doesnt have this Fix-it Feed. Ensure that all users have this..",
+      "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "status": "fixed",
+      "created_at": "2026-05-27T13:38:35.184196+00:00",
+      "updated_at": "2026-05-28T15:10:59.703163+00:00",
+      "created_by_name": "Jake Feil",
+      "claimed_by_name": "Andrew Emmel"
+    }
+  ],
+  "generatedAtFinalized": "2026-05-29T14:36:57.267Z",
+  "notes": [
+    "Org chart/PDF Fix-It item was corrected to fixed during audit at 2026-05-29 09:36 CDT after DB showed it still open."
+  ]
+}

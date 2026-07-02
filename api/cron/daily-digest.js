@@ -1,4 +1,5 @@
 import { objectiveUrl, sendLoggedEmail } from '../_shared/email.js';
+import { sendPushNotifications } from '../_shared/push.js';
 import { getRequiredEnv, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
 const assertCron = (req) => {
@@ -120,7 +121,7 @@ export default async function handler(req, res) {
     for (const profile of profiles) {
       if (!profile.email) continue;
       const pref = prefByUser.get(profile.id);
-      if (pref?.email_enabled === false) continue;
+      const emailAllowed = pref?.email_enabled !== false;
       const frequency = pref?.digest_frequency || 'daily';
       if (frequency === 'off') continue;
       if (frequency === 'weekly' && !isMonday) continue;
@@ -138,15 +139,30 @@ export default async function handler(req, res) {
       const actionItems = getActionItems(scoped, startOfToday);
       const firstObjective = actionItems[0] || scoped[0] || null;
       const html = buildDailyEmail({ req, profile, stats, actionItems });
-      results.push(await sendLoggedEmail({
-        userId: profile.id,
-        objectiveId: firstObjective?.id || null,
-        type: 'daily_digest',
-        dedupeKey: `daily_digest:${profile.id}:${today}:${frequency}`,
-        to: profile.email,
-        subject: 'The SandPro Daily',
-        html,
-      }));
+      let emailResult = null;
+      if (emailAllowed) {
+        emailResult = await sendLoggedEmail({
+          userId: profile.id,
+          objectiveId: firstObjective?.id || null,
+          type: 'daily_digest',
+          dedupeKey: `daily_digest:${profile.id}:${today}:${frequency}`,
+          to: profile.email,
+          subject: 'The SandPro Daily',
+          html,
+        });
+        results.push(emailResult);
+      }
+      // Skip the push when the email deduped — the cron already ran today.
+      if (!emailResult?.deduped) {
+        results.push(await sendPushNotifications({
+          targetUserId: profile.id,
+          type: 'daily_digest',
+          objective: firstObjective || {},
+          prefs: pref,
+          message: `Your daily brief is ready — ${stats.active} active, ${stats.pastDue} past due, ${stats.blockedAtRisk} blocked or at risk.`,
+          url: appUrl(req, { page: 'dashboard' }),
+        }).catch((error) => ({ channel: 'push', error: error.message })));
+      }
     }
 
     return json(res, 200, { processed: results.length, results });

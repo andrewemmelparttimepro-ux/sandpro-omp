@@ -1,0 +1,1930 @@
+{
+  "runAt": "2026-06-28T14:04:24.422Z",
+  "automationId": "sandpro-omp-activity-review-9-am",
+  "since": "2026-06-27T14:01:21.856Z",
+  "window": {
+    "from": "2026-06-27T14:01:21.856Z",
+    "to": "2026-06-28T14:04:24.422Z"
+  },
+  "productionUrl": "https://objectivetracker.net",
+  "profileCount": 32,
+  "matchingPeople": [
+    {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "initials": "JF",
+      "email": "jfeil@sandpro.com",
+      "title": "CEO",
+      "department": "Leadership",
+      "role": "executive",
+      "reports_to": null,
+      "color": "#ff7f02",
+      "created_at": "2026-04-03T03:12:19.458468+00:00",
+      "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+    },
+    {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "initials": "MJ",
+      "email": "mjimenez@sandpro.com",
+      "title": "Executive Assistant",
+      "department": "Admin",
+      "role": "manager",
+      "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "color": "#111827",
+      "created_at": "2026-04-03T03:12:23.41577+00:00",
+      "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+    }
+  ],
+  "watchedTables": [
+    "fix_it_posts",
+    "fix_it_comments",
+    "fix_it_attachments",
+    "messages",
+    "objective_updates",
+    "objectives",
+    "org_chart_updates",
+    "org_chart_placeholders",
+    "notifications",
+    "email_delivery_log",
+    "push_delivery_log",
+    "alt_dashboard_preferences",
+    "alt_dashboard_presence",
+    "alt_dashboard_notes",
+    "ncr_reports",
+    "ncr_action_items",
+    "ncr_audit_events",
+    "ncr_import_batches",
+    "kpi_checkins",
+    "kpi_alert_events",
+    "kpi_datapoints",
+    "kpi_import_batches",
+    "okr_projects",
+    "okr_project_audit_events",
+    "objective_agent_runs"
+  ],
+  "activity": [
+    {
+      "table": "fix_it_posts",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_posts",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_comments",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_comments",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "fix_it_attachments",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "messages",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objective_updates",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objectives",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objectives",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "org_chart_updates",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "org_chart_placeholders",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "org_chart_placeholders",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "notifications",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "count": 40,
+      "returned": 40,
+      "rows": [
+        {
+          "id": "2d82bdec-a0aa-4a7b-8d49-cdbd517cd744",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:129efe70-60f8-4f40-8407-1f6361c81d87:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-28",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "307877b1-d39e-40c8-8727-294d1630b9cd",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:51.27+00:00",
+          "created_at": "2026-06-28T14:00:51.131665+00:00",
+          "actors": {
+            "user_id": {
+              "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+              "name": "Tim Dibben",
+              "initials": "TD",
+              "email": "tdibben@sandpro.com",
+              "title": "Facilities Operations Manager",
+              "department": "Quality",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#06B6D4",
+              "created_at": "2026-04-03T03:12:20.98405+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2025/09/SandPro-Berthold-ND-Team-Headshots-03.3_result.webp"
+            }
+          }
+        },
+        {
+          "id": "62bf9489-4b83-4de7-82a6-4d3b5c7b43cd",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-28",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "675615d0-90cf-4288-955e-e584fa786e84",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:50.995+00:00",
+          "created_at": "2026-06-28T14:00:50.859273+00:00",
+          "actors": {
+            "user_id": {
+              "id": "801402ec-7815-44f3-8948-9daae10b4407",
+              "name": "Mercileidy Jimenez",
+              "initials": "MJ",
+              "email": "mjimenez@sandpro.com",
+              "title": "Executive Assistant",
+              "department": "Admin",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#111827",
+              "created_at": "2026-04-03T03:12:23.41577+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+            }
+          }
+        },
+        {
+          "id": "e09be9ed-c85c-4556-a780-2b54f2b70b19",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-28",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "78d10df1-290a-41d4-aeec-63e95bdff18f",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:50.707+00:00",
+          "created_at": "2026-06-28T14:00:50.523401+00:00",
+          "actors": {
+            "user_id": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "initials": "AE",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:27:24.40151+00:00",
+              "avatar_url": ""
+            }
+          }
+        },
+        {
+          "id": "36c56079-fe59-4e44-a5f7-160e4c5d1d58",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:7496c6e6-992d-4b2d-a92a-22b0595819ff:2026-06-28",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "90fc7597-5eb7-43ce-bc07-652f213775a5",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:50.359+00:00",
+          "created_at": "2026-06-28T14:00:50.203524+00:00",
+          "actors": {
+            "user_id": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "initials": "JF",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": null,
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:12:19.458468+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+            }
+          }
+        },
+        {
+          "id": "8760d391-f9b3-405d-b487-182ae090efa2",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:e4c2c435-71c4-46ed-afce-545ec36b5cb1:2026-06-28",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "87e2f9e9-b212-46e5-b71a-4b0f85e82b08",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:50.061+00:00",
+          "created_at": "2026-06-28T14:00:49.907466+00:00",
+          "actors": {
+            "user_id": {
+              "id": "801402ec-7815-44f3-8948-9daae10b4407",
+              "name": "Mercileidy Jimenez",
+              "initials": "MJ",
+              "email": "mjimenez@sandpro.com",
+              "title": "Executive Assistant",
+              "department": "Admin",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#111827",
+              "created_at": "2026-04-03T03:12:23.41577+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+            }
+          }
+        },
+        {
+          "id": "2b668013-0a6e-4097-ab7e-e202fbc6697f",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:129efe70-60f8-4f40-8407-1f6361c81d87:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-28",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "b3871e6e-ea86-418f-a274-f655cbb4d3ef",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:49.756+00:00",
+          "created_at": "2026-06-28T14:00:49.584646+00:00",
+          "actors": {
+            "user_id": {
+              "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+              "name": "Tim Dibben",
+              "initials": "TD",
+              "email": "tdibben@sandpro.com",
+              "title": "Facilities Operations Manager",
+              "department": "Quality",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#06B6D4",
+              "created_at": "2026-04-03T03:12:20.98405+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2025/09/SandPro-Berthold-ND-Team-Headshots-03.3_result.webp"
+            }
+          }
+        },
+        {
+          "id": "b0f077f4-8516-4e95-8cee-ac2b46d95ce3",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-28",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "d1262f84-4383-4894-836b-89ec894d5a94",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:49.445+00:00",
+          "created_at": "2026-06-28T14:00:49.30222+00:00",
+          "actors": {
+            "user_id": {
+              "id": "801402ec-7815-44f3-8948-9daae10b4407",
+              "name": "Mercileidy Jimenez",
+              "initials": "MJ",
+              "email": "mjimenez@sandpro.com",
+              "title": "Executive Assistant",
+              "department": "Admin",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#111827",
+              "created_at": "2026-04-03T03:12:23.41577+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+            }
+          }
+        },
+        {
+          "id": "d03a97a3-19de-4c8c-be7f-2c80aeeaff3b",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "d8712120-4d53-4d77-8aba-06a15839776d",
+          "notification_type": "stale",
+          "dedupe_key": "stale:db831b29-8bf9-4192-a0e8-422a142c6fb7:d8712120-4d53-4d77-8aba-06a15839776d:2026-06-28",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "51d2aa4f-3638-4f55-8d0e-610afc48bf3f",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:48.977+00:00",
+          "created_at": "2026-06-28T14:00:48.834071+00:00",
+          "actors": {
+            "user_id": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "initials": "JF",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": null,
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:12:19.458468+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+            }
+          }
+        },
+        {
+          "id": "ea7381d5-3f48-4306-995c-25b02e31e59b",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:b09bb3ea-a25e-4266-a542-e93fcd8240b7:2026-06-28",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "c9fff043-a6e7-4b63-bbfa-950f8b804303",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:48.498+00:00",
+          "created_at": "2026-06-28T14:00:48.336279+00:00",
+          "actors": {
+            "user_id": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "initials": "JF",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": null,
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:12:19.458468+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+            }
+          }
+        },
+        {
+          "id": "21746f02-136b-4ab2-bfd2-fb93eccf8f79",
+          "user_id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:129efe70-60f8-4f40-8407-1f6361c81d87:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-28",
+          "recipient": "tdibben@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "54b67c8b-c257-4ea0-b35b-4e7c1208d3f0",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:48.001+00:00",
+          "created_at": "2026-06-28T14:00:47.848373+00:00",
+          "actors": {
+            "user_id": {
+              "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+              "name": "Tim Dibben",
+              "initials": "TD",
+              "email": "tdibben@sandpro.com",
+              "title": "Facilities Operations Manager",
+              "department": "Quality",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#06B6D4",
+              "created_at": "2026-04-03T03:12:20.98405+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2025/09/SandPro-Berthold-ND-Team-Headshots-03.3_result.webp"
+            }
+          }
+        },
+        {
+          "id": "2663269d-570f-4ff1-9569-e83218fce278",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-28",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "7e49c346-cbe1-4ef6-b8bd-75fd77cd148d",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:47.685+00:00",
+          "created_at": "2026-06-28T14:00:47.547598+00:00",
+          "actors": {
+            "user_id": {
+              "id": "801402ec-7815-44f3-8948-9daae10b4407",
+              "name": "Mercileidy Jimenez",
+              "initials": "MJ",
+              "email": "mjimenez@sandpro.com",
+              "title": "Executive Assistant",
+              "department": "Admin",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#111827",
+              "created_at": "2026-04-03T03:12:23.41577+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+            }
+          }
+        },
+        {
+          "id": "e8e04c44-8250-4c5a-ac6c-1908a6f39fef",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "3ab1dc59-b95d-47eb-9bb8-4473b2e08dea",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:3ab1dc59-b95d-47eb-9bb8-4473b2e08dea:2026-06-28",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "24e791c3-2228-4bbc-bbc7-6c3ea942d088",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:47.415+00:00",
+          "created_at": "2026-06-28T14:00:47.251057+00:00",
+          "actors": {
+            "user_id": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "initials": "AE",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:27:24.40151+00:00",
+              "avatar_url": ""
+            }
+          }
+        },
+        {
+          "id": "8d9bc9e5-d007-417e-ac1f-0151f25e7a52",
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:ea6781e6-d332-401b-a3d0-6d90ebc4dc79:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-28",
+          "recipient": "andrew@ndai.pro",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "49d2e83b-b0dd-4e50-b8ed-3dd2c4eacccb",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:46.91+00:00",
+          "created_at": "2026-06-28T14:00:46.775605+00:00",
+          "actors": {
+            "user_id": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "initials": "AE",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:27:24.40151+00:00",
+              "avatar_url": ""
+            }
+          }
+        },
+        {
+          "id": "e664e5bd-08c3-4bf6-8a49-b22f1c072048",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:db831b29-8bf9-4192-a0e8-422a142c6fb7:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-28",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "920d1e1b-efbc-4baf-bdc6-6d164655d168",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:46.617+00:00",
+          "created_at": "2026-06-28T14:00:46.430001+00:00",
+          "actors": {
+            "user_id": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "initials": "JF",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": null,
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:12:19.458468+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+            }
+          }
+        },
+        {
+          "id": "0967389f-2d01-4cfd-ad39-1a6c37df62f3",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+          "notification_type": "overdue",
+          "dedupe_key": "overdue:801402ec-7815-44f3-8948-9daae10b4407:55009d1b-157b-472c-ac51-bb5c9e5a0894:2026-06-28",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP overdue alert",
+          "provider_id": "12adc0b8-4bcc-4357-a76d-824ef6fe3426",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:46.083+00:00",
+          "created_at": "2026-06-28T14:00:45.866104+00:00",
+          "actors": {
+            "user_id": {
+              "id": "801402ec-7815-44f3-8948-9daae10b4407",
+              "name": "Mercileidy Jimenez",
+              "initials": "MJ",
+              "email": "mjimenez@sandpro.com",
+              "title": "Executive Assistant",
+              "department": "Admin",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#111827",
+              "created_at": "2026-04-03T03:12:23.41577+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+            }
+          }
+        },
+        {
+          "id": "bd86f194-25af-42f6-8c84-8da08acc056c",
+          "user_id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "notification_type": "stale",
+          "dedupe_key": "stale:801402ec-7815-44f3-8948-9daae10b4407:de95e16c-86eb-4a4c-8a92-7626df486084:2026-06-28",
+          "recipient": "mjimenez@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "702b8769-f4a6-4240-9db5-3cec886e8bd2",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:45.302+00:00",
+          "created_at": "2026-06-28T14:00:45.103235+00:00",
+          "actors": {
+            "user_id": {
+              "id": "801402ec-7815-44f3-8948-9daae10b4407",
+              "name": "Mercileidy Jimenez",
+              "initials": "MJ",
+              "email": "mjimenez@sandpro.com",
+              "title": "Executive Assistant",
+              "department": "Admin",
+              "role": "manager",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#111827",
+              "created_at": "2026-04-03T03:12:23.41577+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+            }
+          }
+        },
+        {
+          "id": "ce41c8c8-053a-46bd-811a-40bf82b3e956",
+          "user_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "objective_id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+          "notification_type": "stale",
+          "dedupe_key": "stale:db831b29-8bf9-4192-a0e8-422a142c6fb7:de95e16c-86eb-4a4c-8a92-7626df486084:2026-06-28",
+          "recipient": "jfeil@sandpro.com",
+          "subject": "SandPro OMP stale objective reminder",
+          "provider_id": "3a1efd68-6b62-4608-9337-f57b1ae4dc34",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T14:00:44.588+00:00",
+          "created_at": "2026-06-28T14:00:44.29874+00:00",
+          "actors": {
+            "user_id": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "initials": "JF",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": null,
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:12:19.458468+00:00",
+              "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+            }
+          }
+        },
+        {
+          "id": "38897a8f-ed33-4e51-a6da-7fab16513503",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "3d30445c-a767-408b-86e3-a32e0690de0b:mention:7f752d90-2a23-44b0-a448-f9e26b2a1617:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782652409936@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "43942bec-69c4-47eb-aa96-e14c54b5a9a2",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T13:13:36.954+00:00",
+          "created_at": "2026-06-28T13:13:36.740452+00:00",
+          "actors": {}
+        },
+        {
+          "id": "930602d5-b82e-4851-b31f-f29d9003af05",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "93c0cee3-435c-4f66-aec0-295eb4868927:mention:699abcfa-9f74-47fd-8a41-f0c1613addfc:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782648749488@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "fa1036e9-2d62-47d2-ae69-1f9af779ecfa",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T12:12:41.649+00:00",
+          "created_at": "2026-06-28T12:12:40.896487+00:00",
+          "actors": {}
+        },
+        {
+          "id": "09637816-1083-4d07-9a93-85ef6bbfa315",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "a431c15f-7a95-4f48-a4a4-c0ae304218b5:mention:0b617a0c-84c9-4c0e-a0d3-1fde0bc2021b:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782645294930@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "7a45cbc7-d101-48c7-ace4-8244758b329b",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T11:15:00.527+00:00",
+          "created_at": "2026-06-28T11:15:00.256487+00:00",
+          "actors": {}
+        },
+        {
+          "id": "9921f60b-0ac4-44dd-bd6e-7e449e907ec8",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "4f05b2b4-9079-4a7d-87c1-d6c138528b40:mention:446d20f5-882b-4109-ac3f-50d1e9013a1a:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782641485330@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "2c59ba2d-fe58-4a19-8eef-277cdcef184b",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T10:11:31.964+00:00",
+          "created_at": "2026-06-28T10:11:31.744527+00:00",
+          "actors": {}
+        },
+        {
+          "id": "e0d88dfb-7d67-4cd5-ab02-c5b78ab3caab",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "3eb92bd5-1bae-4216-873e-326d42932300:mention:0c821753-84a0-45b8-8251-51a08630a28d:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782637815460@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "519bc1a6-1700-4311-9587-cc0936bf1444",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T09:10:20.521+00:00",
+          "created_at": "2026-06-28T09:10:20.324609+00:00",
+          "actors": {}
+        },
+        {
+          "id": "6886367a-e294-4d1f-a29d-dc549b2a5814",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "1d4c8689-6175-4b99-88ea-203fd4c53234:mention:71e534db-01d7-4afd-9795-a56c0bcc060d:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782634087042@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "898f3d98-f94f-496f-90eb-162fc94e6c2f",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T08:08:12.231+00:00",
+          "created_at": "2026-06-28T08:08:12.023646+00:00",
+          "actors": {}
+        },
+        {
+          "id": "2a2b6299-58d7-420f-a04f-50de8f927096",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "e5c7d346-d2b6-4752-b479-cf451b21dc07:mention:5b296a81-ef94-47eb-8a9c-f9fa1af367b8:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782630561019@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "b69bf61f-27af-4409-8f42-be1dfec7bf4c",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T07:09:26.468+00:00",
+          "created_at": "2026-06-28T07:09:26.220125+00:00",
+          "actors": {}
+        },
+        {
+          "id": "2fcbe25f-776e-4075-9719-450cce8d4bb4",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "a0db5f4c-ae1f-4cdc-96b4-aded8328d047:mention:4e2f288e-7ccd-4b69-a3a2-972ba072bea6:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782626766757@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "c4e8e435-4926-4406-a4b7-64e69b1e6cf5",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T06:06:12.306+00:00",
+          "created_at": "2026-06-28T06:06:12.080281+00:00",
+          "actors": {}
+        },
+        {
+          "id": "8a47ed6d-fb1c-4e4f-af5c-bec13a2b955d",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "10b0f73c-dbc8-4be2-9073-386f50b1cad9:mention:7a4e1ad0-38a4-4839-91b6-9b1c2efda645:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782623215373@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "d8014456-370f-4472-8980-e724af33ddd7",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T05:07:04.913+00:00",
+          "created_at": "2026-06-28T05:07:04.655326+00:00",
+          "actors": {}
+        },
+        {
+          "id": "2b7ed569-4c65-472a-b33a-ebd156f00132",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "1b174256-1a34-4b47-ba5d-4080a109a87b:mention:67f4570a-8347-4392-923f-211ec37542ae:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782615853897@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "a92f5ca9-5020-4c52-b5aa-8cea09aee486",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T03:04:36.404+00:00",
+          "created_at": "2026-06-28T03:04:35.956125+00:00",
+          "actors": {}
+        },
+        {
+          "id": "ea0fa91a-6512-4870-8208-ca156922c8dc",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "8d9bf7bb-c749-44d1-9e20-95c7f349023b:mention:1d9e420d-6bae-438f-a268-5c998d1da565:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782612146437@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "a4df3e76-b798-4b6b-aab1-bc5ff13f15cb",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T02:02:32.457+00:00",
+          "created_at": "2026-06-28T02:02:32.20461+00:00",
+          "actors": {}
+        },
+        {
+          "id": "d0a85d9a-1bd1-46d4-a83d-acd24d0c5291",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "494905c8-d4f7-4d60-9851-ca8e05ed0f30:mention:47dcdbe8-fdd5-43b1-a5c1-2d45d815c8e0:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782608564131@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "6bc6e185-a7f3-4ff7-a6f1-667602e08648",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T01:03:00.846+00:00",
+          "created_at": "2026-06-28T01:03:00.666119+00:00",
+          "actors": {}
+        },
+        {
+          "id": "f27d23be-004d-4ce2-93c7-5fe21cf38e87",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "ef7a1308-c997-4fd5-a9a1-9c975a6ea2dc:mention:6019b721-2776-4c2a-acf2-da6281cedde1:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782604931571@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "15e20a4a-1cf3-44c0-a53c-72308ed447e5",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-28T00:02:16.832+00:00",
+          "created_at": "2026-06-28T00:02:16.640758+00:00",
+          "actors": {}
+        },
+        {
+          "id": "8eceb3a8-fac3-4a7f-9c90-255d9749e24a",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "d0dc0cdc-a03d-429c-a778-a806265d2a96:mention:18fcb999-774c-4363-b127-d50cb782c3bc:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782601982477@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "ee34e048-8576-4971-ad02-b980f5511824",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T23:13:11.242+00:00",
+          "created_at": "2026-06-27T23:13:10.855011+00:00",
+          "actors": {}
+        },
+        {
+          "id": "67eef268-ab4e-4e6c-8028-f84ef0362aa6",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "3008c6ad-4442-49dd-a1e7-641b87851162:mention:12deaa86-f31f-40d0-8823-95067d8ae38d:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782597652348@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "a8b3d9a1-bd45-4de8-8294-9cf30a636c17",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T22:01:44.466+00:00",
+          "created_at": "2026-06-27T22:01:43.973175+00:00",
+          "actors": {}
+        },
+        {
+          "id": "73592b50-0f4a-49fa-a265-60637d391d98",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "6193b18c-ec11-4215-b2e9-e6393fbecac4:mention:ddde4bef-6c81-4cbb-91ed-2e06d8237a80:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782593989243@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "c8f0785e-f7ac-4c33-9358-5c59aab64dac",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T20:59:54.99+00:00",
+          "created_at": "2026-06-27T20:59:54.788553+00:00",
+          "actors": {}
+        },
+        {
+          "id": "531fe90c-10e0-485b-a9f7-20820cdefc21",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "983f062d-595d-4eb3-a065-c7d354040c90:mention:832b9bfd-3e6f-46a2-b18a-7058b6ed3204:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782590329573@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "4ffa6712-c4d9-499f-8d66-049557e6c815",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T19:58:55.179+00:00",
+          "created_at": "2026-06-27T19:58:54.98581+00:00",
+          "actors": {}
+        },
+        {
+          "id": "9fe110a0-2bac-4268-a20c-d82e49ed9dee",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "310bb981-3bd0-49d0-b0e7-60912a399508:mention:6dc7e428-e150-48f7-845d-2588a2d24025:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782586733220@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "6f21a2b2-589d-4f99-bb69-7bed486b213c",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T18:58:58.864+00:00",
+          "created_at": "2026-06-27T18:58:58.627084+00:00",
+          "actors": {}
+        },
+        {
+          "id": "7e81405d-a5e4-4e20-87ae-80b27a6ceac7",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "c2974cb3-c0fd-4b03-985e-b821cb36a65c:mention:7ec25ca2-b68b-4530-b6fc-2ee820cda4be:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782582978922@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "b5c7501e-c26d-4626-9f81-26be15977e7d",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T17:56:23.782+00:00",
+          "created_at": "2026-06-27T17:56:23.592894+00:00",
+          "actors": {}
+        },
+        {
+          "id": "98841ab1-e0e1-407d-9f8e-1188e537bbf3",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "3cff1fe3-e2fc-4f90-9754-b42a8208df61:mention:8432f94b-a42c-40a1-947d-2681a720b2b5:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782579347418@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "2234f60f-a346-4d37-bf8c-7f4e6531fd21",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T16:55:54.723+00:00",
+          "created_at": "2026-06-27T16:55:54.451982+00:00",
+          "actors": {}
+        },
+        {
+          "id": "6aa686e8-8311-47fb-99bd-a3daf7fe865c",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "b5cf024c-8380-4153-a216-85390b1f4687:mention:699df1f2-8067-4ce6-8742-87ebfc7b8c67:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782575789295@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "f60b7d5f-7adf-46d0-b94e-085eb537b6c7",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T15:56:34.799+00:00",
+          "created_at": "2026-06-27T15:56:34.582706+00:00",
+          "actors": {}
+        },
+        {
+          "id": "1ac48d00-5de2-4800-9a26-5d1b8e7a3be4",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "c1be5bb0-34d6-46cc-9b3b-0ef8917e67b2:mention:8160d7c9-9152-4e23-8cd8-30c40b19c4f9:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782571931978@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "d49afe46-59ef-43f1-9a40-4068a5b1966e",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T14:52:17.505+00:00",
+          "created_at": "2026-06-27T14:52:17.30672+00:00",
+          "actors": {}
+        },
+        {
+          "id": "c1596c1d-5e89-4c18-abcc-84727c0a827d",
+          "user_id": null,
+          "objective_id": null,
+          "notification_type": "mention",
+          "dedupe_key": "31733c69-657b-4841-9686-2c488e6e064e:mention:3069008e-6b74-4018-896d-65c631d8eb25:UHVzaCBzbW9rZSBtZW50aW9uIGZvciBwdXNoLXNt",
+          "recipient": "qa+push-smoke-1782568973123@objectivetracker.net",
+          "subject": "You were tagged on a SandPro OMP objective",
+          "provider_id": "a8fa8f4f-87a0-4187-b274-7f0145fb9831",
+          "status": "sent",
+          "error": null,
+          "sent_at": "2026-06-27T14:02:57.877+00:00",
+          "created_at": "2026-06-27T14:02:57.721528+00:00",
+          "actors": {}
+        }
+      ]
+    },
+    {
+      "table": "push_delivery_log",
+      "col": "sent_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_preferences",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_presence",
+      "col": "updated_at",
+      "count": 4,
+      "returned": 4,
+      "rows": [
+        {
+          "user_id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "last_seen_at": "2026-06-28T14:04:24.974+00:00",
+          "created_at": "2026-06-14T20:41:33.801576+00:00",
+          "updated_at": "2026-06-28T14:04:25.145989+00:00",
+          "actors": {
+            "user_id": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "initials": "AE",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "color": "#ff7f02",
+              "created_at": "2026-04-03T03:27:24.40151+00:00",
+              "avatar_url": ""
+            }
+          }
+        },
+        {
+          "user_id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "last_seen_at": "2026-06-28T13:13:49.063+00:00",
+          "created_at": "2026-06-14T20:40:04.743153+00:00",
+          "updated_at": "2026-06-28T13:13:49.528641+00:00",
+          "actors": {
+            "user_id": {
+              "id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+              "name": "Release Smoke Member",
+              "initials": "RM",
+              "email": "release-smoke-member@objectivetracker.net",
+              "title": "Production Release Reviewer",
+              "department": "Operations",
+              "role": "manager",
+              "reports_to": null,
+              "color": "#475467",
+              "created_at": "2026-06-10T01:00:06.3176+00:00",
+              "avatar_url": ""
+            }
+          }
+        },
+        {
+          "user_id": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+          "last_seen_at": "2026-06-28T13:13:36.78+00:00",
+          "created_at": "2026-06-14T20:39:48.728709+00:00",
+          "updated_at": "2026-06-28T13:13:37.039679+00:00",
+          "actors": {
+            "user_id": {
+              "id": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+              "name": "Release Smoke Admin",
+              "initials": "RA",
+              "email": "release-smoke-admin@objectivetracker.net",
+              "title": "Production Release Validator",
+              "department": "Admin",
+              "role": "executive",
+              "reports_to": null,
+              "color": "#ff7f02",
+              "created_at": "2026-06-10T00:59:25.010344+00:00",
+              "avatar_url": ""
+            }
+          }
+        },
+        {
+          "user_id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "last_seen_at": "2026-06-27T20:58:58.112+00:00",
+          "created_at": "2026-06-14T19:13:45.534789+00:00",
+          "updated_at": "2026-06-27T20:58:58.306925+00:00",
+          "actors": {
+            "user_id": {
+              "id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+              "name": "SandPro QA Agent",
+              "initials": "QA",
+              "email": "sandpro-qa-agent@ndai.pro",
+              "title": "Release QA",
+              "department": "Leadership",
+              "role": "executive",
+              "reports_to": null,
+              "color": "#3B82F6",
+              "created_at": "2026-06-08T13:56:16.570986+00:00",
+              "avatar_url": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": "alt_dashboard_notes",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "alt_dashboard_notes",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_reports",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_reports",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_action_items",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_action_items",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_audit_events",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "ncr_import_batches",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "kpi_checkins",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "kpi_alert_events",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "kpi_datapoints",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "kpi_import_batches",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "okr_projects",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "okr_projects",
+      "col": "updated_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "okr_project_audit_events",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objective_agent_runs",
+      "col": "created_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    },
+    {
+      "table": "objective_agent_runs",
+      "col": "completed_at",
+      "count": 0,
+      "returned": 0,
+      "rows": []
+    }
+  ],
+  "counts": {
+    "fix_it_posts.created_at": 0,
+    "fix_it_posts.updated_at": 0,
+    "fix_it_comments.created_at": 0,
+    "fix_it_comments.updated_at": 0,
+    "fix_it_attachments.created_at": 0,
+    "messages.created_at": 0,
+    "objective_updates.created_at": 0,
+    "objectives.created_at": 0,
+    "objectives.updated_at": 0,
+    "org_chart_updates.created_at": 0,
+    "org_chart_placeholders.created_at": 0,
+    "org_chart_placeholders.updated_at": 0,
+    "notifications.created_at": 0,
+    "email_delivery_log.created_at": 40,
+    "push_delivery_log.sent_at": 0,
+    "alt_dashboard_preferences.updated_at": 0,
+    "alt_dashboard_presence.updated_at": 4,
+    "alt_dashboard_notes.created_at": 0,
+    "alt_dashboard_notes.updated_at": 0,
+    "ncr_reports.created_at": 0,
+    "ncr_reports.updated_at": 0,
+    "ncr_action_items.created_at": 0,
+    "ncr_action_items.updated_at": 0,
+    "ncr_audit_events.created_at": 0,
+    "ncr_import_batches.created_at": 0,
+    "kpi_checkins.created_at": 0,
+    "kpi_alert_events.created_at": 0,
+    "kpi_datapoints.created_at": 0,
+    "kpi_import_batches.created_at": 0,
+    "okr_projects.created_at": 0,
+    "okr_projects.updated_at": 0,
+    "okr_project_audit_events.created_at": 0,
+    "objective_agent_runs.created_at": 0,
+    "objective_agent_runs.completed_at": 0
+  },
+  "activeFixIt": {
+    "count": 0,
+    "rows": []
+  },
+  "openJakeMerciObjectives": [],
+  "recentHumanActivity": [
+    {
+      "table": "alt_dashboard_presence",
+      "col": "updated_at",
+      "at": "2026-06-28T14:04:25.145989+00:00",
+      "summary": null,
+      "actors": {
+        "user_id": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "initials": "AE",
+          "email": "andrew@ndai.pro",
+          "title": "Platform Admin",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:27:24.40151+00:00",
+          "avatar_url": ""
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:51.131665+00:00",
+      "id": "2d82bdec-a0aa-4a7b-8d49-cdbd517cd744",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "initials": "TD",
+          "email": "tdibben@sandpro.com",
+          "title": "Facilities Operations Manager",
+          "department": "Quality",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#06B6D4",
+          "created_at": "2026-04-03T03:12:20.98405+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2025/09/SandPro-Berthold-ND-Team-Headshots-03.3_result.webp"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:50.859273+00:00",
+      "id": "62bf9489-4b83-4de7-82a6-4d3b5c7b43cd",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "initials": "MJ",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#111827",
+          "created_at": "2026-04-03T03:12:23.41577+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:50.523401+00:00",
+      "id": "e09be9ed-c85c-4556-a780-2b54f2b70b19",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "initials": "AE",
+          "email": "andrew@ndai.pro",
+          "title": "Platform Admin",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:27:24.40151+00:00",
+          "avatar_url": ""
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:50.203524+00:00",
+      "id": "36c56079-fe59-4e44-a5f7-160e4c5d1d58",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "initials": "JF",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": null,
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:12:19.458468+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:49.907466+00:00",
+      "id": "8760d391-f9b3-405d-b487-182ae090efa2",
+      "summary": "SandPro OMP stale objective reminder",
+      "actors": {
+        "user_id": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "initials": "MJ",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#111827",
+          "created_at": "2026-04-03T03:12:23.41577+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:49.584646+00:00",
+      "id": "2b668013-0a6e-4097-ab7e-e202fbc6697f",
+      "summary": "SandPro OMP stale objective reminder",
+      "actors": {
+        "user_id": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "initials": "TD",
+          "email": "tdibben@sandpro.com",
+          "title": "Facilities Operations Manager",
+          "department": "Quality",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#06B6D4",
+          "created_at": "2026-04-03T03:12:20.98405+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2025/09/SandPro-Berthold-ND-Team-Headshots-03.3_result.webp"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:49.30222+00:00",
+      "id": "b0f077f4-8516-4e95-8cee-ac2b46d95ce3",
+      "summary": "SandPro OMP stale objective reminder",
+      "actors": {
+        "user_id": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "initials": "MJ",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#111827",
+          "created_at": "2026-04-03T03:12:23.41577+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:48.834071+00:00",
+      "id": "d03a97a3-19de-4c8c-be7f-2c80aeeaff3b",
+      "summary": "SandPro OMP stale objective reminder",
+      "actors": {
+        "user_id": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "initials": "JF",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": null,
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:12:19.458468+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:48.336279+00:00",
+      "id": "ea7381d5-3f48-4306-995c-25b02e31e59b",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "initials": "JF",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": null,
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:12:19.458468+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:47.848373+00:00",
+      "id": "21746f02-136b-4ab2-bfd2-fb93eccf8f79",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "129efe70-60f8-4f40-8407-1f6361c81d87",
+          "name": "Tim Dibben",
+          "initials": "TD",
+          "email": "tdibben@sandpro.com",
+          "title": "Facilities Operations Manager",
+          "department": "Quality",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#06B6D4",
+          "created_at": "2026-04-03T03:12:20.98405+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2025/09/SandPro-Berthold-ND-Team-Headshots-03.3_result.webp"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:47.547598+00:00",
+      "id": "2663269d-570f-4ff1-9569-e83218fce278",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "initials": "MJ",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#111827",
+          "created_at": "2026-04-03T03:12:23.41577+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:47.251057+00:00",
+      "id": "e8e04c44-8250-4c5a-ac6c-1908a6f39fef",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "initials": "AE",
+          "email": "andrew@ndai.pro",
+          "title": "Platform Admin",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:27:24.40151+00:00",
+          "avatar_url": ""
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:46.775605+00:00",
+      "id": "8d9bc9e5-d007-417e-ac1f-0151f25e7a52",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "initials": "AE",
+          "email": "andrew@ndai.pro",
+          "title": "Platform Admin",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:27:24.40151+00:00",
+          "avatar_url": ""
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:46.430001+00:00",
+      "id": "e664e5bd-08c3-4bf6-8a49-b22f1c072048",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "initials": "JF",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": null,
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:12:19.458468+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:45.866104+00:00",
+      "id": "0967389f-2d01-4cfd-ad39-1a6c37df62f3",
+      "summary": "SandPro OMP overdue alert",
+      "actors": {
+        "user_id": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "initials": "MJ",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#111827",
+          "created_at": "2026-04-03T03:12:23.41577+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:45.103235+00:00",
+      "id": "bd86f194-25af-42f6-8c84-8da08acc056c",
+      "summary": "SandPro OMP stale objective reminder",
+      "actors": {
+        "user_id": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "initials": "MJ",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "role": "manager",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "color": "#111827",
+          "created_at": "2026-04-03T03:12:23.41577+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2026/02/SandPro-Berthold-ND-Team-Headshots-29.3-1024x683.jpg"
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T14:00:44.29874+00:00",
+      "id": "ce41c8c8-053a-46bd-811a-40bf82b3e956",
+      "summary": "SandPro OMP stale objective reminder",
+      "actors": {
+        "user_id": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "initials": "JF",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": null,
+          "color": "#ff7f02",
+          "created_at": "2026-04-03T03:12:19.458468+00:00",
+          "avatar_url": "https://sandpro.com/wp-content/uploads/2024/01/Jake-Feil.png"
+        }
+      }
+    },
+    {
+      "table": "alt_dashboard_presence",
+      "col": "updated_at",
+      "at": "2026-06-28T13:13:49.528641+00:00",
+      "summary": null,
+      "actors": {
+        "user_id": {
+          "id": "7fe3bded-1c47-4f76-9e10-9b674adf4f30",
+          "name": "Release Smoke Member",
+          "initials": "RM",
+          "email": "release-smoke-member@objectivetracker.net",
+          "title": "Production Release Reviewer",
+          "department": "Operations",
+          "role": "manager",
+          "reports_to": null,
+          "color": "#475467",
+          "created_at": "2026-06-10T01:00:06.3176+00:00",
+          "avatar_url": ""
+        }
+      }
+    },
+    {
+      "table": "alt_dashboard_presence",
+      "col": "updated_at",
+      "at": "2026-06-28T13:13:37.039679+00:00",
+      "summary": null,
+      "actors": {
+        "user_id": {
+          "id": "f8bbc541-8adb-4408-8533-7157dc99a33a",
+          "name": "Release Smoke Admin",
+          "initials": "RA",
+          "email": "release-smoke-admin@objectivetracker.net",
+          "title": "Production Release Validator",
+          "department": "Admin",
+          "role": "executive",
+          "reports_to": null,
+          "color": "#ff7f02",
+          "created_at": "2026-06-10T00:59:25.010344+00:00",
+          "avatar_url": ""
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T13:13:36.740452+00:00",
+      "id": "38897a8f-ed33-4e51-a6da-7fab16513503",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T12:12:40.896487+00:00",
+      "id": "930602d5-b82e-4851-b31f-f29d9003af05",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T11:15:00.256487+00:00",
+      "id": "09637816-1083-4d07-9a93-85ef6bbfa315",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T10:11:31.744527+00:00",
+      "id": "9921f60b-0ac4-44dd-bd6e-7e449e907ec8",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T09:10:20.324609+00:00",
+      "id": "e0d88dfb-7d67-4cd5-ab02-c5b78ab3caab",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T08:08:12.023646+00:00",
+      "id": "6886367a-e294-4d1f-a29d-dc549b2a5814",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T07:09:26.220125+00:00",
+      "id": "2a2b6299-58d7-420f-a04f-50de8f927096",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T06:06:12.080281+00:00",
+      "id": "2fcbe25f-776e-4075-9719-450cce8d4bb4",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T05:07:04.655326+00:00",
+      "id": "8a47ed6d-fb1c-4e4f-af5c-bec13a2b955d",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T03:04:35.956125+00:00",
+      "id": "2b7ed569-4c65-472a-b33a-ebd156f00132",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T02:02:32.20461+00:00",
+      "id": "ea0fa91a-6512-4870-8208-ca156922c8dc",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T01:03:00.666119+00:00",
+      "id": "d0a85d9a-1bd1-46d4-a83d-acd24d0c5291",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-28T00:02:16.640758+00:00",
+      "id": "f27d23be-004d-4ce2-93c7-5fe21cf38e87",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T23:13:10.855011+00:00",
+      "id": "8eceb3a8-fac3-4a7f-9c90-255d9749e24a",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T22:01:43.973175+00:00",
+      "id": "67eef268-ab4e-4e6c-8028-f84ef0362aa6",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T20:59:54.788553+00:00",
+      "id": "73592b50-0f4a-49fa-a265-60637d391d98",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "alt_dashboard_presence",
+      "col": "updated_at",
+      "at": "2026-06-27T20:58:58.306925+00:00",
+      "summary": null,
+      "actors": {
+        "user_id": {
+          "id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "name": "SandPro QA Agent",
+          "initials": "QA",
+          "email": "sandpro-qa-agent@ndai.pro",
+          "title": "Release QA",
+          "department": "Leadership",
+          "role": "executive",
+          "reports_to": null,
+          "color": "#3B82F6",
+          "created_at": "2026-06-08T13:56:16.570986+00:00",
+          "avatar_url": ""
+        }
+      }
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T19:58:54.98581+00:00",
+      "id": "531fe90c-10e0-485b-a9f7-20820cdefc21",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T18:58:58.627084+00:00",
+      "id": "9fe110a0-2bac-4268-a20c-d82e49ed9dee",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T17:56:23.592894+00:00",
+      "id": "7e81405d-a5e4-4e20-87ae-80b27a6ceac7",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T16:55:54.451982+00:00",
+      "id": "98841ab1-e0e1-407d-9f8e-1188e537bbf3",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T15:56:34.582706+00:00",
+      "id": "6aa686e8-8311-47fb-99bd-a3daf7fe865c",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T14:52:17.30672+00:00",
+      "id": "1ac48d00-5de2-4800-9a26-5d1b8e7a3be4",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    },
+    {
+      "table": "email_delivery_log",
+      "col": "created_at",
+      "at": "2026-06-27T14:02:57.721528+00:00",
+      "id": "c1596c1d-5e89-4c18-abcc-84727c0a827d",
+      "summary": "You were tagged on a SandPro OMP objective",
+      "actors": {}
+    }
+  ],
+  "deliverySummary": {
+    "email_delivery_log:sent": 40
+  },
+  "classification": {
+    "autoImplemented": [],
+    "pendingApproval": [],
+    "conflicts": [],
+    "obviousBugReports": [],
+    "notes": [
+      "No new request-like rows or active Fix-It posts were found in the review window.",
+      "No new Fix-It posts/comments/attachments, objective messages, objective_updates, objective row changes, org chart edits, NCR/KPI/OKR rows, or objective agent runs were created or updated in the review window.",
+      "Delivery/activity rows in the window were system/admin telemetry: {\"email_delivery_log:sent\":40} plus passive dashboard presence/preferences if present."
+    ]
+  },
+  "requestLikeActivity": []
+}

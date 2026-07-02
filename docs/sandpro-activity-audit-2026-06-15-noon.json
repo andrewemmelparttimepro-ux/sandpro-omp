@@ -1,0 +1,398 @@
+{
+  "generatedAt": "2026-06-15T18:04:04.823Z",
+  "since": "2026-06-14T17:02:17.722Z",
+  "counts": {
+    "fixItPostsCreated": 0,
+    "fixItPostsUpdated": 0,
+    "fixItComments": 0,
+    "fixItAttachments": 0,
+    "objectiveMessages": 0,
+    "objectiveUpdates": 0,
+    "objectivesTouched": 0,
+    "orgChartUpdates": 0,
+    "notifications": 0,
+    "emailLogs": 72,
+    "pushLogs": 0,
+    "activeFixItNow": 1,
+    "archivedFixItNow": 27,
+    "openJakeMerciObjectives": 4
+  },
+  "newActivity": {
+    "fixItPostsCreated": [],
+    "fixItPostsUpdated": [],
+    "fixItComments": [],
+    "fixItAttachments": [],
+    "messages": [],
+    "objectiveUpdates": [],
+    "objectiveTouchesWithoutAudit": {
+      "touchedCount": 0,
+      "sharedUpdatedAt": [],
+      "sampleTitles": []
+    },
+    "orgChartUpdates": []
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 72
+    },
+    "emailTypeCounts": {
+      "mention": 25,
+      "due_soon": 4,
+      "overdue": 9,
+      "blocker": 2,
+      "daily_digest": 32
+    },
+    "pushStatusCounts": {},
+    "pushTypeCounts": {},
+    "notificationTypeCounts": {},
+    "notificationRecipients": {},
+    "failedEmails": [],
+    "failedPushes": []
+  },
+  "unresolved": {
+    "activeFixIt": [
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "body": "Within the main dashboard, there is some navigation language and workflow logic that is causing confusion.\n\nThe objective task categories currently displayed on the main dashboard are:\n\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThese are good and should be considered the core visuals for team productivity.\n\nHowever, when a user clicks into Open, for example, the next screen only shows the following status options:\n\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThese should be treated as sub-filters under the main dashboard categories, not separate navigation areas.\n\nFor example, on the main dashboard, Open should show a breakdown of how many open objectives are:\n\nOn Track\nAt Risk\nBlocked\nNot Started\n\nThen, when a user clicks Open, it should only take them to the open objectives. From there, the user should be able to apply additional filters without needing to navigate back to the home screen to view another category such as Due Within 7 Days.\n\nWould it work better to have one Objective List view with filter selections instead of forcing users to navigate through multiple areas of the platform?\n\nThe suggested filter structure would be:\n\nFirst filter: Ownership / Scope\nMy Objectives\nIndividual Person\nGroup / Department\nAll Objectives\n\nSecond filter: Main Category\nAll\nOpen\nOverdue\nDue Today\nDue Within 7 Days\nDue Within 14 Days\nDue Within 28 Days\nCompleted\n\nThird filter: Status\nAll\nOn Track\nAt Risk\nBlocked\nNot Started\nCompleted\n\nThe goal is to make the objective view more inclusive and flexible so users can quickly see what they need without moving through multiple screens. For example, a user should be able to select:\n\nMy Objectives + Open + At Risk\nOperations Group + Due Within 7 Days + Blocked\nAll Objectives + Overdue + Not Started\n\nThis would create one centralized view where the user can filter by ownership, due-date category, and status. It should reduce confusion, improve visibility, and make it easier for teams and managers to identify what needs attention.",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "claimed_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "status": "agent_done",
+        "created_at": "2026-05-28T17:59:58.482556+00:00",
+        "updated_at": "2026-06-12T23:20:54.709898+00:00",
+        "agent_tested_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+        "agent_tested_at": "2026-06-12T23:20:52.581+00:00",
+        "human_reviewed_by": null,
+        "human_reviewed_at": null,
+        "archived_by": null,
+        "archived_at": null,
+        "reopened_by": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+        "reopened_at": "2026-06-10T06:55:12.267+00:00",
+        "reopen_count": 1,
+        "reopened_from_status": "agent_done",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "role": "executive",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "reports_to": null
+        },
+        "claimedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "role": "executive",
+          "email": "andrew@ndai.pro",
+          "title": "Platform Admin",
+          "department": "Leadership",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+        },
+        "agentTestedBy": {
+          "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+          "name": "Andrew Emmel",
+          "role": "executive",
+          "email": "andrew@ndai.pro",
+          "title": "Platform Admin",
+          "department": "Leadership",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+        },
+        "reopenedBy": {
+          "id": "95ae9253-01ac-4bf0-af41-d7f67a7cf581",
+          "name": "SandPro QA Agent",
+          "role": "executive",
+          "email": "sandpro-qa-agent@ndai.pro",
+          "title": "Release QA",
+          "department": "Leadership",
+          "reports_to": null
+        },
+        "comments": [
+          {
+            "id": "2e46678d-3f7d-45e0-9b4c-7b14d0a8ef59",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "body": "This is live now. Clicking the Dashboard Active card opens Objective Lens with the Active filter applied, and the list keeps scope, due-date, and status filters available in one place. I revalidated it today and attached fresh proof.",
+            "created_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "created_at": "2026-06-12T23:20:54.436831+00:00",
+            "updated_at": "2026-06-12T23:20:54.436831+00:00",
+            "createdBy": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "role": "executive",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+            }
+          }
+        ],
+        "attachments": [
+          {
+            "id": "452b231d-e50d-49b2-8eb8-6d1652f3407d",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Dashboard view  1.png",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "37.0 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1779991198136_Dashboard view  1.png",
+            "url": "",
+            "created_at": "2026-05-28T17:59:59.28204+00:00",
+            "purpose": "report",
+            "comment_id": null,
+            "uploadedBy": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "role": "executive",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "reports_to": null
+            }
+          },
+          {
+            "id": "40765b85-0dac-4dc7-80a7-7e3d856cc427",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "uploaded_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+            "name": "Dashboard view  2.png",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "12.4 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1779991198863_Dashboard view  2.png",
+            "url": "",
+            "created_at": "2026-05-28T17:59:59.875818+00:00",
+            "purpose": "report",
+            "comment_id": null,
+            "uploadedBy": {
+              "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+              "name": "Jake Feil",
+              "role": "executive",
+              "email": "jfeil@sandpro.com",
+              "title": "CEO",
+              "department": "Leadership",
+              "reports_to": null
+            }
+          },
+          {
+            "id": "25ecaf65-ebb9-4b6d-bc0d-e92b86acf347",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "validation-proof-15-proof-dashboard-kpi-cards.png",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "189.8 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/validation/1780201768843_validation-proof-15-proof-dashboard-kpi-cards.png",
+            "url": "",
+            "created_at": "2026-05-31T04:29:30.251488+00:00",
+            "purpose": "validation_proof",
+            "comment_id": null,
+            "uploadedBy": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "role": "executive",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+            }
+          },
+          {
+            "id": "7f46115e-6374-4254-9930-432a918896e8",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "validation-proof-dashboard-buckets-live.png",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "58 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1780613068109_validation-proof-dashboard-buckets-live.png",
+            "url": "",
+            "created_at": "2026-06-04T22:44:28.907055+00:00",
+            "purpose": "validation_proof",
+            "comment_id": null,
+            "uploadedBy": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "role": "executive",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+            }
+          },
+          {
+            "id": "1c12a6e1-9ace-4766-919f-e716cd01ea0d",
+            "post_id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+            "uploaded_by": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+            "name": "sandpro-fixit-proof-jake-objective-lens-2026-06-12.png",
+            "type": "image",
+            "mime_type": "image/png",
+            "size": "98.4 KB",
+            "storage_path": "23903eed-1900-4fa6-964e-7beafaa1e7e9/1781306453141_sandpro-fixit-proof-jake-objective-lens-2026-06-12.png",
+            "url": "",
+            "created_at": "2026-06-12T23:20:54.267208+00:00",
+            "purpose": "validation_proof",
+            "comment_id": null,
+            "uploadedBy": {
+              "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+              "name": "Andrew Emmel",
+              "role": "executive",
+              "email": "andrew@ndai.pro",
+              "title": "Platform Admin",
+              "department": "Leadership",
+              "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+            }
+          }
+        ]
+      }
+    ],
+    "openJakeMerciObjectives": [
+      {
+        "id": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "title": "Finalize April expense report — personal CC items + remaining receipts",
+        "description": "Hi Jake! wrapping up the April expense report. I already have the corporate AmEx statement and the receipts you've sent me printed and organized:\n\nSal y Pimienta Houston (04/22) — $1,943.50\nHyatt Regency Houston (04/23) — $13.57\nHyatt Regency Houston (04/23) — $12.54\nConophil Sbuck Cafe Houston (04/24) — $5.37\n\nTo close it out whenever you have a moment, I'd need:\n\nYour personal CC statement marked with the items you'd like reflected as business expenses (same approach as last time)\nA heads-up on any remaining receipts you'd like included so I can print them and add them to the packet\n\nNo rush, just keeping it on the radar so we can wrap cleanly.\n(Also doubling as an OMP test, flag anything that doesn't render right.)",
+        "status": "blocked",
+        "department": "Admin",
+        "due_date": "2026-05-20T00:00:00+00:00",
+        "created_at": "2026-05-13T22:02:38.861148+00:00",
+        "updated_at": "2026-06-13T17:46:55.372032+00:00",
+        "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "role": "manager",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+        },
+        "owner": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "role": "manager",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+        }
+      },
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "description": "Hi Jake! Following up on the Focus Digital meeting with Brett. To kick off Week 1 of production, we need three inputs from our side:\n\nSTEP/CAD file of the wellhead type to be used\nStandard procedure sequence that sets the retrievable bridge plug\nConfirmation of the scenarios to be animated (normal deployment, worn/unretrievable replacement, alternative routine)\n\nCould you point me to the right engineering contact(s) so I can coordinate the delivery of the assets? Quote is $4,800 total, with a 4–6 week timeline once we hand the files over to Focus Digital.\n(Also doubling as an OMP test.. flag anything that doesn't render right.)",
+        "status": "on_track",
+        "department": "Admin",
+        "due_date": "2026-05-28T00:00:00+00:00",
+        "created_at": "2026-05-13T22:09:22.321543+00:00",
+        "updated_at": "2026-06-11T15:31:42.479396+00:00",
+        "owner_id": "801402ec-7815-44f3-8948-9daae10b4407",
+        "created_by": "801402ec-7815-44f3-8948-9daae10b4407",
+        "createdBy": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "role": "manager",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+        },
+        "owner": {
+          "id": "801402ec-7815-44f3-8948-9daae10b4407",
+          "name": "Mercileidy Jimenez",
+          "role": "manager",
+          "email": "mjimenez@sandpro.com",
+          "title": "Executive Assistant",
+          "department": "Admin",
+          "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+        }
+      },
+      {
+        "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+        "title": "NCR #82007431 - Process Loss - Chord Hoff",
+        "description": "Event: Deployment Audit Flowback HWO on cross All 6 trees cranked full open for deployment, NO 1/4 turn off. Had to hand off of 2 to get them to move.\n\nImmediate action: Set valves in proper position\n\nFollow-ups: Assigned to Jaelen Maslowski on 5/26/26, Due 5/28/26 Work with both crews to understand that valves must be backed off 1/4 turn after full open or full close - by Timothy Dibben on 5/26/26 Assigned to Jaelen Maslowski on 5/25/26 Is this how we are transporting valves ? New process? - by Bryce Christoffersen on 5/25/26",
+        "status": "not_started",
+        "department": "Shop",
+        "due_date": "2026-05-28T00:00:00+00:00",
+        "created_at": "2026-06-04T16:02:31.707271+00:00",
+        "updated_at": "2026-06-11T15:31:42.479396+00:00",
+        "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "role": "executive",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "reports_to": null
+        },
+        "owner": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "role": "executive",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "reports_to": null
+        }
+      },
+      {
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "title": "OKRs and Projects tracking/ R&D",
+        "description": "We need to have a discussion around how we are managing parent OKRs and how we can view OKRs through a clear, filterable structure.\n\nWe also need to discuss project management for active projects, including R&D projects. This should include how we track the required quality forms and documentation that are part of the product assessment process.\n\nFor viable product assessments, we need to make sure the process includes key items such as:\n\nEconomic evaluation\nRisk assessment\nQuality review forms\nProduct viability review\nRequired approvals\nNext steps and ownership\n\nThe main point is that I do not want us to simply request something from without first working through the proper funnel of how this should function for our business. We need to define the structure, logic, required steps, and desired reporting before we ask them to build or configure anything.\n\nThis needs to include how OKRs roll up to parent OKRs, how projects are linked to those OKRs, how project status is tracked, and how required forms or assessments are tied into the project workflow.\n\nThe goal is to make sure OKRs, projects, and product assessments are structured in a way that gives us clear visibility, accountability, and follow-through. If we map this correctly up front, we can create a system that supports how we actually manage priorities, evaluate new products, track R&D, and move projects from idea to execution.\n\nPlease begin thinking through how this should work in your areas so we can have a productive discussion @Mercileidy Jimenez @Tim Dibben @Andrew Emmel ",
+        "status": "not_started",
+        "department": "Leadership",
+        "due_date": "2026-06-16T00:00:00+00:00",
+        "created_at": "2026-06-10T19:43:08.518705+00:00",
+        "updated_at": "2026-06-11T15:31:42.479396+00:00",
+        "owner_id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "created_by": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+        "createdBy": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "role": "executive",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "reports_to": null
+        },
+        "owner": {
+          "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+          "name": "Jake Feil",
+          "role": "executive",
+          "email": "jfeil@sandpro.com",
+          "title": "CEO",
+          "department": "Leadership",
+          "reports_to": null
+        }
+      }
+    ]
+  },
+  "actors": {
+    "jake": {
+      "id": "db831b29-8bf9-4192-a0e8-422a142c6fb7",
+      "name": "Jake Feil",
+      "role": "executive",
+      "email": "jfeil@sandpro.com",
+      "title": "CEO",
+      "department": "Leadership",
+      "reports_to": null
+    },
+    "merci": {
+      "id": "801402ec-7815-44f3-8948-9daae10b4407",
+      "name": "Mercileidy Jimenez",
+      "role": "manager",
+      "email": "mjimenez@sandpro.com",
+      "title": "Executive Assistant",
+      "department": "Admin",
+      "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+    },
+    "andrew": {
+      "id": "ea6781e6-d332-401b-a3d0-6d90ebc4dc79",
+      "name": "Andrew Emmel",
+      "role": "executive",
+      "email": "andrew@ndai.pro",
+      "title": "Platform Admin",
+      "department": "Leadership",
+      "reports_to": "db831b29-8bf9-4192-a0e8-422a142c6fb7"
+    }
+  }
+}

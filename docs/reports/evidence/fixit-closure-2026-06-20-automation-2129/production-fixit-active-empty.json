@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-06-20T21:31:13.845Z",
+  "url": "https://objectivetracker.net/?page=fixit",
+  "activeCount": 0,
+  "emptyVisible": true,
+  "proofNeededCount": 0,
+  "validationCompleteCount": 0,
+  "activeText": "Active\n0\nArchive\n28",
+  "consoleMessages": [
+    "warning: [Supabase] profiles fetch skipped: TypeError: Failed to fetch",
+    "warning: [Supabase] objectives fetch skipped: TypeError: Failed to fetch",
+    "error: Error fetching objectives: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch\n    at https://objectiv…tivetracker.net/assets/index-DeLwU8ED.js:35:25466, hint: , code: }",
+    "warning: [Supabase] profiles fetch skipped: TypeError: Failed to fetch",
+    "warning: [Supabase] profile fetch skipped: TypeError: Failed to fetch",
+    "warning: [Supabase] NCR reports fetch skipped: TypeError: Failed to fetch",
+    "warning: [Supabase] profiles fetch skipped: TypeError: Failed to fetch",
+    "warning: [Supabase] objectives fetch skipped: TypeError: Failed to fetch"
+  ]
+}

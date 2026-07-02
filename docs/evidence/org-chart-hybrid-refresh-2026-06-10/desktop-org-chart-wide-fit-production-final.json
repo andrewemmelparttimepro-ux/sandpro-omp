@@ -1,0 +1,61 @@
+{
+  "title": "SandPro OMP",
+  "url": "https://objectivetracker.net/?page=organization",
+  "zoomText": "-\n35%\n+\nFit\nRoot",
+  "zoomClusterCount": 1,
+  "scrollLeft": 228,
+  "scrollTop": 72,
+  "viewportInlineWidth": "2000px",
+  "viewportInlineHeight": "1200px",
+  "viewportRect": {
+    "left": -195,
+    "top": 527,
+    "right": 1805,
+    "bottom": 1727,
+    "width": 2000,
+    "height": 1200
+  },
+  "canvasRect": {
+    "left": 45,
+    "top": 623,
+    "right": 1278,
+    "bottom": 1006,
+    "width": 1233,
+    "height": 384
+  },
+  "treeRect": {
+    "left": 91,
+    "top": 623,
+    "right": 1194,
+    "bottom": 894,
+    "width": 1103,
+    "height": 272
+  },
+  "scrollerRect": {
+    "left": 21,
+    "top": 551,
+    "right": 1375,
+    "bottom": 879,
+    "width": 1354,
+    "height": 328
+  },
+  "controlsRect": {
+    "left": 43,
+    "top": 573,
+    "right": 270,
+    "bottom": 609,
+    "width": 227,
+    "height": 36
+  },
+  "nodeCount": 32,
+  "deepRailCount": 7,
+  "leftMostCardDelta": 74,
+  "leftMostNodeDelta": 24,
+  "topMostNodeDelta": 75,
+  "controlsClearance": 17,
+  "leftMostCardText": "AF\nAgent Fixit\nAutomation Agent · Operations\nSpan Of Control:\n0\nAvg Span Of Cont",
+  "leftMostNodeText": "Company root",
+  "topMostNodeText": "AF\nAgent Fixit\nAutomation Agent · Operations\nSpan Of Control:\n0\nAvg Span Of Cont",
+  "mobileNestedCount": 27,
+  "navActionsText": "Wide\nStacked\nSelected\nExpand all\nCollapse all\nProof mode"
+}

@@ -1,0 +1,155 @@
+{
+  "generatedAt": "2026-06-16T14:15:00Z",
+  "since": "2026-06-15T14:01:58.516Z",
+  "counts": {
+    "fixItPostsCreated": 0,
+    "fixItPostsUpdated": 0,
+    "fixItComments": 0,
+    "fixItAttachments": 0,
+    "objectiveMessages": 0,
+    "objectiveUpdates": 10,
+    "objectivesTouched": 1,
+    "orgChartUpdates": 0,
+    "okrProjectAuditEvents": 0,
+    "ncrAuditEvents": 0,
+    "altDashboardNotes": 2,
+    "notifications": 0,
+    "emailLogs": 66,
+    "pushLogs": 0,
+    "activeFixItNow": 1,
+    "archivedFixItNow": 27,
+    "openJakeMerciObjectives": 3
+  },
+  "newActivity": {
+    "fixItPostsCreated": [],
+    "fixItPostsUpdated": [],
+    "fixItComments": [],
+    "fixItAttachments": [],
+    "messages": [],
+    "objectiveUpdates": [
+      {
+        "objectiveId": "2577b7fb-5592-467e-a212-5f6a8732eead",
+        "title": "Finalize April expense report — personal CC items + remaining receipts",
+        "owner": "Mercileidy Jimenez",
+        "activityCount": 10,
+        "windowStart": "2026-06-15T20:01:59.844305+00:00",
+        "windowEnd": "2026-06-15T20:02:26.20711+00:00",
+        "actions": [
+          "status_change: blocked -> completed",
+          "workflow_step_updated: Inputs current -> done",
+          "workflow_step_updated: Execute todo -> done",
+          "workflow_step_updated: Execute null -> current",
+          "workflow_step_updated: Execute todo -> done",
+          "workflow_step_updated: Review null -> current",
+          "workflow_step_updated: Review todo -> done",
+          "workflow_step_updated: Complete todo -> done",
+          "workflow_step_updated: Complete null -> current",
+          "workflow_step_updated: Complete current -> done"
+        ]
+      }
+    ],
+    "objectiveTouchesWithoutAudit": {
+      "touchedCount": 0,
+      "sharedUpdatedAt": [],
+      "sampleTitles": []
+    },
+    "orgChartUpdates": [],
+    "okrProjectAuditEvents": [],
+    "ncrAuditEvents": [],
+    "altDashboardNotes": [
+      {
+        "id": "d362afcc-e11f-4074-833f-6b01e6b0ae22",
+        "user": "Andrew Emmel",
+        "title": "Untitled Note",
+        "preview": "this is just a test of the note system.",
+        "createdAt": "2026-06-15T15:01:52.794555+00:00",
+        "updatedAt": "2026-06-15T15:01:52.547+00:00"
+      },
+      {
+        "id": "a66ea40b-adf5-4c5f-b1ac-49a6cb4cbdcb",
+        "user": "Andrew Emmel",
+        "title": "Additional test.",
+        "preview": "This is just so that I cant see that everything is saving properly.",
+        "createdAt": "2026-06-15T16:13:35.752912+00:00",
+        "updatedAt": "2026-06-15T16:13:44.852366+00:00"
+      }
+    ]
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 66
+    },
+    "emailTypeCounts": {
+      "daily_digest": 32,
+      "mention": 21,
+      "overdue": 13
+    },
+    "pushStatusCounts": {},
+    "pushTypeCounts": {},
+    "notificationTypeCounts": {},
+    "failedEmails": [],
+    "failedPushes": [],
+    "notes": [
+      "Mention emails in this window were QA push-smoke artifacts sent to qa+push-smoke aliases, not user-reported production issues.",
+      "The first non-QA delivery burst in this window was the 2026-06-16 daily digest run."
+    ]
+  },
+  "unresolved": {
+    "activeFixIt": [
+      {
+        "id": "23903eed-1900-4fa6-964e-7beafaa1e7e9",
+        "status": "agent_done",
+        "createdBy": "Jake Feil",
+        "updatedAt": "2026-06-12T23:20:54.709898+00:00",
+        "reopenedAt": "2026-06-10T06:55:12.267+00:00",
+        "summary": "Dashboard/Objectives IA request remains non-archived and unchanged; still waiting on Andrew's human archive/review step."
+      }
+    ],
+    "openJakeMerciObjectives": [
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "status": "on_track",
+        "owner": "Mercileidy Jimenez",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+        "title": "NCR #82007431 - Process Loss - Chord Hoff",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "title": "OKRs and Projects tracking/ R&D",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-06-16T00:00:00+00:00"
+      }
+    ],
+    "approvalQueue": [
+      "No new Jake/Merci product-change requests were created in this window.",
+      "Andrew's two alt-dashboard notes look like test saves, not an approval-seeking product request."
+    ]
+  },
+  "actionsTaken": {
+    "codeChanges": [],
+    "dataChanges": [],
+    "cleanup": [],
+    "deploys": []
+  },
+  "validation": {
+    "checks": [
+      {
+        "command": "npm run test:schema",
+        "result": "passed"
+      },
+      {
+        "command": "npm run smoke:prod",
+        "result": "passed"
+      }
+    ],
+    "deployRequired": false
+  }
+}

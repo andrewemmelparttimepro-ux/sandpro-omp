@@ -1,0 +1,150 @@
+{
+  "generatedAt": "2026-06-25T17:03:11Z",
+  "automationId": "sandpro-omp-activity-review-noon",
+  "since": "2026-06-24T17:01:33.140Z",
+  "databaseSurfacesReviewed": [
+    "fix_it_posts",
+    "fix_it_comments",
+    "fix_it_attachments",
+    "messages",
+    "objective_updates",
+    "objectives",
+    "org_chart_updates",
+    "ncr_audit_events",
+    "alt_dashboard_notes",
+    "notifications",
+    "email_delivery_log",
+    "push_delivery_log"
+  ],
+  "counts": {
+    "fixItPostsCreated": 0,
+    "fixItPostsUpdated": 0,
+    "fixItComments": 0,
+    "fixItAttachments": 0,
+    "objectiveMessages": 0,
+    "objectiveUpdates": 0,
+    "objectivesCreated": 0,
+    "objectivesUpdated": 0,
+    "orgChartUpdates": 0,
+    "ncrAuditEvents": 0,
+    "altDashboardNotesCreated": 0,
+    "altDashboardNotesUpdated": 0,
+    "notifications": 0,
+    "emailLogs": 75,
+    "pushLogs": 0,
+    "activeFixItNow": 0,
+    "openJakeMerciObjectives": 6
+  },
+  "newActivity": {
+    "fixItPostsCreated": [],
+    "fixItPostsUpdated": [],
+    "fixItComments": [],
+    "fixItAttachments": [],
+    "messages": [],
+    "objectiveUpdates": [],
+    "objectivesCreated": [],
+    "objectivesUpdated": [],
+    "orgChartUpdates": [],
+    "ncrAuditEvents": [],
+    "altDashboardNotes": [],
+    "notifications": []
+  },
+  "deliveryHealth": {
+    "emailStatusCounts": {
+      "sent": 75
+    },
+    "emailTypeCounts": {
+      "mention": 26,
+      "daily_digest": 32,
+      "stale": 6,
+      "overdue": 11
+    },
+    "pushStatusCounts": {},
+    "pushTypeCounts": {},
+    "failedEmails": [],
+    "failedPushes": [],
+    "notes": [
+      "No failed email or push deliveries were recorded in this window.",
+      "Mention emails were QA push-smoke artifacts addressed to qa+push-smoke recipients.",
+      "Daily digest, stale, and overdue emails were scheduled production notification traffic."
+    ]
+  },
+  "unresolved": {
+    "activeFixIt": [],
+    "openJakeMerciObjectives": [
+      {
+        "id": "55009d1b-157b-472c-ac51-bb5c9e5a0894",
+        "title": "Engineering inputs needed for Retrievable Bridge Plug animation (Focus Digital)",
+        "status": "on_track",
+        "owner": "Mercileidy Jimenez",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "b09bb3ea-a25e-4266-a542-e93fcd8240b7",
+        "title": "NCR #82007431 - Process Loss - Chord Hoff",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-05-28T00:00:00+00:00"
+      },
+      {
+        "id": "7496c6e6-992d-4b2d-a92a-22b0595819ff",
+        "title": "OKRs and Projects tracking/ R&D",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-06-16T00:00:00+00:00"
+      },
+      {
+        "id": "de95e16c-86eb-4a4c-8a92-7626df486084",
+        "title": "Build HRU 14.3",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": "2026-08-14T00:00:00+00:00"
+      },
+      {
+        "id": "d8712120-4d53-4d77-8aba-06a15839776d",
+        "title": "test",
+        "status": "not_started",
+        "owner": "Jake Feil",
+        "dueDate": null
+      },
+      {
+        "id": "e4c2c435-71c4-46ed-afce-545ec36b5cb1",
+        "title": "Project Test",
+        "status": "not_started",
+        "owner": "Mercileidy Jimenez",
+        "dueDate": null
+      }
+    ],
+    "approvalQueue": [
+      "No new or unresolved requested product changes appeared in the reviewed window.",
+      "No Jake/Mercileidy conflicts appeared in the reviewed window.",
+      "No obvious reported broken behavior appeared in the reviewed window.",
+      "The six open Jake/Mercileidy-owned objectives remain production work items, not new app-change requests."
+    ]
+  },
+  "actionsTaken": {
+    "codeChanges": [],
+    "dataChanges": [],
+    "cleanup": [],
+    "deploys": []
+  },
+  "validation": {
+    "checks": [
+      {
+        "command": "npm run test:schema",
+        "result": "passed"
+      },
+      {
+        "command": "npm run smoke:prod",
+        "result": "passed"
+      }
+    ],
+    "notRun": [
+      {
+        "command": "npm run smoke:push:prod",
+        "reason": "Skipped to avoid extra QA push-smoke delivery churn because no push code changed and no failed push rows were found."
+      }
+    ],
+    "deployRequired": false
+  }
+}

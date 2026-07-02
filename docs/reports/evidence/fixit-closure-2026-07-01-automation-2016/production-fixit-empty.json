@@ -1,0 +1,12 @@
+{
+  "capturedAt": "2026-07-01T20:18:14.848Z",
+  "screenshot": "docs/reports/evidence/fixit-closure-2026-07-01-automation-2016/production-fixit-empty.png",
+  "snapshot": {
+    "url": "https://objectivetracker.net/?page=fixit",
+    "title": "SandPro OMP",
+    "bodyText": "Dashboard\nObjectives\nKPI\nFix-It Feed\nNCR\nNew\nOrganization\nNew\nRA\nRelease Smoke Admin\nexecutive\nNew: NCR Tracker\n\nReview non-conformance reports by group, status, root cause, and follow-up work. Create objectives directly from NCRs when action is required.\n\nOpen tab\nGot it\nFix-It Feed\n\nChronological beta feedback wall. No DMs, no guessing, no algorithm.\n\n0\nactive\nActive\n0\nArchive\n28\nRA\nAdd files\nDrop or paste screenshots, photos, PDFs, or notes anywhere on this box.\nPost\n\nNothing active has been flagged yet.",
+    "fixitPosts": 0,
+    "validationPills": 0,
+    "activeText": "Active 0Archive 28"
+  }
+}
