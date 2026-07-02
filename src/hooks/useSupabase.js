@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { applyAutoClassification, buildProjectGateBlockers } from '../okrFramework';
+import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress } from '../okrFramework';
 import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
 import { parseKpiCsv } from '../kpiSystem';
 import {
@@ -1286,12 +1286,18 @@ export function useKpis(userId, enabled = false) {
 // ============================================================================
 // OBJECTIVES HOOK — full CRUD with related data
 // ============================================================================
-export function useObjectives() {
+export function useObjectives(enabled = true) {
   const [objectives, setObjectives] = useState([]);
   const [okrProjects, setOkrProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchObjectives = useCallback(async () => {
+    if (!enabled) {
+      setObjectives([]);
+      setOkrProjects([]);
+      setLoading(false);
+      return [];
+    }
     const { data: authData } = await supabase.auth.getUser();
     const currentUserId = authData?.user?.id || null;
 
@@ -1504,6 +1510,12 @@ export function useObjectives() {
       classificationStatus: o.classification_status,
       classificationConfidence: o.classification_confidence,
       classificationReason: o.classification_reason,
+      // OMP framework taxonomy (bridge plan Domain 1): class + the 17-group sub-tag.
+      class: o.class || null,
+      okrGroup: o.okr_group || null,
+      auditFormUse: o.audit_form_use || null,
+      baselineText: o.baseline_text || null,
+      targetText: o.target_text || null,
       linkedProjects: (projectsByLinkedObjective[o.id] || [])
         .map(link => localProjects.find(project => project.id === link.project_id))
         .filter(Boolean),
@@ -1632,30 +1644,32 @@ export function useObjectives() {
       if (objective.parentId) (acc[objective.parentId] = acc[objective.parentId] || []).push(objective);
       return acc;
     }, {});
+    // Data-driven progress (OMP bridge plan, Domain 6): one rule, branching on
+    // type, computed on read so every ProgressBar consumer of obj.progress gets
+    // a value made from real work. getObjectiveProgress also reports its source
+    // (metric | rollup | workflow | manual | none) for "label what's real" UI.
     const withRollups = classifiedRich.map((objective) => {
-      if (objective.rollupMethod === 'manual') return objective;
       const childObjectives = byParent[objective.id] || [];
-      const weightedSubtasks = (objective.subtasks || []).map(st => ({ progress: st.progress || 0, weight: Number(st.weight) || 1 }));
-      const childItems = childObjectives.map(child => ({ progress: child.progress || 0, weight: 1 }));
-      const items = [...childItems, ...weightedSubtasks];
-      if (items.length === 0) return objective;
-      const hasWeights = objective.rollupMethod === 'weighted' && items.some(item => item.weight !== 1);
-      const total = hasWeights
-        ? items.reduce((sum, item) => sum + item.progress * item.weight, 0) / Math.max(1, items.reduce((sum, item) => sum + item.weight, 0))
-        : items.reduce((sum, item) => sum + item.progress, 0) / items.length;
-      return { ...objective, progress: Math.round(total), rollupProgress: Math.round(total) };
+      const { value, source } = getObjectiveProgress(objective, childObjectives);
+      return {
+        ...objective,
+        progress: value,
+        progressSource: source,
+        rollupProgress: source === 'rollup' ? value : objective.rollupProgress,
+      };
     });
 
     setOkrProjects(localProjects);
     setObjectives(withRollups);
     setLoading(false);
     return withRollups;
-  }, []);
+  }, [enabled]);
 
   useEffect(() => { fetchObjectives(); }, [fetchObjectives]);
 
   // Realtime subscription for objectives
   useEffect(() => {
+    if (!enabled) return undefined;
     const channel = supabase
       .channel('objectives-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => fetchObjectives())
@@ -1676,7 +1690,7 @@ export function useObjectives() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_audit_events' }, () => fetchObjectives())
       .subscribe();
     return () => supabase.removeChannel(channel);
-  }, [fetchObjectives]);
+  }, [enabled, fetchObjectives]);
 
   const toLocalObjective = (row, source = {}) => ({
     ...row,
@@ -1752,6 +1766,11 @@ export function useObjectives() {
         classification_status: obj.classificationStatus || 'manual',
         classification_confidence: normalizeConfidenceForDb(obj.classificationConfidence ?? 1),
         classification_reason: obj.classificationReason || 'Set during objective creation.',
+        class: obj.class || null,
+        okr_group: obj.okrGroup || null,
+        audit_form_use: obj.auditFormUse || null,
+        baseline_text: obj.baselineText || null,
+        target_text: obj.targetText || null,
       })
       .select()
       .single();
@@ -1857,6 +1876,11 @@ export function useObjectives() {
     if (changes.classificationStatus !== undefined) dbChanges.classification_status = changes.classificationStatus;
     if (changes.classificationConfidence !== undefined) dbChanges.classification_confidence = normalizeConfidenceForDb(changes.classificationConfidence);
     if (changes.classificationReason !== undefined) dbChanges.classification_reason = changes.classificationReason;
+    if (changes.class !== undefined) dbChanges.class = changes.class || null;
+    if (changes.okrGroup !== undefined) dbChanges.okr_group = changes.okrGroup || null;
+    if (changes.auditFormUse !== undefined) dbChanges.audit_form_use = changes.auditFormUse || null;
+    if (changes.baselineText !== undefined) dbChanges.baseline_text = changes.baselineText || null;
+    if (changes.targetText !== undefined) dbChanges.target_text = changes.targetText || null;
 
     if (!Object.keys(dbChanges).length) {
       await fetchObjectives();

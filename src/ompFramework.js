@@ -203,3 +203,46 @@ export const LEGACY_DEPARTMENT_REMAP = {
 
 export const getClassificationTypeMeta = (id) =>
   OMP_CLASSIFICATION_TYPES.find(t => t.id === id) || OMP_CLASSIFICATION_TYPES[0];
+
+// ---------------------------------------------------------------------------
+// 7. OKR group → framework department (OMP bridge plan, Domain 1 / Human Q2).
+//    DECISION (client-confirmed): the 17 OKR groups are kept as a finer SUB-TAG
+//    under the canonical 5 departments. Each OKR therefore carries BOTH a
+//    department (one of OMP_DEPARTMENTS) and its original group string.
+//
+//    `confirmed: true`  = mapping is unambiguous from the framework class lists.
+//    `confirmed: false` = best-guess that still needs a Tim/Jake call before it
+//                         drives production grouping (see UNMAPPED_OKR_GROUPS).
+//    Group keys are the EXACT strings from okr2026Consolidated.json.
+// ---------------------------------------------------------------------------
+export const OKR_GROUP_TO_DEPARTMENT = {
+  "COMPANY - TOP LINE": { department: null, class: null, confirmed: true, companyLevel: true },
+
+  "SALES": { department: "Business Team", class: "Sale Team", confirmed: true },
+  "Inside Sales": { department: "Business Team", class: "Sale Team", confirmed: true },
+  "Marketing": { department: "Business Team", class: "Marketing", confirmed: true },
+  "Field Trainers": { department: "Business Team", class: "Training", confirmed: true },
+  "Finance / Accounting": { department: "Business Team", class: "Accounting", confirmed: true },
+  "HR": { department: "Business Team", class: "HR", confirmed: true },
+  "Safety": { department: "Business Team", class: "Safety", confirmed: true },
+  "Facility/Yard": { department: "Business Team", class: "Facility", confirmed: true },
+  "Quality / Compliance": { department: "Business Team", class: "Quality", confirmed: true },
+  "R&D/Engineering / Design": { department: "Business Team", class: "R&D", confirmed: true },
+  "CP Warehouse": { department: "CP Warehouse", class: "Inventory", confirmed: true },
+  "Flowback Repair": { department: "Flowback", class: "Repair", confirmed: true },
+  "I&E- Panels": { department: "Automation", class: "Service", confirmed: true },
+
+  // Best-guess — needs Tim/Jake confirmation before driving prod grouping:
+  "Dispatch": { department: "Business Team", class: null, confirmed: false },          // coordinates field ops; no clean class — Business Team? Field dept?
+  "Inventory / Logistics": { department: "CP Warehouse", class: "Inventory", confirmed: false }, // vs Business Team/Purchasing
+  "Field Ops": { department: null, class: "Service", confirmed: false },               // spans Automation/Wellhead/Flowback — which one?
+  "Frac Repair": { department: "Wellhead", class: "Repair", confirmed: false },        // frac→wellhead vs flowback
+};
+
+export const getOkrGroupDepartment = (group) => OKR_GROUP_TO_DEPARTMENT[group] || null;
+
+// Groups whose department mapping is unconfirmed — surface these for a human
+// decision rather than silently bucketing OKRs into a guessed department.
+export const UNMAPPED_OKR_GROUPS = Object.entries(OKR_GROUP_TO_DEPARTMENT)
+  .filter(([, meta]) => !meta.companyLevel && (!meta.confirmed || !meta.department))
+  .map(([group]) => group);

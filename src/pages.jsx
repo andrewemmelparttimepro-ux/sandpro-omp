@@ -59,6 +59,12 @@ import {
   parseKpiCsv,
   scoreObjectiveKpiLink,
 } from './kpiSystem';
+import {
+  OMP_DEPARTMENTS,
+  OMP_DEPARTMENT_CLASSES,
+  OKR_GROUP_TO_DEPARTMENT,
+  getOkrGroupDepartment,
+} from './ompFramework';
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 const PRIORITY_LABELS = { critical: "Critical", high: "High", medium: "Medium", low: "Low" };
@@ -754,9 +760,306 @@ const AlternativeDashboardView = ({
 // ============================================================================
 // DASHBOARD PAGE — Role-adaptive
 // ============================================================================
+// ============================================================================
+// DASHBOARD LIST VIEW — July 1 meeting flow
+// ----------------------------------------------------------------------------
+// The home screen IS the drill-down: one canonical row per item, driven by the
+// agreed filter sequence — Main department → Subdepartment → Type → Linked to
+// → Originator → Assigned to → Aging. Aging is time-to-due-date, not a status.
+// Dependent filters channel like the create flow: Type=Project removes
+// "Project" from Linked to; subdepartments follow their department.
+// ============================================================================
+
+const DASHBOARD_AGING_BUCKETS = [
+  { id: "all_due", label: "All due" }, // exists to clear the aging filter
+  { id: "due_today", label: "Due today" },
+  { id: "next_7", label: "Due next 7" },
+  { id: "next_14", label: "Due next 14" },
+  { id: "next_21_30", label: "Due next 21–30" },
+  { id: "past_due", label: "Past due" },
+  { id: "completed", label: "Completed" }, // stays selectable — closed work gets referenced
+];
+
+const startOfLocalDay = (value) => {
+  const d = new Date(value);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+};
+
+// Date-only day math in local time (avoids the UTC off-by-one at boundaries)
+const daysUntilDue = (dueDate) => {
+  if (!dueDate) return null;
+  return Math.round((startOfLocalDay(dueDate) - startOfLocalDay(new Date())) / 86400000);
+};
+
+const rowMatchesAging = (row, bucket) => {
+  if (bucket === "completed") return row.isCompleted;
+  if (row.isCompleted) return false;
+  if (bucket === "all_due") return true;
+  const days = daysUntilDue(row.dueDate);
+  if (days === null) return false;
+  if (bucket === "due_today") return days === 0;
+  if (bucket === "next_7") return days >= 0 && days <= 7;
+  if (bucket === "next_14") return days >= 0 && days <= 14;
+  if (bucket === "next_21_30") return days >= 0 && days <= 30;
+  if (bucket === "past_due") return days < 0;
+  return true;
+};
+
+const AgingPill = ({ row }) => {
+  if (row.isCompleted) return <span className="lv-aging tone-done">Completed</span>;
+  const days = daysUntilDue(row.dueDate);
+  if (days === null) return <span className="lv-aging tone-none">No due date</span>;
+  if (days < 0) return <span className="lv-aging tone-past">Past due {Math.abs(days)}d</span>;
+  if (days === 0) return <span className="lv-aging tone-today">Due today</span>;
+  if (days <= 7) return <span className="lv-aging tone-soon">Due in {days}d</span>;
+  return <span className="lv-aging tone-far">Due in {days}d</span>;
+};
+
+const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects = [], ncrReports = [], allNcrReports = ncrReports, onOpenCard, onProjectClick, onNcrClick }) => {
+  const [dept, setDept] = useState("all");
+  const [sub, setSub] = useState("all");
+  const [type, setType] = useState("all");
+  const [linked, setLinked] = useState("all");
+  const [originator, setOriginator] = useState("all");
+  const [assigned, setAssigned] = useState("all");
+  const [aging, setAging] = useState("all_due");
+
+  const profiles = getProfiles();
+
+  const companyOkrIds = useMemo(
+    () => new Set(allObjectives.filter(o => o.okrLevel === "company").map(o => o.id)),
+    [allObjectives],
+  );
+  const ncrLinkedObjectiveIds = useMemo(
+    () => new Set(allNcrReports.map(r => r.linkedObjectiveId).filter(Boolean)),
+    [allNcrReports],
+  );
+
+  // One canonical row per item — the de-duplicated "pen list", digital.
+  const rows = useMemo(() => {
+    const resolveDept = (o) => {
+      if (OMP_DEPARTMENTS.includes(o.department)) return o.department;
+      return getOkrGroupDepartment(o.okrGroup)?.department || null;
+    };
+    const resolveNcrDept = (report) => {
+      const candidates = [
+        report.departmentGroup,
+        report.affectedDepartments,
+        ...(Array.isArray(report.affectedDepartmentList) ? report.affectedDepartmentList : []),
+      ].filter(Boolean).map(value => String(value).toLowerCase());
+      return OMP_DEPARTMENTS.find(department =>
+        candidates.some(value => value === department.toLowerCase() || value.includes(department.toLowerCase()))
+      ) || null;
+    };
+    const taskRows = objectives
+      .filter(o => o.okrLevel !== "company" && o.status !== "cancelled") // company OKRs live in the OKR summary, not the list
+      .map(o => ({
+        kind: "task",
+        id: `task-${o.id}`,
+        obj: o,
+        title: o.title,
+        dept: resolveDept(o),
+        klass: o.class || getOkrGroupDepartment(o.okrGroup)?.class || null,
+        group: o.okrGroup || null,
+        linkedProject: (o.linkedProjects || []).length > 0,
+        linkedOkr: Boolean(o.parentId && companyOkrIds.has(o.parentId)),
+        linkedNcr: ncrLinkedObjectiveIds.has(o.id),
+        originatorId: o.createdBy || o.delegatedBy || o.ownerId,
+        ownerId: o.ownerId,
+        memberIds: (o.members || []).map(m => m.userId),
+        dueDate: o.dueDate || null,
+        isCompleted: o.status === "completed",
+      }));
+    const projectRows = okrProjects.map(p => ({
+      kind: "project",
+      id: `project-${p.id}`,
+      project: p,
+      title: p.name,
+      dept: null,
+      klass: null,
+      group: null,
+      linkedProject: false, // a project never links to another project — it is the parent
+      linkedOkr: (p.linkedObjectiveIds || []).some(id => companyOkrIds.has(id)),
+      linkedNcr: false,
+      originatorId: p.sponsorId,
+      ownerId: p.leadId,
+      memberIds: [],
+      dueDate: p.dueDate || null,
+      isCompleted: p.stage === "done",
+    }));
+    const ncrRows = ncrReports.map(report => ({
+      kind: "ncr",
+      id: `ncr-${report.id}`,
+      ncr: report,
+      title: report.normalizedFailureSummary || report.eventDescription || report.reportNumber || "NCR report",
+      dept: resolveNcrDept(report),
+      klass: report.eventType || report.eventTypes?.[0] || report.criticality || report.severity || null,
+      group: report.departmentGroup || report.affectedDepartmentList?.[0] || report.affectedDepartments || null,
+      linkedProject: false,
+      linkedOkr: Boolean(report.linkedObjectiveId && companyOkrIds.has(report.linkedObjectiveId)),
+      linkedNcr: false,
+      originatorId: report.createdBy || report.authorId || report.ownerId,
+      ownerId: report.ownerId || report.reviewerId || report.verifierId || report.createdBy,
+      memberIds: [
+        ...(Array.isArray(report.personnelInvolvedIds) ? report.personnelInvolvedIds : []),
+        report.reviewerId,
+        report.verifierId,
+      ].filter(Boolean),
+      dueDate: report.followUpDueDate || report.actionItems?.find(action => action.dueDate)?.dueDate || null,
+      isCompleted: report.closed || report.status === "closed" || report.lifecycleStage === "closed",
+    }));
+    return [...taskRows, ...projectRows, ...ncrRows];
+  }, [objectives, okrProjects, ncrReports, companyOkrIds, ncrLinkedObjectiveIds]);
+
+  // Subdepartments follow their department: framework classes + the operating
+  // groups mapped under that department.
+  const subOptions = useMemo(() => {
+    if (dept === "all") return [];
+    const classes = OMP_DEPARTMENT_CLASSES[dept] || [];
+    const groups = Object.entries(OKR_GROUP_TO_DEPARTMENT)
+      .filter(([, meta]) => meta.department === dept)
+      .map(([group]) => group)
+      .filter(group => !classes.includes(group));
+    return [...classes, ...groups];
+  }, [dept]);
+
+  // Dependent filter: Type = Project → "Project" vanishes from Linked to
+  const linkedOptions = useMemo(() => {
+    const opts = [{ id: "okr", label: "OKR" }];
+    if (type !== "project") opts.push({ id: "project", label: "Project" });
+    if (type !== "ncr") opts.push({ id: "ncr", label: "NCR" });
+    opts.push({ id: "standalone", label: "Standalone" });
+    return opts;
+  }, [type]);
+
+  const filtered = useMemo(() => rows.filter(row => {
+    if (dept !== "all" && row.dept !== dept) return false;
+    if (sub !== "all" && row.klass !== sub && row.group !== sub) return false;
+    if (type !== "all" && row.kind !== type) return false;
+    if (linked === "ncr" && !row.linkedNcr) return false;
+    if (linked === "okr" && !row.linkedOkr) return false;
+    if (linked === "project" && !row.linkedProject) return false;
+    if (linked === "standalone" && (row.linkedNcr || row.linkedOkr || row.linkedProject)) return false;
+    if (originator !== "all" && row.originatorId !== originator) return false;
+    if (assigned !== "all" && row.ownerId !== assigned && !row.memberIds.includes(assigned)) return false;
+    return rowMatchesAging(row, aging);
+  }).sort((a, b) => {
+    const da = daysUntilDue(a.dueDate);
+    const db = daysUntilDue(b.dueDate);
+    if (da === null && db === null) return 0;
+    if (da === null) return 1;
+    if (db === null) return -1;
+    return da - db;
+  }), [rows, dept, sub, type, linked, originator, assigned, aging]);
+
+  const hasActiveFilters = dept !== "all" || sub !== "all" || type !== "all" || linked !== "all"
+    || originator !== "all" || assigned !== "all" || aging !== "all_due";
+  const clearAll = () => {
+    setDept("all"); setSub("all"); setType("all"); setLinked("all");
+    setOriginator("all"); setAssigned("all"); setAging("all_due");
+  };
+
+  const linkedLabelOf = (row) => {
+    if (row.kind === "ncr") return row.linkedOkr ? "OKR" : "NCR record";
+    if (row.linkedProject) return "Project";
+    if (row.linkedOkr) return "OKR";
+    if (row.linkedNcr) return "NCR";
+    return null;
+  };
+
+  const filterSelect = (label, value, onChange, options) => (
+    <label className="lv-filter">
+      <span>{label}</span>
+      <select value={value} onChange={e => onChange(e.target.value)} className={value !== "all" ? "active" : ""}>
+        <option value="all">All</option>
+        {options.map(opt => (typeof opt === "string"
+          ? <option key={opt} value={opt}>{opt}</option>
+          : <option key={opt.id} value={opt.id}>{opt.label}</option>))}
+      </select>
+    </label>
+  );
+
+  return (
+    <div className="card flex flex-col overflow-hidden" style={{ flex: 1, minHeight: 0 }}>
+      <div className="card-header">
+        <Filter size={14} color="var(--brand)" />
+        <span className="text-md font-bold">List view</span>
+        <Badge color="var(--brand)">{filtered.length}</Badge>
+        <span className="text-xs text-muted" style={{ marginLeft: 4 }}>drill from the whole company down to a single line</span>
+        {hasActiveFilters && (
+          <button type="button" className="lv-clear" onClick={clearAll}>Clear filters</button>
+        )}
+      </div>
+
+      <div className="lv-filterbar">
+        {filterSelect("Main department", dept, (v) => { setDept(v); setSub("all"); }, OMP_DEPARTMENTS)}
+        {filterSelect("Subdepartment", sub, setSub, subOptions)}
+        {filterSelect("Type", type, (v) => {
+          setType(v);
+          if ((v === "project" && linked === "project") || (v === "ncr" && linked === "ncr")) setLinked("all");
+        }, [{ id: "task", label: "Task" }, { id: "project", label: "Project" }, { id: "ncr", label: "NCR" }])}
+        {filterSelect("Linked to", linked, setLinked, linkedOptions)}
+        {filterSelect("Originator", originator, setOriginator, profiles.map(p => ({ id: p.id, label: p.name })))}
+        {filterSelect("Assigned to", assigned, setAssigned, profiles.map(p => ({ id: p.id, label: p.name })))}
+      </div>
+
+      <div className="lv-aging-row">
+        <span className="lv-aging-label">Aging</span>
+        {DASHBOARD_AGING_BUCKETS.map(bucket => (
+          <button
+            key={bucket.id}
+            type="button"
+            className={`lv-aging-chip ${aging === bucket.id ? "active" : ""} ${bucket.id === "past_due" ? "danger" : ""}`}
+            onClick={() => setAging(bucket.id)}
+          >
+            {bucket.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "4px 12px 10px" }}>
+        {filtered.length === 0 ? (
+          <EmptyState icon={Filter} text={hasActiveFilters ? "Nothing matches this drill-down." : "Nothing here yet."} />
+        ) : filtered.map(row => {
+          const linkedLabel = linkedLabelOf(row);
+          const owner = getUser(row.ownerId);
+          return (
+            <div
+              key={row.id}
+              className="lv-row"
+              onClick={() => {
+                if (row.kind === "task") onOpenCard?.(row.obj);
+                else if (row.kind === "project") onProjectClick?.(row.project);
+                else onNcrClick?.(row.ncr);
+              }}
+            >
+              <span className={`lv-type ${row.kind}`}>{row.kind === "task" ? "Task" : row.kind === "project" ? "Project" : "NCR"}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="text-md font-medium truncate">{row.title}</div>
+                <div className="text-xs text-muted truncate">
+                  {row.dept || "Unmapped"}
+                  {row.klass ? ` · ${row.klass}` : ""}
+                  {row.group && row.group !== row.klass ? ` · ${row.group}` : ""}
+                  {row.kind === "ncr" ? ` · ${linkedLabel}` : linkedLabel ? ` · Linked to ${linkedLabel}` : " · Standalone"}
+                </div>
+              </div>
+              <div className="flex items-center gap-6 flex-shrink-0">
+                <Avatar user={owner} size={20} />
+                <span className="text-xs text-muted lv-owner-name">{(owner?.name || "—").split(" ")[0]}</span>
+              </div>
+              <AgingPill row={row} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export const DashboardPage = ({
   objectives,
   okrProjects = [],
+  ncrReports = [],
   currentUser,
   dashboardMode = 'standard',
   altDashboardPreferences,
@@ -765,7 +1068,7 @@ export const DashboardPage = ({
   onAltPreferenceChange,
   onAltTagPerson,
   onOpenCard,
-  onDeptClick,
+  onNcrClick,
   onKpiClick,
 }) => {
   const [scope, setScope] = useState(currentUser.role === "executive" ? "company" : currentUser.role === "manager" ? "team" : "individual");
@@ -816,6 +1119,20 @@ export const DashboardPage = ({
     || project.sponsorId === currentUser.id
     || project.leadId === currentUser.id
   ));
+  const scopedNcrReports = scope === "company" ? ncrReports : ncrReports.filter(report => {
+    const visibleUserIds = new Set([
+      currentUser.id,
+      ...(scope === "team" ? directReports.map(reportUser => reportUser.id) : []),
+    ]);
+    return [
+      report.ownerId,
+      report.reviewerId,
+      report.verifierId,
+      report.createdBy,
+      report.authorId,
+      ...(Array.isArray(report.personnelInvolvedIds) ? report.personnelInvolvedIds : []),
+    ].filter(Boolean).some(userId => visibleUserIds.has(userId));
+  });
   const frameworkSummary = summarizeFramework(scopedObjectives, scopedProjects);
   const reviewNeeded = scopedObjectives.filter(objective => objective.okrLevel === "needs_review" || objective.classificationStatus === "needs_review").length;
   const staleKrCount = frameworkSummary.staleKrs.length;
@@ -825,34 +1142,18 @@ export const DashboardPage = ({
   const delegatedToMe = scopedObjectives.filter(o => o.ownerId === currentUser.id && o.delegatedBy && o.delegatedBy !== currentUser.id);
   const needsAck = delegatedToMe.filter(o => !o.acknowledged);
 
-  // Departments health
-  const departments = {};
-  scopedObjectives.forEach(o => {
-    if (!departments[o.department]) departments[o.department] = { total: 0, onTrack: 0, atRisk: 0, blocked: 0, completed: 0 };
-    departments[o.department].total++;
-    if (o.status === "on_track") departments[o.department].onTrack++;
-    if (o.status === "at_risk") departments[o.department].atRisk++;
-    if (o.status === "blocked") departments[o.department].blocked++;
-    if (o.status === "completed") departments[o.department].completed++;
-  });
-  const sortedDepts = Object.entries(departments).sort((a, b) => (b[1].blocked + b[1].atRisk) - (a[1].blocked + a[1].atRisk));
-
-  // Attention items
-  const attentionItems = scopedObjectives.filter(o => o.blockerFlag || isOverdue(o) || o.status === "at_risk").sort((a, b) => (b.blockerFlag ? 2 : 0) - (a.blockerFlag ? 2 : 0));
   const needsTag = allActive.filter(o => (o.members || []).length === 0 && o.ownerId === currentUser.id).slice(0, 4);
-
-  // Recent activity
-  const recentActivity = scopedObjectives.flatMap(o => o.messages.map(m => ({ ...m, objTitle: o.title, objId: o.id }))).sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 8);
 
   const isExecutive = currentUser.role === "executive";
   const isManager = currentUser.role === "manager";
   const isAlternativeDashboard = dashboardMode === ALT_DASHBOARD_MODE;
   const dashboardLensControls = (
     <div className="dashboard-lens-controls flex-shrink-0">
+      <span className="dashboard-viewtype-label">View type</span>
       <div className="dashboard-scope-tabs">
         {[
           { id: "company", label: "Company" },
-          { id: "team", label: "My Team", disabled: !isExecutive && !isManager },
+          { id: "team", label: "My team", disabled: !isExecutive && !isManager },
           { id: "individual", label: "Individual" },
         ].filter(s => !s.disabled).map(s => (
           <button
@@ -972,120 +1273,17 @@ export const DashboardPage = ({
         </div>
       )}
 
-      {/* Main Grid */}
-      <div className="dashboard-grid" style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, overflow: "auto", minHeight: 0 }}>
-        {/* Left: Needs Attention */}
-        <div className="card flex flex-col overflow-hidden">
-          <div className="card-header">
-            <AlertCircle size={14} color="var(--error)" />
-            <span className="text-md font-bold">Needs Attention</span>
-            <Badge color="var(--error)">{attentionItems.length}</Badge>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px" }}>
-            {attentionItems.length === 0 ? <EmptyState icon={CheckCircle2} text="Everything is on track!" /> :
-              attentionItems.map(obj => (
-                <div
-                  key={obj.id}
-                  onClick={() => onOpenCard(obj)}
-                  className="attention-row flex items-center gap-10 cursor-pointer"
-                >
-                  <div className="status-dot" style={{ background: getStatusColor(obj.status) }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="text-md font-medium truncate">{obj.title}</div>
-                    <div className="objective-timestamp-line">{formatObjectiveTimestamp(obj)}</div>
-                    <div className="flex items-center gap-6" style={{ marginTop: 2 }}>
-                      <Avatar user={getUser(obj.ownerId)} size={16} />
-                      <span className="text-xs text-muted">{getUser(obj.ownerId).name.split(" ")[0]}</span>
-                      {obj.blockerFlag && <Badge color="var(--error)">Blocked</Badge>}
-                    </div>
-                  </div>
-                  <DueDatePill dueDate={obj.dueDate} compact />
-                </div>
-              ))}
-          </div>
-        </div>
-
-        {/* Right column */}
-        <div className="flex flex-col gap-16 overflow-hidden min-h-0">
-          {/* Department Health (executive) OR My Team (manager) */}
-          {(isExecutive || isManager) && (
-            <div className="card flex flex-col overflow-hidden flex-1">
-              <div className="card-header">
-                <Building2 size={14} color="var(--brand)" />
-                <span className="text-md font-bold">{isExecutive ? "Department Health" : "My Team"}</span>
-              </div>
-              <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px" }}>
-                {isExecutive ? sortedDepts.map(([dept, stats]) => {
-                  const healthPct = stats.total > 0 ? Math.round(((stats.onTrack + stats.completed) / stats.total) * 100) : 100;
-                  const healthColor = healthPct >= 70 ? "var(--success)" : healthPct >= 40 ? "var(--warning)" : "var(--error)";
-                  return (
-                    <div key={dept} className="flex items-center gap-10 cursor-pointer" onClick={() => onDeptClick && onDeptClick(dept)} style={{ padding: "8px 4px", borderBottom: "1px solid var(--accent-4)", borderRadius: 6, transition: "all 0.15s" }}
-                      onMouseEnter={e => { e.currentTarget.style.background = "var(--accent-4)"; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: healthColor + "18", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span className="text-xs font-bold" style={{ color: healthColor }}>{healthPct}%</span>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div className="text-sm font-semibold">{dept}</div>
-                        <div className="flex gap-8" style={{ marginTop: 2 }}>
-                      {stats.onTrack > 0 && <span className="text-xs text-success">{stats.onTrack} on track</span>}
-                          {stats.atRisk > 0 && <span className="text-xs text-warning">{stats.atRisk} at risk</span>}
-                          {stats.blocked > 0 && <span className="text-xs text-error">{stats.blocked} blocked</span>}
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold" style={{ color: "var(--brand)", background: "var(--brand-bg)", padding: "2px 8px", borderRadius: 6 }}>{stats.total} objectives</span>
-                    </div>
-                  );
-                }) : directReports.map(report => {
-                  const rObjs = objectives.filter(o => o.ownerId === report.id && o.status !== "completed");
-                  const issues = rObjs.filter(o => o.status === "at_risk" || o.status === "blocked" || isOverdue(o)).length;
-                  return (
-                    <div key={report.id} className="flex items-center gap-10" style={{ padding: "8px 4px", borderBottom: "1px solid var(--accent-4)" }}>
-                      <Avatar user={report} size={28} />
-                      <div style={{ flex: 1 }}>
-                        <div className="text-sm font-semibold">{report.name}</div>
-                        <div className="text-xs text-muted">{report.title} · {rObjs.length} active</div>
-                      </div>
-                      {issues > 0 && <Badge color="var(--error)">{issues} issue{issues > 1 ? 's' : ''}</Badge>}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Recent Activity */}
-          <div className="card flex flex-col overflow-hidden flex-1">
-            <div className="card-header">
-              <Activity size={14} color="var(--info)" />
-              <span className="text-md font-bold">Recent Messages</span>
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px" }}>
-              {recentActivity.filter(msg => msg.objTitle).map((msg, i) => {
-                const rawUser = getUser(msg.userId);
-                const hasResolvedName = rawUser?.name && rawUser.name !== "Unknown";
-                const u = hasResolvedName ? rawUser : {
-                  ...rawUser,
-                  name: "Unknown sender",
-                  initials: "US",
-                  color: "var(--accent-7)",
-                };
-                const displayName = u.name.split(" ")[0] || "Unknown";
-                return (
-                  <div key={msg.id + i} onClick={() => { const obj = objectives.find(o => o.id === msg.objId); if (obj) onOpenCard(obj); }} className="flex gap-8 cursor-pointer" style={{ padding: "8px 4px", borderBottom: "1px solid var(--accent-4)" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "var(--accent-4)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                    <Avatar user={u} size={24} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="text-xs"><span className="font-semibold" style={{ color: u.color }}>{displayName}</span> <span className="text-muted">in</span> <span className="text-secondary">{(msg.objTitle || "").length > 35 ? msg.objTitle.slice(0, 35) + "..." : msg.objTitle}</span></div>
-                      <div className="text-sm truncate" style={{ marginTop: 1 }}>{(msg.text || "").length > 70 ? msg.text.slice(0, 70) + "..." : msg.text}</div>
-                    </div>
-                    <span className="text-xs text-muted flex-shrink-0">{timeAgo(msg.ts)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* The list view — Jake's home-screen drill-down */}
+      <DashboardListView
+        objectives={scopedObjectives}
+        allObjectives={objectives}
+        okrProjects={scopedProjects}
+        ncrReports={scopedNcrReports}
+        allNcrReports={ncrReports}
+        onOpenCard={onOpenCard}
+        onProjectClick={(project) => onKpiClick?.({ label: project.name, view: "tree" })}
+        onNcrClick={onNcrClick}
+      />
       </>
       )}
     </div>
@@ -5961,7 +6159,7 @@ export const NcrPage = ({ reports = [], objectives = [], currentUser, onUpdateRe
                 reports={[
                   { id: 'analytics', label: 'Analytics summary', desc: 'Open / closed, criticality, and aging rollup', formats: ['pdf', 'excel', 'csv'] },
                   { id: 'list', label: 'Full NCR list', desc: 'Every NCR with all its fields', formats: ['csv'], count: reports.length, unit: reports.length === 1 ? 'NCR' : 'NCRs' },
-                  { id: 'individual', label: 'Individual responses', desc: 'One row per NCR response', formats: ['csv'] },
+                  { id: 'individual', label: 'Individual CSV', desc: 'One row per NCR response', formats: ['csv'] },
                   { id: 'trends', label: 'Issue trends', desc: 'Repeating failure themes', formats: ['csv'] },
                 ]}
                 onExport={(id, fmt) => {

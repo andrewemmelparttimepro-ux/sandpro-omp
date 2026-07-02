@@ -6,6 +6,7 @@ import {
   buildQuarterlyScorecardRows,
   canAdvanceProjectStage,
   computeMetricProgress,
+  getObjectiveProgress,
   isKeyResultStale,
 } from '../../src/okrFramework.js';
 
@@ -31,6 +32,45 @@ test('metric progress rollups support equal-weight v1 math from baseline to targ
   assert.equal(computeMetricProgress({ baselineMetric: 10, currentMetric: 30, targetMetric: 20 }), 100);
   assert.equal(computeMetricProgress({ baselineMetric: 10, currentMetric: 5, targetMetric: 20 }), 0);
   assert.equal(computeMetricProgress({ baselineMetric: 10, currentMetric: 10, targetMetric: 10 }), null);
+});
+
+test('getObjectiveProgress branches on type so the bar reads real work, not a hand-typed integer', () => {
+  // Measured/OKR objective -> metric formula, ignores the stale manual value.
+  assert.deepEqual(
+    getObjectiveProgress({ type: 'measured', progress: 65, baselineMetric: 10, currentMetric: 15, targetMetric: 20 }),
+    { value: 50, source: 'metric' },
+  );
+
+  // Project-like work with weighted subtasks -> weighted rollup.
+  assert.deepEqual(
+    getObjectiveProgress({
+      type: 'project',
+      rollupMethod: 'weighted',
+      progress: 90,
+      subtasks: [{ progress: 100, weight: 3 }, { progress: 0, weight: 1 }],
+    }),
+    { value: 75, source: 'rollup' },
+  );
+
+  // Task with workflow steps -> done|skipped / total.
+  assert.deepEqual(
+    getObjectiveProgress({
+      type: 'simple',
+      progress: 65,
+      workflowSteps: [{ status: 'done' }, { status: 'skipped' }, { status: 'current' }, { status: 'todo' }],
+    }),
+    { value: 50, source: 'workflow' },
+  );
+
+  // Explicit manual opt-out always wins, even with metric fields present.
+  assert.deepEqual(
+    getObjectiveProgress({ type: 'measured', rollupMethod: 'manual', progress: 42, baselineMetric: 0, currentMetric: 5, targetMetric: 10 }),
+    { value: 42, source: 'manual' },
+  );
+
+  // No real signal -> falls back to stored value but flags source 'none' at zero.
+  assert.deepEqual(getObjectiveProgress({ type: 'simple', progress: 0 }), { value: 0, source: 'none' });
+  assert.deepEqual(getObjectiveProgress({ type: 'simple', progress: 30 }), { value: 30, source: 'manual' });
 });
 
 test('stale KR detection only flags key results without a recent update', () => {

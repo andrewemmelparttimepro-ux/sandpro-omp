@@ -113,6 +113,75 @@ export const computeMetricProgress = (objective = {}) => {
   return Math.max(0, Math.min(100, Math.round(((current - baseline) / (target - baseline)) * 100)));
 };
 
+// ---------------------------------------------------------------------------
+// Data-driven progress (OMP bridge plan, Domain 6 — "progress that means
+// something"). ONE rule, branching on objective type, so the progress bar
+// reads a value made from real work instead of a hand-typed integer.
+//
+// Precedence (decided with the client — "data-driven by type"):
+//   1. rollupMethod === 'manual'  -> the stored manual value (explicit opt-out)
+//   2. OKR / measured w/ numeric baseline+target -> computeMetricProgress
+//   3. has children and/or weighted subtasks -> weighted (or plain) rollup
+//   4. has workflow steps -> done|skipped / total
+//   5. otherwise -> the stored manual value
+//
+// Returns { value, source } so the UI can LABEL where the number comes from
+// (the plan's principle: nothing is shown as real unless it is fed by something
+// real). `source` is one of: manual | metric | rollup | workflow | none.
+// ---------------------------------------------------------------------------
+const clampPercent = (n) => Math.max(0, Math.min(100, Math.round(Number(n) || 0)));
+
+export const isMeasuredObjective = (objective = {}) => {
+  const type = String(objective.type || "").toLowerCase();
+  const level = objective.okrLevel || objective.okr_level;
+  return type === "measured" || type === "okr" || level === "key_result";
+};
+
+export const getObjectiveProgress = (objective = {}, childObjectives = []) => {
+  const manualValue = clampPercent(objective.progress);
+  const rollupMethod = objective.rollupMethod || objective.rollup_method;
+
+  // 1. Explicit manual opt-out wins.
+  if (rollupMethod === "manual") {
+    return { value: manualValue, source: "manual" };
+  }
+
+  // 2. Metric formula for OKR / measured objectives.
+  if (isMeasuredObjective(objective) && hasMetricTarget(objective)) {
+    const metric = computeMetricProgress(objective);
+    if (metric !== null) return { value: metric, source: "metric" };
+  }
+
+  // 3. Weighted rollup of children + subtasks (project-like work).
+  const weightedSubtasks = (objective.subtasks || []).map(st => ({
+    progress: clampPercent(st.progress),
+    weight: Number(st.weight) || 1,
+  }));
+  const childItems = (childObjectives || []).map(child => ({
+    progress: clampPercent(child.progress),
+    weight: 1,
+  }));
+  const items = [...childItems, ...weightedSubtasks];
+  if (items.length > 0) {
+    const hasWeights = rollupMethod === "weighted" && items.some(item => item.weight !== 1);
+    const value = hasWeights
+      ? items.reduce((sum, item) => sum + item.progress * item.weight, 0)
+        / Math.max(1, items.reduce((sum, item) => sum + item.weight, 0))
+      : items.reduce((sum, item) => sum + item.progress, 0) / items.length;
+    return { value: clampPercent(value), source: "rollup" };
+  }
+
+  // 4. Workflow-step completion.
+  const steps = objective.workflowSteps || objective.workflow_steps || [];
+  if (steps.length > 0) {
+    const done = steps.filter(step => step.status === "done" || step.status === "skipped").length;
+    return { value: clampPercent((done / steps.length) * 100), source: "workflow" };
+  }
+
+  // 5. Nothing real to compute from — fall back to the stored value, but say so.
+  return { value: manualValue, source: manualValue ? "manual" : "none" };
+};
+
 export const inferObjectiveClassification = (objective = {}, objectives = []) => {
   if (objective.okrLevel || objective.okr_level) {
     const rawConfidence = Number(objective.classificationConfidence ?? objective.classification_confidence ?? 1);

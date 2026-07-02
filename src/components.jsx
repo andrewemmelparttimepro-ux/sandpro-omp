@@ -1768,15 +1768,33 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
             <div className="flex items-center gap-6"><Avatar user={owner} size={22} /><span><strong className="text-primary">{owner.name}</strong> owns</span></div>
             {delegator && <div className="flex items-center gap-6"><ArrowLeft size={12} /><span>Delegated by <strong className="text-primary">{delegator.name}</strong></span></div>}
             <div className="flex items-center gap-4"><Calendar size={12} /><span style={{ color: overdue ? "var(--warning)" : undefined, fontWeight: overdue ? 600 : 400 }}>{formatDate(localObj.dueDate)}</span></div>
-            <div className="flex items-center gap-4 cursor-pointer" onClick={() => setEditingProgress(true)}>
-              {editingProgress ? (
-                <div className="flex items-center gap-4">
-                  <input type="number" value={progressValue} onChange={e => setProgressValue(e.target.value)} min={0} max={100} style={{ width: 50, padding: "2px 6px", fontSize: 12 }} autoFocus onKeyDown={e => { if (e.key === "Enter") saveProgress(); if (e.key === "Escape") setEditingProgress(false); }} />
-                  <span className="text-xs">%</span>
-                  <button className="btn btn-xs btn-primary" onClick={saveProgress}>Save</button>
+            {(() => {
+              // Data-driven progress (OMP bridge plan, Domain 6): a derived value
+              // is a calculation field and stays immutable — only truly manual
+              // progress is hand-editable. The source label says what's real.
+              const PROGRESS_SOURCE_LABELS = { metric: "from metric", rollup: "rolled up", workflow: "from steps", none: "not tracked yet" };
+              const derivedLabel = PROGRESS_SOURCE_LABELS[localObj.progressSource];
+              const isDerived = derivedLabel && localObj.progressSource !== "none";
+              if (isDerived) {
+                return (
+                  <div className="flex items-center gap-4" title={`Progress is calculated (${derivedLabel}) and cannot be hand-edited.`}>
+                    <span>{localObj.progress}%</span>
+                    <span className="badge" style={{ fontSize: 10, opacity: 0.75 }}>{derivedLabel}</span>
+                  </div>
+                );
+              }
+              return (
+                <div className="flex items-center gap-4 cursor-pointer" onClick={() => setEditingProgress(true)}>
+                  {editingProgress ? (
+                    <div className="flex items-center gap-4">
+                      <input type="number" value={progressValue} onChange={e => setProgressValue(e.target.value)} min={0} max={100} style={{ width: 50, padding: "2px 6px", fontSize: 12 }} autoFocus onKeyDown={e => { if (e.key === "Enter") saveProgress(); if (e.key === "Escape") setEditingProgress(false); }} />
+                      <span className="text-xs">%</span>
+                      <button className="btn btn-xs btn-primary" onClick={saveProgress}>Save</button>
+                    </div>
+                  ) : <span>{localObj.progress}% <Edit3 size={10} style={{ opacity: 0.5 }} /></span>}
                 </div>
-              ) : <span>{localObj.progress}% <Edit3 size={10} style={{ opacity: 0.5 }} /></span>}
-            </div>
+              );
+            })()}
           </div>
           <TaggedPeopleBar />
           {/* Acknowledge button */}

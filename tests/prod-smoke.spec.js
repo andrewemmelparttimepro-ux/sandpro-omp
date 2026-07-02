@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { dismissDailyBrief, env, login, navItem, requireCredentials, signOutIfPossible } from './helpers.js';
+import { dismissDailyBrief, dismissGuidance, env, login, navItem, requireCredentials, signOutIfPossible } from './helpers.js';
 
 const visibleInput = (page, placeholder) => page.locator(`input[placeholder="${placeholder}"]`).filter({ visible: true }).first();
 
@@ -7,8 +7,8 @@ test.describe('production read-only smoke', () => {
   test('domain serves the SandPro OMP login shell over HTTPS', async ({ page }) => {
     await page.goto(env.baseUrl);
     await expect(page).toHaveTitle(/SandPro OMP/);
-    await expect(page.getByText('Objective Management Platform')).toBeVisible();
-    await expect(page.locator('form').getByRole('button', { name: 'Sign In' })).toBeVisible();
+    await expect(page.getByText(/Objective Management Platform|Operational Management Platform/)).toBeVisible();
+    await expect(page.locator('form').getByRole('button', { name: /Sign in/i })).toBeVisible();
     const swResponse = await page.request.get(`${env.baseUrl}/sw.js`);
     expect(swResponse.ok()).toBeTruthy();
     const sw = await swResponse.text();
@@ -20,10 +20,13 @@ test.describe('production read-only smoke', () => {
     requireCredentials(env.smokeAdminEmail, env.smokeAdminPassword, 'SANDPRO_SMOKE_ADMIN_EMAIL and SANDPRO_SMOKE_ADMIN_PASSWORD');
     await login(page, env.smokeAdminEmail, env.smokeAdminPassword);
     await expect(navItem(page, 'Dashboard')).toBeVisible();
+    await dismissGuidance(page);
     await navItem(page, 'Objectives').click();
     await expect(visibleInput(page, 'Search objectives...')).toBeVisible();
+    await dismissGuidance(page);
     await navItem(page, 'KPI').click();
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible({ timeout: 45000 });
+    await dismissGuidance(page);
     await navItem(page, 'Organization').click();
     await expect(visibleInput(page, 'Search people...')).toBeVisible();
     await dismissDailyBrief(page);

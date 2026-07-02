@@ -12012,3 +12012,172 @@ button.alt-command-body:disabled {
     width: auto;
   }
 }
+
+/* ============================================================================
+   DASHBOARD LIST VIEW — the Jake build (July 1 meeting)
+   ========================================================================= */
+.dashboard-viewtype-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-right: 8px;
+  align-self: center;
+}
+
+.lv-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid var(--accent-4);
+  flex-shrink: 0;
+}
+
+.lv-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.lv-filter span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-left: 2px;
+}
+
+.lv-filter select {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 8px;
+  max-width: 170px;
+  cursor: pointer;
+}
+
+.lv-filter select.active {
+  border-color: var(--brand-border);
+  color: var(--brand);
+  background: var(--brand-bg);
+}
+
+.lv-clear {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.lv-clear:hover { text-decoration: underline; }
+
+.lv-aging-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--accent-4);
+  flex-shrink: 0;
+}
+
+.lv-aging-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+
+.lv-aging-chip {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lv-aging-chip:hover { color: var(--text); border-color: var(--accent-6); }
+.lv-aging-chip.active {
+  background: var(--brand-bg-strong);
+  border-color: var(--brand-border);
+  color: var(--brand);
+}
+.lv-aging-chip.danger.active {
+  background: var(--error-bg);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: var(--error);
+}
+
+.lv-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--accent-4);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.lv-row:hover { background: var(--accent-4); }
+
+.lv-type {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.lv-type.task {
+  color: var(--brand);
+  background: var(--brand-bg);
+  border-color: var(--brand-border);
+}
+.lv-type.project {
+  color: var(--info);
+  background: var(--info-bg);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+.lv-type.ncr {
+  color: var(--error);
+  background: var(--error-bg);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.lv-aging {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.lv-aging.tone-past { color: var(--error); background: var(--error-bg); border-color: rgba(239,68,68,0.3); }
+.lv-aging.tone-today { color: var(--warning); background: var(--warning-bg); border-color: rgba(245,158,11,0.3); }
+.lv-aging.tone-soon { color: var(--success); background: var(--success-bg); border-color: rgba(16,185,129,0.3); }
+.lv-aging.tone-far { color: var(--text-muted); background: var(--surface-raised); border-color: var(--border); }
+.lv-aging.tone-done { color: var(--info); background: var(--info-bg); border-color: rgba(59,130,246,0.25); }
+.lv-aging.tone-none { color: var(--text-muted); background: transparent; border-color: var(--border); }
+
+@media (max-width: 720px) {
+  .lv-filter select { max-width: 130px; }
+  .lv-owner-name { display: none; }
+}

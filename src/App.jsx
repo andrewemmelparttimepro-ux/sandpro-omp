@@ -58,7 +58,7 @@ const NEW_FEATURE_ANNOUNCEMENTS = [
   },
   {
     id: 'ncr-platform-v1',
-    navId: 'ncr',
+    navId: 'objectives', // NCR now lives under Objectives (Domain 2 IA)
     page: 'ncr',
     title: 'New: NCR Tracker',
     description: 'Review non-conformance reports by group, status, root cause, and follow-up work. Create objectives directly from NCRs when action is required.',
@@ -624,7 +624,7 @@ function App() {
   // Supabase hooks
   const { user, profile, loading: authLoading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile } = useAuth();
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
-  const { objectives, okrProjects, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, refetch: refetchObjectives } = useObjectives();
+  const { objectives, okrProjects, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, refetch: refetchObjectives } = useObjectives(Boolean(user));
   const { posts: fixItPosts, loading: fixItLoading, createPost: createFixItPost, createComment: createFixItComment, deleteComment: deleteFixItComment, updatePostStatus: updateFixItPostStatus, uploadValidationProof: uploadFixItValidationProof, deletePost: deleteFixItPost } = useFixItFeed(Boolean(user));
   const { reports: ncrReports, loading: ncrLoading, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports } = useNcrReports(Boolean(user));
   const { notifications, markRead, markAllRead, createNotification: createRawNotification } = useNotifications(profile?.id);
@@ -1533,15 +1533,24 @@ function App() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  // OMP bridge plan, Domain 2 (IA): NCR lives UNDER Objectives, not as a
+  // top-level concern. It renders via an Objectives sub-nav and the Objectives
+  // pill stays active while on it.
   const pages = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "objectives", label: "Objectives", icon: Target },
     { id: "kpi", label: "KPI", icon: BarChart3 },
     { id: "fixit", label: "Fix-It Feed", icon: Wrench },
-    { id: "ncr", label: "NCR", icon: ClipboardCheck },
     { id: "organization", label: "Organization", icon: Network },
   ];
-  const currentPage = Math.max(0, pages.findIndex(page => page.id === route.page));
+  // Sub-pages that hang under a top-level page (child id -> parent id).
+  const NAV_PARENT = { ncr: "objectives" };
+  const objectivesSubNav = [
+    { id: "objectives", label: "Objectives", icon: Target },
+    { id: "ncr", label: "NCR", icon: ClipboardCheck },
+  ];
+  const activeNavId = NAV_PARENT[route.page] || route.page;
+  const currentPage = Math.max(0, pages.findIndex(page => page.id === activeNavId));
   const currentPageMeta = pages[currentPage] || pages[0];
   const CurrentPageIcon = currentPageMeta.icon;
 
@@ -2097,7 +2106,16 @@ function App() {
           <span>{pullRefreshState.refreshing ? 'Refreshing...' : pullRefreshState.ready ? 'Release to reload' : 'Pull to refresh'}</span>
         </div>
         <main className={`main-content ${route.page === "kpi" ? "main-content-scroll" : ""}`} ref={mainContentRef}>
-          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} currentUser={currentUser} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onDashboardModeChange={setDashboardMode} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onKpiClick={(preset) => showObjectivesWithFilters({
+          {(route.page === "objectives" || route.page === "ncr") && (
+            <nav className="nav-pills objectives-subnav" style={{ marginBottom: 12 }}>
+              {objectivesSubNav.map(sub => (
+                <a key={sub.id} href={pageHref(sub.id)} onClick={(event) => handleNavClick(event, sub.id)} aria-label={sub.label} className={`nav-pill ${route.page === sub.id ? 'active' : ''}`}>
+                  <sub.icon size={14} />{sub.label}
+                </a>
+              ))}
+            </nav>
+          )}
+          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onDashboardModeChange={setDashboardMode} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onKpiClick={(preset) => showObjectivesWithFilters({
             status: preset.status || "all",
             owner: preset.scope === "individual" ? currentUser.id : "all",
             due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
@@ -2109,8 +2127,8 @@ function App() {
             view: preset.view || DEFAULT_OBJECTIVE_FILTERS.view,
             activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
             label: preset.label,
-          })} onDeptClick={(dept) => showObjectivesWithFilters({ department: dept, label: dept }, dept)} />}
-          {currentPage === 1 && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
+          })} />}
+          {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
           {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
           {route.page === "fixit" && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} />}
           {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}

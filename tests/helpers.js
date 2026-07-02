@@ -143,10 +143,10 @@ export const login = async (page, email, password) => {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await page.goto('/');
     if (await finishLoginIfSignedIn(page, 15000)) return;
-    await expect(page.getByText('Objective Management Platform')).toBeVisible();
+    await expect(page.getByText(/Objective Management Platform|Operational Management Platform/)).toBeVisible();
     await page.waitForTimeout(1000);
     const emailInput = page.locator('input[placeholder="you@sandpro.com"]').filter({ visible: true }).first();
-    const passwordInput = page.locator('input[placeholder="Min 6 characters"]').filter({ visible: true }).first();
+    const passwordInput = page.locator('input[placeholder="Min 6 characters"], input[placeholder="Password"]').filter({ visible: true }).first();
     await expect(emailInput).toBeEditable();
     await expect(passwordInput).toBeEditable();
     await fillStable(emailInput, email);
