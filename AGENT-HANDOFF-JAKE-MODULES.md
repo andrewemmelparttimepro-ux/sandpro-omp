@@ -5,10 +5,14 @@ OKR/task-workflow meeting) so the next agent doesn't undo it.
 
 ## What changed
 
-- **Nav** (`src/App.jsx` `pages`): `Tasks & Projects / OKR / NCR / KPI / Fix-It Feed / Organization`.
-  There is deliberately **no Objectives tab** — Jake banned the word. The
-  objectives page stays routable (`?page=objectives`) for deep links and KPI
-  drill-downs; `NAV_PARENT` maps it to the dashboard pill.
+- **Nav** (`src/App.jsx` `pages`): `Tasks & Projects / OKR / NCR / Fix-It Feed / Organization`.
+  There is deliberately **no Objectives tab** (Jake banned the word) and **no
+  KPI tab** (transcript 46:25 — "OKRs or KPIs, whatever you want to call it":
+  the OKR page IS Jake's KPI report; the old automated KPI command center's 7
+  tables have 0 rows). Both pages stay routable (`?page=objectives`,
+  `?page=kpi`) via `NAV_PARENT` mapping to the dashboard pill — restore by
+  re-adding the nav entry. Do not re-add KPI without Jake asking for
+  automated metrics.
 - **Global KPI strip** (`GlobalKpiStrip` in `src/pages.jsx`): View type
   (Company / My team / Individual) + Active/Completed/Past Due/Due horizon +
   framework mini-strip. Rendered in `App.jsx` above **every** page — that
