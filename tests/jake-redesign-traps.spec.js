@@ -12,7 +12,7 @@ test.describe('Jake module redesign traps', () => {
   });
 
   test('module nav, global KPI strip, and OKR deep links stay wired', async ({ page }) => {
-    for (const name of ['Tasks & Projects', 'OKR', 'NCR', 'KPI', 'Fix-It Feed', 'Organization']) {
+    for (const name of ['Tasks & Projects', 'OKR', 'NCR', 'Fix-It Feed', 'Organization']) {
       await expect(navItem(page, name)).toBeVisible();
     }
     await expect(oldObjectivesNav(page)).toHaveCount(0);

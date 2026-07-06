@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { assertNoMobileCrop, dismissGuidance, env, login, navItem, openObjectivesPage, requireCredentials } from './helpers.js';
+import { assertNoMobileCrop, dismissGuidance, env, login, navItem, openObjectivesPage, requireCredentials, openKpiPage } from './helpers.js';
 
 const viewports = [
   { label: 'iphone-12', width: 390, height: 844 },
@@ -62,7 +62,7 @@ test.describe('mobile zero-day crop gates', () => {
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-03-objectives.png`), fullPage: true });
 
       await dismissGuidance(page);
-      await navItem(page, 'KPI').click();
+      await openKpiPage(page);
       await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
       await resetMainScroll(page);
       await assertNoMobileCrop(page, `kpi ${viewport.label}`);

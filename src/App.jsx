@@ -1608,12 +1608,14 @@ function App() {
     { id: "dashboard", label: "Tasks & Projects", icon: LayoutDashboard },
     { id: "okr", label: "OKR", icon: Target },
     { id: "ncr", label: "NCR", icon: ClipboardCheck },
-    { id: "kpi", label: "KPI", icon: BarChart3 },
     { id: "fixit", label: "Fix-It Feed", icon: Wrench },
     { id: "organization", label: "Organization", icon: Network },
   ];
-  // Deep-linked pages that highlight a parent tab (objectives page is hidden).
-  const NAV_PARENT = { objectives: "dashboard" };
+  // Deep-linked pages that highlight a parent tab. Objectives is hidden (Jake
+  // banned the word); KPI is hidden because to Jake "OKRs or KPIs, whatever
+  // you want to call it" ARE the OKR page — the command center stays routable
+  // at ?page=kpi if automated metrics ever come back.
+  const NAV_PARENT = { objectives: "dashboard", kpi: "dashboard" };
   const activeNavId = NAV_PARENT[route.page] || route.page;
   const currentPage = Math.max(0, pages.findIndex(page => page.id === activeNavId));
   const currentPageMeta = pages[currentPage] || pages[0];

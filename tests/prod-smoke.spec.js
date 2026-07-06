@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { dismissDailyBrief, dismissGuidance, env, login, navItem, requireCredentials, signOutIfPossible } from './helpers.js';
+import { dismissDailyBrief, dismissGuidance, env, login, navItem, openKpiPage, requireCredentials, signOutIfPossible } from './helpers.js';
 
 const visibleInput = (page, placeholder) => page.locator(`input[placeholder="${placeholder}"]`).filter({ visible: true }).first();
 
@@ -24,7 +24,7 @@ test.describe('production read-only smoke', () => {
     await navItem(page, 'OKR').click();
     await expect(page.getByRole('button', { name: 'Presentation view' })).toBeVisible();
     await dismissGuidance(page);
-    await navItem(page, 'KPI').click();
+    await openKpiPage(page); // off-nav by design; still deep-linkable
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible({ timeout: 45000 });
     await dismissGuidance(page);
     await navItem(page, 'Organization').click();

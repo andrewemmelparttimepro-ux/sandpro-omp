@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { dismissGuidance, env, login, navItem, openObjectivesPage } from './helpers.js';
+import { dismissGuidance, env, login, navItem, openObjectivesPage, openKpiPage } from './helpers.js';
 
 const suppressFirstRunGuides = async (page) => {
   await page.evaluate(() => {
@@ -34,7 +34,7 @@ test.describe('accessibility smoke', () => {
     await login(page, env.e2eEmail, env.e2ePassword);
     await suppressFirstRunGuides(page);
     await dismissGuidance(page);
-    for (const name of ['Tasks & Projects', 'OKR', 'NCR', 'KPI', 'Organization']) {
+    for (const name of ['Tasks & Projects', 'OKR', 'NCR', 'Organization']) {
       await expect(navItem(page, name)).toBeVisible();
     }
     const createButton = testInfo.project.name === 'mobile-chrome'
@@ -52,7 +52,7 @@ test.describe('accessibility smoke', () => {
       await expect(page.getByTitle('Kanban View')).toBeVisible();
     }
     await dismissGuidance(page);
-    await navItem(page, 'KPI').click();
+    await openKpiPage(page);
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
   });
 });

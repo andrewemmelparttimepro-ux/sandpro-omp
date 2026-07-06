@@ -98,6 +98,14 @@ export const openObjectivesPage = async (page) => {
   await dismissGuidance(page);
 };
 
+// KPI command center is off-nav (Jake: the OKR page IS the KPI report) but
+// stays deep-linkable for automated-metrics work later.
+export const openKpiPage = async (page) => {
+  await page.goto('/?page=kpi', { waitUntil: 'domcontentloaded' });
+  await dismissDailyBrief(page);
+  await dismissGuidance(page);
+};
+
 const waitForVisible = async (locator, timeout = 12000) => {
   await locator.waitFor({ state: 'visible', timeout });
   return true;

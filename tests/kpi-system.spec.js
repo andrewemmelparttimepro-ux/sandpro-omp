@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { dismissDailyBrief, dismissGuidance, env, login, navItem, requireCredentials } from './helpers.js';
+import { dismissDailyBrief, dismissGuidance, env, login, navItem, requireCredentials, openKpiPage } from './helpers.js';
 
 test.describe('KPI command center', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,8 +13,9 @@ test.describe('KPI command center', () => {
     await expect(navItem(page, 'Tasks & Projects')).toBeVisible();
     await expect(navItem(page, 'OKR')).toBeVisible();
     await expect(navItem(page, 'NCR')).toBeVisible();
-    await expect(navItem(page, 'KPI')).toBeVisible();
-    await navItem(page, 'KPI').click();
+    // KPI is deliberately off-nav (Jake: the OKR page IS the KPI report)
+    await expect(navItem(page, 'KPI')).toHaveCount(0);
+    await openKpiPage(page);
     await expect(page).toHaveURL(/page=kpi/);
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
     await expect(page.getByText(/Company operating KPIs/i)).toBeVisible();
@@ -34,7 +35,7 @@ test.describe('KPI command center', () => {
   });
 
   test('KPI filters, department coverage, and CSV preview are interactive', async ({ page }) => {
-    await navItem(page, 'KPI').click();
+    await openKpiPage(page);
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
     await page.getByLabel('KPI source scope').selectOption('computed');
     await expect(page.locator('.kpi-command-card').first()).toBeVisible();
@@ -63,7 +64,7 @@ test.describe('KPI command center', () => {
   });
 
   test('KPI page scrolls to the lower operating panels', async ({ page }) => {
-    await navItem(page, 'KPI').click();
+    await openKpiPage(page);
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
 
     const mainContent = page.locator('.main-content');
@@ -83,7 +84,7 @@ test.describe('KPI command center', () => {
   });
 
   test('Action Inbox help explains why the box matters to the user', async ({ page }) => {
-    await navItem(page, 'KPI').click();
+    await openKpiPage(page);
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
     await page.locator('.main-content').evaluate((element) => {
       element.scrollTop = element.scrollHeight;
@@ -96,7 +97,7 @@ test.describe('KPI command center', () => {
 
   test('KPI Action Inbox cards stay readable on phone widths', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await navItem(page, 'KPI').click();
+    await openKpiPage(page);
     await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();
 
     const actionPanel = page.locator('.kpi-alert-panel');
@@ -134,7 +135,7 @@ test.describe('KPI command center', () => {
 
   test('red KPI can start a prefilled objective when mutation checks are enabled', async ({ page }) => {
     test.skip(!env.allowMutation, 'Set SANDPRO_E2E_ALLOW_MUTATION=1 for KPI objective creation.');
-    await navItem(page, 'KPI').click();
+    await openKpiPage(page);
     await page.locator('.kpi-command-card').first().click();
     await page.getByRole('button', { name: /Create objective/i }).click();
     await expect(page.getByText(/Objective created from/i).or(page.getByTestId('objective-detail-modal'))).toBeVisible({ timeout: 15000 });

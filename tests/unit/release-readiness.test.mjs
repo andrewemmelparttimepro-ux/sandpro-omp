@@ -88,10 +88,9 @@ test('KPI command center is a first-class goal-linked route', () => {
   assert.match(app, /id: "dashboard", label: "Tasks & Projects"/);
   assert.match(app, /id: "okr", label: "OKR"/);
   assert.match(app, /id: "ncr", label: "NCR"/);
-  assert.match(app, /id: "kpi", label: "KPI"/);
+  assert.doesNotMatch(app, /id: "kpi", label: "KPI"/); // KPI pulled from nav — the OKR page is Jake's KPI report
   assert.match(app, /id: "fixit", label: "Fix-It Feed"/);
-  assert.match(app, /NAV_PARENT = \{ objectives: "dashboard" \}/);
-  assert.match(app, /label: "KPI"/);
+  assert.match(app, /NAV_PARENT = \{ objectives: "dashboard", kpi: "dashboard" \}/);
   assert.match(app, /useKpis/);
   assert.match(app, /KpiPage/);
   assert.match(app, /handleCreateObjectiveFromKpi/);
