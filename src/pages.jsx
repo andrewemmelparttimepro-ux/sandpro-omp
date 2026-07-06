@@ -933,7 +933,14 @@ export const CreateWizardModal = ({
   const [parentId, setParentId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [dept, setDept] = useState("");
+  // Smart default: prefill Main Department from the creator's own department
+  // when it maps cleanly to one of Jake's five. Always changeable — a default,
+  // never a lock. Ambiguous profile departments stay blank.
+  const [dept, setDept] = useState(() => {
+    const d = currentUser.department;
+    if (OMP_DEPARTMENTS.includes(d)) return d;
+    return { Sales: "Business Team", Admin: "Business Team", Leadership: "Business Team", HR: "Business Team", Quality: "Business Team", Safety: "Business Team" }[d] || "";
+  });
   const [klass, setKlass] = useState("");
   const [ownerId, setOwnerId] = useState(currentUser.id);
   const [dueDate, setDueDate] = useState("");
@@ -979,6 +986,21 @@ export const CreateWizardModal = ({
   const parentStep = parentNeeded ? ++stepNo : 0;
   const formStep = stepNo + 1;
 
+  // Endowed progress, honestly earned: originator and assignee are captured
+  // automatically, so the bar never starts at zero — but nothing is faked.
+  const progressChecks = [
+    true, // originator — captured automatically
+    Boolean(ownerId), // assigned to — defaults to the creator
+    type !== null,
+    ...(type === "task" ? [taskKind !== null] : []),
+    ...(linkNeeded ? [link !== null] : []),
+    ...(parentNeeded ? [parentId !== ""] : []),
+    Boolean(title.trim()),
+    Boolean(dept),
+  ];
+  const progressDone = progressChecks.filter(Boolean).length;
+  const progressPct = Math.round((progressDone / progressChecks.length) * 100);
+
   const submit = async () => {
     if (!title.trim()) return setError("Title is required.");
     if (!dept) return setError("Main department is required.");
@@ -1009,9 +1031,13 @@ export const CreateWizardModal = ({
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-content wiz-modal">
         <div className="wiz-head">
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <h2>Create New</h2>
             <p className="text-xs text-muted">Guided clicks, no interpretation. Every earlier answer stays re-selectable.</p>
+            <div className="wiz-progress" role="progressbar" aria-valuenow={progressDone} aria-valuemin={0} aria-valuemax={progressChecks.length} aria-label="Creation progress">
+              <div className="wiz-progress-track"><div className="wiz-progress-fill" style={{ width: `${progressPct}%` }} /></div>
+              <span className="wiz-progress-text">{progressDone} of {progressChecks.length} — originator &amp; assignee captured for you</span>
+            </div>
           </div>
           <button className="wiz-close" onClick={onClose} aria-label="Close"><X size={16} /></button>
         </div>
@@ -1172,6 +1198,17 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
         <div>
           <h1 className="page-title">OKR</h1>
           <p className="text-sm text-muted">The spreadsheet, digitized and locked. A tag = permission to edit that line, and only that line.</p>
+          {view === "edit" && okrs.length > 0 && (() => {
+            // Real month progress — motivates finishing the monthly ritual,
+            // never fakes a number.
+            const updated = okrs.filter(o => monthValue(o, currentMonth) !== null).length;
+            return (
+              <div className="okr-month-progress" role="progressbar" aria-valuenow={updated} aria-valuemin={0} aria-valuemax={okrs.length} aria-label={`${OKR_MONTHS[currentMonth]} check-ins`}>
+                <div className="okr-month-progress-track"><div className="okr-month-progress-fill" style={{ width: `${Math.round((updated / okrs.length) * 100)}%` }} /></div>
+                <span className="text-xs text-muted">{OKR_MONTHS[currentMonth]}: {updated} of {okrs.length} lines updated{updated < okrs.length ? ` — ${okrs.length - updated} still open` : " — month complete"}</span>
+              </div>
+            );
+          })()}
         </div>
         <div className="okr-head-controls">
           <div className="dashboard-scope-tabs">
@@ -1453,7 +1490,7 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
     return opts;
   }, [type]);
 
-  const filtered = useMemo(() => rows.filter(row => {
+  const preAging = useMemo(() => rows.filter(row => {
     if (dept !== "all" && row.dept !== dept) return false;
     if (sub !== "all" && row.klass !== sub && row.group !== sub) return false;
     if (type !== "all" && row.kind !== type) return false;
@@ -1463,15 +1500,23 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
     if (linked === "standalone" && (row.linkedNcr || row.linkedOkr || row.linkedProject)) return false;
     if (originator !== "all" && row.originatorId !== originator) return false;
     if (assigned !== "all" && row.ownerId !== assigned && !row.memberIds.includes(assigned)) return false;
-    return rowMatchesAging(row, aging);
-  }).sort((a, b) => {
+    return true;
+  }), [rows, dept, sub, type, linked, originator, assigned]);
+
+  // Live counts per aging bucket so the size of what's slipping is visible
+  // before anyone clicks — the cost of ignoring it is never hidden.
+  const agingCounts = useMemo(() => Object.fromEntries(
+    DASHBOARD_AGING_BUCKETS.map(bucket => [bucket.id, preAging.filter(row => rowMatchesAging(row, bucket.id)).length])
+  ), [preAging]);
+
+  const filtered = useMemo(() => preAging.filter(row => rowMatchesAging(row, aging)).sort((a, b) => {
     const da = daysUntilDue(a.dueDate);
     const db = daysUntilDue(b.dueDate);
     if (da === null && db === null) return 0;
     if (da === null) return 1;
     if (db === null) return -1;
     return da - db;
-  }), [rows, dept, sub, type, linked, originator, assigned, aging]);
+  }), [preAging, aging]);
 
   const hasActiveFilters = dept !== "all" || sub !== "all" || type !== "all" || linked !== "all"
     || originator !== "all" || assigned !== "all" || aging !== "all_due";
@@ -1534,6 +1579,9 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
             onClick={() => setAging(bucket.id)}
           >
             {bucket.label}
+            {bucket.id !== "all_due" && agingCounts[bucket.id] > 0 && (
+              <span className="lv-aging-count">{agingCounts[bucket.id]}</span>
+            )}
           </button>
         ))}
       </div>

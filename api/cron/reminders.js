@@ -56,7 +56,23 @@ export default async function handler(req, res) {
         const pref = prefByUser.get(userId);
         if (!profile) continue;
         const subject = type === 'stale' ? 'SandPro OMP stale objective reminder' : `SandPro OMP ${type.replace('_', ' ')} alert`;
-        const body = `"${objective.title}" needs attention. Status: ${objective.status}.`;
+        // Loss-framed but strictly true: state what actually happens if this
+        // slips, never manufactured urgency.
+        const dueText = objective.due_date
+          ? new Date(objective.due_date).toLocaleDateString('en-US', { timeZone: 'UTC' })
+          : null;
+        const daysPast = objective.due_date
+          ? Math.max(0, Math.floor((Date.now() - new Date(objective.due_date).getTime()) / 86400000))
+          : 0;
+        const body = type === 'due_soon'
+          ? `"${objective.title}" is due ${dueText || 'within 24 hours'} — after that it counts as past due on the company list.`
+          : type === 'overdue'
+            ? `"${objective.title}" is past due${daysPast ? ` by ${daysPast} day${daysPast === 1 ? '' : 's'}` : ''} — it stays on the past-due list until it's closed out.`
+            : type === 'blocker'
+              ? `"${objective.title}" is blocked — nothing moves on it until the blocker is cleared.`
+              : type === 'at_risk'
+                ? `"${objective.title}" is flagged at risk${dueText ? ` of missing its ${dueText} due date` : ''}.`
+                : `"${objective.title}" hasn't been touched in over a week — items without updates fall off people's radar.`;
         const ctaUrl = objectiveUrl(req, objective.id, 'details');
         let emailResult = null;
         if (profile.email && notificationAllowsEmail(pref, type)) {

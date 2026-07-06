@@ -12301,6 +12301,38 @@ button.alt-command-body:disabled {
   .wiz-body { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
 }
 
+/* Wizard endowed progress (honest — originator/assignee auto-captured) */
+.wiz-progress { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.wiz-progress-track {
+  flex: 0 0 120px; height: 5px; border-radius: 999px;
+  background: var(--accent-4); overflow: hidden;
+}
+.wiz-progress-fill {
+  height: 100%; border-radius: 999px; background: var(--brand);
+  transition: width 0.3s ease;
+}
+.wiz-progress-text { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Aging chip live counts */
+.lv-aging-count {
+  display: inline-block; margin-left: 6px; padding: 0 6px;
+  border-radius: 999px; font-size: 10px; font-weight: 700; line-height: 16px;
+  background: var(--accent-4); color: var(--text-muted);
+}
+.lv-aging-chip.danger .lv-aging-count { background: var(--error-bg); color: var(--error); }
+.lv-aging-chip.active .lv-aging-count { background: var(--brand); color: #fff; }
+
+/* OKR monthly check-in progress */
+.okr-month-progress { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.okr-month-progress-track {
+  flex: 0 0 140px; height: 6px; border-radius: 999px;
+  background: var(--accent-4); overflow: hidden;
+}
+.okr-month-progress-fill {
+  height: 100%; border-radius: 999px; background: var(--brand);
+  transition: width 0.3s ease;
+}
+
 /* NCR legacy department triage */
 .ncr-triage-card { padding: 16px; }
 .ncr-triage-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
