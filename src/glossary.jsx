@@ -18,11 +18,14 @@ const isTypingTarget = (target) => {
   return tag === 'input' || tag === 'textarea' || tag === 'select' || target?.isContentEditable;
 };
 
-export const FieldKeyProvider = ({ children, groups = NCR_GLOSSARY, keyLabel = 'Field Key', subtitle = 'What every NCR field, role, and flag actually means.' }) => {
+export const FieldKeyProvider = ({ children, groups = NCR_GLOSSARY, keyLabel = 'Field Key', subtitle = 'What every NCR field, role, and flag actually means.', showLauncher = true }) => {
   const [open, setOpen] = useState(false);
   const [focusTermId, setFocusTermId] = useState(null);
 
   useEffect(() => {
+    // Quiet providers (app-level Definitions) skip the "?" hotkey so a nested
+    // page-level provider (NCR Field Key) keeps sole ownership of it.
+    if (!showLauncher) return undefined;
     const onKeyDown = (event) => {
       if (event.key === '?' && !event.metaKey && !event.ctrlKey && !event.altKey && !isTypingTarget(event.target)) {
         event.preventDefault();
@@ -33,7 +36,7 @@ export const FieldKeyProvider = ({ children, groups = NCR_GLOSSARY, keyLabel = '
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [showLauncher]);
 
   const value = useMemo(() => ({
     open,
@@ -48,7 +51,7 @@ export const FieldKeyProvider = ({ children, groups = NCR_GLOSSARY, keyLabel = '
   return (
     <FieldKeyContext.Provider value={value}>
       {children}
-      <FieldKeyLauncher label={keyLabel} />
+      {showLauncher && <FieldKeyLauncher label={keyLabel} />}
       {open && <FieldKeyPanel groups={groups} focusTermId={focusTermId} onClose={() => setOpen(false)} keyLabel={keyLabel} subtitle={subtitle} />}
     </FieldKeyContext.Provider>
   );

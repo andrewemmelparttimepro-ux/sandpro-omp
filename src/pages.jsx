@@ -9,7 +9,7 @@ import {
   PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio,
   ClipboardCheck
 } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDepartmentOptions, getDirectReports, canManageOrgChart, canManagePermissions } from './data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDepartmentOptions, getDirectReports, canManageOrgChart, canManageOkrs, canManagePermissions } from './data';
 import { Avatar, Badge, ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from './components';
 import { useAltNotes, usePushNotifications } from './hooks/useSupabase';
 import { supabase } from './lib/supabase';
@@ -72,6 +72,27 @@ import {
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 const PRIORITY_LABELS = { critical: "Critical", high: "High", medium: "Medium", low: "Low" };
+const isOkrSheetObjective = (objective = {}) => {
+  const level = getAssumedOkrLevel(objective);
+  if (objective.status === "cancelled") return false;
+  if (level === "company" || level === "department" || level === "key_result") return true;
+  return Boolean(
+    objective.okrGroup || objective.okr_group
+    || objective.auditFormUse || objective.audit_form_use
+    || objective.baselineText || objective.baseline_text
+    || objective.targetText || objective.target_text
+  );
+};
+
+const getOkrSheetSection = (objective = {}) => {
+  if (getAssumedOkrLevel(objective) === "company") return "Company";
+  return objective.okrGroup || objective.okr_group || objective.class || objective.department || "Unassigned";
+};
+
+const getOkrSheetSubmeta = (objective = {}) => {
+  const level = getAssumedOkrLevel(objective);
+  return OKR_LEVEL_LABELS[level] || "OKR";
+};
 
 const getDueTone = (dueDate) => {
   if (!dueDate) return "none";
@@ -475,6 +496,7 @@ const AltPressingWidget = ({ objective, windowLabel, onOpen }) => (
       <span>PS.1</span>
       <strong>Pressing</strong>
     </div>
+    <p className="alt-widget-note">Most urgent open item in the selected aging window.</p>
     <AltCommandWidgetBody type="pressing" objective={objective} onOpen={onOpen} />
     <small>{windowLabel}</small>
   </section>
@@ -628,6 +650,7 @@ const AlternativeDashboardView = ({
             <div>
               <span>My orbit</span>
               <strong>{orderedRoster.length}</strong>
+              <small className="alt-widget-note">People tied to your recent work and live assignments.</small>
             </div>
             <Radio size={16} />
           </div>
@@ -649,6 +672,7 @@ const AlternativeDashboardView = ({
 
         <section className="alt-main-lens">
           <div className="alt-lens-toolbar">
+            <div className="alt-aging-label">Aging</div>
             <div className="alt-key-row" aria-label="Alternative dashboard due agenda">
               {ALT_TIME_KEYS.map(item => (
                 <AltKeyButton key={item.id} item={item} active={prefs.selectedTimeKey === item.id} onClick={() => setTimeKey(item.id)} />
@@ -743,6 +767,7 @@ const AlternativeDashboardView = ({
       <div className="alt-recents-dock">
         <div className="alt-recents-dock-header">
           <span>Recent</span>
+          <strong>Pick up where I left off</strong>
         </div>
         <div className="alt-recent-tiles">
           {recentTiles.map(event => <AltRecentTile key={event.id} event={event} onOpen={onOpenCard} />)}
@@ -769,6 +794,22 @@ const AlternativeDashboardView = ({
 // views, top of page, no matter which tab is active). View type scope +
 // Active/Completed/Past due/Due horizon + the framework mini-strip.
 // ============================================================================
+const GLOBAL_KPI_COLLAPSED_KEY = "sandpro-global-kpi-strip-collapsed";
+// Pages where the company overview is off-topic (7/8 meeting: "when you click
+// into Organization it shouldn't show you all the top... NCR and org, yes").
+// On these pages the strip defaults to a single quiet line; anyone (Jake) can
+// expand it and their choice sticks per page.
+const GLOBAL_KPI_SLIM_PAGES = new Set(["ncr", "organization", "fixit"]);
+const readStripCollapsed = (storageKey, fallback) => {
+  try {
+    const stored = window.localStorage.getItem(storageKey);
+    if (stored === null) return fallback;
+    return stored === "1";
+  } catch {
+    return fallback;
+  }
+};
+
 export const GlobalKpiStrip = ({
   objectives,
   okrProjects = [],
@@ -779,7 +820,16 @@ export const GlobalKpiStrip = ({
   isAltActive = false,
   onAltToggle,
   onKpiClick,
+  page = "dashboard",
 }) => {
+  const isSlimPage = GLOBAL_KPI_SLIM_PAGES.has(page);
+  const storageKey = isSlimPage ? `${GLOBAL_KPI_COLLAPSED_KEY}:${page}` : GLOBAL_KPI_COLLAPSED_KEY;
+  const [collapsed, setCollapsed] = useState(() => readStripCollapsed(storageKey, isSlimPage));
+  // The strip stays mounted across page switches — re-read the per-page
+  // preference whenever the page (and therefore the storage key) changes.
+  useEffect(() => {
+    setCollapsed(readStripCollapsed(storageKey, isSlimPage));
+  }, [storageKey, isSlimPage]);
   const directReports = getDirectReports(currentUser.id);
   const scopedObjectives = scope === "individual"
     ? objectives.filter(o => o.ownerId === currentUser.id)
@@ -823,66 +873,122 @@ export const GlobalKpiStrip = ({
   const isExecutive = currentUser.role === "executive";
   const isManager = currentUser.role === "manager";
 
-  return (
-    <div className="global-kpi-strip flex-shrink-0">
-      <div className="dashboard-lens-controls flex-shrink-0">
-        <span className="dashboard-viewtype-label">View type</span>
-        <div className="dashboard-scope-tabs">
-          {[
-            { id: "company", label: "Company" },
-            { id: "team", label: "My team", disabled: !isExecutive && !isManager },
-            { id: "individual", label: "Individual" },
-          ].filter(s => !s.disabled).map(s => (
-            <button
-              key={s.id}
-              type="button"
-              className={`dashboard-scope-tab ${scope === s.id && !isAltActive ? 'active' : ''}`}
-              onClick={() => onScopeChange?.(s.id)}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-        {showAltToggle && (
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(storageKey, collapsed ? "1" : "0");
+    } catch {
+      // Preference only; never block the dashboard.
+    }
+  }, [collapsed, storageKey]);
+
+  // Slim pages, collapsed: a single quiet line — full page stays clear.
+  if (isSlimPage && collapsed) {
+    return (
+      <div className="global-kpi-strip slim-collapsed flex-shrink-0">
+        <div className="global-kpi-summary-row">
+          <div className="global-kpi-compact-metrics" aria-label="Collapsed KPI summary">
+            <span><strong>{allActive.length}</strong> active</span>
+            <span><strong>{overdue}</strong> past due</span>
+          </div>
           <button
             type="button"
-            className={`dashboard-alt-mode-key ${isAltActive ? 'active' : ''}`}
-            onClick={onAltToggle}
-            aria-pressed={isAltActive}
+            className="global-kpi-collapse-toggle"
+            onClick={() => setCollapsed(false)}
+            aria-expanded={false}
           >
-            <span>Alt</span>
-            <strong>Alternative</strong>
+            <ChevronDown size={14} />
+            <span>Show company overview</span>
           </button>
-        )}
+        </div>
       </div>
-      <div className="kpi-grid flex gap-10 flex-shrink-0" style={{ paddingBottom: 12, overflowX: "auto", display: "grid", gridTemplateColumns: "repeat(4, minmax(150px, 1fr))", gap: 10 }}>
-        <KPICard bucket="state" icon={Target} label="Active" value={allActive.length} sub="not completed or cancelled" color="#3B82F6" breakdown={statusBreakdown(allActive)} onClick={() => onKpiClick?.({ label: "Active", activeOnly: true, scope })} />
-        <KPICard bucket="state" icon={CheckCircle2} label="Completed" value={completed} sub="finished work" color="#10B981" breakdown={statusBreakdown(scopedObjectives.filter(o => o.status === "completed"))} onClick={() => onKpiClick?.({ label: "Completed", status: "completed", scope })} />
-        <KPICard bucket="time" icon={AlertTriangle} label="Past Due" value={overdue} sub={`${atRisk} at risk · ${blocked} blocked`} color="#EF4444" breakdown={statusBreakdown(overdueItems)} onClick={() => onKpiClick?.({ label: "Past Due", overdue: true, activeOnly: true, scope })} />
-        <DueHorizonStrip items={dueHorizonItems} onSelect={(item) => onKpiClick?.({ label: `Due Next ${item.label}`, dueWindow: item.dueWindow, activeOnly: true, scope })} />
+    );
+  }
+
+  return (
+    <div className={`global-kpi-strip flex-shrink-0 ${collapsed ? "collapsed" : ""}`}>
+      <div className="global-kpi-summary-row">
+        <div className="dashboard-lens-controls flex-shrink-0">
+          <span className="dashboard-viewtype-label">View type</span>
+          <div className="dashboard-scope-tabs">
+            {[
+              { id: "company", label: "Company" },
+              { id: "team", label: "My team", disabled: !isExecutive && !isManager },
+              { id: "individual", label: "Individual" },
+            ].filter(s => !s.disabled).map(s => (
+              <button
+                key={s.id}
+                type="button"
+                className={`dashboard-scope-tab ${scope === s.id && !isAltActive ? 'active' : ''}`}
+                onClick={() => onScopeChange?.(s.id)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          {showAltToggle && (
+            <button
+              type="button"
+              className={`dashboard-alt-mode-key ${isAltActive ? 'active' : ''}`}
+              onClick={onAltToggle}
+              aria-pressed={isAltActive}
+            >
+              <span>Alt</span>
+              <strong>Alternative</strong>
+            </button>
+          )}
+        </div>
+        <div className="global-kpi-collapse-cluster">
+          {collapsed && (
+            <div className="global-kpi-compact-metrics" aria-label="Collapsed KPI summary">
+              <span><strong>{allActive.length}</strong> active</span>
+              <span><strong>{overdue}</strong> past due</span>
+              <span><strong>{dueToday}</strong> due today</span>
+            </div>
+          )}
+          <button
+            type="button"
+            className="global-kpi-collapse-toggle"
+            onClick={() => setCollapsed(value => !value)}
+            aria-expanded={!collapsed}
+            aria-controls="global-kpi-strip-body"
+          >
+            <ChevronDown size={14} />
+            <span>{collapsed ? "Show overview" : "Hide overview"}</span>
+          </button>
+        </div>
       </div>
-      <div className="framework-dashboard-strip">
-        <button type="button" onClick={() => onKpiClick?.({ label: "Company OKRs", okrLevel: "company", scope, view: "tree" })}>
-          <span>Company OKRs</span>
-          <strong>{frameworkSummary.levelCounts.company || 0}</strong>
-        </button>
-        <button type="button" onClick={() => onKpiClick?.({ label: "Stale KRs", okrLevel: "key_result", stale: "true", scope, view: "list" })}>
-          <span>Stale KRs</span>
-          <strong>{frameworkSummary.staleKrs.length}</strong>
-        </button>
-        <button type="button" onClick={() => onKpiClick?.({ label: "Project Assessments", projectStage: "assessment", scope, view: "tree" })}>
-          <span>Projects in assessment</span>
-          <strong>{frameworkSummary.projectStageCounts.assessment || 0}</strong>
-        </button>
-        <button type="button" onClick={() => onKpiClick?.({ label: "Approval blockers", projectStage: "blocked", scope, view: "tree" })}>
-          <span>Gate blockers</span>
-          <strong>{frameworkSummary.blockedProjects.length}</strong>
-        </button>
-        <button type="button" onClick={() => onKpiClick?.({ label: "Needs classification review", okrLevel: "needs_review", scope, view: "list" })}>
-          <span>Needs review</span>
-          <strong>{reviewNeeded}</strong>
-        </button>
-      </div>
+      {!collapsed && (
+        <div id="global-kpi-strip-body">
+          <div className="kpi-grid flex gap-10 flex-shrink-0" style={{ paddingBottom: 12, overflowX: "auto", display: "grid", gridTemplateColumns: "repeat(4, minmax(150px, 1fr))", gap: 10 }}>
+            <KPICard bucket="state" icon={Target} label="Active" value={allActive.length} sub="not completed or cancelled" color="#3B82F6" breakdown={statusBreakdown(allActive)} onClick={() => onKpiClick?.({ label: "Active", activeOnly: true, scope })} />
+            <KPICard bucket="state" icon={CheckCircle2} label="Completed" value={completed} sub="finished work" color="#10B981" breakdown={statusBreakdown(scopedObjectives.filter(o => o.status === "completed"))} onClick={() => onKpiClick?.({ label: "Completed", status: "completed", scope })} />
+            <KPICard bucket="time" icon={AlertTriangle} label="Past Due" value={overdue} sub={`${atRisk} at risk · ${blocked} blocked`} color="#EF4444" breakdown={statusBreakdown(overdueItems)} onClick={() => onKpiClick?.({ label: "Past Due", overdue: true, activeOnly: true, scope })} />
+            <DueHorizonStrip items={dueHorizonItems} onSelect={(item) => onKpiClick?.({ label: `Due Next ${item.label}`, dueWindow: item.dueWindow, activeOnly: true, scope })} />
+          </div>
+          <div className="framework-dashboard-strip">
+            <button type="button" className="omp-tip omp-tip-left" data-tip="The top-line company goals everything rolls up to — Net Profit 15%, Zero TRIR, Employee Cost under 27%, 2.0 Digital Operating System. Click to see them." onClick={() => onKpiClick?.({ label: "Company OKRs", okrLevel: "company", scope, view: "tree" })}>
+              <span>Company OKRs</span>
+              <strong>{frameworkSummary.levelCounts.company || 0}</strong>
+            </button>
+            <button type="button" className="omp-tip" data-tip="Key results (the measurable part of a goal) with no update in 30+ days — nobody has worked them. Stale = untouched; blocked = worked but stopped." onClick={() => onKpiClick?.({ label: "Stale KRs", okrLevel: "key_result", stale: "true", scope, view: "list" })}>
+              <span>Stale KRs</span>
+              <strong>{frameworkSummary.staleKrs.length}</strong>
+            </button>
+            <button type="button" className="omp-tip" data-tip="Projects still in the evaluation stage — economics, risk review, and approvals — before being green-lit as active work." onClick={() => onKpiClick?.({ label: "Project Assessments", projectStage: "assessment", scope, view: "tree" })}>
+              <span>Projects in assessment</span>
+              <strong>{frameworkSummary.projectStageCounts.assessment || 0}</strong>
+            </button>
+            <button type="button" className="omp-tip" data-tip="Something outside the team's control is preventing progress — a missing approval, part, or decision from a higher level. These need leadership eyes." onClick={() => onKpiClick?.({ label: "Approval blockers", projectStage: "blocked", scope, view: "tree" })}>
+              <span>Gate blockers</span>
+              <strong>{frameworkSummary.blockedProjects.length}</strong>
+            </button>
+            <button type="button" className="omp-tip" data-tip="Entries the system classified automatically and is asking a person to confirm — the type was assumed, not chosen." onClick={() => onKpiClick?.({ label: "Needs classification review", okrLevel: "needs_review", scope, view: "list" })}>
+              <span>Needs review</span>
+              <strong>{reviewNeeded}</strong>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -913,6 +1019,12 @@ const WizStep = ({ index, title, enabled, children }) => (
   </div>
 );
 
+const createProjectTaskDraft = (ownerId) => ({
+  id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+  title: "",
+  ownerId,
+});
+
 export const CreateWizardModal = ({
   objectives,
   okrProjects = [],
@@ -925,7 +1037,7 @@ export const CreateWizardModal = ({
   onCreateOkr,
   onGoNcr,
 }) => {
-  const isAdmin = currentUser.role === "executive";
+  const isOkrManager = canManageOkrs(currentUser);
   const [type, setType] = useState(initialType); // task | project | okr (ncr routes away)
   const [taskKind, setTaskKind] = useState(null); // single | recurring
   const [recurEvery, setRecurEvery] = useState("Week");
@@ -944,13 +1056,24 @@ export const CreateWizardModal = ({
   const [klass, setKlass] = useState("");
   const [ownerId, setOwnerId] = useState(currentUser.id);
   const [dueDate, setDueDate] = useState("");
+  const [taggedIds, setTaggedIds] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [projectTasks, setProjectTasks] = useState(() => initialType === "project" ? [createProjectTaskDraft(currentUser.id)] : []);
+  const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef(null);
 
   const profiles = getProfiles();
-  const companyOkrs = objectives.filter(o => o.okrLevel === "company" && o.status !== "completed" && o.status !== "cancelled");
+  const selectableOkrs = objectives
+    .filter(o => isOkrSheetObjective(o) && o.status !== "completed")
+    .sort((a, b) => (a.okrGroup || a.department || "Company").localeCompare(b.okrGroup || b.department || "Company") || (a.title || "").localeCompare(b.title || ""));
   const openProjects = okrProjects.filter(p => p.stage !== "done");
   const openNcrs = ncrReports.filter(r => !r.closed && r.status !== "closed");
+  const taggedUsers = taggedIds.map(id => profiles.find(pr => pr.id === id)).filter(Boolean);
+  const tagCandidates = profiles
+    .filter(pr => pr.id && pr.id !== ownerId && !taggedIds.includes(pr.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const pickType = (t) => {
     if (t === "ncr") { onGoNcr?.(); return; }
@@ -959,6 +1082,9 @@ export const CreateWizardModal = ({
     setTaskKind(null);
     setLink(null);
     setParentId("");
+    setTaggedIds([]);
+    setFiles([]);
+    setProjectTasks(t === "project" ? [createProjectTaskDraft(ownerId)] : []);
   };
 
   const linkOptions = type === "task"
@@ -966,7 +1092,7 @@ export const CreateWizardModal = ({
     : [{ id: "okr", label: "an OKR" }, { id: "standalone", label: "Standalone" }]; // a project is always the parent
 
   const parentOptions = link === "okr"
-    ? companyOkrs.map(o => ({ id: o.id, label: o.title }))
+    ? selectableOkrs.map(o => ({ id: o.id, label: `${o.okrGroup || o.department || "Company"} - ${o.title}` }))
     : link === "project"
       ? openProjects.map(pr => ({ id: pr.id, label: pr.name }))
       : link === "ncr"
@@ -1015,6 +1141,14 @@ export const CreateWizardModal = ({
         class: klass || null,
         ownerId,
         dueDate: dueDate || null,
+        taggedIds,
+        files,
+        projectTasks: projectTasks
+          .map(task => ({
+            title: task.title.trim(),
+            ownerId: task.ownerId || ownerId,
+          }))
+          .filter(task => task.title),
       };
       if (type === "okr") await onCreateOkr(base);
       else if (type === "project") await onCreateProject({ ...base, linkedOkrId: link === "okr" ? parentId : null });
@@ -1025,6 +1159,46 @@ export const CreateWizardModal = ({
     } finally {
       setBusy(false);
     }
+  };
+
+  const addFiles = (fileList) => {
+    const incoming = Array.from(fileList || []).filter(file => file?.name);
+    if (incoming.length === 0) return;
+    setFiles(prev => {
+      const seen = new Set(prev.map(file => `${file.name}-${file.size}-${file.lastModified}`));
+      const next = [...prev];
+      incoming.forEach(file => {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+        if (!seen.has(key)) next.push(file);
+      });
+      return next;
+    });
+  };
+
+  const removeFile = (index) => setFiles(prev => prev.filter((_, i) => i !== index));
+  const removeTaggedUser = (userId) => setTaggedIds(prev => prev.filter(id => id !== userId));
+  const addProjectTask = () => setProjectTasks(prev => [...prev, createProjectTaskDraft(ownerId)]);
+  const updateProjectTask = (taskId, changes) => {
+    setProjectTasks(prev => prev.map(task => task.id === taskId ? { ...task, ...changes } : task));
+  };
+  const removeProjectTask = (taskId) => {
+    setProjectTasks(prev => prev.length > 1 ? prev.filter(task => task.id !== taskId) : [createProjectTaskDraft(ownerId)]);
+  };
+
+  const handleDrop = (event) => {
+    if (!eventHasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setDragOver(false);
+    addFiles(getDroppedFiles(event.dataTransfer));
+  };
+
+  const handleDragOver = (event) => {
+    if (!eventHasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+    setDragOver(true);
   };
 
   return (
@@ -1051,7 +1225,7 @@ export const CreateWizardModal = ({
               {/* Per Jake (July 1 meeting): OKR is NOT a Create New option — main OKRs are
                   created inside the OKR module ("Add main OKR", admin-gated). The chip only
                   appears when this wizard was opened through that door. */}
-              {type === "okr" && <WizChip label="Main OKR" selected locked={!isAdmin} onClick={() => {}} />}
+              {type === "okr" && <WizChip label="Main OKR" selected locked={!isOkrManager} onClick={() => {}} />}
             </div>
           </WizStep>
 
@@ -1119,7 +1293,7 @@ export const CreateWizardModal = ({
               <div className="wiz-field-grid">
                 <label className="wiz-field">
                   <span>Assigned to</span>
-                  <select value={ownerId} onChange={e => setOwnerId(e.target.value)}>
+                  <select value={ownerId} onChange={e => { const nextOwnerId = e.target.value; setOwnerId(nextOwnerId); setTaggedIds(prev => prev.filter(id => id !== nextOwnerId)); }}>
                     {profiles.map(pr => <option key={pr.id} value={pr.id}>{pr.name}</option>)}
                   </select>
                 </label>
@@ -1127,6 +1301,102 @@ export const CreateWizardModal = ({
                   <span>Due date</span>
                   <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
                 </label>
+              </div>
+              <div className="wiz-extra-grid">
+                {type === "project" && (
+                  <div className="wiz-extra-panel wiz-project-tasks-panel">
+                    <div className="wiz-extra-head">
+                      <CheckCircle2 size={14} />
+                      <span>Tasks</span>
+                    </div>
+                    <div className="wiz-project-task-list">
+                      {projectTasks.map((task, index) => (
+                        <div key={task.id} className="wiz-project-task-row">
+                          <input
+                            type="text"
+                            value={task.title}
+                            onChange={event => updateProjectTask(task.id, { title: event.target.value })}
+                            placeholder="Task description"
+                            aria-label={`Project task ${index + 1} description`}
+                            disabled={!formEnabled || busy}
+                          />
+                          <select
+                            value={task.ownerId}
+                            onChange={event => updateProjectTask(task.id, { ownerId: event.target.value })}
+                            aria-label={`Assign project task ${index + 1}`}
+                            disabled={!formEnabled || busy}
+                          >
+                            {profiles.map(pr => <option key={pr.id} value={pr.id}>{pr.name}</option>)}
+                          </select>
+                          <button type="button" className="wiz-project-task-remove" onClick={() => removeProjectTask(task.id)} aria-label={`Remove project task ${index + 1}`} disabled={busy}>
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" className="btn btn-secondary btn-sm wiz-add-task-button" onClick={addProjectTask} disabled={!formEnabled || busy}>
+                      <Plus size={13} /> Add another task
+                    </button>
+                  </div>
+                )}
+                {(type === "task" || type === "okr") && (
+                  <div className="wiz-extra-panel">
+                    <div className="wiz-extra-head">
+                      <UserPlus size={14} />
+                      <span>Tagged teammates</span>
+                    </div>
+                    <TagMentionControl
+                      candidates={tagCandidates}
+                      currentUserId={currentUser.id}
+                      compact
+                      addLabel="Tag"
+                      placeholder="@name"
+                      disabled={!formEnabled || busy}
+                      onTag={async (user) => {
+                        if (!user?.id || user.id === ownerId) return;
+                        setTaggedIds(prev => prev.includes(user.id) ? prev : [...prev, user.id]);
+                      }}
+                    />
+                    {taggedUsers.length > 0 && (
+                      <div className="wiz-tagged-list">
+                        {taggedUsers.map(user => (
+                          <span key={user.id} className="wiz-tagged-chip">
+                            <Avatar user={user} size={18} />
+                            <span>{user.name}</span>
+                            <button type="button" onClick={() => removeTaggedUser(user.id)} aria-label={`Remove ${user.name}`}><X size={11} /></button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div
+                  className={`wiz-extra-panel wiz-file-drop ${dragOver ? 'drag-over' : ''}`}
+                  onDragEnter={handleDragOver}
+                  onDragOver={handleDragOver}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDrop}
+                >
+                  <div className="wiz-extra-head">
+                    <Paperclip size={14} />
+                    <span>Attachments</span>
+                  </div>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => fileInputRef.current?.click()} disabled={!formEnabled || busy}>
+                    <Upload size={13} /> Add files
+                  </button>
+                  <input ref={fileInputRef} type="file" multiple hidden accept={FIXIT_COMMON_FILE_ACCEPT} onChange={event => { addFiles(event.target.files); event.target.value = ""; }} />
+                  {files.length > 0 && (
+                    <div className="wiz-file-list">
+                      {files.map((file, index) => (
+                        <span key={`${file.name}-${file.size}-${index}`} className="wiz-file-chip">
+                          <FileText size={12} />
+                          <span>{file.name}</span>
+                          <button type="button" onClick={() => removeFile(index)} aria-label={`Remove ${file.name}`}><X size={11} /></button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="wiz-originator text-xs text-muted">Originator: <strong>{currentUser.name}</strong> · captured automatically</div>
               {error && <div className="wiz-error">{error}</div>}
@@ -1150,17 +1420,53 @@ export const CreateWizardModal = ({
 // roll-up by department, built to print. "Did it get done or didn't it?"
 // ============================================================================
 const OKR_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const OKR_REFERENCE_COLUMNS = ["YTD AVG", "Cadence", "Department", "Audit Form", "Baseline", "Target"];
 
-export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveCheckin }) => {
+const formatOkrReference = (value) => {
+  const text = String(value ?? "").trim();
+  return text || "—";
+};
+
+const formatOkrCadence = (value) => {
+  const cadence = String(value || "monthly").replace(/[_-]/g, " ").trim();
+  return cadence ? cadence.replace(/\b\w/g, letter => letter.toUpperCase()) : "Monthly";
+};
+
+const formatOkrAverage = (value) => {
+  if (value === null || value === undefined) return "—";
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+};
+
+// Status choices the line owner can set on the OKR sheet (7/8 meeting: "the
+// owner of the task has to be able to go in and say, is this OKR off track,
+// on track" — and it has to show in the presentation view).
+const OKR_SHEET_STATUSES = [
+  { id: "on_track", label: "On Track" },
+  { id: "at_risk", label: "At Risk" },
+  { id: "blocked", label: "Off Track" },
+  { id: "not_started", label: "Not Started" },
+  { id: "completed", label: "Completed" },
+];
+const okrSheetStatusLabel = (status) => OKR_SHEET_STATUSES.find(s => s.id === status)?.label || getStatusLabel(status);
+
+export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveCheckin, onQuickStatus }) => {
   const [view, setView] = useState("edit");
   const [drafts, setDrafts] = useState({});
-  const isAdmin = currentUser.role === "executive";
+  const canManageOkrSheet = canManageOkrs(currentUser);
   const year = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
 
   const okrs = objectives
-    .filter(o => o.okrLevel === "company" && o.status !== "cancelled")
-    .sort((a, b) => (a.department || "").localeCompare(b.department || ""));
+    .filter(isOkrSheetObjective)
+    .sort((a, b) => {
+      const levelRank = { company: 0, department: 1, key_result: 2 };
+      const levelDelta = (levelRank[getAssumedOkrLevel(a)] ?? 9) - (levelRank[getAssumedOkrLevel(b)] ?? 9);
+      if (levelDelta) return levelDelta;
+      const sectionDelta = getOkrSheetSection(a).localeCompare(getOkrSheetSection(b));
+      if (sectionDelta) return sectionDelta;
+      return (a.title || "").localeCompare(b.title || "");
+    });
 
   const monthValue = (o, monthIdx) => {
     const checkins = (o.metricCheckins || []).filter(c => {
@@ -1171,7 +1477,49 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
     return checkins[checkins.length - 1].value;
   };
 
-  const canEdit = (o) => isAdmin || o.ownerId === currentUser.id || (o.members || []).some(m => m.userId === currentUser.id);
+  const ytdAverage = (o) => {
+    const values = OKR_MONTHS
+      .slice(0, currentMonth + 1)
+      .map((_, monthIdx) => monthValue(o, monthIdx))
+      .map(value => Number(value))
+      .filter(value => Number.isFinite(value));
+    if (!values.length) return null;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  };
+
+  const referenceCells = (o) => [
+    { key: "avg", value: formatOkrAverage(ytdAverage(o)), className: "okr-ref-metric" },
+    { key: "cadence", value: formatOkrCadence(o.measurementCadence), className: "okr-ref-short" },
+    { key: "department", value: formatOkrReference(o.department || getOkrSheetSection(o)), className: "okr-ref-short" },
+    { key: "audit", value: formatOkrReference(o.auditFormUse), className: "okr-ref-text" },
+    { key: "baseline", value: formatOkrReference(o.baselineText || o.baselineMetric), className: "okr-ref-text" },
+    { key: "target", value: formatOkrReference(o.targetText || o.targetMetric), className: "okr-ref-text" },
+  ];
+
+  const okrColSpan = 2 + OKR_REFERENCE_COLUMNS.length + OKR_MONTHS.length;
+
+  const statusCell = (o, editable) => {
+    if (editable && onQuickStatus) {
+      return (
+        <select
+          className="okr-status-select"
+          style={{ color: getStatusColor(o.status) }}
+          value={OKR_SHEET_STATUSES.some(s => s.id === o.status) ? o.status : "not_started"}
+          onChange={e => onQuickStatus(o, e.target.value)}
+          aria-label={`Status for ${o.title}`}
+        >
+          {OKR_SHEET_STATUSES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+        </select>
+      );
+    }
+    return (
+      <span className="okr-status-chip" style={{ color: getStatusColor(o.status), background: getStatusBg(o.status) }}>
+        {okrSheetStatusLabel(o.status)}
+      </span>
+    );
+  };
+
+  const canEdit = (o) => canManageOkrSheet || o.ownerId === currentUser.id || (o.members || []).some(m => m.userId === currentUser.id);
 
   const saveCell = async (o, monthIdx) => {
     const key = `${o.id}-${monthIdx}`;
@@ -1186,8 +1534,8 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
     });
   };
 
-  const byDepartment = okrs.reduce((acc, o) => {
-    const d = o.department || "Company";
+  const bySection = okrs.reduce((acc, o) => {
+    const d = getOkrSheetSection(o);
     (acc[d] = acc[d] || []).push(o);
     return acc;
   }, {});
@@ -1218,7 +1566,7 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
           {view === "presentation" && (
             <button type="button" className="btn" onClick={() => window.print()}><Download size={14} /> Print</button>
           )}
-          {isAdmin && (
+          {canManageOkrSheet && (
             <button type="button" className="btn btn-primary" onClick={onAddOkr}><Plus size={14} /> Add main OKR</button>
           )}
         </div>
@@ -1230,7 +1578,17 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
             <table className="okr-grid">
               <thead>
                 <tr>
-                  <th className="okr-name-col">Main OKR · {year}</th>
+                  <th className="okr-name-col">OKR line · {year}</th>
+                  <th className="okr-ref-col omp-tip omp-tip-left" data-tip="Set by the line owner: On Track, At Risk, or Off Track. Shows on the presentation view too." tabIndex={0}>Status</th>
+                  {OKR_REFERENCE_COLUMNS.map(column => (
+                    <th
+                      key={column}
+                      className={`okr-ref-col ${column === "YTD AVG" ? "omp-tip" : ""}`}
+                      {...(column === "YTD AVG" ? { "data-tip": "Running (year-to-date) average — auto-calculated from the monthly entries. Same as the spreadsheet's rolling average. Read-only.", tabIndex: 0 } : {})}
+                    >
+                      {column}
+                    </th>
+                  ))}
                   {OKR_MONTHS.map((m, i) => <th key={m} className={i === currentMonth ? "current" : ""}>{m}</th>)}
                 </tr>
               </thead>
@@ -1242,9 +1600,13 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
                       <td className="okr-name-col">
                         <button type="button" className="okr-name-btn" onClick={() => onOpenCard?.(o)}>
                           <span className="okr-title">{o.title}</span>
-                          <span className="okr-meta">{o.department || "Company"} · {getUser(o.ownerId).name.split(" ")[0]}{editable && !isAdmin ? " · @you" : ""}{!editable ? " · locked" : ""}</span>
+                          <span className="okr-meta">{getOkrSheetSection(o)} · {getOkrSheetSubmeta(o)} · {getUser(o.ownerId).name.split(" ")[0]}{editable && !canManageOkrSheet ? " · @you" : ""}{!editable ? " · locked" : ""}</span>
                         </button>
                       </td>
+                      <td className="okr-ref-cell okr-ref-short">{statusCell(o, editable)}</td>
+                      {referenceCells(o).map(cell => (
+                        <td key={cell.key} className={`okr-ref-cell ${cell.className}`} title={cell.value}>{cell.value}</td>
+                      ))}
                       {OKR_MONTHS.map((m, i) => {
                         const key = `${o.id}-${i}`;
                         const val = monthValue(o, i);
@@ -1267,12 +1629,12 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
                   );
                 })}
                 {okrs.length === 0 && (
-                  <tr><td colSpan={13} className="okr-empty">No company OKRs yet. {isAdmin ? "Add a main OKR to get started." : "Main OKRs are created by admins."}</td></tr>
+                  <tr><td colSpan={okrColSpan} className="okr-empty">No OKRs yet. {canManageOkrSheet ? "Add a main OKR to get started." : "Main OKRs are created by authorized OKR editors."}</td></tr>
                 )}
               </tbody>
             </table>
           </div>
-          <div className="okr-legend text-xs text-muted">Editable cells = lines where you are tagged (owner or member) — edit any month, any number of times. One number or % per month, manual entry.</div>
+          <div className="okr-legend text-xs text-muted">Editable cells = lines where you are tagged (owner or member) — edit any month, any number of times. YTD AVG is auto-calculated from the monthly inputs through the current month.</div>
         </div>
       ) : (
         <div id="okr-print-sheet" className="okr-print-sheet">
@@ -1283,20 +1645,34 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
             </div>
             <span className="okr-print-date">{new Date().toLocaleDateString()}</span>
           </div>
-          {Object.entries(byDepartment).map(([deptName, rows]) => (
+          <div className="okr-print-summary">{okrs.length} OKR lines · {Object.keys(bySection).length} groups</div>
+          {Object.entries(bySection).map(([deptName, rows]) => (
             <div key={deptName} className="okr-print-section">
               <h3>{deptName}</h3>
               <table>
                 <thead>
                   <tr>
-                    <th className="okr-name-col">Main OKR</th>
+                    <th className="okr-name-col">OKR line</th>
+                    <th className="okr-ref-col">Status</th>
+                    {OKR_REFERENCE_COLUMNS.map(column => <th key={column} className="okr-ref-col">{column}</th>)}
                     {OKR_MONTHS.map((m, i) => <th key={m} className={i === currentMonth ? "current" : ""}>{m}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map(o => (
                     <tr key={o.id}>
-                      <td className="okr-name-col">{o.title} <span className="okr-print-owner">— {getUser(o.ownerId).name.split(" ")[0]}</span></td>
+                      <td className="okr-name-col">
+                        {o.title} <span className="okr-print-owner">— {getUser(o.ownerId).name.split(" ")[0]}</span>
+                        <span className="okr-print-submeta">{getOkrSheetSubmeta(o)}</span>
+                      </td>
+                      <td className="okr-ref-cell okr-ref-short">
+                        <span className="okr-status-chip" style={{ color: getStatusColor(o.status), background: getStatusBg(o.status) }}>
+                          {okrSheetStatusLabel(o.status)}
+                        </span>
+                      </td>
+                      {referenceCells(o).map(cell => (
+                        <td key={cell.key} className={`okr-ref-cell ${cell.className}`}>{cell.value}</td>
+                      ))}
                       {OKR_MONTHS.map((m, i) => <td key={m} className={i === currentMonth ? "current" : ""}>{monthValue(o, i) ?? "—"}</td>)}
                     </tr>
                   ))}
@@ -1304,7 +1680,7 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
               </table>
             </div>
           ))}
-          {okrs.length === 0 && <p className="text-sm text-muted">No company OKRs yet.</p>}
+          {okrs.length === 0 && <p className="text-sm text-muted">No OKRs yet.</p>}
         </div>
       )}
     </div>
@@ -1367,7 +1743,7 @@ const AgingPill = ({ row }) => {
   return <span className="lv-aging tone-far">Due in {days}d</span>;
 };
 
-const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects = [], ncrReports = [], allNcrReports = ncrReports, onOpenCard, onProjectClick, onNcrClick }) => {
+const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects = [], ncrReports = [], allNcrReports = ncrReports, currentUser, onOpenCard, onProjectClick, onNcrClick, onUpdateNcrReport }) => {
   const [dept, setDept] = useState("all");
   const [sub, setSub] = useState("all");
   const [type, setType] = useState("all");
@@ -1375,6 +1751,8 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
   const [originator, setOriginator] = useState("all");
   const [assigned, setAssigned] = useState("all");
   const [aging, setAging] = useState("all_due");
+  const [unknownNcrDrafts, setUnknownNcrDrafts] = useState({});
+  const [savingUnknownNcr, setSavingUnknownNcr] = useState("");
 
   const profiles = getProfiles();
 
@@ -1518,6 +1896,19 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
     return da - db;
   }), [preAging, aging]);
 
+  const profileIds = useMemo(() => new Set(profiles.map(profile => profile.id).filter(Boolean)), [profiles]);
+  const unknownNcrRows = useMemo(() => preAging
+    .filter(row => row.kind === "ncr" && !row.isCompleted && (!row.ownerId || !profileIds.has(row.ownerId)))
+    .sort((a, b) => {
+      const da = daysUntilDue(a.dueDate);
+      const db = daysUntilDue(b.dueDate);
+      if (da === null && db === null) return 0;
+      if (da === null) return 1;
+      if (db === null) return -1;
+      return da - db;
+    })
+    .slice(0, 4), [preAging, profileIds]);
+
   const hasActiveFilters = dept !== "all" || sub !== "all" || type !== "all" || linked !== "all"
     || originator !== "all" || assigned !== "all" || aging !== "all_due";
   const clearAll = () => {
@@ -1531,6 +1922,36 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
     if (row.linkedOkr) return "OKR";
     if (row.linkedNcr) return "NCR";
     return null;
+  };
+
+  const updateUnknownNcrDraft = (rowId, field, value) => {
+    setUnknownNcrDrafts(drafts => ({
+      ...drafts,
+      [rowId]: { ...(drafts[rowId] || {}), [field]: value },
+    }));
+  };
+
+  const saveUnknownNcrContact = async (row) => {
+    const draft = unknownNcrDrafts[row.id] || {};
+    const name = String(draft.name || "").trim();
+    const phone = String(draft.phone || "").trim();
+    if (!name && !phone) return;
+    setSavingUnknownNcr(row.id);
+    try {
+      const stamp = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const prior = String(row.ncr?.longTermFollowUp || "").trim();
+      const note = `[${stamp}] Unknown-owner closure contact: ${name || "Name TBD"}${phone ? `, ${phone}` : ""}.`;
+      await onUpdateNcrReport?.(row.ncr.id, {
+        longTermFollowUp: prior ? `${prior}\n${note}` : note,
+        updatedBy: currentUser?.id,
+      });
+      setUnknownNcrDrafts(drafts => ({
+        ...drafts,
+        [row.id]: { ...draft, name: "", phone: "", saved: true },
+      }));
+    } finally {
+      setSavingUnknownNcr("");
+    }
   };
 
   const filterSelect = (label, value, onChange, options) => (
@@ -1586,6 +2007,48 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
         ))}
       </div>
 
+      {unknownNcrRows.length > 0 && (
+        <div className="lv-ncr-owner-callout">
+          <div className="lv-ncr-owner-callout-head">
+            <AlertTriangle size={14} />
+            <div>
+              <strong>Unknown NCR owners need a closure contact</strong>
+              <span>Add the real person and phone to the NCR follow-up trail.</span>
+            </div>
+            <Badge color="var(--warning)">{unknownNcrRows.length}</Badge>
+          </div>
+          <div className="lv-ncr-owner-rows">
+            {unknownNcrRows.map(row => {
+              const draft = unknownNcrDrafts[row.id] || {};
+              const disabled = savingUnknownNcr === row.id || (!draft.name?.trim() && !draft.phone?.trim());
+              return (
+                <div key={row.id} className="lv-ncr-owner-row">
+                  <button type="button" className="lv-ncr-owner-title" onClick={() => onNcrClick?.(row.ncr)}>
+                    <strong>{row.ncr.reportNumber || row.title}</strong>
+                    <AgingPill row={row} />
+                  </button>
+                  <input
+                    value={draft.name || ""}
+                    onChange={event => updateUnknownNcrDraft(row.id, "name", event.target.value)}
+                    placeholder="Closure contact"
+                    aria-label={`Closure contact for ${row.ncr.reportNumber || row.title}`}
+                  />
+                  <input
+                    value={draft.phone || ""}
+                    onChange={event => updateUnknownNcrDraft(row.id, "phone", event.target.value)}
+                    placeholder="Phone"
+                    aria-label={`Phone for ${row.ncr.reportNumber || row.title}`}
+                  />
+                  <button type="button" className="btn btn-xs btn-primary" disabled={disabled} onClick={() => saveUnknownNcrContact(row)}>
+                    {savingUnknownNcr === row.id ? "Saving" : draft.saved ? "Saved" : "Save"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div style={{ flex: 1, overflowY: "auto", padding: "4px 12px 10px" }}>
         {filtered.length === 0 ? (
           <EmptyState icon={Filter} text={hasActiveFilters ? "Nothing matches this drill-down." : "Nothing here yet."} />
@@ -1637,6 +2100,7 @@ export const DashboardPage = ({
   onAltTagPerson,
   onOpenCard,
   onNcrClick,
+  onUpdateNcrReport,
   onKpiClick,
   scope = "company",
 }) => {
@@ -1744,9 +2208,11 @@ export const DashboardPage = ({
         okrProjects={scopedProjects}
         ncrReports={scopedNcrReports}
         allNcrReports={ncrReports}
+        currentUser={currentUser}
         onOpenCard={onOpenCard}
         onProjectClick={(project) => onKpiClick?.({ label: project.name, view: "tree" })}
         onNcrClick={onNcrClick}
+        onUpdateNcrReport={onUpdateNcrReport}
       />
       </>
       )}
@@ -8897,6 +9363,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
             <FeatureHelp
               id="org-chart-editing"
               title="Editing the org chart"
+              defaultOpen={false}
               items={[
                 "Drag a person or visual group onto their reporting manager to move them in the tree.",
                 "Drop a person or group on Company root to make them top-level.",

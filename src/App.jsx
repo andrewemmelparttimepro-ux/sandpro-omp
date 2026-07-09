@@ -2,9 +2,12 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Target, Bell, Plus, LayoutDashboard, Network, ChevronDown, X,
   LogOut, Loader2, Sun, Moon, Newspaper, Sparkles, Wrench, ClipboardCheck,
-  Settings, KeyRound, Smartphone, RefreshCw, BarChart3, Camera, Upload, Trash2
+  Settings, KeyRound, Smartphone, RefreshCw, BarChart3, Camera, Upload, Trash2,
+  BookOpen
 } from 'lucide-react';
-import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, getDepartmentOptions } from './data';
+import { FieldKeyProvider } from './glossary';
+import { OMP_GLOSSARY, useFieldKey } from './glossaryData';
+import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, getDepartmentOptions, canManageOkrs, formatDate } from './data';
 import { useAuth, useProfiles, useObjectives, useNotifications, usePushNotifications, useFixItFeed, useNcrReports, useAlternativeDashboard, useKpis } from './hooks/useSupabase';
 import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer, DailyBrief, BriefErrorBoundary } from './components';
 import { supabase } from './lib/supabase';
@@ -21,6 +24,24 @@ import { DashboardPage, ObjectivesPage, KpiPage, OrgPage, FixItFeedPage, NcrPage
 import './index.css';
 
 const PAGE_IDS = ["dashboard", "objectives", "okr", "kpi", "fixit", "ncr", "organization"];
+
+// "A dropdown underneath your name that says: here's a definition. What's an
+// OKR?" (Tim, 7/8). Opens the app-wide Definitions key from the user menu.
+// Lives inside the FieldKeyProvider tree, so it must be its own component.
+const DefinitionsMenuItem = ({ onOpened }) => {
+  const fieldKey = useFieldKey();
+  if (!fieldKey) return null;
+  return (
+    <button
+      type="button"
+      className="flex items-center gap-8 btn btn-ghost"
+      style={{ justifyContent: "flex-start", width: "100%" }}
+      onClick={() => { fieldKey.openKey(null); onOpened?.(); }}
+    >
+      <BookOpen size={14} /> Definitions & key terms
+    </button>
+  );
+};
 const DEFAULT_OBJECTIVE_FILTERS = {
   search: "",
   status: "all",
@@ -45,9 +66,8 @@ const ALT_EXPLAINER_STORAGE_PREFIX = 'sandpro-alt-dashboard-guide-seen';
 const ALT_EXPLAINER_VERSION = 'alt-dashboard-2026-06-14';
 const PUSH_SETUP_DISMISSED_PREFIX = 'sandpro-push-setup-dismissed';
 const DAILY_BRIEF_STORAGE_VERSION = 'bulletin-2026-06-24-company-wide-launch';
-// SandPro Times / Daily Brief overlay pulled 2026-07-02 (may be reimplemented later).
-// Flip to true to restore the auto-open on login and the header newspaper button.
-const DAILY_BRIEF_ENABLED = false;
+// SandPro Times / Daily Brief overlay restored for users who expect the login news prompt.
+const DAILY_BRIEF_ENABLED = true;
 const BRAND_LOGO_SRC = '/brand/sandpro-omp-logo.png';
 const BRAND_MARK_SRC = '/brand/sandpro-omp-mark.png';
 const ALT_DASHBOARD_HOTKEY_MEDIA = '(min-width: 769px) and (pointer: fine)';
@@ -1422,7 +1442,96 @@ function App() {
   }, [fixItPosts, sendFixItPushEvent, summarizeFixItPost, updateFixItPostStatus]);
 
   // ── Create New wizard handlers (the one door in) ──────────────────────────
-  const handleWizardCreateTask = async ({ title, description, department, class: klass, ownerId, dueDate, link, parentId }) => {
+  const uploadWizardObjectiveFiles = async (objectiveId, files = []) => {
+    let uploaded = 0;
+    let failed = 0;
+    for (const file of files || []) {
+      try {
+        await uploadObjectiveFile(objectiveId, file, { uploadedBy: profile.id });
+        uploaded += 1;
+      } catch (error) {
+        failed += 1;
+        console.warn('Create New attachment upload failed', error);
+      }
+    }
+    if (failed > 0) {
+      addToast({ type: 'error', message: `${failed} attachment${failed === 1 ? '' : 's'} did not upload. Add from the Files tab.` });
+    }
+    return uploaded;
+  };
+
+  const uploadWizardProjectFiles = async (projectId, files = []) => {
+    let uploaded = 0;
+    let failed = 0;
+    for (const file of files || []) {
+      try {
+        await uploadProjectAttachment(projectId, file, profile.id, 'evidence');
+        uploaded += 1;
+      } catch (error) {
+        failed += 1;
+        console.warn('Create New project attachment upload failed', error);
+      }
+    }
+    if (failed > 0) {
+      addToast({ type: 'error', message: `${failed} project attachment${failed === 1 ? '' : 's'} did not upload. Add from the project record.` });
+    }
+    return uploaded;
+  };
+
+  const tagWizardObjectiveMembers = async (objectiveId, title, ownerId, taggedIds = []) => {
+    const targetIds = [...new Set(taggedIds)].filter(id => id && id !== ownerId && id !== profile.id);
+    let tagged = 0;
+    let failed = 0;
+    for (const targetId of targetIds) {
+      try {
+        await addObjectiveMember(objectiveId, { userId: targetId, role: 'assignee' });
+        tagged += 1;
+        try {
+          await createNotification(targetId, 'assignment', objectiveId, `${profile.name} tagged you on "${title}".`);
+        } catch (notificationError) {
+          console.warn('Create New tag notification failed', notificationError);
+        }
+      } catch (error) {
+        failed += 1;
+        console.warn('Create New teammate tag failed', error);
+      }
+    }
+    if (failed > 0) {
+      addToast({ type: 'error', message: `${failed} teammate tag${failed === 1 ? '' : 's'} did not save. Add from the Access tab.` });
+    }
+    return tagged;
+  };
+
+  const notifyWizardOwnerAssignment = async ({ objectiveId, title, ownerId, dueDate, contextLabel = 'Assignment', failureLabel = 'assignment' }) => {
+    if (!objectiveId || !ownerId || ownerId === profile.id) return false;
+    const detailText = dueDate ? `Due ${formatDate(dueDate)}` : '';
+    try {
+      const notification = await createNotification(
+        ownerId,
+        'assignment',
+        objectiveId,
+        `${profile.name} assigned you "${title}".`,
+        { detailLabel: contextLabel, detailText },
+      );
+      if (!notification?.id) throw new Error('No notification row returned.');
+      return true;
+    } catch (notificationError) {
+      console.warn(`Create New ${failureLabel} notification failed`, notificationError);
+      addToast({ type: 'error', message: `Created, but the ${failureLabel} notification did not send.` });
+      return false;
+    }
+  };
+
+  const buildCreateToastMessage = (base, { uploaded = 0, tagged = 0, tasks = 0 } = {}) => {
+    const extras = [
+      tasks ? `${tasks} task${tasks === 1 ? '' : 's'}` : '',
+      uploaded ? `${uploaded} attachment${uploaded === 1 ? '' : 's'}` : '',
+      tagged ? `${tagged} tagged teammate${tagged === 1 ? '' : 's'}` : '',
+    ].filter(Boolean);
+    return extras.length ? `${base} with ${extras.join(' and ')}` : base;
+  };
+
+  const handleWizardCreateTask = async ({ title, description, department, class: klass, ownerId, dueDate, link, parentId, taggedIds = [], files = [] }) => {
     const created = await createObjective({
       title, description, ownerId,
       createdBy: profile.id,
@@ -1440,14 +1549,21 @@ function App() {
     if (link === 'ncr' && parentId) {
       await updateNcrReport(parentId, { linkedObjectiveId: created.id, updatedBy: profile.id });
     }
-    addToast({ type: 'success', message: 'Task created' });
+    await notifyWizardOwnerAssignment({ objectiveId: created.id, title, ownerId, dueDate, contextLabel: 'Task assigned', failureLabel: 'task assignment' });
+    const tagged = await tagWizardObjectiveMembers(created.id, title, ownerId, taggedIds);
+    const uploaded = await uploadWizardObjectiveFiles(created.id, files);
+    addToast({ type: 'success', message: buildCreateToastMessage('Task created', { uploaded, tagged }) });
     const fresh = await refetchObjectives();
     const obj = fresh?.find(o => o.id === created.id);
     if (obj) handleOpenCard(obj);
     return created;
   };
 
-  const handleWizardCreateOkr = async ({ title, description, department, class: klass, ownerId, dueDate }) => {
+  const handleWizardCreateOkr = async ({ title, description, department, class: klass, ownerId, dueDate, taggedIds = [], files = [] }) => {
+    if (!canManageOkrs(profile)) {
+      addToast({ type: 'error', message: 'Main OKRs are limited to authorized OKR editors.' });
+      throw new Error('Main OKRs are limited to authorized OKR editors.');
+    }
     const created = await createObjective({
       title, description, ownerId,
       createdBy: profile.id,
@@ -1457,19 +1573,61 @@ function App() {
       nextAction: '', type: 'simple', rollupMethod: 'average',
       okrLevel: 'company',
     });
-    addToast({ type: 'success', message: 'Main OKR created' });
+    await notifyWizardOwnerAssignment({ objectiveId: created.id, title, ownerId, dueDate, contextLabel: 'Main OKR assigned', failureLabel: 'OKR assignment' });
+    const tagged = await tagWizardObjectiveMembers(created.id, title, ownerId, taggedIds);
+    const uploaded = await uploadWizardObjectiveFiles(created.id, files);
+    addToast({ type: 'success', message: buildCreateToastMessage('Main OKR created', { uploaded, tagged }) });
     await refetchObjectives();
     return created;
   };
 
-  const handleWizardCreateProject = async ({ title, description, ownerId, dueDate, linkedOkrId }) => {
+  const handleWizardCreateProject = async ({ title, description, department, class: klass, ownerId, dueDate, linkedOkrId, files = [], projectTasks = [] }) => {
     const created = await createOkrProject({
       name: title, description,
       leadId: ownerId, sponsorId: profile.id,
       stage: 'idea', targetDate: dueDate || null,
       linkedObjectiveIds: linkedOkrId ? [linkedOkrId] : [],
     });
-    addToast({ type: 'success', message: 'Project created' });
+    const linkedObjectiveIds = new Set(linkedOkrId ? [linkedOkrId] : []);
+    let taskCount = 0;
+    for (const task of projectTasks || []) {
+      const taskTitle = String(task?.title || '').trim();
+      if (!taskTitle) continue;
+      const taskOwnerId = task.ownerId || ownerId;
+      const taskObjective = await createObjective({
+        title: taskTitle,
+        description: `Project task for "${title}"`,
+        ownerId: taskOwnerId,
+        createdBy: profile.id,
+        delegatedBy: taskOwnerId !== profile.id ? profile.id : null,
+        status: 'not_started',
+        priority: 'medium',
+        progress: 0,
+        dueDate: dueDate || null,
+        department,
+        class: klass,
+        okrGroup: null,
+        nextAction: '',
+        type: 'simple',
+        rollupMethod: 'average',
+        parentId: null,
+        okrLevel: 'run_the_business',
+      });
+      linkedObjectiveIds.add(taskObjective.id);
+      taskCount += 1;
+      if (taskOwnerId !== profile.id) {
+        try {
+          await createNotification(taskOwnerId, 'assignment', taskObjective.id, `${profile.name} assigned you "${taskTitle}" for project "${title}".`);
+        } catch (notificationError) {
+          console.warn('Create New project task notification failed', notificationError);
+        }
+      }
+    }
+    if (linkedObjectiveIds.size > (linkedOkrId ? 1 : 0)) {
+      await updateOkrProject(created.id, { linkedObjectiveIds: [...linkedObjectiveIds], userId: profile.id });
+    }
+    const uploaded = await uploadWizardProjectFiles(created.id, files);
+    addToast({ type: 'success', message: buildCreateToastMessage('Project created', { uploaded, tasks: taskCount }) });
     await refetchObjectives();
     return created;
   };
@@ -1855,7 +2013,7 @@ function App() {
   );
 
   return (
-    <>
+    <FieldKeyProvider groups={OMP_GLOSSARY} keyLabel="Definitions" subtitle="Plain-English definitions for every OMP term — OKRs, KRs, blockers, and the rest." showLauncher={false}>
       {mustSetPassword && <PasswordChangeModal userName={profile?.name} reason={passwordRecovery ? "recovery" : "temporary"} onSave={updatePassword} />}
       {/* HEADER */}
       <header className="header desktop-header">
@@ -1938,6 +2096,9 @@ function App() {
                   </div>
                 </div>
               )}
+              <div style={{ padding: "4px 8px", borderBottom: "1px solid var(--accent-5)" }}>
+                <DefinitionsMenuItem onOpened={() => setShowUserMenu(false)} />
+              </div>
               <div className="user-menu-footer-actions">
                 <button type="button" onClick={openAccountSettings} className="icon-btn user-settings-icon" title="Account settings" aria-label="Account settings">
                   <Settings size={15} />
@@ -2186,6 +2347,7 @@ function App() {
             objectives={objectives}
             okrProjects={okrProjects}
             currentUser={currentUser}
+            page={route.page}
             scope={viewScope}
             onScopeChange={(next) => { setViewScope(next); if (currentPage === 0) setDashboardMode('standard'); }}
             showAltToggle={currentPage === 0}
@@ -2204,7 +2366,7 @@ function App() {
               label: preset.label,
             })}
           />
-          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onKpiClick={(preset) => showObjectivesWithFilters({
+          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
             status: preset.status || "all",
             owner: preset.scope === "individual" ? currentUser.id : "all",
             due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
@@ -2217,7 +2379,7 @@ function App() {
             activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
             label: preset.label,
           })} />}
-          {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
+          {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onQuickStatus={handleQuickStatusObjective} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
           {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
           {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
           {route.page === "fixit" && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} />}
@@ -2285,7 +2447,7 @@ function App() {
       )}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}
-    </>
+    </FieldKeyProvider>
   );
 }
 

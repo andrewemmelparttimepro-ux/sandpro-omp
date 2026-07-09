@@ -69,6 +69,43 @@ export const NCR_GLOSSARY = [
   },
 ];
 
+// ============================================================================
+// OMP GLOSSARY — app-wide definitions ("What the hell are you guys talking
+// about?" — the definitions page Tim asked for, 7/8 meeting). Mounted at the
+// App level; the NCR page keeps its own NCR_GLOSSARY provider.
+// Definitions follow Tim's own wording from the meeting where he gave one.
+// ============================================================================
+
+export const OMP_GLOSSARY = [
+  {
+    id: 'okr_basics',
+    label: 'Goals & OKRs',
+    blurb: 'The vocabulary of the goal system — what each level means.',
+    terms: [
+      { id: 'okr', term: 'OKR', aka: ['Objective + Key Results'], def: 'A goal with measurable results attached. The Objective is what you want to achieve; the Key Results are the numbers that prove whether you did.', example: '"Reduce field NCRs" is the objective; "field NCR rate down from 5% to 1%" is the key result.' },
+      { id: 'key_result', term: 'Key Result (KR)', def: 'The measurable outcome under a goal — the number that tells you whether the objective is actually being met. "KR" is short for key result.', example: '"DSO under 60 days" is the key result for the Finance collection goal.' },
+      { id: 'company_okr', term: 'Company OKRs', def: 'The top-line company goals everything else rolls up to: Net Profit 15%, Zero TRIR, Employee Cost under 27%, and the 2.0 Digital Operating System.', example: 'Every team OKR should support at least one of the four company OKRs.' },
+      { id: 'stale_kr', term: 'Stale KR', def: 'A key result with no update in over 30 days — nobody has worked on it. Different from blocked: stale means untouched; blocked means someone worked it but progress is stopped.', example: 'An OKR whose monthly number was last entered in May shows as stale in July.' },
+      { id: 'gate_blocker', term: 'Gate blocker', def: 'Something outside the team’s control that prevents progress toward a key result or a project stage — a missing approval, permit, part, or decision that has to come from a higher level. Blockers should be visible, not buried: leadership usually has to act on them.', example: 'You can’t move the project forward because the customer hasn’t granted SCADA access — that’s a gate blocker.' },
+      { id: 'project_assessment', term: 'Projects in assessment', def: 'Projects still in the evaluation stage — economics, risk review, and required approvals — before being green-lit as active work.' },
+      { id: 'needs_review', term: 'Needs review', def: 'Entries the system classified automatically and is asking a person to confirm — the type or level was assumed, not chosen.' },
+      { id: 'ytd_avg', term: 'YTD AVG', aka: ['Running average', 'Rolling average'], def: 'The running (year-to-date) average — auto-calculated from the monthly numbers entered so far this year. Same thing as the "rolling average" on the old spreadsheet. Read-only: the system computes it.', example: 'Entries of 10, 20, and 30 for Jan–Mar show a YTD AVG of 20.' },
+    ],
+  },
+  {
+    id: 'okr_status',
+    label: 'Status & attention',
+    blurb: 'What the colors and status words mean, everywhere in OMP.',
+    terms: [
+      { id: 'status_on_track', term: 'On Track', def: 'Progressing as planned — no intervention needed. Set by the line owner.' },
+      { id: 'status_at_risk', term: 'At Risk', def: 'Trending the wrong way — could miss the target without a course correction. Set by the line owner.' },
+      { id: 'status_blocked', term: 'Blocked (off track)', def: 'Work has stopped because something prevents progress — you’ve worked on it but can’t move it. The block should be identified so leadership can act on it.', example: 'A part is discontinued and the replacement was judged too expensive — the initiative is blocked, and that decision stays visible instead of disappearing.' },
+      { id: 'status_past_due', term: 'Past Due', def: 'The due date has passed and the item is still open. These age every day and are the first thing to review.' },
+      { id: 'due_horizon', term: 'Due horizon', def: 'How much work is coming due: today, within 7, 14, or 28 days. A pressure gauge for the next month.' },
+    ],
+  },
+];
+
 export const flattenGlossaryTerms = (groups = []) => groups.flatMap(group => group.terms.map(term => ({ ...term, groupId: group.id, groupLabel: group.label })));
 
 export const FieldKeyContext = createContext(null);
