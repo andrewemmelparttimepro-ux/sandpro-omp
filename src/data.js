@@ -130,5 +130,15 @@ export const canManagePermissions = (user) => {
   return user?.role === "executive" || ["jfeil@sandpro.com", "andrew@ndai.pro"].includes(email);
 };
 
+export const canManageOkrs = (user) => {
+  const email = (user?.email || "").toLowerCase();
+  return user?.role === "executive" || [
+    "jfeil@sandpro.com",
+    "jblackaby@sandpro.com",
+    "tdibben@sandpro.com",
+    "andrew@ndai.pro",
+  ].includes(email);
+};
+
 // Get all profiles (for components that need the full list)
 export const getProfiles = () => _profiles;

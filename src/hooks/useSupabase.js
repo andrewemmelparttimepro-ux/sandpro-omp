@@ -3378,25 +3378,34 @@ export function useNotifications(userId) {
       return null;
     }
     const { data: sessionData } = await supabase.auth.getSession();
-    fetch('/api/notifications/send-event', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(sessionData?.session?.access_token ? { Authorization: `Bearer ${sessionData.session.access_token}` } : {}),
-      },
-      body: JSON.stringify({
-        targetUserId,
-        type,
-        objectiveId,
-        message,
-        notificationId: data.id,
-        priority,
-        detailText: context.detailText || '',
-        detailLabel: context.detailLabel || '',
-      }),
-    }).catch(() => {});
+    let fanout = null;
+    try {
+      const response = await fetch('/api/notifications/send-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(sessionData?.session?.access_token ? { Authorization: `Bearer ${sessionData.session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          targetUserId,
+          type,
+          objectiveId,
+          message,
+          notificationId: data.id,
+          priority,
+          detailText: context.detailText || '',
+          detailLabel: context.detailLabel || '',
+        }),
+      });
+      fanout = await response.json().catch(() => null);
+      if (!response.ok) {
+        console.warn('[Supabase] notification fan-out failed:', fanout?.error || `HTTP ${response.status}`);
+      }
+    } catch (fanoutError) {
+      console.warn('[Supabase] notification fan-out failed:', fanoutError?.message || fanoutError);
+    }
     await fetchNotifications();
-    return data;
+    return { ...data, fanout };
   };
 
   return { notifications: sortNotifications(notifications), loading, markRead, markAllRead, createNotification, refetch: fetchNotifications };

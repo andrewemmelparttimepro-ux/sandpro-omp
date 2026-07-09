@@ -426,13 +426,23 @@ const helpStorage = {
 // ============================================================================
 // FEATURE HELP — dismisses into a recallable question mark
 // ============================================================================
-export const FeatureHelp = ({ id, title, children, items = [], className = "" }) => {
+export const FeatureHelp = ({ id, title, children, items = [], className = "", defaultOpen = true }) => {
   const storageKey = `sandpro-feature-help-${id}`;
-  const [open, setOpen] = useState(() => helpStorage.get(storageKey) !== 'dismissed');
+  const [open, setOpen] = useState(() => {
+    const saved = helpStorage.get(storageKey);
+    if (saved === 'dismissed') return false;
+    if (saved === 'open') return true;
+    return defaultOpen;
+  });
 
   const dismiss = () => {
     helpStorage.set(storageKey, 'dismissed');
     setOpen(false);
+  };
+
+  const expand = () => {
+    helpStorage.set(storageKey, 'open');
+    setOpen(true);
   };
 
   if (!open) {
@@ -440,7 +450,7 @@ export const FeatureHelp = ({ id, title, children, items = [], className = "" })
       <button
         type="button"
         className={`feature-help-trigger ${className}`}
-        onClick={() => setOpen(true)}
+        onClick={expand}
         title={`Help: ${title}`}
         aria-label={`Open help for ${title}`}
       >

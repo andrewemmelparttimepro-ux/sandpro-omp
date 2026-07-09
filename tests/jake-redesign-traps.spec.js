@@ -17,6 +17,12 @@ test.describe('Jake module redesign traps', () => {
     }
     await expect(oldObjectivesNav(page)).toHaveCount(0);
     await expect(page.locator('.global-kpi-strip')).toBeVisible();
+    await expect(page.locator('.global-kpi-strip .kpi-grid')).toBeVisible();
+    await page.getByRole('button', { name: /Hide overview/i }).click({ force: true });
+    await expect(page.locator('.global-kpi-strip .kpi-grid')).toHaveCount(0);
+    await expect(page.getByLabel('Collapsed KPI summary')).toBeVisible();
+    await page.getByRole('button', { name: /Show overview/i }).click({ force: true });
+    await expect(page.locator('.global-kpi-strip .kpi-grid')).toBeVisible();
 
     await page.goto('/?page=okr', { waitUntil: 'domcontentloaded' });
     await dismissGuidance(page);
@@ -24,6 +30,17 @@ test.describe('Jake module redesign traps', () => {
     await expect(page.getByRole('heading', { name: 'OKR' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Presentation view' })).toBeVisible();
     await expect(page.locator('.global-kpi-strip')).toBeVisible();
+    await expect(page.locator('.okr-grid thead')).toContainText('YTD AVG');
+    await expect(page.locator('.okr-grid thead')).toContainText('Audit Form');
+    await expect(page.locator('.okr-grid thead')).toContainText('Baseline');
+    await expect(page.locator('.okr-grid thead')).toContainText('Target');
+    await expect.poll(async () => page.locator('.okr-grid tbody tr').count()).toBeGreaterThan(4);
+    await page.getByRole('button', { name: 'Presentation view' }).click();
+    await expect(page.locator('.okr-print-summary')).toContainText(/OKR lines/);
+    await expect(page.locator('#okr-print-sheet thead').first()).toContainText('YTD AVG');
+    await expect(page.locator('#okr-print-sheet thead').first()).toContainText('Cadence');
+    await expect.poll(async () => page.locator('#okr-print-sheet tbody tr').count()).toBeGreaterThan(4);
+    await expect.poll(async () => page.locator('#okr-print-sheet .okr-print-section h3').count()).toBeGreaterThan(5);
 
     await navItem(page, 'Tasks & Projects').click();
     await expect(page).not.toHaveURL(/page=objectives/);
@@ -55,11 +72,30 @@ test.describe('Jake module redesign traps', () => {
     await page.getByRole('button', { name: 'Single' }).click();
     await page.getByRole('button', { name: 'Standalone' }).click();
     await page.getByPlaceholder('What needs to happen?').fill('Redesign trap task');
+    await expect(wizard.getByText('Tagged teammates')).toBeVisible();
+    await expect(wizard.getByPlaceholder('@name')).toBeVisible();
+    await expect(wizard.getByRole('button', { name: /Add files/i })).toBeVisible();
+    await assertNoMobileCrop(page, 'mobile create wizard');
     await wizard.evaluate((element) => {
       element.scrollTop = element.scrollHeight;
     });
     await expect(page.getByRole('button', { name: /Create Task/i })).toBeVisible();
-    await assertNoMobileCrop(page, 'mobile create wizard');
+    await page.getByLabel('Close').click();
+
+    await page.locator('.mobile-new-fab').click();
+    await page.getByRole('button', { name: 'Project', exact: true }).click();
+    await page.getByRole('button', { name: 'Standalone' }).click();
+    await page.getByPlaceholder('What needs to happen?').fill('Project with setup tasks');
+    await expect(wizard.getByText('Tasks')).toBeVisible();
+    await expect(wizard.getByLabel('Project task 1 description')).toBeVisible();
+    await expect(wizard.getByLabel('Assign project task 1')).toBeVisible();
+    await wizard.getByLabel('Project task 1 description').fill('Kayla training materials');
+    await wizard.getByRole('button', { name: /Add another task/i }).click();
+    await expect(wizard.getByLabel('Project task 2 description')).toBeVisible();
+    await wizard.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await expect(page.getByRole('button', { name: /Create Project/i })).toBeVisible();
     await page.getByLabel('Close').click();
 
     await page.locator('.mobile-new-fab').click();

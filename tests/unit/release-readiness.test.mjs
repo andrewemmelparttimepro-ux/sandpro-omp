@@ -5,7 +5,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { notificationAllowsEmail } from '../../api/_shared/email.js';
 import { notificationAllowsPush } from '../../api/_shared/push.js';
-import { canManageOrgChart, canManagePermissions } from '../../src/data.js';
+import { canManageOkrs, canManageOrgChart, canManagePermissions } from '../../src/data.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (path) => readFileSync(join(root, path), 'utf8');
@@ -301,6 +301,20 @@ test('Web Push is a visible direct-work layer on top of in-app notifications', (
   assert.equal(notificationAllowsPush({ push_enabled: false, delegation_alerts: true }, 'assignment'), false);
 });
 
+test('Create New delegated tasks create assignee notifications and await fan-out', () => {
+  const app = read('src/App.jsx');
+  const hook = read('src/hooks/useSupabase.js');
+
+  assert.match(app, /const notifyWizardOwnerAssignment = async/);
+  assert.match(app, /ownerId === profile\.id\) return false/);
+  assert.match(app, /await notifyWizardOwnerAssignment\(\{ objectiveId: created\.id, title, ownerId, dueDate, contextLabel: 'Task assigned'/);
+  assert.match(app, /await notifyWizardOwnerAssignment\(\{ objectiveId: created\.id, title, ownerId, dueDate, contextLabel: 'Main OKR assigned'/);
+  assert.match(app, /Created, but the \$\{failureLabel\} notification did not send\./);
+  assert.match(hook, /const response = await fetch\('\/api\/notifications\/send-event'/);
+  assert.match(hook, /notification fan-out failed/);
+  assert.match(hook, /return \{ \.\.\.data, fanout \}/);
+});
+
 test('account menu exposes standard settings and password change', () => {
   const app = read('src/App.jsx');
   const css = read('src/index.css');
@@ -402,6 +416,20 @@ test('Jake and Andrew can edit user permissions from settings', () => {
   assert.match(endpoint, /PERMISSION_ADMIN_EMAILS/);
   assert.match(endpoint, /jfeil@sandpro\.com/);
   assert.match(endpoint, /andrew@ndai\.pro/);
+});
+
+test('OKR creation and sheet management are limited to authorized OKR editors', () => {
+  const app = read('src/App.jsx');
+  const page = read('src/pages.jsx');
+
+  assert.equal(canManageOkrs({ role: 'executive', email: 'someone@sandpro.com' }), true);
+  assert.equal(canManageOkrs({ role: 'contributor', email: 'jfeil@sandpro.com' }), true);
+  assert.equal(canManageOkrs({ role: 'contributor', email: 'jblackaby@sandpro.com' }), true);
+  assert.equal(canManageOkrs({ role: 'contributor', email: 'tdibben@sandpro.com' }), true);
+  assert.equal(canManageOkrs({ role: 'contributor', email: 'mjimenez@sandpro.com' }), false);
+  assert.match(page, /canManageOkrs\(currentUser\)/);
+  assert.match(app, /canManageOkrs\(profile\)/);
+  assert.match(app, /Main OKRs are limited to authorized OKR editors/);
 });
 
 test('org editors can delete employees after blocking work is cleared', () => {
@@ -559,6 +587,8 @@ test('new user-facing features include dismissible help that can be reopened', (
   const component = read('src/components.jsx');
   const pages = read('src/pages.jsx');
   assert.match(component, /export const FeatureHelp/);
+  assert.match(component, /defaultOpen = true/);
+  assert.match(pages, /title="Editing the org chart"[\s\S]*defaultOpen=\{false\}/);
   assert.match(component, /sandpro-feature-help-/);
   assert.match(component, /HelpCircle/);
   for (const helpId of [
@@ -685,6 +715,17 @@ test('Merci feedback items are covered by durable UI paths', () => {
   assert.match(app, /Reset Your Password/);
 });
 
+test('OKR sheet includes bare department OKRs', () => {
+  const pages = read('src/pages.jsx');
+
+  assert.match(pages, /level === "company" \|\| level === "department" \|\| level === "key_result"/);
+  assert.match(pages, /\.filter\(isOkrSheetObjective\)/);
+  assert.match(pages, /getOkrSheetSection/);
+  assert.match(pages, /OKR_REFERENCE_COLUMNS = \["YTD AVG", "Cadence", "Department", "Audit Form", "Baseline", "Target"\]/);
+  assert.match(pages, /YTD AVG is auto-calculated/);
+  assert.match(pages, /formatOkrAverage\(ytdAverage\(o\)\)/);
+});
+
 test('objective progress calculation copy is professional SandPro language', () => {
   const component = read('src/components.jsx');
 
@@ -693,6 +734,18 @@ test('objective progress calculation copy is professional SandPro language', () 
   assert.match(component, /Weighted by work importance/);
   assert.match(component, /Manual leadership update/);
   assert.doesNotMatch(component, /Average child progress|Weighted child progress/);
+});
+
+test('Merci follow-up visibility fixes are represented in the UI source', () => {
+  const app = read('src/App.jsx');
+  const page = read('src/pages.jsx');
+
+  assert.match(app, /DAILY_BRIEF_ENABLED = true/);
+  assert.match(page, /Unknown NCR owners need a closure contact/);
+  assert.match(page, /Unknown-owner closure contact/);
+  assert.match(page, /longTermFollowUp/);
+  assert.match(page, /Pick up where I left off/);
+  assert.match(page, /Most urgent open item in the selected aging window/);
 });
 
 test('objective tagging uses @mention entry instead of teammate dropdowns', () => {
@@ -749,6 +802,12 @@ test('dashboard KPI buckets mirror objective drill-down filters', () => {
   assert.match(pages, /<KPICard bucket="time" icon=\{AlertTriangle\} label="Past Due"/);
   assert.match(pages, /DueHorizonStrip/);
   assert.match(pages, /dueHorizonItems/);
+  assert.match(pages, /GLOBAL_KPI_COLLAPSED_KEY/);
+  assert.match(pages, /Collapsed KPI summary/);
+  assert.match(pages, /Hide overview/);
+  assert.match(pages, /Show overview/);
+  assert.match(css, /\.global-kpi-strip\.collapsed/);
+  assert.match(css, /\.global-kpi-compact-metrics/);
   assert.match(pages, /status: "completed"/);
   assert.match(pages, /gridTemplateColumns: "repeat\(4/);
   assert.match(pages, /label: "7 days"/);
