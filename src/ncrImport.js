@@ -3,6 +3,70 @@ export const normalizeCsvHeader = (value = '') => String(value || '')
   .replace(/[^a-z0-9]+/g, ' ')
   .trim();
 
+export const isImportedNcrClosedValue = (value) => /^(yes|y|true|1|closed|complete|completed)$/i
+  .test(String(value ?? '').trim());
+
+const NCR_IMPORT_DB_SOURCE_FIELDS = [
+  'report_number',
+  'source_sheet',
+  'source_link',
+  'report_date',
+  'observer',
+  'follow_up_count',
+  'follow_up_details',
+  'worksite_area',
+  'operator_location',
+  'event_at',
+  'internal_external',
+  'event_type',
+  'event_types',
+  'non_productive_time',
+  'non_productive_time_amount',
+  'criticality',
+  'severity',
+  'author',
+  'personnel_involved',
+  'event_description',
+  'root_cause_codes',
+  'root_cause_analysis',
+  'immediate_action',
+  'permanent_action',
+  'affected_departments',
+  'affected_department_list',
+  'department_group',
+  'action_effective',
+  'source_system',
+  'source_record_id',
+  'source_batch_id',
+  'source_raw_record',
+  'canonical_failure_code',
+  'normalized_failure_summary',
+  'ai_confidence',
+  'ai_classification_reason',
+];
+
+export const buildNcrImportDbPayload = (fullPayload = {}, existing = null, currentUserId = null) => {
+  const payload = Object.fromEntries(NCR_IMPORT_DB_SOURCE_FIELDS
+    .filter(field => Object.hasOwn(fullPayload, field))
+    .map(field => [field, fullPayload[field]]));
+  const closed = Boolean(fullPayload.closed) || Boolean(existing?.closed);
+
+  payload.main_department = existing?.main_department || fullPayload.main_department || null;
+  payload.closed = closed;
+  payload.status = closed
+    ? 'closed'
+    : existing?.status === 'in_progress'
+      ? 'in_progress'
+      : 'open';
+  payload.lifecycle_stage = closed
+    ? 'closed'
+    : existing?.lifecycle_stage || fullPayload.lifecycle_stage || 'submitted';
+  payload.updated_by = currentUserId || fullPayload.updated_by || null;
+  if (!existing) payload.created_by = currentUserId || fullPayload.created_by || null;
+
+  return payload;
+};
+
 const NCR_IMPORT_HEADER_HINTS = [
   ['Report #', 'Report Number', 'NCR #', 'NCR Number', 'ID', 'Response ID'],
   ['Event Description', 'Description', 'Event', 'Describe Event'],

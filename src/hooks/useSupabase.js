@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress } from '../okrFramework';
 import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
 import { parseKpiCsv } from '../kpiSystem';
+import { buildNcrImportDbPayload } from '../ncrImport';
 import {
   ALT_NOTES_BUCKET,
   ALT_NOTES_EDITOR_EMPTY_DOC,
@@ -2969,13 +2970,17 @@ export function useNcrReports(enabled = false) {
     if (!rows.length) return { imported: 0, skipped: 0 };
     const reportNumbers = [...new Set(rows.map(row => String(row.reportNumber || '').trim()).filter(Boolean))];
     const existingNumbers = new Set();
+    const existingByNumber = new Map();
     if (reportNumbers.length > 0) {
       const { data: existingReports, error: existingError } = await supabase
         .from('ncr_reports')
-        .select('report_number')
+        .select('report_number,main_department,status,closed,lifecycle_stage,source_batch_id')
         .in('report_number', reportNumbers);
       if (existingError) throw existingError;
-      (existingReports || []).forEach(report => existingNumbers.add(report.report_number));
+      (existingReports || []).forEach(report => {
+        existingNumbers.add(report.report_number);
+        existingByNumber.set(report.report_number, report);
+      });
     }
     const { data: batch, error: batchError } = await supabase
       .from('ncr_import_batches')
@@ -2997,13 +3002,15 @@ export function useNcrReports(enabled = false) {
       try {
         const rowNumber = String(row.reportNumber || '').trim();
         const existedBefore = existingNumbers.has(rowNumber);
-        const payload = ncrInsertPayload({
+        const fullPayload = ncrInsertPayload({
           ...row,
           sourceSystem: row.sourceSystem || 'KPA',
           sourceBatchId: batch.id,
           createdBy: userId,
           updatedBy: userId,
         }, userId);
+        const existingReport = existingByNumber.get(rowNumber) || null;
+        const payload = buildNcrImportDbPayload(fullPayload, existingReport, userId);
         const { data, error } = await supabase
           .from('ncr_reports')
           .upsert(payload, { onConflict: 'report_number' })
@@ -3021,7 +3028,7 @@ export function useNcrReports(enabled = false) {
           actor_id: userId,
           event_type: 'imported',
           field_name: 'source_batch_id',
-          old_value: null,
+          old_value: existingReport?.source_batch_id || null,
           new_value: batch.id,
           note: `${existedBefore ? 'Priority refresh from newest KPA list' : 'Imported new'} KPA row from ${fileName}`,
         });

@@ -45,7 +45,7 @@ import {
   rankAltObjectives,
 } from './altDashboard';
 import { getAltNotesPreview, normalizeAltNotesState } from './altNotes';
-import { normalizeCsvHeader, parseCsvText, tableRowsToObjects } from './ncrImport';
+import { isImportedNcrClosedValue, normalizeCsvHeader, parseCsvText, tableRowsToObjects } from './ncrImport';
 import {
   KPI_STATUS_META,
   buildDepartmentScorecard,
@@ -5054,15 +5054,21 @@ const transformImportedNcrRow = (row = {}, index = 0, currentUser) => {
   const eventTypes = splitMultiValue(findFirstValue(row, ['Type of Event', 'Event Type', 'Type']));
   const departments = sanitizeNcrDepartmentList(splitMultiValue(findFirstValue(row, ['What Departments does this affect?', 'Affected Departments', 'Department', 'Group'])));
   const rootCauseCodes = findFirstValue(row, ['Root Cause Codes', 'Root Cause Code', 'Root Cause']);
-  const importedActionEffectiveRaw = findFirstValue(row, ['Has Corrective/Preventative Action worked?', 'Action Effective', 'Effective?', 'Was action effective?']);
-  const importedActionEffective = normalizeNcrYesNo(importedActionEffectiveRaw);
+  const importedActionEffectiveRaw = findFirstValue(row, ['Has the Corrective/Preventative Action worked', 'Has Corrective/Preventative Action worked?', 'Action Effective', 'Effective?', 'Was action effective?']);
+  const importedClosed = isImportedNcrClosedValue(findFirstValue(row, ['Closed', 'Status']));
+  const followUpCount = Number(findFirstValue(row, ['Follow-Ups', 'Follow Ups', 'Follow-Up Count', 'Follow Up Count']));
+  const followUpDetails = findFirstValue(row, ['Follow-Up Details', 'Follow Up Details']);
   const baseReport = {
     ...buildDefaultNcrDraft(currentUser),
     reportNumber,
     sourceSheet: 'KPA historical import',
+    sourceLink: findFirstValue(row, ['Link', 'Source Link']),
     sourceSystem: 'KPA',
+    sourceRecordId: reportNumber,
     reportDate: dateOnly(findFirstValue(row, ['Report Date', 'Date', 'Created Date', 'Submitted Date'])) || new Date().toISOString().slice(0, 10),
     observer: findFirstValue(row, ['Observer', 'Created By', 'Submitted By']) || currentUser?.name || '',
+    followUpCount: Number.isFinite(followUpCount) ? followUpCount : 0,
+    followUpDetails,
     worksiteArea: findFirstValue(row, ['Worksite/Area', 'Worksite Area', 'Area']),
     operatorLocation: findFirstValue(row, ['Operator and Location', 'Operator Location', 'Location', 'Customer Location']),
     eventAt: findFirstValue(row, ['Date and Time Event', 'Event Date', 'Event Time']),
@@ -5072,6 +5078,7 @@ const transformImportedNcrRow = (row = {}, index = 0, currentUser) => {
     nonProductiveTime: findFirstValue(row, ['Non-Productive Time', 'NPT']) || 'No',
     nonProductiveTimeAmount: findFirstValue(row, ['Non-Productive Time amount', 'NPT Amount', 'NPT Cost']),
     author: findFirstValue(row, ['Author of Report', 'Author']) || currentUser?.name || '',
+    authorId: '',
     personnelInvolved: findFirstValue(row, ['Personnel Involved', 'Employees Involved']),
     eventDescription,
     severity: findFirstValue(row, ['Critical or Non-Critical', 'Criticality', 'Severity']) || 'Non-Critical',
@@ -5083,6 +5090,7 @@ const transformImportedNcrRow = (row = {}, index = 0, currentUser) => {
     timeFrameForAction: findFirstValue(row, ['Time Frame for Action', 'Timeframe']),
     permanentAction: findFirstValue(row, ['Permanent Corrective Action', 'Permanent Action']),
     affectedDepartments: departments.join(', '),
+    affectedDepartmentList: departments,
     departmentGroup: departments[0] || sanitizeNcrDepartmentList([findFirstValue(row, ['Department', 'Group'])])[0] || 'Quality',
     // Main department (Jake's five divisions). Explicit column wins; otherwise
     // derived from the group when deterministic; otherwise the record lands in
@@ -5092,16 +5100,17 @@ const transformImportedNcrRow = (row = {}, index = 0, currentUser) => {
       if (OMP_DEPARTMENTS.includes(explicit)) return explicit;
       return getNcrGroupDepartment(explicit) || getNcrGroupDepartment(departments[0]) || '';
     })(),
-    longTermFollowUp: findFirstValue(row, ['Long-Term Follow-Up', 'Long Term Follow Up', 'Follow-Up', 'Follow Up']),
-    actionEffective: importedActionEffective,
-    effectivenessSummary: findFirstValue(row, ['Effectiveness Verification', 'Verification of Effectiveness', 'Effectiveness Summary']) || (importedActionEffectiveRaw && !importedActionEffective ? importedActionEffectiveRaw : ''),
-    recurrencePrevented: ncrYesNoToBoolean(importedActionEffective),
+    longTermFollowUp: findFirstValue(row, ['Long-Term Follow-Up', 'Long Term Follow Up']),
+    actionEffective: importedActionEffectiveRaw,
+    effectivenessSummary: findFirstValue(row, ['Effectiveness Verification', 'Verification of Effectiveness', 'Effectiveness Summary']),
+    recurrencePrevented: ncrYesNoToBoolean(importedActionEffectiveRaw),
     dateInitialCorrectiveAction: dateOnly(findFirstValue(row, ['Date of Initial Corrective Action'])),
     datePermanentCorrectiveActionCompleted: dateOnly(findFirstValue(row, ['Date of Permanent Corrective Action Completed'])),
     dateOfReview: dateOnly(findFirstValue(row, ['Date of Review'])),
     dateOfSignOff: dateOnly(findFirstValue(row, ['Date of sign-off', 'Date of Sign Off'])),
-    status: /closed|complete/i.test(findFirstValue(row, ['Status', 'Closed'])) ? 'closed' : 'open',
-    lifecycleStage: /closed|complete/i.test(findFirstValue(row, ['Status', 'Closed'])) ? 'closed' : 'submitted',
+    status: importedClosed ? 'closed' : 'open',
+    lifecycleStage: importedClosed ? 'closed' : 'submitted',
+    ownerId: '',
     sourceRawRecord: row,
   };
   const classification = classifyNcrFailure(baseReport);
