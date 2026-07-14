@@ -35,6 +35,17 @@ const mentionTokens = (text = "") => (
     .filter(Boolean)
 );
 
+const queryMatchesUser = (user = {}, normalizedQuery = "") => {
+  if (!normalizedQuery) return true;
+  const searchable = normalizeMentionValue(`${user.name || ""} ${user.email || ""} ${user.title || ""}`);
+  if (searchable.includes(normalizedQuery)) return true;
+
+  const aliases = mentionAliases(user);
+  return [aliases.name, aliases.firstName, aliases.emailLocal]
+    .filter(Boolean)
+    .some(alias => alias.startsWith(normalizedQuery) || normalizedQuery.startsWith(alias));
+};
+
 const tokenMatchesAlias = (token, alias) => alias && (token === alias || token.startsWith(`${alias} `));
 
 const tokenMatchesAllCompany = (token) => (
@@ -65,11 +76,7 @@ export const findMentionCandidates = (users = [], query = "", currentUserId = nu
 
   const people = users
     .filter(user => user?.id && user.id !== currentUserId)
-    .filter(user => {
-      if (!normalizedQuery) return true;
-      const searchable = normalizeMentionValue(`${user.name || ""} ${user.email || ""} ${user.title || ""}`);
-      return searchable.includes(normalizedQuery);
-    })
+    .filter(user => queryMatchesUser(user, normalizedQuery))
     .sort((a, b) => {
       const aMember = memberSet.has(a.id) ? 0 : 1;
       const bMember = memberSet.has(b.id) ? 0 : 1;

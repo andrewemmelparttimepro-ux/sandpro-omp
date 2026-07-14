@@ -21,6 +21,12 @@ test('finds mention candidates and prioritizes existing objective members', () =
   assert.equal(candidates[1].id, 'jake');
 });
 
+test('keeps teammate suggestions visible after a small name overtype', () => {
+  const tim = { id: 'tim', name: 'Tim Dibben', email: 'tdibben@sandpro.com', title: 'Facilities Operations Manager' };
+  const candidates = findMentionCandidates([...users, tim], 'timi', 'andrew');
+  assert.equal(candidates[0].id, 'tim');
+});
+
 test('inserts selected mention text and returns selected users for notifications', () => {
   const active = getActiveMention('Please @mer review this', 11);
   const text = insertMentionText('Please @mer review this', active, users[1]);

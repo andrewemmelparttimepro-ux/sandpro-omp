@@ -37,10 +37,13 @@ test.describe('Jake module redesign traps', () => {
     await expect.poll(async () => page.locator('.okr-grid tbody tr').count()).toBeGreaterThan(4);
     await page.getByRole('button', { name: 'Presentation view' }).click();
     await expect(page.locator('.okr-print-summary')).toContainText(/OKR lines/);
+    await expect(page.locator('#okr-print-sheet h2')).toHaveText(/SandPro OKR 2026/);
+    await expect(page.locator('#okr-print-sheet')).not.toContainText("Did it get done or didn't it?");
     await expect(page.locator('#okr-print-sheet thead').first()).toContainText('YTD AVG');
     await expect(page.locator('#okr-print-sheet thead').first()).toContainText('Cadence');
     await expect.poll(async () => page.locator('#okr-print-sheet tbody tr').count()).toBeGreaterThan(4);
     await expect.poll(async () => page.locator('#okr-print-sheet .okr-print-section h3').count()).toBeGreaterThan(5);
+    await expect(page.locator('#okr-print-sheet .okr-print-section h3').first()).toHaveCSS('color', 'rgb(199, 84, 0)');
 
     await navItem(page, 'Tasks & Projects').click();
     await expect(page).not.toHaveURL(/page=objectives/);
@@ -73,7 +76,15 @@ test.describe('Jake module redesign traps', () => {
     await page.getByRole('button', { name: 'Standalone' }).click();
     await page.getByPlaceholder('What needs to happen?').fill('Redesign trap task');
     await expect(wizard.getByText('Tagged teammates')).toBeVisible();
-    await expect(wizard.getByPlaceholder('@name')).toBeVisible();
+    const tagInput = wizard.getByPlaceholder('@name');
+    await expect(tagInput).toBeVisible();
+    await tagInput.fill('@Timi');
+    await expect(page.locator('.tag-mention-menu .mention-name', { hasText: 'Tim Dibben' })).toBeVisible();
+    await tagInput.fill('');
+    await page.getByRole('button', { name: 'Recurring' }).click();
+    await tagInput.fill('@Tim');
+    await expect(page.locator('.tag-mention-menu .mention-name', { hasText: 'Tim Dibben' })).toBeVisible();
+    await tagInput.fill('');
     await expect(wizard.getByRole('button', { name: /Add files/i })).toBeVisible();
     await assertNoMobileCrop(page, 'mobile create wizard');
     await wizard.evaluate((element) => {

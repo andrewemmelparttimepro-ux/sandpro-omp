@@ -236,11 +236,9 @@ test('NCR tracker is a database-backed production page with objective handoff', 
 test('Vercel cron jobs are configured for digest and reminders', () => {
   const config = JSON.parse(read('vercel.json'));
   const paths = config.crons.map((cron) => cron.path);
-  // The SandPro Times daily email cron is PAUSED per commit 2f8cb4d
-  // (2026-07-03, "pull the daily email cron for now"). When Andrew turns it
-  // back on, re-add the /api/cron/daily-digest block to vercel.json and flip
-  // this assertion back to paths.includes('/api/cron/daily-digest').
-  assert.ok(!paths.includes('/api/cron/daily-digest'));
+  const digest = config.crons.find((cron) => cron.path === '/api/cron/daily-digest');
+  assert.ok(paths.includes('/api/cron/daily-digest'));
+  assert.equal(digest.schedule, '0 13 * * 1-5');
   assert.ok(paths.includes('/api/cron/reminders'));
 });
 
@@ -644,6 +642,9 @@ test('daily digest cron sends The SandPro Times with clickable objective context
   assert.match(digest, /objective_members/);
   assert.match(digest, /getScopedObjectives/);
   assert.match(digest, /getActionItems/);
+  assert.match(digest, /ensureDailyDigestNotification/);
+  assert.match(digest, /type: 'daily_digest'/);
+  assert.match(digest, /notificationId: inAppResult\?\.id/);
   assert.doesNotMatch(digest, /if \(scoped\.length === 0\) continue/);
   assert.match(digest, /subject: `The SandPro Times/);
 });

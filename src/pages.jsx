@@ -1417,7 +1417,7 @@ export const CreateWizardModal = ({
 // ============================================================================
 // OKR PAGE — the spreadsheet, digitized and locked. Edit view: monthly grid,
 // only your tagged line is editable. Presentation view: clean one-page
-// roll-up by department, built to print. "Did it get done or didn't it?"
+// roll-up by department, built to print.
 // ============================================================================
 const OKR_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const OKR_REFERENCE_COLUMNS = ["YTD AVG", "Cadence", "Department", "Audit Form", "Baseline", "Target"];
@@ -1640,8 +1640,7 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
         <div id="okr-print-sheet" className="okr-print-sheet">
           <div className="okr-print-head">
             <div>
-              <div className="okr-print-eyebrow">SandPro · OKR · {year}</div>
-              <h2>Did it get done or didn't it?</h2>
+              <h2>SandPro OKR {year}</h2>
             </div>
             <span className="okr-print-date">{new Date().toLocaleDateString()}</span>
           </div>

@@ -57,6 +57,38 @@ const getActionItems = (objectives, startOfToday) => [...objectives]
   })
   .slice(0, 3);
 
+const ensureDailyDigestNotification = async ({ supabase, profile, objective, message, today }) => {
+  const startOfUtcDay = `${today}T00:00:00.000Z`;
+  const { data: existing, error: selectError } = await supabase
+    .from('notifications')
+    .select('id')
+    .eq('user_id', profile.id)
+    .eq('type', 'daily_digest')
+    .gte('created_at', startOfUtcDay)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (selectError) throw selectError;
+  if (existing?.id) return { id: existing.id, deduped: true };
+
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: profile.id,
+      sender_id: null,
+      type: 'daily_digest',
+      objective_id: objective?.id || null,
+      message,
+      priority: 'normal',
+      detail_label: 'Daily brief',
+      detail_text: 'The SandPro Times is ready.',
+    })
+    .select('id')
+    .single();
+  if (error) throw error;
+  return { id: data.id, created: true };
+};
+
 const SERIF = "Georgia,'Times New Roman',serif";
 const SANS = "Arial,Helvetica,sans-serif";
 
@@ -181,7 +213,18 @@ export default async function handler(req, res) {
       };
       const actionItems = getActionItems(scoped, startOfToday);
       const firstObjective = actionItems[0] || scoped[0] || null;
+      const digestMessage = `Today's edition is out - ${stats.active} active, ${stats.pastDue} past due, ${stats.blockedAtRisk} blocked or at risk on your desk.`;
       const html = buildTimesEmail({ req, profile, stats, companyStats, actionItems });
+      const inAppResult = pref?.in_app_enabled === false
+        ? null
+        : await ensureDailyDigestNotification({
+          supabase,
+          profile,
+          objective: firstObjective,
+          message: digestMessage,
+          today,
+        });
+      if (inAppResult) results.push({ channel: 'in_app', userId: profile.id, ...inAppResult });
       let emailResult = null;
       if (emailAllowed) {
         emailResult = await sendLoggedEmail({
@@ -195,14 +238,15 @@ export default async function handler(req, res) {
         });
         results.push(emailResult);
       }
-      // Skip the push when the email deduped — the cron already ran today.
-      if (!emailResult?.deduped) {
+      // Either durable channel proves the cron already ran today.
+      if (!emailResult?.deduped && !inAppResult?.deduped) {
         results.push(await sendPushNotifications({
           targetUserId: profile.id,
+          notificationId: inAppResult?.id || null,
           type: 'daily_digest',
           objective: firstObjective || {},
           prefs: pref,
-          message: `Today's edition is out — ${stats.active} active, ${stats.pastDue} past due, ${stats.blockedAtRisk} blocked or at risk on your desk.`,
+          message: digestMessage,
           url: appUrl(req, { page: 'dashboard' }),
         }).catch((error) => ({ channel: 'push', error: error.message })));
       }
