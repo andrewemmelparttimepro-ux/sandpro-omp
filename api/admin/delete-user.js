@@ -1,7 +1,7 @@
 import { getAuthedProfile, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
 const ORG_EDITOR_EMAILS = new Set(['mjimenez@sandpro.com', 'tdibben@sandpro.com']);
-const PERMISSION_ADMIN_EMAILS = new Set(['jfeil@sandpro.com', 'andrew@ndai.pro']);
+const PERMISSION_ADMIN_EMAILS = new Set(['jfeil@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro']);
 
 const canManageOrgChart = (profile) => (
   ['executive', 'manager'].includes(profile?.role) ||

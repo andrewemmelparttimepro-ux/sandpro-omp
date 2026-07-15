@@ -937,7 +937,7 @@ CREATE POLICY "Objective creators and admins can delete objectives"
       SELECT 1
       FROM public.profiles
       WHERE id = auth.uid()
-        AND (role = 'executive' OR lower(email) IN ('jfeil@sandpro.com', 'andrew@ndai.pro'))
+        AND (role = 'executive' OR lower(email) IN ('jfeil@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro'))
     )
   );
 

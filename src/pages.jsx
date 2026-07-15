@@ -9378,7 +9378,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                 "Click an entry, then Edit, to update its title, department, or reporting manager.",
                 "Use Add Entry > Group placeholder for teams such as Field Service Technicians that need no email or login.",
                 "Delete removes employees who are no longer tied to objectives, subtasks, messages, or Fix-It posts.",
-                "Role changes are kept separate from org cleanup and are limited to Jake, Andrew, and executives.",
+                "Role changes are kept separate from org cleanup and are limited to platform administrators.",
                 "Use the zoom and Fit controls to size the tree, then drag blank canvas space to pan around the chart.",
                 "Use Fit, Root, or Selected when the tree gets away from view.",
                 "Use Wide for the classic org-chart spread, or Stacked when the team is easier to scan vertically.",
@@ -9870,7 +9870,7 @@ const SettingsPanel = ({ currentUser, objectives, createNotification, onUpdateUs
             <span className="text-sm font-bold">User Permissions</span>
           </div>
           <p className="text-xs text-muted" style={{ marginBottom: 10 }}>
-            Jake and Andrew can change access level here for Merci and future users.
+            Platform administrators can change access levels here for current and future users.
           </p>
           <div className="flex flex-col gap-8">
             <label>

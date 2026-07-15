@@ -1100,7 +1100,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   const canDeleteObjective = Boolean(onDelete && (
     localObj.createdBy === currentUser.id
     || currentUser.role === "executive"
-    || ["jfeil@sandpro.com", "andrew@ndai.pro"].includes(currentUserEmail)
+    || ["jfeil@sandpro.com", "tdibben@sandpro.com", "andrew@ndai.pro"].includes(currentUserEmail)
   ));
   const currentWorkflowStep = workflowSteps.find(step => step.status === "current")
     || workflowSteps.find(step => !["done", "skipped"].includes(step.status))

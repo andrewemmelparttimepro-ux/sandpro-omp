@@ -1308,7 +1308,7 @@ function App() {
       const canDelete = objective && (
         objective.createdBy === profile.id
         || profile.role === 'executive'
-        || ['jfeil@sandpro.com', 'andrew@ndai.pro'].includes(profileEmail)
+        || ['jfeil@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro'].includes(profileEmail)
       );
       if (!canDelete) throw new Error('Only the creator or an admin can delete this objective.');
       await deleteObjective(id);

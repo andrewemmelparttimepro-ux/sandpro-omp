@@ -1,7 +1,7 @@
 import { getAuthedProfile, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
 const ORG_EDITOR_EMAILS = new Set(['mjimenez@sandpro.com', 'tdibben@sandpro.com']);
-const PERMISSION_ADMIN_EMAILS = new Set(['jfeil@sandpro.com', 'andrew@ndai.pro']);
+const PERMISSION_ADMIN_EMAILS = new Set(['jfeil@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro']);
 
 const canManageOrgChart = (profile) => (
   ['executive', 'manager'].includes(profile?.role) ||
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     if (!email || !name || !tempPassword) return json(res, 400, { error: 'email, name, and tempPassword are required.' });
     if (tempPassword.length < 8) return json(res, 400, { error: 'Temporary password must be at least 8 characters.' });
     if (!['executive', 'manager', 'contributor'].includes(role)) return json(res, 400, { error: 'Invalid role.' });
-    if (!canAssignRole(auth.profile, role)) return json(res, 403, { error: 'Only Jake, Andrew, or executives can add manager/executive users.' });
+    if (!canAssignRole(auth.profile, role)) return json(res, 403, { error: 'Only platform administrators can add manager/executive users.' });
 
     const supabase = getSupabaseAdmin();
     const metadata = {

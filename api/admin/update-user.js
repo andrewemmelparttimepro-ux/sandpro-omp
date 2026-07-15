@@ -2,7 +2,7 @@ import { getAuthedProfile, getSupabaseAdmin, json } from '../_shared/supabaseAdm
 
 const VALID_ROLES = new Set(['executive', 'manager', 'contributor']);
 const ORG_EDITOR_EMAILS = new Set(['mjimenez@sandpro.com', 'tdibben@sandpro.com']);
-const PERMISSION_ADMIN_EMAILS = new Set(['jfeil@sandpro.com', 'andrew@ndai.pro']);
+const PERMISSION_ADMIN_EMAILS = new Set(['jfeil@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro']);
 
 const initialsFor = (name = '') => name
   .split(/\s+/)
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     if (!userId || !name?.trim()) return json(res, 400, { error: 'userId and name are required.' });
     if (reportsTo && reportsTo === userId) return json(res, 400, { error: 'A person cannot report to themselves.' });
     if (role && !VALID_ROLES.has(role)) return json(res, 400, { error: 'Invalid role.' });
-    if (role && !canManagePermissions(auth.profile)) return json(res, 403, { error: 'Only Jake, Andrew, or executives can change platform roles.' });
+    if (role && !canManagePermissions(auth.profile)) return json(res, 403, { error: 'Only platform administrators can change platform roles.' });
 
     const supabase = getSupabaseAdmin();
     const { data: existing, error: existingError } = await supabase

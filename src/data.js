@@ -127,7 +127,7 @@ export const canManageOrgChart = (user) => {
 
 export const canManagePermissions = (user) => {
   const email = (user?.email || "").toLowerCase();
-  return user?.role === "executive" || ["jfeil@sandpro.com", "andrew@ndai.pro"].includes(email);
+  return user?.role === "executive" || ["jfeil@sandpro.com", "tdibben@sandpro.com", "andrew@ndai.pro"].includes(email);
 };
 
 export const canManageOkrs = (user) => {

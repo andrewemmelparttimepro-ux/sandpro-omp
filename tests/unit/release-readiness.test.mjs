@@ -416,29 +416,35 @@ test('org chart editing is available to Merci and Tim and guarded server-side', 
   assert.match(endpoint, /mjimenez@sandpro\.com/);
   assert.match(endpoint, /tdibben@sandpro\.com/);
   assert.match(endpoint, /getAuthedProfile\(req,\s*body\.accessToken\)/);
-  assert.match(endpoint, /Only Jake, Andrew, or executives can change platform roles/);
+  assert.match(endpoint, /Only platform administrators can change platform roles/);
   assert.match(endpoint, /wouldCreateCycle/);
   assert.match(endpoint, /org_chart_updates/);
   assert.match(endpoint, /buildOrgChartNote/);
 });
 
-test('Jake and Andrew can edit user permissions from settings', () => {
+test('Jake, Tim, and Andrew can edit user permissions from settings', () => {
   const app = read('src/App.jsx');
   const page = read('src/pages.jsx');
   const endpoint = read('api/admin/update-user.js');
+  const inviteEndpoint = read('api/admin/invite-user.js');
+  const deleteEndpoint = read('api/admin/delete-user.js');
 
   assert.equal(canManagePermissions({ role: 'contributor', email: 'jfeil@sandpro.com' }), true);
+  assert.equal(canManagePermissions({ role: 'contributor', email: 'tdibben@sandpro.com' }), true);
   assert.equal(canManagePermissions({ role: 'contributor', email: 'andrew@ndai.pro' }), true);
   assert.equal(canManagePermissions({ role: 'contributor', email: 'mjimenez@sandpro.com' }), false);
   assert.match(page, /User Permissions/);
-  assert.match(page, /Jake and Andrew can change access level/);
+  assert.match(page, /Platform administrators can change access levels/);
   assert.match(page, /Save Permissions/);
   assert.match(page, /canManagePermissions\(currentUser\)/);
   assert.match(page, /onUpdateUser=\{onUpdateUser\}/);
   assert.match(app, /onUpdateUser=\{handleUpdateUser\}/);
   assert.match(endpoint, /PERMISSION_ADMIN_EMAILS/);
   assert.match(endpoint, /jfeil@sandpro\.com/);
+  assert.match(endpoint, /tdibben@sandpro\.com/);
   assert.match(endpoint, /andrew@ndai\.pro/);
+  assert.match(inviteEndpoint, /PERMISSION_ADMIN_EMAILS = new Set\(\['jfeil@sandpro\.com', 'tdibben@sandpro\.com', 'andrew@ndai\.pro'\]\)/);
+  assert.match(deleteEndpoint, /PERMISSION_ADMIN_EMAILS = new Set\(\['jfeil@sandpro\.com', 'tdibben@sandpro\.com', 'andrew@ndai\.pro'\]\)/);
 });
 
 test('OKR creation and sheet management are limited to authorized OKR editors', () => {
@@ -1169,11 +1175,13 @@ test('objective delete is limited to creators and admins, not plain owners', () 
   assert.match(component, /canDeleteObjective/);
   assert.match(component, /localObj\.createdBy === currentUser\.id/);
   assert.match(component, /jfeil@sandpro\.com/);
+  assert.match(component, /tdibben@sandpro\.com/);
   assert.match(app, /Only the creator or an admin can delete this objective/);
   assert.match(hook, /Only the creator or an admin can delete this objective/);
   assert.match(migration, /Objective creators and admins can delete objectives/);
   assert.match(migration, /auth\.uid\(\) = created_by/);
   assert.match(migration, /jfeil@sandpro\.com/);
+  assert.match(migration, /tdibben@sandpro\.com/);
   assert.doesNotMatch(migration, /Objective creators and admins can delete objectives[\s\S]*auth\.uid\(\) = owner_id/);
 });
 
