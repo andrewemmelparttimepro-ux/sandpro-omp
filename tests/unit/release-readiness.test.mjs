@@ -262,6 +262,8 @@ test('launch email policy permits one daily brief only for the four pilot recipi
   assert.doesNotMatch(eventEndpoint, /sendLoggedEmail/);
   assert.doesNotMatch(reminders, /sendLoggedEmail/);
   assert.match(reminders, /pushAlreadySentToday/);
+  assert.match(reminders, /ensureReminderNotification/);
+  assert.match(reminders, /notificationId: inAppResult\?\.id/);
 
   const settings = read('src/pages.jsx');
   assert.match(settings, /The morning brief is the only email sent during the pilot/);

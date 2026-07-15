@@ -9,6 +9,38 @@ const assertCron = (req) => {
 };
 
 const dayKey = () => new Date().toISOString().slice(0, 10);
+const ensureReminderNotification = async ({ supabase, userId, objectiveId, type, message }) => {
+  const startOfDay = `${dayKey()}T00:00:00.000Z`;
+  const { data: existing, error: selectError } = await supabase
+    .from('notifications')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('objective_id', objectiveId)
+    .eq('type', type)
+    .gte('created_at', startOfDay)
+    .limit(1)
+    .maybeSingle();
+  if (selectError) throw selectError;
+  if (existing?.id) return { id: existing.id, deduped: true };
+
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: userId,
+      sender_id: null,
+      type,
+      objective_id: objectiveId,
+      message,
+      priority: 'normal',
+      detail_label: 'Scheduled reminder',
+      detail_text: message,
+    })
+    .select('id')
+    .single();
+  if (error) throw error;
+  return { id: data.id, created: true };
+};
+
 const pushAlreadySentToday = async ({ supabase, userId, objectiveId, type }) => {
   const { data, error } = await supabase
     .from('push_delivery_log')
@@ -87,12 +119,23 @@ export default async function handler(req, res) {
                 ? `"${objective.title}" is flagged at risk${dueText ? ` of missing its ${dueText} due date` : ''}.`
                 : `"${objective.title}" hasn't been touched in over a week — items without updates fall off people's radar.`;
         const ctaUrl = objectiveUrl(req, objective.id, 'details');
+        const inAppResult = pref?.in_app_enabled === false
+          ? null
+          : await ensureReminderNotification({
+            supabase,
+            userId,
+            objectiveId: objective.id,
+            type,
+            message: body,
+          });
+        if (inAppResult) results.push({ channel: 'in_app', userId, objectiveId: objective.id, type, ...inAppResult });
         if (await pushAlreadySentToday({ supabase, userId, objectiveId: objective.id, type })) {
           results.push({ channel: 'push', deduped: true, userId, objectiveId: objective.id, type });
           continue;
         }
         results.push(await sendPushNotifications({
           targetUserId: userId,
+          notificationId: inAppResult?.id || null,
           type,
           objective,
           prefs: pref,
