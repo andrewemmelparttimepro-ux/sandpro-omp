@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { notificationAllowsEmail } from '../../api/_shared/email.js';
+import { isPilotEmailRecipient, notificationAllowsEmail } from '../../api/_shared/email.js';
 import { notificationAllowsPush } from '../../api/_shared/push.js';
 import { canManageOkrs, canManageOrgChart, canManagePermissions } from '../../src/data.js';
 
@@ -242,9 +242,31 @@ test('Vercel cron jobs are configured for digest and reminders', () => {
   assert.ok(paths.includes('/api/cron/reminders'));
 });
 
-test('tag notifications follow comment and mention email preferences', () => {
-  assert.equal(notificationAllowsEmail({ email_enabled: true, comment_notifications: true }, 'mention'), true);
-  assert.equal(notificationAllowsEmail({ email_enabled: true, comment_notifications: false }, 'mention'), false);
+test('launch email policy permits one daily brief only for the four pilot recipients', () => {
+  for (const email of ['andrew@ndai.pro', 'jfeil@sandpro.com', 'mjimenez@sandpro.com', 'tdibben@sandpro.com']) {
+    assert.equal(isPilotEmailRecipient(email), true);
+    assert.equal(notificationAllowsEmail({ email_enabled: true }, 'daily_digest', email), true);
+  }
+  assert.equal(notificationAllowsEmail({ email_enabled: false }, 'daily_digest', 'andrew@ndai.pro'), false);
+  assert.equal(notificationAllowsEmail({ email_enabled: true }, 'daily_digest', 'someone@sandpro.com'), false);
+  assert.equal(notificationAllowsEmail({ email_enabled: true }, 'mention', 'andrew@ndai.pro'), false);
+  assert.equal(notificationAllowsEmail({ email_enabled: true }, 'assignment', 'jfeil@sandpro.com'), false);
+
+  const sender = read('api/_shared/email.js');
+  const eventEndpoint = read('api/notifications/send-event.js');
+  const reminders = read('api/cron/reminders.js');
+  assert.match(sender, /push_only_policy/);
+  assert.match(sender, /daily_digest:\$\{recipient\}:\$\{dayKey\}/);
+  assert.match(sender, /one_email_per_day/);
+  assert.match(eventEndpoint, /push_only_policy/);
+  assert.doesNotMatch(eventEndpoint, /sendLoggedEmail/);
+  assert.doesNotMatch(reminders, /sendLoggedEmail/);
+  assert.match(reminders, /pushAlreadySentToday/);
+
+  const settings = read('src/pages.jsx');
+  assert.match(settings, /The morning brief is the only email sent during the pilot/);
+  assert.match(settings, /Daily Brief Email/);
+  assert.match(settings, /All categories below are push and in-app alerts/);
 });
 
 test('Web Push is a visible direct-work layer on top of in-app notifications', () => {
@@ -296,6 +318,7 @@ test('Web Push is a visible direct-work layer on top of in-app notifications', (
   assert.equal(notificationAllowsPush({ push_enabled: true, due_reminders: true }, 'due_soon', { priority: 'high' }), true);
   assert.equal(notificationAllowsPush({ push_enabled: true }, 'fixit_new'), true);
   assert.equal(notificationAllowsPush({ push_enabled: true }, 'fixit_agent'), true);
+  assert.equal(notificationAllowsPush({ push_enabled: true, delegation_alerts: true }, 'acknowledgement'), true);
   assert.equal(notificationAllowsPush({ push_enabled: false, delegation_alerts: true }, 'assignment'), false);
 });
 
@@ -645,6 +668,7 @@ test('daily digest cron sends The SandPro Times with clickable objective context
   assert.match(digest, /ensureDailyDigestNotification/);
   assert.match(digest, /type: 'daily_digest'/);
   assert.match(digest, /notificationId: inAppResult\?\.id/);
+  assert.match(digest, /const emailHandled = emailResult\?\.sent \|\| emailResult\?\.deduped/);
   assert.doesNotMatch(digest, /if \(scoped\.length === 0\) continue/);
   assert.match(digest, /subject: `The SandPro Times/);
 });
@@ -1151,20 +1175,15 @@ test('objective delete is limited to creators and admins, not plain owners', () 
   assert.doesNotMatch(migration, /Objective creators and admins can delete objectives[\s\S]*auth\.uid\(\) = owner_id/);
 });
 
-test('mention notification emails open messages and keep due dates separate', () => {
+test('mention notifications open messages and use push-only fan-out', () => {
   const endpoint = read('api/notifications/send-event.js');
-  const email = read('api/_shared/email.js');
   const app = read('src/App.jsx');
   const hook = read('src/hooks/useSupabase.js');
 
   assert.match(endpoint, /type === 'comment' \|\| type === 'mention' \? 'messages' : 'details'/);
-  assert.match(endpoint, /const dueText = objective\?\.due_date \? `\\nDue:/);
-  assert.match(endpoint, /detailText = ''/);
-  assert.match(endpoint, /detailBody: emailDetail/);
-  assert.match(email, /detailLabel = ''/);
-  assert.match(email, /detailBody = ''/);
-  assert.match(email, /border-left:4px solid #ff7f02/);
-  assert.match(email, /white-space:pre-line/);
+  assert.match(endpoint, /sendPushNotifications/);
+  assert.match(endpoint, /reason: 'push_only_policy'/);
+  assert.doesNotMatch(endpoint, /sendLoggedEmail/);
   assert.match(app, /detailText: messageDetail/);
   assert.match(hook, /detailText: context\.detailText/);
 });

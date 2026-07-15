@@ -1,4 +1,4 @@
-import { objectiveUrl, sendLoggedEmail } from '../_shared/email.js';
+import { isPilotEmailRecipient, notificationAllowsEmail, objectiveUrl, sendLoggedEmail } from '../_shared/email.js';
 import { sendPushNotifications } from '../_shared/push.js';
 import { getRequiredEnv, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
@@ -194,9 +194,9 @@ export default async function handler(req, res) {
     const results = [];
 
     for (const profile of profiles) {
-      if (!profile.email || isRoboAccount(profile.email)) continue;
+      if (!profile.email || isRoboAccount(profile.email) || !isPilotEmailRecipient(profile.email)) continue;
       const pref = prefByUser.get(profile.id);
-      const emailAllowed = pref?.email_enabled !== false;
+      const emailAllowed = notificationAllowsEmail(pref, 'daily_digest', profile.email);
       const frequency = pref?.digest_frequency || 'daily';
       if (frequency === 'off') continue;
       if (frequency === 'weekly' && !isMonday) continue;
@@ -238,8 +238,10 @@ export default async function handler(req, res) {
         });
         results.push(emailResult);
       }
-      // Either durable channel proves the cron already ran today.
-      if (!emailResult?.deduped && !inAppResult?.deduped) {
+      // The daily brief is the one email. Push is only its fallback; operational
+      // assignment, mention, reminder, and risk alerts remain push-first.
+      const emailHandled = emailResult?.sent || emailResult?.deduped;
+      if (!emailHandled && !inAppResult?.deduped) {
         results.push(await sendPushNotifications({
           targetUserId: profile.id,
           notificationId: inAppResult?.id || null,

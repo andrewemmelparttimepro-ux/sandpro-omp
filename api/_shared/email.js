@@ -1,11 +1,26 @@
 import { getSupabaseAdmin } from './supabaseAdmin.js';
 
-const htmlEscape = (value = '') => String(value)
-  .replaceAll('&', '&amp;')
-  .replaceAll('<', '&lt;')
-  .replaceAll('>', '&gt;')
-  .replaceAll('"', '&quot;')
-  .replaceAll("'", '&#039;');
+const PILOT_EMAIL_RECIPIENTS = new Set([
+  'andrew@ndai.pro',
+  'jfeil@sandpro.com',
+  'mjimenez@sandpro.com',
+  'tdibben@sandpro.com',
+]);
+
+const normalizeEmail = (value = '') => String(value).trim().toLowerCase();
+
+const chicagoDayKey = (date = new Date()) => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const byType = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${byType.year}-${byType.month}-${byType.day}`;
+};
+
+export const isPilotEmailRecipient = (email) => PILOT_EMAIL_RECIPIENTS.has(normalizeEmail(email));
 
 export const objectiveUrl = (req, objectiveId, tab = 'messages') => {
   const host = process.env.APP_BASE_URL
@@ -18,18 +33,32 @@ export const objectiveUrl = (req, objectiveId, tab = 'messages') => {
   return url.toString();
 };
 
-export const notificationAllowsEmail = (prefs, type) => {
-  if (prefs && prefs.email_enabled === false) return false;
-  if (type === 'comment' || type === 'mention') return prefs?.comment_notifications !== false;
-  if (type === 'assignment' || type === 'delegation') return prefs?.delegation_alerts !== false;
-  if (type === 'due_soon') return prefs?.due_reminders !== false;
-  if (type === 'overdue') return prefs?.overdue_alerts !== false;
-  if (type === 'blocker' || type === 'at_risk') return prefs?.blocker_alerts !== false;
-  return true;
-};
+export const notificationAllowsEmail = (prefs, type, recipient) => (
+  prefs?.email_enabled !== false
+  && type === 'daily_digest'
+  && isPilotEmailRecipient(recipient)
+);
 
-export const sendLoggedEmail = async ({ userId, objectiveId, type, dedupeKey, to, subject, html }) => {
+export const sendLoggedEmail = async ({ userId, objectiveId, type, to, subject, html }) => {
+  const recipient = normalizeEmail(to);
+  if (type !== 'daily_digest') return { skipped: true, reason: 'push_only_policy' };
+  if (!isPilotEmailRecipient(recipient)) return { skipped: true, reason: 'recipient_not_allowlisted' };
+
   const supabase = getSupabaseAdmin();
+  const dayKey = chicagoDayKey();
+  const dedupeKey = `daily_digest:${recipient}:${dayKey}`;
+  const { data: existing, error: existingError } = await supabase
+    .from('email_delivery_log')
+    .select('id')
+    .eq('recipient', recipient)
+    .eq('notification_type', 'daily_digest')
+    .gte('created_at', `${dayKey}T00:00:00.000Z`)
+    .in('status', ['queued', 'sent'])
+    .limit(1)
+    .maybeSingle();
+  if (existingError) throw existingError;
+  if (existing?.id) return { deduped: true, reason: 'one_email_per_day' };
+
   const { data: logRow, error: insertError } = await supabase
     .from('email_delivery_log')
     .insert({
@@ -37,7 +66,7 @@ export const sendLoggedEmail = async ({ userId, objectiveId, type, dedupeKey, to
       objective_id: objectiveId || null,
       notification_type: type,
       dedupe_key: dedupeKey,
-      recipient: to,
+      recipient,
       subject,
       status: 'queued',
     })
@@ -66,7 +95,7 @@ export const sendLoggedEmail = async ({ userId, objectiveId, type, dedupeKey, to
     },
     body: JSON.stringify({
       from: process.env.EMAIL_FROM || 'SandPro OMP <onboarding@resend.dev>',
-      to,
+      to: recipient,
       subject,
       html,
     }),
@@ -87,20 +116,3 @@ export const sendLoggedEmail = async ({ userId, objectiveId, type, dedupeKey, to
   }).eq('id', logRow.id);
   return { sent: true, id: payload.id };
 };
-
-export const buildNotificationEmail = ({ title, preheader, body, detailLabel = '', detailBody = '', ctaUrl, ctaLabel = 'Open in SandPro OMP' }) => `
-  <div style="font-family:Arial,sans-serif;line-height:1.5;color:#111827;max-width:620px;margin:0 auto;padding:24px">
-    <div style="font-weight:800;color:#ff7f02;font-size:18px;margin-bottom:20px">SandPro OMP</div>
-    <div style="display:none;max-height:0;overflow:hidden">${htmlEscape(preheader || title)}</div>
-    <h1 style="font-size:22px;margin:0 0 12px">${htmlEscape(title)}</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;white-space:pre-line">${htmlEscape(body)}</p>
-    ${detailBody ? `
-      <div style="border:1px solid #E5E7EB;border-left:4px solid #ff7f02;border-radius:10px;background:#FFF7ED;padding:14px 16px;margin:0 0 20px">
-        <div style="font-size:12px;font-weight:800;color:#9A3412;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">${htmlEscape(detailLabel || 'Message')}</div>
-        <div style="font-size:15px;color:#1F2937;white-space:pre-line">${htmlEscape(detailBody)}</div>
-      </div>
-    ` : ''}
-    <a href="${htmlEscape(ctaUrl)}" style="display:inline-block;background:#ff7f02;color:white;text-decoration:none;border-radius:8px;padding:11px 16px;font-weight:700">${htmlEscape(ctaLabel)}</a>
-    <p style="font-size:12px;color:#6B7280;margin-top:24px">This email was generated by SandPro OMP. Notification preferences are managed in the app admin settings.</p>
-  </div>
-`;

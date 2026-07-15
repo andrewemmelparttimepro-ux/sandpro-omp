@@ -42,6 +42,7 @@ export const notificationAllowsPush = (prefs, type) => {
   if (isFixItPushType(type)) return true;
   if (type === 'mention' || type === 'comment') return prefs?.comment_notifications !== false;
   if (type === 'assignment' || type === 'delegation') return prefs?.delegation_alerts !== false;
+  if (type === 'acknowledgement') return prefs?.delegation_alerts !== false;
   if (type === 'blocker' || type === 'at_risk') return prefs?.blocker_alerts !== false;
   if (type === 'overdue') return prefs?.overdue_alerts !== false;
   if (type === 'due_soon' || type === 'stale') return prefs?.due_reminders !== false;
@@ -53,6 +54,7 @@ const pushTitle = (type) => {
   if (type === 'mention') return 'You were mentioned in SandPro OMP';
   if (type === 'comment') return 'New SandPro OMP message';
   if (type === 'assignment' || type === 'delegation') return 'SandPro OMP assignment';
+  if (type === 'acknowledgement') return 'SandPro OMP acknowledgement';
   if (type === 'blocker') return 'SandPro OMP blocker';
   if (type === 'at_risk') return 'SandPro OMP at-risk work';
   if (type === 'overdue') return 'SandPro OMP overdue objective';

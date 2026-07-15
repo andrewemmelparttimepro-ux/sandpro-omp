@@ -9713,7 +9713,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
 
 // ============================================================================
 // ============================================================================
-// SETTINGS PANEL — CSV Import + Email Notification Preferences
+// SETTINGS PANEL — CSV Import + Notification Preferences
 // ============================================================================
 const SettingsPanel = ({ currentUser, objectives, createNotification, onUpdateUser }) => {
   const [csvData, setCsvData] = useState(null);
@@ -9934,30 +9934,30 @@ const SettingsPanel = ({ currentUser, objectives, createNotification, onUpdateUs
         {pushNotifications.message && <div className="text-xs text-muted" style={{ marginTop: 8 }}>{pushNotifications.message}</div>}
       </div>
 
-      {/* Email Notifications */}
+      {/* Notification Preferences */}
       <div className="card" style={{ padding: 14, marginBottom: 12 }}>
         <div className="flex items-center gap-6" style={{ marginBottom: 8 }}>
           <Mail size={14} color="var(--brand)" />
-          <span className="text-sm font-bold">Email Notification Preferences</span>
+          <span className="text-sm font-bold">Notification Preferences</span>
         </div>
         <FeatureHelp
           id="notification-preferences"
           title="Keeping notifications useful"
           items={[
-            "Mentions and tagged objective updates are the highest-value alerts.",
-            "Turn email down if it gets noisy; in-app alerts still keep the work visible.",
+            "The morning brief is the only email sent during the pilot.",
+            "Assignments, mentions, reminders, and work alerts use push and the app bell.",
             "Use the test center below after changing rules so the team knows what to expect.",
           ]}
         />
-        <p className="text-xs text-muted" style={{ marginBottom: 8 }}>Saved to your SandPro OMP profile and used by email delivery, reminders, and digest jobs.</p>
-        <Toggle label="Email Delivery" desc="Allow SandPro OMP to email you alerts and summaries" checked={prefs.emailEnabled} onChange={v => updatePref('emailEnabled', v)} />
-        <Toggle label="Due Reminders" desc="Objectives due soon or within 24 hours" checked={prefs.dueReminders} onChange={v => updatePref('dueReminders', v)} />
-        <Toggle label="Overdue Alerts" desc="When objectives pass their due date" checked={prefs.overdueAlerts} onChange={v => updatePref('overdueAlerts', v)} />
-        <Toggle label="Blocker Notifications" desc="When someone flags blocked or at-risk work" checked={prefs.blockerAlerts} onChange={v => updatePref('blockerAlerts', v)} />
-        <Toggle label="Comment Notifications" desc="New messages on objectives you own or watch" checked={prefs.commentNotifications} onChange={v => updatePref('commentNotifications', v)} />
-        <Toggle label="Delegation Alerts" desc="When assigned or added to objectives" checked={prefs.delegationAlerts} onChange={v => updatePref('delegationAlerts', v)} />
+        <p className="text-xs text-muted" style={{ marginBottom: 8 }}>The pilot sends one morning email to Andrew, Jake, Merci, and Tim. All categories below are push and in-app alerts.</p>
+        <Toggle label="Daily Brief Email" desc="One morning email during the pilot" checked={prefs.emailEnabled} onChange={v => updatePref('emailEnabled', v)} />
+        <Toggle label="Due Reminders" desc="Push when objectives are due within 24 hours" checked={prefs.dueReminders} onChange={v => updatePref('dueReminders', v)} />
+        <Toggle label="Overdue Alerts" desc="Push when objectives pass their due date" checked={prefs.overdueAlerts} onChange={v => updatePref('overdueAlerts', v)} />
+        <Toggle label="Blocker Notifications" desc="Push for blocked or at-risk work" checked={prefs.blockerAlerts} onChange={v => updatePref('blockerAlerts', v)} />
+        <Toggle label="Comment Notifications" desc="Push for messages on objectives you own or watch" checked={prefs.commentNotifications} onChange={v => updatePref('commentNotifications', v)} />
+        <Toggle label="Delegation Alerts" desc="Push when assigned or added to objectives" checked={prefs.delegationAlerts} onChange={v => updatePref('delegationAlerts', v)} />
         <div className="flex items-center justify-between" style={{ padding: "10px 0", borderBottom: "1px solid var(--accent-4)" }}>
-          <div><div className="text-sm font-medium">Digest Frequency</div><div className="text-xs text-muted">Morning summary cadence</div></div>
+          <div><div className="text-sm font-medium">Daily Brief Cadence</div><div className="text-xs text-muted">Morning email schedule</div></div>
           <select value={prefs.digestFrequency} onChange={e => updatePref('digestFrequency', e.target.value)} style={{ fontSize: 12 }}>
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
