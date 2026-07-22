@@ -1411,6 +1411,9 @@ test('mobile PWA rebuild has install assets, safe-area shell, and phone-native w
   assert.match(app, /aria-label="Create new"/);
   assert.match(app, /mobile-user-drawer/);
   assert.match(app, /handleNotificationClick/);
+  assert.match(app, /const showDashboardSurface = route\.page === "dashboard" \|\| \(route\.page === "fixit" && !isMobileViewport\)/);
+  assert.match(app, /\{showDashboardSurface && <DashboardPage/);
+  assert.doesNotMatch(app, /\{currentPage === 0 && <DashboardPage/);
   assert.match(pages, /mobile-objective-list/);
   assert.match(pages, /mobile-filter-sheet/);
   assert.match(pages, /ncr-mobile-list/);

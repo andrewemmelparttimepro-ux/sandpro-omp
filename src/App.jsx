@@ -1406,6 +1406,7 @@ function App() {
   const shellPage = route.page === "fixit" && !isMobileViewport ? "dashboard" : route.page;
   const activeNavId = NAV_PARENT[shellPage] || shellPage;
   const currentPage = Math.max(0, pages.findIndex(page => page.id === activeNavId));
+  const showDashboardSurface = route.page === "dashboard" || (route.page === "fixit" && !isMobileViewport);
   const currentPageMeta = pages[currentPage] || pages[0];
   const CurrentPageIcon = currentPageMeta.icon;
 
@@ -1999,9 +2000,9 @@ function App() {
               page={shellPage}
               isMobile={isMobileViewport}
               scope={viewScope}
-              onScopeChange={(next) => { setViewScope(next); if (currentPage === 0) setDashboardMode('standard'); }}
-              showAltToggle={currentPage === 0}
-              isAltActive={currentPage === 0 && dashboardMode === ALT_DASHBOARD_MODE}
+              onScopeChange={(next) => { setViewScope(next); if (showDashboardSurface) setDashboardMode('standard'); }}
+              showAltToggle={showDashboardSurface}
+              isAltActive={showDashboardSurface && dashboardMode === ALT_DASHBOARD_MODE}
               onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
               onKpiClick={(preset) => showObjectivesWithFilters({
                 status: preset.status || "all",
@@ -2016,7 +2017,7 @@ function App() {
                 label: preset.label,
               })}
             />
-            {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
+            {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
               status: preset.status || "all",
               owner: preset.scope === "individual" ? currentUser.id : "all",
               due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
