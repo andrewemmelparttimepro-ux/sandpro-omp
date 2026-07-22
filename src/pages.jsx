@@ -4096,7 +4096,19 @@ export const KpiPage = ({
   );
 };
 
-export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateComment, onDeleteComment, onUpdatePost, onUploadValidationProof, onDeletePost, addToast }) => {
+export const FixItFeedPage = ({
+  posts,
+  currentUser,
+  onCreatePost,
+  onCreateComment,
+  onDeleteComment,
+  onUpdatePost,
+  onUploadValidationProof,
+  onDeletePost,
+  addToast,
+  variant = 'page',
+  focusPostId = null,
+}) => {
   const [body, setBody] = useState('');
   const [files, setFiles] = useState([]);
   const [posting, setPosting] = useState(false);
@@ -4114,6 +4126,7 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
   const visiblePosts = view === 'archive' ? archivedPosts : activePosts;
   const validationPost = posts.find(post => post.id === validationPostId) || null;
   const activeCount = activePosts.length;
+  const isRail = variant === 'rail';
 
   useEffect(() => {
     const preventBrowserFileOpen = (event) => {
@@ -4127,6 +4140,17 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
       window.removeEventListener('drop', preventBrowserFileOpen);
     };
   }, []);
+
+  useEffect(() => {
+    if (!focusPostId) return undefined;
+    const focusedPost = posts.find(post => post.id === focusPostId);
+    if (!focusedPost) return undefined;
+    setView(focusedPost.status === 'archived' ? 'archive' : 'active');
+    const timer = window.setTimeout(() => {
+      document.getElementById(`fixit-post-${focusPostId}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [focusPostId, posts]);
 
   const addFiles = (fileList) => {
     const incoming = Array.from(fileList || []).filter(file => file?.name);
@@ -4289,8 +4313,8 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
   };
 
   return (
-    <div className="fixit-page">
-      <div className="fixit-header">
+    <div className={`fixit-page ${isRail ? 'fixit-page-rail' : ''}`}>
+      {!isRail && <div className="fixit-header">
         <div>
           <div className="flex items-center gap-8">
             <Wrench size={20} color="var(--brand)" />
@@ -4304,9 +4328,9 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
           <span className="text-2xl font-bold">{activeCount}</span>
           <span className="text-xs text-muted">active</span>
         </div>
-      </div>
+      </div>}
 
-      <FeatureHelp
+      {!isRail && <FeatureHelp
         id="fix-it-feed"
         title="How to use the Fix-It Feed"
         items={[
@@ -4314,7 +4338,7 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
           "Items stay in strict newest-first order so testers can see what is already flagged.",
           "Agent marks items fixed and validated; click the validation pill to review screenshot proof.",
         ]}
-      />
+      />}
 
       <div className="fixit-tabs" role="tablist" aria-label="Fix-It Feed views">
         <button type="button" className={`fixit-tab ${view === 'active' ? 'active' : ''}`} onClick={() => setView('active')} role="tab" aria-selected={view === 'active'}>
@@ -4384,7 +4408,7 @@ export const FixItFeedPage = ({ posts, currentUser, onCreatePost, onCreateCommen
                 ? 'fixed'
                 : 'prior status';
           return (
-            <article key={post.id} className={`card fixit-post fixit-post-${post.status} ${post.reopenedAt ? 'fixit-post-reopened' : ''}`}>
+            <article id={`fixit-post-${post.id}`} data-fixit-post-id={post.id} key={post.id} className={`card fixit-post fixit-post-${post.status} ${post.reopenedAt ? 'fixit-post-reopened' : ''} ${focusPostId === post.id ? 'fixit-post-focused' : ''}`}>
               <div className="fixit-post-head">
                 <div className="flex items-center gap-10">
                   <Avatar user={author} size={32} />
@@ -10055,8 +10079,21 @@ const SettingsPanel = ({ currentUser, objectives, createNotification, onUpdateUs
 // ============================================================================
 // ADMIN SIDEBAR
 // ============================================================================
-export const AdminSidebar = ({ isOpen, onToggle, objectives, ncrReports = [], currentUser, createNotification, onUsersChanged, onUpdateUser }) => {
-  const [activeSection, setActiveSection] = useState("users");
+export const AdminSidebar = ({
+  isOpen,
+  onToggle,
+  requestedSection = null,
+  onSectionChange,
+  fixItCount = 0,
+  fixItContent = null,
+  objectives,
+  ncrReports = [],
+  currentUser,
+  createNotification,
+  onUsersChanged,
+  onUpdateUser,
+}) => {
+  const [activeSection, setActiveSection] = useState(requestedSection || "users");
   const [showInvite, setShowInvite] = useState(false);
   const [inviteStatus, setInviteStatus] = useState("");
   const [exportFilters, setExportFilters] = useState({ status: "all", owner: "all", department: "all", priority: "all" });
@@ -10071,12 +10108,20 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives, ncrReports = [], cu
     reportsTo: "",
   });
   const sections = [
+    { id: "fixit", label: "Feed", icon: Wrench, count: fixItCount },
     { id: "users", label: "Users", icon: Users },
     { id: "departments", label: "Depts", icon: Building2 },
     { id: "reports", label: "Reports", icon: BarChart3 },
     { id: "export", label: "Export", icon: Download },
     { id: "settings", label: "Settings", icon: Settings },
   ];
+  useEffect(() => {
+    if (requestedSection) setActiveSection(requestedSection);
+  }, [requestedSection]);
+  const selectSection = (sectionId, options = {}) => {
+    setActiveSection(sectionId);
+    onSectionChange?.(sectionId, options);
+  };
   const downloadCsv = (filename, rows) => {
     const csv = rows.map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: "text/csv" });
@@ -10175,30 +10220,38 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives, ncrReports = [], cu
 
   if (!isOpen) {
     return (
-      <div style={{ width: 44, flexShrink: 0, background: "var(--accent-3)", borderLeft: "1px solid var(--accent-5)", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 12, gap: 4 }}>
+      <aside className="admin-sidebar admin-sidebar-collapsed" aria-label="Admin sidebar">
         <button className="icon-btn active" onClick={onToggle} title="Open Admin"><Shield size={16} /></button>
         {sections.map(s => (
-          <button key={s.id} className="icon-btn" onClick={() => { setActiveSection(s.id); onToggle(); }} title={s.label}><s.icon size={16} /></button>
+          <button key={s.id} className={`icon-btn admin-sidebar-icon ${s.id === 'fixit' ? 'admin-sidebar-fixit-icon' : ''}`} onClick={() => selectSection(s.id, { open: true })} title={s.id === 'fixit' ? 'Open Fix-It Feed' : s.label} aria-label={s.id === 'fixit' ? `Open Fix-It Feed, ${s.count} active` : s.label}>
+            <s.icon size={16} />
+            {s.id === 'fixit' && s.count > 0 && <span className="admin-sidebar-count">{s.count > 99 ? '99+' : s.count}</span>}
+          </button>
         ))}
-      </div>
+      </aside>
     );
   }
 
   return (
-    <div style={{ width: 320, flexShrink: 0, background: "var(--accent-3)", borderLeft: "1px solid var(--accent-5)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      <div className="card-header justify-between">
-        <div className="flex items-center gap-8"><Shield size={14} color="var(--brand)" /><span className="text-md font-bold">Admin Panel</span></div>
-        <button className="icon-btn" onClick={onToggle}><X size={16} /></button>
+    <aside className={`admin-sidebar admin-sidebar-open ${activeSection === 'fixit' ? 'admin-sidebar-fixit' : ''}`} aria-label="Admin sidebar">
+      <div className="card-header justify-between admin-sidebar-header">
+        <div className="flex items-center gap-8">
+          {activeSection === 'fixit' ? <Wrench size={15} color="var(--brand)" /> : <Shield size={14} color="var(--brand)" />}
+          <span className="text-md font-bold">{activeSection === 'fixit' ? 'Fix-It Feed' : 'Admin Panel'}</span>
+          {activeSection === 'fixit' && <span className="admin-sidebar-admin-badge">Admin</span>}
+        </div>
+        <button className="icon-btn" onClick={onToggle} title="Close admin sidebar" aria-label="Close admin sidebar"><X size={16} /></button>
       </div>
-      <div className="flex gap-4" style={{ padding: "8px 8px 0", overflowX: "auto" }}>
+      <div className="admin-sidebar-sections">
         {sections.map(s => (
-          <button key={s.id} onClick={() => setActiveSection(s.id)} className="flex items-center gap-4" style={{
+          <button key={s.id} onClick={() => selectSection(s.id)} className="flex items-center gap-4" style={{
             padding: "6px 10px", borderRadius: "6px 6px 0 0", background: activeSection === s.id ? "var(--accent-2)" : "transparent",
             color: activeSection === s.id ? "var(--brand)" : "var(--accent-7)", fontSize: 11, fontWeight: 600, whiteSpace: "nowrap"
-          }}><s.icon size={12} />{s.label}</button>
+          }}><s.icon size={12} />{s.label}{s.id === 'fixit' && <span className="admin-section-count">{s.count}</span>}</button>
         ))}
       </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
+      <div className={`admin-sidebar-content ${activeSection === 'fixit' ? 'admin-sidebar-content-fixit' : ''}`}>
+        {activeSection === "fixit" && fixItContent}
         {activeSection === "users" && (
           <div>
             <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
@@ -10437,6 +10490,6 @@ export const AdminSidebar = ({ isOpen, onToggle, objectives, ncrReports = [], cu
         )}
         {activeSection === "settings" && <SettingsPanel currentUser={currentUser} objectives={objectives} createNotification={createNotification} onUpdateUser={onUpdateUser} />}
       </div>
-    </div>
+    </aside>
   );
 };

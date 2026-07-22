@@ -688,6 +688,9 @@ function App() {
   const [pushSetupDismissed, setPushSetupDismissed] = useState(false);
   const [hasInteractedSinceLogin, setHasInteractedSinceLogin] = useState(false);
   const [highlightDept, setHighlightDept] = useState(null);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
+  ));
   const [pullRefreshState, setPullRefreshState] = useState({ active: false, distance: 0, ready: false, refreshing: false });
   const mainContentRef = useRef(null);
   const pullRefreshRef = useRef({ tracking: false, startY: 0, ready: false, refreshing: false });
@@ -696,7 +699,7 @@ function App() {
   const mustChangePassword = user?.user_metadata?.must_change_password === true;
   const mustSetPassword = mustChangePassword || passwordRecovery;
   const pageLoading = route.page === "fixit"
-    ? fixItLoading
+    ? fixItLoading || (!isMobileViewport && objLoading)
     : route.page === "ncr"
       ? ncrLoading || objLoading
       : route.page === "kpi"
@@ -719,6 +722,14 @@ function App() {
     const onPopState = () => setRoute(readRouteFromLocation());
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
+    const syncViewport = event => setIsMobileViewport(event.matches);
+    setIsMobileViewport(mobileQuery.matches);
+    mobileQuery.addEventListener?.('change', syncViewport);
+    return () => mobileQuery.removeEventListener?.('change', syncViewport);
   }, []);
 
   // Refetch data once user is authenticated (initial fetch happens before auth, RLS blocks it)
@@ -1769,12 +1780,14 @@ function App() {
     { id: "fixit", label: "Fix-It Feed", icon: Wrench },
     { id: "organization", label: "Organization", icon: Network },
   ];
+  const desktopPages = pages.filter(page => page.id !== "fixit");
   // Deep-linked pages that highlight a parent tab. Objectives is hidden (Jake
   // banned the word); KPI is hidden because to Jake "OKRs or KPIs, whatever
   // you want to call it" ARE the OKR page — the command center stays routable
   // at ?page=kpi if automated metrics ever come back.
   const NAV_PARENT = { objectives: "dashboard", kpi: "dashboard" };
-  const activeNavId = NAV_PARENT[route.page] || route.page;
+  const shellPage = route.page === "fixit" && !isMobileViewport ? "dashboard" : route.page;
+  const activeNavId = NAV_PARENT[shellPage] || shellPage;
   const currentPage = Math.max(0, pages.findIndex(page => page.id === activeNavId));
   const currentPageMeta = pages[currentPage] || pages[0];
   const CurrentPageIcon = currentPageMeta.icon;
@@ -2022,8 +2035,8 @@ function App() {
         </a>
 
         <nav className="nav-pills">
-          {pages.map((page, i) => (
-            <a key={page.id} href={pageHref(page.id)} onClick={(event) => handleNavClick(event, page.id)} aria-label={page.label} className={`nav-pill ${currentPage === i ? 'active' : ''} ${activeFeatureAnnouncement?.navId === page.id ? 'nav-pill-feature' : ''}`}>
+          {desktopPages.map(page => (
+            <a key={page.id} href={pageHref(page.id)} onClick={(event) => handleNavClick(event, page.id)} aria-label={page.label} className={`nav-pill ${activeNavId === page.id ? 'active' : ''} ${activeFeatureAnnouncement?.navId === page.id ? 'nav-pill-feature' : ''}`}>
               <page.icon size={15} />{page.label}
               {activeFeatureAnnouncement?.navId === page.id && <span className="nav-new-badge" aria-hidden="true">New</span>}
             </a>
@@ -2382,12 +2395,47 @@ function App() {
           {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onQuickStatus={handleQuickStatusObjective} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
           {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
           {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
-          {route.page === "fixit" && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} />}
+          {route.page === "fixit" && isMobileViewport && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} focusPostId={new URLSearchParams(window.location.search).get('fixit')} />}
           {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
           {route.page === "organization" && <OrgPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}
         </main>
         <div className="desktop-admin-shell">
-          <AdminSidebar isOpen={route.adminOpen} onToggle={() => updateRoute(prev => ({ ...prev, adminOpen: !prev.adminOpen }))} objectives={objectives} ncrReports={ncrReports} currentUser={currentUser} createNotification={createNotification} onUsersChanged={refetchProfiles} onUpdateUser={handleUpdateUser} />
+          <AdminSidebar
+            isOpen={route.adminOpen || route.page === "fixit"}
+            onToggle={() => updateRoute(prev => ({
+              ...prev,
+              page: prev.page === "fixit" ? "dashboard" : prev.page,
+              adminOpen: prev.page === "fixit" ? false : !prev.adminOpen,
+            }))}
+            requestedSection={route.page === "fixit" ? "fixit" : null}
+            onSectionChange={(sectionId, { open = false } = {}) => updateRoute(prev => ({
+              ...prev,
+              page: sectionId === "fixit" ? "fixit" : prev.page === "fixit" ? "dashboard" : prev.page,
+              adminOpen: open || (prev.page === "fixit" && sectionId !== "fixit") ? true : prev.adminOpen,
+            }))}
+            fixItCount={fixItPosts.filter(post => post.status !== 'archived').length}
+            fixItContent={(
+              <FixItFeedPage
+                posts={fixItPosts}
+                currentUser={currentUser}
+                onCreatePost={handleCreateFixItPost}
+                onCreateComment={handleCreateFixItComment}
+                onDeleteComment={deleteFixItComment}
+                onUpdatePost={handleUpdateFixItPostStatus}
+                onUploadValidationProof={uploadFixItValidationProof}
+                onDeletePost={deleteFixItPost}
+                addToast={addToast}
+                variant="rail"
+                focusPostId={new URLSearchParams(window.location.search).get('fixit')}
+              />
+            )}
+            objectives={objectives}
+            ncrReports={ncrReports}
+            currentUser={currentUser}
+            createNotification={createNotification}
+            onUsersChanged={refetchProfiles}
+            onUpdateUser={handleUpdateUser}
+          />
         </div>
       </div>
 
