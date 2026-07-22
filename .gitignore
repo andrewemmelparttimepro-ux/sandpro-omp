@@ -9,6 +9,12 @@ backups/
 tmp/
 tmp-*/
 tests/tmp-*.js
+output/
+scripts/.tmp-*.mjs
+
+# Generated audit and closure evidence
+docs/sandpro-activity-audit*.json
+docs/reports/evidence/fixit-closure-*/
 
 # Environment
 .env

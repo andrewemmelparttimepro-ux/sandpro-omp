@@ -9,6 +9,7 @@ import { canManageOkrs, canManageOrgChart, canManagePermissions } from '../../sr
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (path) => readFileSync(join(root, path), 'utf8');
+const readMany = (...paths) => paths.map(read).join('\n');
 const walk = (dir) => readdirSync(join(root, dir)).flatMap((entry) => {
   const path = join(dir, entry);
   const absolute = join(root, path);
@@ -255,6 +256,7 @@ test('launch email policy permits one daily brief only for the four pilot recipi
   const sender = read('api/_shared/email.js');
   const eventEndpoint = read('api/notifications/send-event.js');
   const reminders = read('api/cron/reminders.js');
+  const settings = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   assert.match(sender, /push_only_policy/);
   assert.match(sender, /daily_digest:\$\{recipient\}:\$\{dayKey\}/);
   assert.match(sender, /one_email_per_day/);
@@ -265,7 +267,6 @@ test('launch email policy permits one daily brief only for the four pilot recipi
   assert.match(reminders, /ensureReminderNotification/);
   assert.match(reminders, /notificationId: inAppResult\?\.id/);
 
-  const settings = read('src/pages.jsx');
   assert.match(settings, /The morning brief is the only email sent during the pilot/);
   assert.match(settings, /Daily Brief Email/);
   assert.match(settings, /All categories below are push and in-app alerts/);
@@ -279,7 +280,7 @@ test('Web Push is a visible direct-work layer on top of in-app notifications', (
   const endpoint = read('api/notifications/send-event.js');
   const fixItEndpoint = read('api/fixit/push-event.js');
   const hook = read('src/hooks/useSupabase.js');
-  const settings = read('src/pages.jsx');
+  const settings = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const sw = read('public/sw.js');
   const androidSmoke = read('scripts/verify-live-android-push.mjs');
 
@@ -404,7 +405,7 @@ test('objective and workflow updates skip duplicate write-audit entries when not
 
 test('org chart editing is available to Merci and Tim and guarded server-side', () => {
   const app = read('src/App.jsx');
-  const page = read('src/pages.jsx');
+  const page = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const endpoint = read('api/admin/update-user.js');
   assert.equal(canManageOrgChart({ role: 'contributor', email: 'mjimenez@sandpro.com' }), true);
   assert.equal(canManageOrgChart({ role: 'contributor', email: 'tdibben@sandpro.com' }), true);
@@ -424,7 +425,7 @@ test('org chart editing is available to Merci and Tim and guarded server-side', 
 
 test('Jake, Tim, and Andrew can edit user permissions from settings', () => {
   const app = read('src/App.jsx');
-  const page = read('src/pages.jsx');
+  const page = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const endpoint = read('api/admin/update-user.js');
   const inviteEndpoint = read('api/admin/invite-user.js');
   const deleteEndpoint = read('api/admin/delete-user.js');
@@ -463,7 +464,7 @@ test('OKR creation and sheet management are limited to authorized OKR editors', 
 
 test('org editors can delete employees after blocking work is cleared', () => {
   const app = read('src/App.jsx');
-  const page = read('src/pages.jsx');
+  const page = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const endpoint = read('api/admin/delete-user.js');
   const invite = read('api/admin/invite-user.js');
 
@@ -489,7 +490,7 @@ test('org editors can delete employees after blocking work is cleared', () => {
 });
 
 test('org chart supports visual group placeholders without login accounts', () => {
-  const page = read('src/pages.jsx');
+  const page = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const css = read('src/index.css');
   const migration = read('supabase/release_ready_migration.sql');
   const schemaCheck = read('scripts/check-release-schema.mjs');
@@ -523,7 +524,7 @@ test('org chart supports visual group placeholders without login accounts', () =
 });
 
 test('org chart is a draggable tree with research-backed export options for org editors', () => {
-  const page = read('src/pages.jsx');
+  const page = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const css = read('src/index.css');
 
   assert.match(page, /className="org-tree"/);
@@ -614,7 +615,7 @@ test('org chart is a draggable tree with research-backed export options for org 
 
 test('new user-facing features include dismissible help that can be reopened', () => {
   const component = read('src/components.jsx');
-  const pages = read('src/pages.jsx');
+  const pages = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   assert.match(component, /export const FeatureHelp/);
   assert.match(component, /defaultOpen = true/);
   assert.match(pages, /title="Editing the org chart"[\s\S]*defaultOpen=\{false\}/);
@@ -681,14 +682,16 @@ test('daily digest cron sends The SandPro Times with clickable objective context
   assert.match(digest, /subject: `The SandPro Times/);
 });
 
-test('Fix-It Feed is a first-class navigation page with file-backed persistence', () => {
+test('Fix-It Feed is a sidebar route with file-backed persistence', () => {
   const app = read('src/App.jsx');
-  const pages = read('src/pages.jsx');
+  const pages = readMany('src/pages.jsx', 'src/routes/FixItFeedPage.jsx', 'src/routes/OrgPage.jsx');
   const hook = read('src/hooks/useSupabase.js');
   const migration = read('supabase/release_ready_migration.sql');
 
   assert.match(app, /"fixit"/);
   assert.match(app, /Fix-It Feed/);
+  assert.match(app, /desktopPages = pages\.filter\(page => page\.id !== "fixit"\)/);
+  assert.match(app, /variant="rail"/);
   assert.match(app, /useFixItFeed/);
   assert.match(pages, /export const FixItFeedPage/);
   assert.match(pages, /I'm on it/);
@@ -708,7 +711,7 @@ test('Fix-It Feed is a first-class navigation page with file-backed persistence'
 });
 
 test('Fix-It Feed accepts pasted clipboard attachments', () => {
-  const pages = read('src/pages.jsx');
+  const pages = readMany('src/pages.jsx', 'src/routes/FixItFeedPage.jsx');
   assert.match(pages, /getClipboardFiles/);
   assert.match(pages, /nameClipboardFile/);
   assert.match(pages, /pasted-fix-it/);
@@ -724,7 +727,7 @@ test('new feature announcements point users to newly shipped tabs once', () => {
   assert.match(app, /fix-it-feed-v1/);
   assert.match(app, /sandpro-new-feature-seen/);
   assert.match(app, /New: Fix-It Feed/);
-  assert.match(app, /Open tab/);
+  assert.match(app, /Open feed/);
   assert.match(app, /nav-new-badge/);
   assert.match(css, /new-feature-popover/);
   assert.match(css, /nav-pill-feature/);
@@ -749,7 +752,7 @@ test('Merci feedback items are covered by durable UI paths', () => {
 });
 
 test('OKR sheet includes bare department OKRs', () => {
-  const pages = read('src/pages.jsx');
+  const pages = readMany('src/pages.jsx', 'src/routes/OkrPage.jsx');
 
   assert.match(pages, /level === "company" \|\| level === "department" \|\| level === "key_result"/);
   assert.match(pages, /\.filter\(isOkrSheetObjective\)/);
@@ -1278,7 +1281,7 @@ test('Fix-It Feed supports per-item comments with file attachments', () => {
 
 test('Jake-requested production controls exist for org compact view, NCR export, and Fix-It push updates', () => {
   const app = read('src/App.jsx');
-  const pages = read('src/pages.jsx');
+  const pages = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const css = read('src/index.css');
   const mentions = read('src/mentions.js');
   const endpoint = read('api/fixit/push-event.js');
@@ -1299,7 +1302,7 @@ test('Jake-requested production controls exist for org compact view, NCR export,
 });
 
 test('objective CSV export is filtered and excludes internal ids', () => {
-  const pages = read('src/pages.jsx');
+  const pages = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
 
   assert.match(pages, /exportFilters/);
   assert.match(pages, /filteredExportObjectives/);
@@ -1371,7 +1374,12 @@ test('mobile PWA rebuild has install assets, safe-area shell, and phone-native w
   const sw = read('public/sw.js');
   const favicon = read('public/favicon.svg');
   const app = read('src/App.jsx');
-  const pages = read('src/pages.jsx');
+  const pages = readMany(
+    'src/pages.jsx',
+    'src/routes/ObjectivesPage.jsx',
+    'src/routes/NcrPage.jsx',
+    'src/routes/OrgPage.jsx',
+  );
   const components = read('src/components.jsx');
   const css = read('src/index.css');
 
@@ -1399,13 +1407,15 @@ test('mobile PWA rebuild has install assets, safe-area shell, and phone-native w
   assert.match(sw, /addEventListener\('notificationclick'/);
 
   assert.match(app, /mobile-topbar/);
-  assert.match(app, /mobile-new-fab/);
+  assert.match(app, /mobile-create-button/);
+  assert.match(app, /aria-label="Create new"/);
   assert.match(app, /mobile-user-drawer/);
   assert.match(app, /handleNotificationClick/);
   assert.match(pages, /mobile-objective-list/);
   assert.match(pages, /mobile-filter-sheet/);
   assert.match(pages, /ncr-mobile-list/);
   assert.match(pages, /org-mobile-list/);
+  assert.match(read('src/routes/OkrPage.jsx'), /okr-mobile-sections/);
   assert.match(components, /objective-detail-modal/);
   assert.match(components, /objective-message-composer/);
   assert.match(components, /objective-form-modal/);

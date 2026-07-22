@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { env, login, navItem, requireCredentials } from './helpers.js';
+import { env, login, requireCredentials } from './helpers.js';
 
 test.describe('Fix-It Feed verification workflow', () => {
   test.beforeEach(async ({ page }) => {
@@ -19,7 +19,8 @@ test.describe('Fix-It Feed verification workflow', () => {
       'base64',
     ));
 
-    await navItem(page, 'Fix-It Feed').click();
+    await page.goto('/?page=fixit');
+    await expect(page.locator('aside.admin-sidebar-fixit')).toBeVisible();
     await page.getByRole('tab', { name: /Active/i }).click();
     await page.getByPlaceholder('Flag something to fix, clarify, or improve...').fill(body);
     await page.getByRole('button', { name: /^Post$/ }).click();

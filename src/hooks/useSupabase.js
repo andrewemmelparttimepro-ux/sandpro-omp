@@ -121,13 +121,25 @@ const createSignedUrlSafe = async (bucket, path, expiresIn = 60 * 60) => {
 };
 
 const getFreshSession = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const sessionResult = await withTimeout(
+    supabase.auth.getSession(),
+    4000,
+    { data: { session: null }, error: new Error('Session lookup timed out') },
+  );
+  const session = sessionResult?.data?.session || null;
+  if (sessionResult?.error) {
+    console.warn('[Supabase] session lookup skipped:', sessionResult.error.message);
+  }
   if (!session?.access_token) return null;
   const expiresSoon = session?.expires_at ? session.expires_at * 1000 < Date.now() + 60000 : false;
   if (!expiresSoon) return session;
-  const { data, error } = await supabase.auth.refreshSession();
-  if (!error && data?.session?.access_token) return data.session;
-  console.warn('[Supabase] session refresh skipped:', error?.message || 'No refreshed session returned');
+  const refreshResult = await withTimeout(
+    supabase.auth.refreshSession(),
+    4000,
+    { data: { session }, error: new Error('Session refresh timed out') },
+  );
+  if (!refreshResult?.error && refreshResult?.data?.session?.access_token) return refreshResult.data.session;
+  console.warn('[Supabase] session refresh skipped:', refreshResult?.error?.message || 'No refreshed session returned');
   return session;
 };
 

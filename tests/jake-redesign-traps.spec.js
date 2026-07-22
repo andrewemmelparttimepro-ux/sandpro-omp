@@ -12,9 +12,14 @@ test.describe('Jake module redesign traps', () => {
   });
 
   test('module nav, global KPI strip, and OKR deep links stay wired', async ({ page }) => {
-    for (const name of ['Tasks & Projects', 'OKR', 'NCR', 'Fix-It Feed', 'Organization']) {
+    for (const name of ['Tasks & Projects', 'OKR', 'NCR', 'Organization']) {
       await expect(navItem(page, name)).toBeVisible();
     }
+    await expect(page.locator('.desktop-header').getByRole('link', { name: 'Fix-It Feed', exact: true })).toHaveCount(0);
+    await expect(page.getByTitle('Open Fix-It Feed')).toBeVisible();
+    await page.getByTitle('Open Fix-It Feed').click();
+    await expect(page.locator('aside.admin-sidebar-fixit')).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Active/i })).toBeVisible();
     await expect(oldObjectivesNav(page)).toHaveCount(0);
     await expect(page.locator('.global-kpi-strip')).toBeVisible();
     await expect(page.locator('.global-kpi-strip .kpi-grid')).toBeVisible();

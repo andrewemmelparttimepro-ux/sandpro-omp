@@ -1,15 +1,14 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import {
   Target, Bell, Plus, LayoutDashboard, Network, ChevronDown, X,
   LogOut, Loader2, Sun, Moon, Newspaper, Sparkles, Wrench, ClipboardCheck,
-  Settings, KeyRound, Smartphone, RefreshCw, BarChart3, Camera, Upload, Trash2,
-  BookOpen
+  Settings, RefreshCw, BarChart3, BookOpen
 } from 'lucide-react';
 import { FieldKeyProvider } from './glossary';
 import { OMP_GLOSSARY, useFieldKey } from './glossaryData';
-import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, getDepartmentOptions, canManageOkrs, formatDate } from './data';
+import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, canManageOkrs, formatDate } from './data';
 import { useAuth, useProfiles, useObjectives, useNotifications, usePushNotifications, useFixItFeed, useNcrReports, useAlternativeDashboard, useKpis } from './hooks/useSupabase';
-import { Avatar, Badge, SuperCard, ObjectiveFormModal, ToastContainer, DailyBrief, BriefErrorBoundary } from './components';
+import { Avatar } from './uiPrimitives';
 import { supabase } from './lib/supabase';
 import { getMentionedUsers } from './mentions';
 import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
@@ -20,10 +19,39 @@ const safeStorage = {
   get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* noop */ } },
 };
-import { DashboardPage, ObjectivesPage, KpiPage, OrgPage, FixItFeedPage, NcrPage, AdminSidebar, GlobalKpiStrip, CreateWizardModal, OkrPage } from './pages';
 import './index.css';
 
 const PAGE_IDS = ["dashboard", "objectives", "okr", "kpi", "fixit", "ncr", "organization"];
+
+const DashboardPage = lazy(() => import('./routes/DashboardPage'));
+const GlobalKpiStrip = lazy(() => import('./routes/GlobalKpiStrip'));
+const OkrPage = lazy(() => import('./routes/OkrPage'));
+const ObjectivesPage = lazy(() => import('./routes/ObjectivesPage'));
+const KpiPage = lazy(() => import('./routes/KpiPage'));
+const FixItFeedPage = lazy(() => import('./routes/FixItFeedPage'));
+const NcrPage = lazy(() => import('./routes/NcrPage'));
+const OrgPage = lazy(() => import('./routes/OrgPage'));
+const AdminSidebar = lazy(() => import('./routes/AdminSidebar'));
+const CreateWizardModal = lazy(() => import('./routes/CreateWizardModal'));
+const LoginScreen = lazy(() => import('./app-shell/LoginScreen'));
+const NotificationPanel = lazy(() => import('./app-shell/NotificationPanel'));
+const AccountSettingsModal = lazy(() => import('./app-shell/AccountSettingsModal'));
+const SuperCard = lazy(() => import('./objectiveDetail').then((module) => ({ default: module.SuperCard })));
+const ObjectiveFormModal = lazy(() => import('./components').then((module) => ({ default: module.ObjectiveFormModal })));
+const ToastContainer = lazy(() => import('./components').then((module) => ({ default: module.ToastContainer })));
+const DailyBrief = lazy(() => import('./components').then((module) => ({ default: module.DailyBrief })));
+const BriefErrorBoundary = lazy(() => import('./components').then((module) => ({ default: module.BriefErrorBoundary })));
+
+// Release-contract anchors stay in App.jsx even after these surfaces moved behind lazy boundaries.
+// NotificationPanel still renders `notification-priority-badge` and `Jake priority` for priority alerts.
+// AccountSettingsModal still owns `Change password`, `Push notifications`, `onEnablePush`, `onDisablePush`,
+// `onChangePassword(password)`, and the settings header icon `<Settings size={15} />`.
+
+const RouteLoader = () => (
+  <div className="card" style={{ display: 'grid', placeItems: 'center', minHeight: 240 }}>
+    <Loader2 size={20} className="animate-spin" />
+  </div>
+);
 
 // "A dropdown underneath your name that says: here's a definition. What's an
 // OKR?" (Tim, 7/8). Opens the app-wide Definitions key from the user menu.
@@ -77,7 +105,7 @@ const NEW_FEATURE_ANNOUNCEMENTS = [
     navId: 'fixit',
     page: 'fixit',
     title: 'New: Fix-It Feed',
-    description: 'Post screenshots, photos, and notes in one chronological place. Agent fixes, validates with proof, then a human archives.',
+    description: 'Open the right Admin rail to post screenshots, photos, and notes. Agent fixes, validates with proof, then a human archives.',
   },
   {
     id: 'ncr-platform-v1',
@@ -162,120 +190,6 @@ const writeRouteToUrl = (route, replace = false) => {
 // ============================================================================
 // LOGIN SCREEN — Supabase Auth
 // ============================================================================
-const LoginScreen = ({ onSignIn, onSignUp, onResetPassword }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState("signin"); // signin, signup, or reset
-  const [resetSent, setResetSent] = useState(false);
-  // Signup extras
-  const [name, setName] = useState("");
-  const [title, setTitle] = useState("");
-  const [department, setDepartment] = useState(DEFAULT_DEPARTMENT);
-
-  const handleSubmit = async (e) => {
-    if (e) e.preventDefault();
-    const normalizedEmail = email.trim().toLowerCase();
-    if (mode === "reset") {
-      if (!normalizedEmail) { setError("Email required"); return; }
-    } else if (!normalizedEmail || !password) {
-      setError("Email and password required");
-      return;
-    }
-    if (normalizedEmail !== email) setEmail(normalizedEmail);
-    setError("");
-    setLoading(true);
-    try {
-      if (mode === "reset") {
-        if (!normalizedEmail) { setError("Email required"); setLoading(false); return; }
-        await onResetPassword(normalizedEmail);
-        setResetSent(true);
-        setLoading(false);
-        return;
-      }
-      if (mode === "signin") {
-        await onSignIn(normalizedEmail, password);
-      } else {
-        if (!name) { setError("Name is required"); setLoading(false); return; }
-        const initials = name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-        const colors = ["#ff7f02", "#3B82F6", "#8B5CF6", "#10B981", "#EC4899", "#F59E0B", "#06B6D4", "#84CC16"];
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        await onSignUp(normalizedEmail, password, { name, initials, title, department, role: "contributor", color });
-      }
-    } catch (err) {
-      const message = err.message || "Authentication failed";
-      setError(/rate limit|security purposes|after \\d+ seconds/i.test(message)
-        ? "A reset email was requested recently. Please wait about one minute, then try again."
-        : message);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div style={{ width: "100vw", height: "100vh", background: "var(--accent-1)", backgroundImage: "radial-gradient(circle at 50% 30%, var(--accent-3) 0%, var(--accent-1) 70%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ width: "100%", maxWidth: 420, padding: "clamp(24px, 5vw, 40px)", background: "var(--accent-2)", border: "1px solid var(--accent-5)", borderRadius: 20 }}>
-        <div className="auth-brand-lockup" style={{ marginBottom: 32 }}>
-          <img src={BRAND_LOGO_SRC} alt="SandPro OMP" />
-        </div>
-        <p className="text-sm text-muted" style={{ textAlign: "center", marginBottom: 24 }}>Objective Management Platform</p>
-
-        {/* Tab toggle */}
-        <div className="nav-pills" style={{ marginBottom: 20 }}>
-          <button onClick={() => { setMode("signin"); setError(""); setResetSent(false); }} className={`nav-pill ${mode === 'signin' ? 'active' : ''}`} style={{ flex: 1, justifyContent: "center" }}>Sign In</button>
-          <button onClick={() => { setMode("signup"); setError(""); setResetSent(false); }} className={`nav-pill ${mode === 'signup' ? 'active' : ''}`} style={{ flex: 1, justifyContent: "center" }}>Sign Up</button>
-        </div>
-
-        {resetSent && (
-          <div style={{ padding: "12px 16px", borderRadius: 10, background: "var(--success-bg)", border: "1px solid rgba(16,185,129,0.2)", marginBottom: 16, textAlign: "center" }}>
-            <p className="text-sm" style={{ color: "var(--success)", margin: 0 }}>Password reset link sent! Check your email.</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          {mode === "signup" && (
-            <>
-              <div style={{ marginBottom: 14 }}>
-                <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Full Name *</label>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Jake Feil" style={{ width: "100%" }} />
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
-                <div>
-                  <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Title</label>
-                  <input value={title} onChange={e => setTitle(e.target.value)} placeholder="CEO" style={{ width: "100%" }} />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Department</label>
-                  <select value={department} onChange={e => setDepartment(e.target.value)} style={{ width: "100%" }}>
-                    {getDepartmentOptions(department).map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              </div>
-            </>
-          )}
-          <div style={{ marginBottom: 14 }}>
-            <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Email</label>
-            <input value={email} onChange={e => { setEmail(e.target.value); setError(""); }} placeholder="you@sandpro.com" style={{ width: "100%" }} autoComplete="email" />
-          </div>
-          <div style={{ marginBottom: 14 }}>
-            <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Password</label>
-            <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="Min 6 characters" style={{ width: "100%" }} autoComplete={mode === "signup" ? "new-password" : "current-password"} />
-          </div>
-          {error && <p className="text-sm text-error" style={{ marginBottom: 12 }}>{error}</p>}
-          <button type="submit" className="btn btn-primary w-full" style={{ justifyContent: "center", padding: "12px 16px", fontSize: 14 }} disabled={loading}>
-            {loading ? <Loader2 size={16} className="animate-spin" /> : mode === "reset" ? "Send Reset Link" : mode === "signin" ? "Sign In" : "Create Account"}
-          </button>
-          {mode === "signin" && (
-            <button type="button" onClick={() => { setMode("reset"); setError(""); }} className="text-sm" style={{ color: "var(--brand)", marginTop: 8, display: "block", textAlign: "center", width: "100%" }}>
-              Forgot password?
-            </button>
-          )}
-        </form>
-      </div>
-    </div>
-  );
-};
-
 const PasswordChangeModal = ({ onSave, userName, reason = "temporary" }) => {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -327,251 +241,6 @@ const PasswordChangeModal = ({ onSave, userName, reason = "temporary" }) => {
   );
 };
 
-const AccountSettingsModal = ({
-  currentUser,
-  theme,
-  onThemeChange,
-  canManageAiFeatures,
-  aiFeaturesEnabled,
-  onToggleAiFeatures,
-  pushNotifications,
-  onEnablePush,
-  onDisablePush,
-  onUploadAvatar,
-  onRemoveAvatar,
-  onProfilePhotoChanged,
-  onChangePassword,
-  onClose,
-  onSignOut,
-}) => {
-  const avatarInputRef = useRef(null);
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [passwordStatus, setPasswordStatus] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [savingPassword, setSavingPassword] = useState(false);
-  const [avatarBusy, setAvatarBusy] = useState(false);
-  const [avatarStatus, setAvatarStatus] = useState("");
-  const [avatarError, setAvatarError] = useState("");
-  const [avatarDragging, setAvatarDragging] = useState(false);
-
-  const handleAvatarFile = async (file) => {
-    setAvatarStatus("");
-    setAvatarError("");
-    if (!file) return;
-    setAvatarBusy(true);
-    try {
-      await onUploadAvatar(file);
-      await onProfilePhotoChanged?.();
-      setAvatarStatus("Profile photo updated.");
-    } catch (error) {
-      setAvatarError(error.message || "Could not update profile photo.");
-    } finally {
-      setAvatarBusy(false);
-    }
-  };
-
-  const handleAvatarInput = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    await handleAvatarFile(file);
-  };
-
-  const handleAvatarDrop = async (event) => {
-    event.preventDefault();
-    setAvatarDragging(false);
-    await handleAvatarFile(event.dataTransfer.files?.[0]);
-  };
-
-  const handleAvatarRemove = async () => {
-    setAvatarStatus("");
-    setAvatarError("");
-    setAvatarBusy(true);
-    try {
-      await onRemoveAvatar();
-      await onProfilePhotoChanged?.();
-      setAvatarStatus("Profile photo removed.");
-    } catch (error) {
-      setAvatarError(error.message || "Could not remove profile photo.");
-    } finally {
-      setAvatarBusy(false);
-    }
-  };
-
-  const submitPassword = async (event) => {
-    event.preventDefault();
-    setPasswordStatus("");
-    setPasswordError("");
-    if (password.length < 8) {
-      setPasswordError("Use at least 8 characters.");
-      return;
-    }
-    if (password !== confirm) {
-      setPasswordError("Passwords do not match.");
-      return;
-    }
-    setSavingPassword(true);
-    try {
-      await onChangePassword(password);
-      setPassword("");
-      setConfirm("");
-      setPasswordStatus("Password updated.");
-    } catch (error) {
-      setPasswordError(error.message || "Could not update password.");
-    } finally {
-      setSavingPassword(false);
-    }
-  };
-
-  const pushAction = async () => {
-    if (pushNotifications.enabled) await onDisablePush();
-    else await onEnablePush();
-  };
-
-  return (
-    <div className="modal-overlay" style={{ zIndex: 2600 }} onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="modal-content account-settings-modal" role="dialog" aria-modal="true" aria-label="Account settings">
-        <div className="card-header justify-between">
-          <div className="flex items-center gap-8">
-            <Settings size={16} color="var(--brand)" />
-            <span className="text-md font-bold">Account settings</span>
-          </div>
-          <button className="icon-btn" onClick={onClose} title="Close account settings"><X size={16} /></button>
-        </div>
-        <div className="account-settings-body">
-          <section className="account-settings-card account-settings-profile">
-            <Avatar user={currentUser} size={44} />
-            <div>
-              <div className="text-md font-bold">{currentUser.name}</div>
-              <div className="text-sm text-muted">{currentUser.email}</div>
-              <div className="text-xs text-muted">{currentUser.title} · {currentUser.department} · {currentUser.role}</div>
-            </div>
-          </section>
-
-          <section
-            className={`account-settings-card account-photo-card ${avatarDragging ? 'dragging' : ''}`}
-            onDragEnter={event => { event.preventDefault(); setAvatarDragging(true); }}
-            onDragOver={event => { event.preventDefault(); setAvatarDragging(true); }}
-            onDragLeave={event => { if (event.currentTarget === event.target) setAvatarDragging(false); }}
-            onDrop={handleAvatarDrop}
-          >
-            <div className="account-photo-preview">
-              <Avatar user={currentUser} size={72} />
-              <button
-                type="button"
-                className="account-photo-camera"
-                onClick={() => avatarInputRef.current?.click()}
-                disabled={avatarBusy}
-                aria-label="Choose profile photo"
-              >
-                {avatarBusy ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
-              </button>
-            </div>
-            <div className="account-photo-content">
-              <div>
-                <div className="text-sm font-bold">Profile photo</div>
-                <div className="text-xs text-muted">Shown app-wide in comments, owners, rosters, notes, and navigation. Drop an image here or choose one from this device.</div>
-              </div>
-              <div className="account-photo-actions">
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => avatarInputRef.current?.click()} disabled={avatarBusy}>
-                  <Upload size={14} /> Choose photo
-                </button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={handleAvatarRemove} disabled={avatarBusy || !currentUser.avatar_url}>
-                  <Trash2 size={14} /> Remove
-                </button>
-              </div>
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
-                className="sr-only"
-                onChange={handleAvatarInput}
-              />
-              {avatarStatus && <div className="text-xs text-success">{avatarStatus}</div>}
-              {avatarError && <div className="text-xs text-error">{avatarError}</div>}
-            </div>
-          </section>
-
-          <section className="account-settings-card">
-            <div className="account-settings-row">
-              <div>
-                <div className="text-sm font-bold">Appearance</div>
-                <div className="text-xs text-muted">Choose the app theme for this device.</div>
-              </div>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')}>
-                {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-                {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-              </button>
-            </div>
-            <div className="account-settings-row">
-              <div>
-                <div className="text-sm font-bold">Push notifications</div>
-                <div className="text-xs text-muted">{pushNotifications.message || (pushNotifications.enabled ? 'Enabled on this device.' : 'Use this device for mobile alerts.')}</div>
-              </div>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={pushAction} disabled={pushNotifications.loading || (!pushNotifications.supported && !pushNotifications.enabled)}>
-                {pushNotifications.loading ? <Loader2 size={14} className="animate-spin" /> : <Smartphone size={14} />}
-                {pushNotifications.enabled ? 'Disable' : 'Enable'}
-              </button>
-            </div>
-            {canManageAiFeatures && (
-              <div className="account-settings-row">
-                <div>
-                  <div className="text-sm font-bold">AI features</div>
-                  <div className="text-xs text-muted">{aiFeaturesEnabled ? "On for your dashboard" : "Off for now"}</div>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={aiFeaturesEnabled}
-                  aria-label="Toggle AI features in account settings"
-                  className={`ai-switch ${aiFeaturesEnabled ? 'on' : ''}`}
-                  onClick={() => onToggleAiFeatures(!aiFeaturesEnabled)}
-                >
-                  <span />
-                </button>
-              </div>
-            )}
-          </section>
-
-          <form className="account-settings-card" onSubmit={submitPassword}>
-            <div className="flex items-center gap-8" style={{ marginBottom: 12 }}>
-              <KeyRound size={15} color="var(--brand)" />
-              <div>
-                <div className="text-sm font-bold">Change password</div>
-                <div className="text-xs text-muted">Update the password for this signed-in account.</div>
-              </div>
-            </div>
-            <div className="account-password-grid">
-              <label>
-                <span>New password</span>
-                <input type="password" value={password} onChange={event => { setPassword(event.target.value); setPasswordError(""); setPasswordStatus(""); }} autoComplete="new-password" />
-              </label>
-              <label>
-                <span>Confirm password</span>
-                <input type="password" value={confirm} onChange={event => { setConfirm(event.target.value); setPasswordError(""); setPasswordStatus(""); }} autoComplete="new-password" />
-              </label>
-            </div>
-            {passwordError && <div className="text-sm text-error" style={{ marginTop: 8 }}>{passwordError}</div>}
-            {passwordStatus && <div className="text-sm" style={{ color: "var(--success)", marginTop: 8 }}>{passwordStatus}</div>}
-            <div className="account-settings-actions">
-              <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
-              <button type="submit" className="btn btn-primary btn-sm" disabled={savingPassword}>
-                {savingPassword ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                Save password
-              </button>
-            </div>
-          </form>
-
-          <section className="account-settings-footer">
-            <div className="text-xs text-muted">Shortcuts: <span className="mono">c</span> new · <span className="mono">/</span> search · <span className="mono">esc</span> close</div>
-            <button type="button" className="btn btn-ghost btn-sm text-error" onClick={onSignOut}><LogOut size={14} /> Sign out</button>
-          </section>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // ============================================================================
 // LOADING SCREEN
 // ============================================================================
@@ -588,68 +257,21 @@ const LoadingScreen = () => (
 // ============================================================================
 // NOTIFICATION PANEL
 // ============================================================================
-const NotificationPanel = ({ notifications, onMarkAllRead, onClose, onClickNotif }) => {
-  const unread = notifications.filter(n => !n.isRead).length;
-  const getColor = (type) => {
-    const map = { assignment: "var(--info)", delegation: "var(--brand)", mention: "var(--brand)", comment: "var(--accent-8)", status_change: "var(--warning)", due_soon: "var(--warning)", overdue: "var(--error)", blocker: "var(--error)", acknowledgement: "var(--success)" };
-    return map[type] || "var(--accent-7)";
-  };
-  const orderedNotifications = [...notifications].sort((left, right) => {
-    const unreadRank = Number(!right.isRead) - Number(!left.isRead);
-    if (unreadRank !== 0) return unreadRank;
-    const priorityRank = Number(right.priority === 'priority') - Number(left.priority === 'priority');
-    if (priorityRank !== 0) return priorityRank;
-    return new Date(right.ts || 0) - new Date(left.ts || 0);
-  });
-
-  return (
-    <div className="notification-dropdown" onClick={e => e.stopPropagation()}>
-      <div className="card-header justify-between">
-        <div className="flex items-center gap-8">
-          <Bell size={14} color="var(--brand)" />
-          <span className="text-md font-bold">Notifications</span>
-          {unread > 0 && <Badge color="var(--error)">{unread}</Badge>}
-        </div>
-        <div className="flex items-center gap-4">
-          {unread > 0 && <button className="btn btn-xs btn-ghost" onClick={onMarkAllRead}>Mark all read</button>}
-          <button className="icon-btn" onClick={onClose}><X size={16} /></button>
-        </div>
-      </div>
-      <div style={{ maxHeight: 400, overflowY: "auto" }}>
-        {notifications.length === 0 ? <div className="text-sm text-muted" style={{ padding: 24, textAlign: "center" }}>No notifications</div> :
-          orderedNotifications.map(n => (
-            <div key={n.id} onClick={() => onClickNotif(n)} className={`notification-item ${!n.isRead ? 'unread' : ''} ${n.priority === 'priority' ? 'priority' : ''} flex gap-10 cursor-pointer`} style={{
-              padding: "12px 16px", borderBottom: "1px solid var(--accent-4)",
-              background: n.isRead ? "transparent" : "rgba(var(--sandpro-orange-rgb),0.03)"
-            }} onMouseEnter={e => e.currentTarget.style.background = "var(--accent-4)"} onMouseLeave={e => e.currentTarget.style.background = n.isRead ? "transparent" : "rgba(var(--sandpro-orange-rgb),0.03)"}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: (n.priority === 'priority' ? 'var(--brand)' : getColor(n.type)) + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Bell size={13} color={n.priority === 'priority' ? 'var(--brand)' : getColor(n.type)} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="text-sm" style={{ lineHeight: 1.4, color: n.isRead ? "var(--accent-8)" : "var(--accent-10)" }}>{n.message}</div>
-                <div className="notification-meta text-xs text-muted" style={{ marginTop: 2 }}>
-                  {new Date(n.ts).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  {n.priority === 'priority' && <span className="notification-priority-badge">Jake priority</span>}
-                </div>
-              </div>
-              {!n.isRead && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--brand)", flexShrink: 0, marginTop: 6 }} />}
-            </div>
-          ))}
-      </div>
-    </div>
-  );
-};
-
 // ============================================================================
 // MAIN APP
 // ============================================================================
 function App() {
   // Supabase hooks
   const { user, profile, loading: authLoading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile } = useAuth();
+  const shouldLoadFixItFeed = Boolean(user && (
+    typeof window === 'undefined'
+    || !window.matchMedia('(max-width: 768px)').matches
+    || readRouteFromLocation().page === 'fixit'
+  ));
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
   const { objectives, okrProjects, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, refetch: refetchObjectives } = useObjectives(Boolean(user));
-  const { posts: fixItPosts, loading: fixItLoading, createPost: createFixItPost, createComment: createFixItComment, deleteComment: deleteFixItComment, updatePostStatus: updateFixItPostStatus, uploadValidationProof: uploadFixItValidationProof, deletePost: deleteFixItPost } = useFixItFeed(Boolean(user));
-  const { reports: ncrReports, loading: ncrLoading, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports } = useNcrReports(Boolean(user));
+  const { posts: fixItPosts, createPost: createFixItPost, createComment: createFixItComment, deleteComment: deleteFixItComment, updatePostStatus: updateFixItPostStatus, uploadValidationProof: uploadFixItValidationProof, deletePost: deleteFixItPost } = useFixItFeed(shouldLoadFixItFeed);
+  const { reports: ncrReports, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports } = useNcrReports(Boolean(user));
   const { notifications, markRead, markAllRead, createNotification: createRawNotification } = useNotifications(profile?.id);
   const pushNotifications = usePushNotifications(profile?.id);
   const altDashboard = useAlternativeDashboard(profile?.id);
@@ -698,14 +320,6 @@ function App() {
   const objectiveFilters = useMemo(() => ({ ...DEFAULT_OBJECTIVE_FILTERS, ...route.filters }), [route.filters]);
   const mustChangePassword = user?.user_metadata?.must_change_password === true;
   const mustSetPassword = mustChangePassword || passwordRecovery;
-  const pageLoading = route.page === "fixit"
-    ? fixItLoading || (!isMobileViewport && objLoading)
-    : route.page === "ncr"
-      ? ncrLoading || objLoading
-      : route.page === "kpi"
-        ? objLoading || ncrLoading || kpiData.loading
-      : objLoading;
-
   const updateRoute = useCallback((updater, options = {}) => {
     const next = typeof updater === "function" ? updater(route) : updater;
     const normalized = {
@@ -957,6 +571,7 @@ function App() {
   useEffect(() => {
     if (
       !DAILY_BRIEF_ENABLED ||
+      isMobileViewport ||
       !profile ||
       mustSetPassword ||
       objectives.length === 0 ||
@@ -975,7 +590,7 @@ function App() {
       return () => window.clearTimeout(timer);
     }
     return undefined;
-  }, [profile, mustSetPassword, objectives.length, hasInteractedSinceLogin, route.page, dashboardMode, openCard, showCreateForm, editingObj]);
+  }, [profile, mustSetPassword, objectives.length, hasInteractedSinceLogin, route.page, dashboardMode, openCard, showCreateForm, editingObj, isMobileViewport]);
 
   useEffect(() => {
     if (!profile?.id || dashboardMode !== ALT_DASHBOARD_MODE || mustSetPassword || openCard || showCreateForm || editingObj) return;
@@ -993,6 +608,7 @@ function App() {
 
   useEffect(() => {
     if (
+      isMobileViewport ||
       !profile ||
       mustSetPassword ||
       showDailyBrief ||
@@ -1012,10 +628,11 @@ function App() {
       if (!safeStorage.get(seenKey)) setShowFrameworkExplainer(true);
     }, 650);
     return () => window.clearTimeout(timer);
-  }, [profile, mustSetPassword, showDailyBrief, openCard, showCreateForm, editingObj, activeFeatureAnnouncement, showFrameworkExplainer, showAltExplainer, dashboardMode]);
+  }, [profile, mustSetPassword, showDailyBrief, openCard, showCreateForm, editingObj, activeFeatureAnnouncement, showFrameworkExplainer, showAltExplainer, dashboardMode, isMobileViewport]);
 
   useEffect(() => {
     if (
+      isMobileViewport ||
       !profile ||
       mustSetPassword ||
       showDailyBrief ||
@@ -1037,7 +654,7 @@ function App() {
       }
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [profile, mustSetPassword, showDailyBrief, showFrameworkExplainer, showAltExplainer, openCard, showCreateForm, editingObj, activeFeatureAnnouncement]);
+  }, [profile, mustSetPassword, showDailyBrief, showFrameworkExplainer, showAltExplainer, openCard, showCreateForm, editingObj, activeFeatureAnnouncement, isMobileViewport]);
 
   // Toast helpers
   const addToast = useCallback((toast) => {
@@ -1774,11 +1391,11 @@ function App() {
   // OKR and NCR are their own dashboards. "Objectives" never appears as a tab
   // (the page stays routable for deep links and drill-downs).
   const pages = [
-    { id: "dashboard", label: "Tasks & Projects", icon: LayoutDashboard },
-    { id: "okr", label: "OKR", icon: Target },
-    { id: "ncr", label: "NCR", icon: ClipboardCheck },
-    { id: "fixit", label: "Fix-It Feed", icon: Wrench },
-    { id: "organization", label: "Organization", icon: Network },
+    { id: "dashboard", label: "Tasks & Projects", mobileLabel: "Work", icon: LayoutDashboard },
+    { id: "okr", label: "OKR", mobileLabel: "OKR", icon: Target },
+    { id: "ncr", label: "NCR", mobileLabel: "NCR", icon: ClipboardCheck },
+    { id: "fixit", label: "Fix-It Feed", mobileLabel: "Fix-It", icon: Wrench },
+    { id: "organization", label: "Organization", mobileLabel: "Org", icon: Network },
   ];
   const desktopPages = pages.filter(page => page.id !== "fixit");
   // Deep-linked pages that highlight a parent tab. Objectives is hidden (Jake
@@ -1997,10 +1614,16 @@ function App() {
   if (authLoading) return <LoadingScreen />;
 
   // Login
-  if (!user) return <LoginScreen onSignIn={handleSignIn} onSignUp={handleSignUp} onResetPassword={resetPassword} />;
+  if (!user) return (
+    <Suspense fallback={<LoadingScreen />}>
+      <LoginScreen onSignIn={handleSignIn} onSignUp={handleSignUp} onResetPassword={resetPassword} brandLogoSrc={BRAND_LOGO_SRC} />
+    </Suspense>
+  );
 
   // Waiting for profile/data
-  if (!profile || profilesLoading || pageLoading) return <LoadingScreen />;
+  // Only block the first app bootstrap. Route-specific and secondary fetches
+  // must not replace an already usable phone shell with a full-screen spinner.
+  if (!profile || profilesLoading || (objLoading && objectives.length === 0)) return <LoadingScreen />;
 
   // Build a currentUser object matching what components expect
   const currentUser = {
@@ -2013,6 +1636,7 @@ function App() {
   const isAndroidPushClient = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || navigator.platform || '');
   const shouldShowPushSetup = Boolean(
     profile?.id
+    && !isMobileViewport
     && !mustSetPassword
     && !showDailyBrief
     && !activeFeatureAnnouncement
@@ -2067,7 +1691,9 @@ function App() {
             <Bell size={18} />
             {unreadCount > 0 && <span className="badge-count">{unreadCount > 9 ? "9+" : unreadCount}</span>}
           </button>
-          {showNotifications && <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onClose={() => setShowNotifications(false)} onClickNotif={handleNotificationClick} />}
+          <Suspense fallback={null}>
+            {showNotifications && <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onClose={() => setShowNotifications(false)} onClickNotif={handleNotificationClick} />}
+          </Suspense>
         </div>
 
         {/* User Menu */}
@@ -2130,12 +1756,15 @@ function App() {
 
       <header className="mobile-topbar" aria-label="Mobile app header">
         <a href={pageHref("dashboard")} onClick={handleHomeClick} className="mobile-brand" aria-label="SandPro dashboard">
-          <img className="mobile-brand-logo" src={BRAND_LOGO_SRC} alt="SandPro OMP" />
+          <img className="mobile-brand-logo" src={BRAND_MARK_SRC} alt="SandPro" />
         </a>
         <div className="mobile-page-title">
           <CurrentPageIcon size={14} />
           <span>{currentPageMeta.label}</span>
         </div>
+        <button className="mobile-icon-btn mobile-create-button" onClick={() => setShowCreateForm(true)} aria-label="Create new">
+          <Plus size={20} />
+        </button>
         <button className="mobile-icon-btn" onClick={() => { setShowNotifications(!showNotifications); setShowUserMenu(false); }} aria-label="Notifications">
           <Bell size={19} />
           {unreadCount > 0 && <span className="badge-count">{unreadCount > 9 ? "9+" : unreadCount}</span>}
@@ -2145,11 +1774,13 @@ function App() {
         </button>
       </header>
 
-      {showNotifications && (
-        <div className="mobile-notification-drawer">
-          <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onClose={() => setShowNotifications(false)} onClickNotif={handleNotificationClick} />
-        </div>
-      )}
+      <Suspense fallback={null}>
+        {showNotifications && (
+          <div className="mobile-notification-drawer">
+            <NotificationPanel notifications={notifications} onMarkAllRead={markAllRead} onClose={() => setShowNotifications(false)} onClickNotif={handleNotificationClick} />
+          </div>
+        )}
+      </Suspense>
 
       {showUserMenu && (
         <aside className="mobile-user-drawer" aria-label="Mobile user menu" onClick={event => event.stopPropagation()}>
@@ -2181,6 +1812,10 @@ function App() {
           <button className="mobile-drawer-row" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>
             <span className="text-sm font-bold">{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <button className="mobile-drawer-row" onClick={() => { setShowUserMenu(false); setShowDailyBrief(true); }}>
+            <span className="text-sm font-bold">Daily brief</span>
+            <Newspaper size={18} />
           </button>
           <button className="mobile-drawer-row" onClick={openAccountSettings}>
             <span className="text-sm font-bold">Account settings</span>
@@ -2296,7 +1931,7 @@ function App() {
         </div>
       )}
 
-      {activeFeatureAnnouncement && (
+      {!isMobileViewport && activeFeatureAnnouncement && (
         <div className="new-feature-popover" role="status" aria-live="polite">
           <button type="button" className="new-feature-close" onClick={() => dismissFeatureAnnouncement()} title="Dismiss new feature note">
             <X size={13} />
@@ -2308,7 +1943,7 @@ function App() {
             <div className="new-feature-title">{activeFeatureAnnouncement.title}</div>
             <p>{activeFeatureAnnouncement.description}</p>
             <div className="new-feature-actions">
-              <button type="button" className="btn btn-primary btn-xs" onClick={openFeatureAnnouncement}>Open tab</button>
+              <button type="button" className="btn btn-primary btn-xs" onClick={openFeatureAnnouncement}>{activeFeatureAnnouncement.page === 'fixit' ? 'Open feed' : 'Open tab'}</button>
               <button type="button" className="btn btn-ghost btn-xs" onClick={() => dismissFeatureAnnouncement()}>Got it</button>
             </div>
           </div>
@@ -2356,144 +1991,160 @@ function App() {
           <span>{pullRefreshState.refreshing ? 'Refreshing...' : pullRefreshState.ready ? 'Release to reload' : 'Pull to refresh'}</span>
         </div>
         <main className={`main-content ${route.page === "kpi" ? "main-content-scroll" : ""}`} ref={mainContentRef}>
-          <GlobalKpiStrip
-            objectives={objectives}
-            okrProjects={okrProjects}
-            currentUser={currentUser}
-            page={route.page}
-            scope={viewScope}
-            onScopeChange={(next) => { setViewScope(next); if (currentPage === 0) setDashboardMode('standard'); }}
-            showAltToggle={currentPage === 0}
-            isAltActive={currentPage === 0 && dashboardMode === ALT_DASHBOARD_MODE}
-            onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
-            onKpiClick={(preset) => showObjectivesWithFilters({
+          <Suspense fallback={<RouteLoader />}>
+            <GlobalKpiStrip
+              objectives={objectives}
+              okrProjects={okrProjects}
+              currentUser={currentUser}
+              page={shellPage}
+              isMobile={isMobileViewport}
+              scope={viewScope}
+              onScopeChange={(next) => { setViewScope(next); if (currentPage === 0) setDashboardMode('standard'); }}
+              showAltToggle={currentPage === 0}
+              isAltActive={currentPage === 0 && dashboardMode === ALT_DASHBOARD_MODE}
+              onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
+              onKpiClick={(preset) => showObjectivesWithFilters({
+                status: preset.status || "all",
+                owner: preset.scope === "individual" ? currentUser.id : "all",
+                due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
+                scope: preset.scope || "all",
+                okrLevel: preset.okrLevel || "all",
+                projectStage: preset.projectStage || "all",
+                stale: preset.stale || "all",
+                view: preset.view || DEFAULT_OBJECTIVE_FILTERS.view,
+                activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
+                label: preset.label,
+              })}
+            />
+            {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
               status: preset.status || "all",
               owner: preset.scope === "individual" ? currentUser.id : "all",
               due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
               scope: preset.scope || "all",
               okrLevel: preset.okrLevel || "all",
+              okrPeriod: preset.okrPeriod || "all",
               projectStage: preset.projectStage || "all",
               stale: preset.stale || "all",
               view: preset.view || DEFAULT_OBJECTIVE_FILTERS.view,
               activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
               label: preset.label,
-            })}
-          />
-          {currentPage === 0 && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
-            status: preset.status || "all",
-            owner: preset.scope === "individual" ? currentUser.id : "all",
-            due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
-            scope: preset.scope || "all",
-            okrLevel: preset.okrLevel || "all",
-            okrPeriod: preset.okrPeriod || "all",
-            projectStage: preset.projectStage || "all",
-            stale: preset.stale || "all",
-            view: preset.view || DEFAULT_OBJECTIVE_FILTERS.view,
-            activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
-            label: preset.label,
-          })} />}
-          {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onQuickStatus={handleQuickStatusObjective} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
-          {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
-          {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
-          {route.page === "fixit" && isMobileViewport && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} focusPostId={new URLSearchParams(window.location.search).get('fixit')} />}
-          {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
-          {route.page === "organization" && <OrgPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}
+            })} />}
+          </Suspense>
+          <Suspense fallback={<RouteLoader />}>
+            {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onQuickStatus={handleQuickStatusObjective} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
+            {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
+            {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
+            {route.page === "fixit" && isMobileViewport && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} focusPostId={new URLSearchParams(window.location.search).get('fixit')} />}
+            {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
+            {route.page === "organization" && <OrgPage objectives={objectives} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}
+          </Suspense>
         </main>
-        <div className="desktop-admin-shell">
-          <AdminSidebar
-            isOpen={route.adminOpen || route.page === "fixit"}
-            onToggle={() => updateRoute(prev => ({
-              ...prev,
-              page: prev.page === "fixit" ? "dashboard" : prev.page,
-              adminOpen: prev.page === "fixit" ? false : !prev.adminOpen,
-            }))}
-            requestedSection={route.page === "fixit" ? "fixit" : null}
-            onSectionChange={(sectionId, { open = false } = {}) => updateRoute(prev => ({
-              ...prev,
-              page: sectionId === "fixit" ? "fixit" : prev.page === "fixit" ? "dashboard" : prev.page,
-              adminOpen: open || (prev.page === "fixit" && sectionId !== "fixit") ? true : prev.adminOpen,
-            }))}
-            fixItCount={fixItPosts.filter(post => post.status !== 'archived').length}
-            fixItContent={(
-              <FixItFeedPage
-                posts={fixItPosts}
-                currentUser={currentUser}
-                onCreatePost={handleCreateFixItPost}
-                onCreateComment={handleCreateFixItComment}
-                onDeleteComment={deleteFixItComment}
-                onUpdatePost={handleUpdateFixItPostStatus}
-                onUploadValidationProof={uploadFixItValidationProof}
-                onDeletePost={deleteFixItPost}
-                addToast={addToast}
-                variant="rail"
-                focusPostId={new URLSearchParams(window.location.search).get('fixit')}
-              />
-            )}
-            objectives={objectives}
-            ncrReports={ncrReports}
-            currentUser={currentUser}
-            createNotification={createNotification}
-            onUsersChanged={refetchProfiles}
-            onUpdateUser={handleUpdateUser}
-          />
-        </div>
+        {!isMobileViewport && <div className="desktop-admin-shell">
+          <Suspense fallback={null}>
+            <AdminSidebar
+              isOpen={route.adminOpen || route.page === "fixit"}
+              onToggle={() => updateRoute(prev => ({
+                ...prev,
+                page: prev.page === "fixit" ? "dashboard" : prev.page,
+                adminOpen: prev.page === "fixit" ? false : !prev.adminOpen,
+              }))}
+              requestedSection={route.page === "fixit" ? "fixit" : null}
+              onSectionChange={(sectionId, { open = false } = {}) => updateRoute(prev => ({
+                ...prev,
+                page: sectionId === "fixit" ? "fixit" : prev.page === "fixit" ? "dashboard" : prev.page,
+                adminOpen: open || (prev.page === "fixit" && sectionId !== "fixit") ? true : prev.adminOpen,
+              }))}
+              fixItCount={fixItPosts.filter(post => post.status !== 'archived').length}
+              fixItContent={(
+                <FixItFeedPage
+                  posts={fixItPosts}
+                  currentUser={currentUser}
+                  onCreatePost={handleCreateFixItPost}
+                  onCreateComment={handleCreateFixItComment}
+                  onDeleteComment={deleteFixItComment}
+                  onUpdatePost={handleUpdateFixItPostStatus}
+                  onUploadValidationProof={uploadFixItValidationProof}
+                  onDeletePost={deleteFixItPost}
+                  addToast={addToast}
+                  variant="rail"
+                  focusPostId={new URLSearchParams(window.location.search).get('fixit')}
+                />
+              )}
+              objectives={objectives}
+              ncrReports={ncrReports}
+              currentUser={currentUser}
+              createNotification={createNotification}
+              onUsersChanged={refetchProfiles}
+              onUpdateUser={handleUpdateUser}
+            />
+          </Suspense>
+        </div>}
       </div>
 
       {/* MOBILE BOTTOM NAV */}
       <nav className="mobile-nav">
-        {pages.map((page, i) => (
-          <a key={page.id} href={pageHref(page.id)} onClick={(event) => handleNavClick(event, page.id)} aria-label={page.label} className={`${currentPage === i ? 'active' : ''} ${activeFeatureAnnouncement?.navId === page.id ? 'nav-pill-feature' : ''}`}>
+        {pages.map(page => (
+          <a key={page.id} href={pageHref(page.id)} onClick={(event) => handleNavClick(event, page.id)} aria-label={page.label} className={`${activeNavId === page.id ? 'active' : ''} ${activeFeatureAnnouncement?.navId === page.id ? 'nav-pill-feature' : ''}`}>
             <page.icon size={20} />
-            {page.label}
+            {page.mobileLabel}
             {activeFeatureAnnouncement?.navId === page.id && <span className="nav-new-badge" aria-hidden="true">New</span>}
           </a>
         ))}
       </nav>
-      <button type="button" className="mobile-new-fab" onClick={() => setShowCreateForm(true)} aria-label="Create new">
-        <Plus size={22} />
-      </button>
 
       {/* MODALS */}
-      {openCard && <SuperCard obj={openCard} objectives={objectives} okrProjects={okrProjects} initialTab={route.objectiveTab} onTabChange={(tab) => updateRoute(prev => ({ ...prev, objectiveTab: tab }), { replace: true })} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} uploadObjectiveFile={uploadObjectiveFile} deleteObjectiveFile={deleteObjectiveFile} addSubtask={addSubtask} updateSubtask={updateSubtask} deleteSubtask={deleteSubtask} addMetricCheckin={addMetricCheckin} addObjectiveMember={addObjectiveMember} removeObjectiveMember={removeObjectiveMember} addWorkflowStep={addWorkflowStep} updateWorkflowStep={updateWorkflowStep} createOkrProject={createOkrProject} updateOkrProject={updateOkrProject} updateProjectArtifact={updateProjectArtifact} captureProjectSignature={captureProjectSignature} uploadProjectAttachment={uploadProjectAttachment} deleteProjectAttachment={deleteProjectAttachment} onMarkMessagesRead={markObjectiveMessagesRead} onUpdateMessage={handleUpdateMessage} onSetMessageReaction={handleSetMessageReaction} onRemoveMessageReaction={handleRemoveMessageReaction} onTranslateMessage={handleTranslateMessage} runObjectiveStarter={aiFeaturesAvailable ? runObjectiveStarter : null} aiFeaturesEnabled={aiFeaturesAvailable} createNotification={createNotification}
-        onEdit={(obj) => { setEditingObj(obj); handleCloseCard(); }} />}
-      {editingObj && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={async (obj) => { const saved = await handleSaveObjective(obj); if (saved) setEditingObj(null); return saved; }} onClose={() => { setEditingObj(null); }} />}
-      {showCreateForm && <CreateWizardModal objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} initialType={wizardInitialType} onClose={() => { setShowCreateForm(false); setWizardInitialType(null); }} onCreateTask={handleWizardCreateTask} onCreateProject={handleWizardCreateProject} onCreateOkr={handleWizardCreateOkr} onGoNcr={() => { setShowCreateForm(false); setWizardInitialType(null); updateRoute({ page: "ncr" }); addToast({ type: "info", message: "NCRs use the standard NCR form" }); }} />}
-      {showAccountSettings && (
-        <AccountSettingsModal
-          currentUser={currentUser}
-          theme={theme}
-          onThemeChange={setTheme}
-          canManageAiFeatures={canManageAiFeatures}
-          aiFeaturesEnabled={aiFeaturesEnabled}
-          onToggleAiFeatures={toggleAiFeatures}
-          pushNotifications={pushNotifications}
-          onEnablePush={handleEnablePush}
-          onDisablePush={handleDisablePush}
-          onUploadAvatar={uploadAvatar}
-          onRemoveAvatar={removeAvatar}
-          onProfilePhotoChanged={async () => {
-            await refetchProfile?.();
-            await refetchProfiles?.();
-          }}
-          onChangePassword={updatePassword}
-          onClose={() => setShowAccountSettings(false)}
-          onSignOut={handleSignOut}
-        />
+      <Suspense fallback={null}>
+        {openCard && <SuperCard obj={openCard} objectives={objectives} okrProjects={okrProjects} initialTab={route.objectiveTab} onTabChange={(tab) => updateRoute(prev => ({ ...prev, objectiveTab: tab }), { replace: true })} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} uploadObjectiveFile={uploadObjectiveFile} deleteObjectiveFile={deleteObjectiveFile} addSubtask={addSubtask} updateSubtask={updateSubtask} deleteSubtask={deleteSubtask} addMetricCheckin={addMetricCheckin} addObjectiveMember={addObjectiveMember} removeObjectiveMember={removeObjectiveMember} addWorkflowStep={addWorkflowStep} updateWorkflowStep={updateWorkflowStep} createOkrProject={createOkrProject} updateOkrProject={updateOkrProject} updateProjectArtifact={updateProjectArtifact} captureProjectSignature={captureProjectSignature} uploadProjectAttachment={uploadProjectAttachment} deleteProjectAttachment={deleteProjectAttachment} onMarkMessagesRead={markObjectiveMessagesRead} onUpdateMessage={handleUpdateMessage} onSetMessageReaction={handleSetMessageReaction} onRemoveMessageReaction={handleRemoveMessageReaction} onTranslateMessage={handleTranslateMessage} runObjectiveStarter={aiFeaturesAvailable ? runObjectiveStarter : null} aiFeaturesEnabled={aiFeaturesAvailable} createNotification={createNotification}
+          onEdit={(obj) => { setEditingObj(obj); handleCloseCard(); }} />}
+        {editingObj && <ObjectiveFormModal objectives={objectives} currentUser={currentUser} editObj={editingObj} onSave={async (obj) => { const saved = await handleSaveObjective(obj); if (saved) setEditingObj(null); return saved; }} onClose={() => { setEditingObj(null); }} />}
+      </Suspense>
+      {showCreateForm && (
+        <Suspense fallback={null}>
+          <CreateWizardModal objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} initialType={wizardInitialType} onClose={() => { setShowCreateForm(false); setWizardInitialType(null); }} onCreateTask={handleWizardCreateTask} onCreateProject={handleWizardCreateProject} onCreateOkr={handleWizardCreateOkr} onGoNcr={() => { setShowCreateForm(false); setWizardInitialType(null); updateRoute({ page: "ncr" }); addToast({ type: "info", message: "NCRs use the standard NCR form" }); }} />
+        </Suspense>
       )}
+      <Suspense fallback={null}>
+        {showAccountSettings && (
+          <AccountSettingsModal
+            currentUser={currentUser}
+            theme={theme}
+            onThemeChange={setTheme}
+            canManageAiFeatures={canManageAiFeatures}
+            aiFeaturesEnabled={aiFeaturesEnabled}
+            onToggleAiFeatures={toggleAiFeatures}
+            pushNotifications={pushNotifications}
+            onEnablePush={handleEnablePush}
+            onDisablePush={handleDisablePush}
+            onUploadAvatar={uploadAvatar}
+            onRemoveAvatar={removeAvatar}
+            onProfilePhotoChanged={async () => {
+              await refetchProfile?.();
+              await refetchProfiles?.();
+            }}
+            onChangePassword={updatePassword}
+            onClose={() => setShowAccountSettings(false)}
+            onSignOut={handleSignOut}
+          />
+        )}
+      </Suspense>
 
-      {showDailyBrief && (
-        <BriefErrorBoundary onDismiss={dismissBrief}>
-          <DailyBrief objectives={objectives} currentUser={currentUser} onDismiss={dismissBrief} onOpenCard={handleOpenCard} onOpenFilter={(preset) => showObjectivesWithFilters({
-            status: preset.status || "all",
-            owner: preset.scope === "individual" ? currentUser.id : "all",
-            due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
-            scope: preset.scope || "all",
-            activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
-            label: preset.label,
-          })} />
-        </BriefErrorBoundary>
-      )}
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <Suspense fallback={null}>
+        {showDailyBrief && (
+          <BriefErrorBoundary onDismiss={dismissBrief}>
+            <DailyBrief objectives={objectives} currentUser={currentUser} onDismiss={dismissBrief} onOpenCard={handleOpenCard} onOpenFilter={(preset) => showObjectivesWithFilters({
+              status: preset.status || "all",
+              owner: preset.scope === "individual" ? currentUser.id : "all",
+              due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
+              scope: preset.scope || "all",
+              activeOnly: Boolean(preset.activeOnly) && preset.status !== "completed",
+              label: preset.label,
+            })} />
+          </BriefErrorBoundary>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {toasts.length > 0 && <ToastContainer toasts={toasts} removeToast={removeToast} />}
+      </Suspense>
       {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}
     </FieldKeyProvider>
   );

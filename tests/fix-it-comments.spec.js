@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { dismissGuidance, env, login, navItem, requireCredentials } from './helpers.js';
+import { dismissGuidance, env, login, requireCredentials } from './helpers.js';
 
 test.describe('Fix-It item comments', () => {
   test('users can reply to one Fix-It card and attach files to that reply', async ({ page }) => {
@@ -16,7 +16,8 @@ test.describe('Fix-It item comments', () => {
     writeFileSync(uploadPath, 'Temporary Fix-It comment attachment validation.');
 
     await login(page, env.e2eEmail, env.e2ePassword);
-    await navItem(page, 'Fix-It Feed').click();
+    await page.goto('/?page=fixit');
+    await expect(page.locator('aside.admin-sidebar-fixit')).toBeVisible();
     await dismissGuidance(page);
 
     await page.locator('.fixit-composer textarea').fill(postBody);

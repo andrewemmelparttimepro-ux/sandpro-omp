@@ -38,7 +38,7 @@ test.describe('mobile zero-day crop gates', () => {
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-01-dashboard.png`), fullPage: true });
 
       await dismissGuidance(page);
-      await page.getByRole('button', { name: 'New', exact: true }).or(page.locator('.mobile-new-fab')).first().click();
+      await page.getByRole('button', { name: 'Create new', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Create New' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Task', exact: true })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Project', exact: true })).toBeVisible();
@@ -53,6 +53,13 @@ test.describe('mobile zero-day crop gates', () => {
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-02-create-wizard.png`), fullPage: true });
       await page.getByLabel('Close').click();
       await expect(page.locator('.wiz-modal')).toHaveCount(0);
+
+      await dismissGuidance(page);
+      await navItem(page, 'OKR').click();
+      await expect(page.locator('.okr-mobile-sections')).toBeVisible();
+      await resetMainScroll(page);
+      await assertNoMobileCrop(page, `okr ${viewport.label}`);
+      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-03b-okr.png`), fullPage: true });
 
       await dismissGuidance(page);
       await openObjectivesPage(page);

@@ -32,6 +32,7 @@ if (!supabaseUrl || !serviceRoleKey) {
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
+const playwrightArgs = process.argv.slice(2);
 
 const createQaUser = async () => {
   const token = `${Date.now()}-${randomBytes(3).toString('hex')}`;
@@ -85,7 +86,7 @@ try {
   console.log(`Created temporary mobile QA user: ${qaUser.email}`);
   const result = spawnSync(
     'npx',
-    ['playwright', 'test', 'tests/mobile-crop.spec.js', '--project=mobile-chrome', '--workers=1'],
+    ['playwright', 'test', 'tests/mobile-crop.spec.js', '--project=mobile-chrome', '--workers=1', ...playwrightArgs],
     {
       cwd: process.cwd(),
       stdio: 'inherit',
