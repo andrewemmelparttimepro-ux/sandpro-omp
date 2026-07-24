@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Download, Plus } from 'lucide-react';
-import { getUser, getStatusColor, getStatusLabel, getStatusBg, canManageOkrs } from '../data';
+import { Fragment, useState } from 'react';
+import { ChevronDown, ChevronRight, Download, Plus } from 'lucide-react';
+import { getStatusColor, getStatusLabel, getStatusBg, canManageOkrs, isObjectiveAssignedToUser, getObjectiveAssignmentLabel } from '../data';
 import { OKR_LEVEL_LABELS, getAssumedOkrLevel } from '../okrFramework';
 
 // Extracted from src/pages.jsx to make OkrPage a real lazy route module.
@@ -61,6 +61,7 @@ const okrSheetStatusLabel = (status) => OKR_SHEET_STATUSES.find(s => s.id === st
 export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveCheckin, onQuickStatus }) => {
   const [view, setView] = useState("edit");
   const [drafts, setDrafts] = useState({});
+  const [collapsedSections, setCollapsedSections] = useState(() => new Set());
   const canManageOkrSheet = canManageOkrs(currentUser);
   const year = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
@@ -68,11 +69,16 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
   const okrs = objectives
     .filter(isOkrSheetObjective)
     .sort((a, b) => {
+      const sectionA = getOkrSheetSection(a);
+      const sectionB = getOkrSheetSection(b);
+      const sectionRank = section => section === "Company" ? 0 : 1;
+      const sectionRankDelta = sectionRank(sectionA) - sectionRank(sectionB);
+      if (sectionRankDelta) return sectionRankDelta;
+      const sectionDelta = sectionA.localeCompare(sectionB);
+      if (sectionDelta) return sectionDelta;
       const levelRank = { company: 0, department: 1, key_result: 2 };
       const levelDelta = (levelRank[getAssumedOkrLevel(a)] ?? 9) - (levelRank[getAssumedOkrLevel(b)] ?? 9);
       if (levelDelta) return levelDelta;
-      const sectionDelta = getOkrSheetSection(a).localeCompare(getOkrSheetSection(b));
-      if (sectionDelta) return sectionDelta;
       return (a.title || "").localeCompare(b.title || "");
     });
 
@@ -82,6 +88,10 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
       return d.getFullYear() === year && d.getMonth() === monthIdx;
     });
     if (!checkins.length) return null;
+    checkins.sort((a, b) => {
+      const createdDelta = new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+      return createdDelta || String(a.id || "").localeCompare(String(b.id || ""));
+    });
     return checkins[checkins.length - 1].value;
   };
 
@@ -127,7 +137,7 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
     );
   };
 
-  const canEdit = (o) => canManageOkrSheet || o.ownerId === currentUser.id || (o.members || []).some(m => m.userId === currentUser.id);
+  const canEdit = (o) => canManageOkrSheet || isObjectiveAssignedToUser(o, currentUser.id) || (o.members || []).some(m => m.userId === currentUser.id);
 
   const saveCell = async (o, monthIdx) => {
     const key = `${o.id}-${monthIdx}`;
@@ -148,12 +158,20 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
     return acc;
   }, {});
 
+  const toggleSection = sectionName => {
+    setCollapsedSections(current => {
+      const next = new Set(current);
+      if (next.has(sectionName)) next.delete(sectionName);
+      else next.add(sectionName);
+      return next;
+    });
+  };
+
   return (
     <div className="okr-page">
       <div className="okr-page-head">
         <div>
           <h1 className="page-title">OKR</h1>
-          <p className="text-sm text-muted">The spreadsheet, digitized and locked. A tag = permission to edit that line, and only that line.</p>
           {view === "edit" && okrs.length > 0 && (() => {
             // Real month progress — motivates finishing the monthly ritual,
             // never fakes a number.
@@ -188,11 +206,11 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
               <thead>
                 <tr>
                   <th className="okr-name-col">OKR line · {year}</th>
-                  <th className="okr-ref-col omp-tip omp-tip-left" data-tip="Set by the line owner: On Track, At Risk, or Off Track. Shows on the presentation view too." tabIndex={0}>Status</th>
+                  <th className="okr-ref-col okr-sticky-status omp-tip omp-tip-left" data-tip="Set by the line owner: On Track, At Risk, or Off Track. Shows on the presentation view too." tabIndex={0}>Status</th>
                   {OKR_REFERENCE_COLUMNS.map(column => (
                     <th
                       key={column}
-                      className={`okr-ref-col ${column === "YTD AVG" ? "omp-tip" : ""}`}
+                      className={`okr-ref-col ${column === "YTD AVG" ? "okr-sticky-average omp-tip" : ""}`}
                       {...(column === "YTD AVG" ? { "data-tip": "Running (year-to-date) average — auto-calculated from the monthly entries. Same as the spreadsheet's rolling average. Read-only.", tabIndex: 0 } : {})}
                     >
                       {column}
@@ -202,19 +220,30 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
                 </tr>
               </thead>
               <tbody>
-                {okrs.map(o => {
-                  const editable = canEdit(o);
-                  return (
-                    <tr key={o.id}>
+                {Object.entries(bySection).map(([sectionName, rows]) => {
+                  const collapsed = collapsedSections.has(sectionName);
+                  return <Fragment key={sectionName}>
+                    <tr className="okr-group-row">
+                      <td colSpan={okrColSpan}>
+                        <button type="button" onClick={() => toggleSection(sectionName)} aria-expanded={!collapsed}>
+                          {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                          <strong>{sectionName}</strong>
+                          <span>{rows.length} {rows.length === 1 ? "line" : "lines"}</span>
+                        </button>
+                      </td>
+                    </tr>
+                    {!collapsed && rows.map(o => {
+                      const editable = canEdit(o);
+                      return <tr key={o.id}>
                       <td className="okr-name-col">
                         <button type="button" className="okr-name-btn" onClick={() => onOpenCard?.(o)}>
                           <span className="okr-title">{o.title}</span>
-                          <span className="okr-meta">{getOkrSheetSection(o)} · {getOkrSheetSubmeta(o)} · {getUser(o.ownerId).name.split(" ")[0]}{editable && !canManageOkrSheet ? " · @you" : ""}{!editable ? " · locked" : ""}</span>
+                          <span className="okr-meta">{getOkrSheetSection(o)} · {getOkrSheetSubmeta(o)} · {getObjectiveAssignmentLabel(o)}{editable && !canManageOkrSheet ? " · @you" : ""}{!editable ? " · locked" : ""}</span>
                         </button>
                       </td>
-                      <td className="okr-ref-cell okr-ref-short">{statusCell(o, editable)}</td>
+                      <td className="okr-ref-cell okr-ref-short okr-sticky-status">{statusCell(o, editable)}</td>
                       {referenceCells(o).map(cell => (
-                        <td key={cell.key} className={`okr-ref-cell ${cell.className}`} title={cell.value}>{cell.value}</td>
+                        <td key={cell.key} className={`okr-ref-cell ${cell.className} ${cell.key === "avg" ? "okr-sticky-average" : ""}`} title={cell.value}>{cell.value}</td>
                       ))}
                       {OKR_MONTHS.map((m, i) => {
                         const key = `${o.id}-${i}`;
@@ -234,8 +263,9 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
                           </td>
                         );
                       })}
-                    </tr>
-                  );
+                    </tr>;
+                    })}
+                  </Fragment>;
                 })}
                 {okrs.length === 0 && (
                   <tr><td colSpan={okrColSpan} className="okr-empty">No OKRs yet. {canManageOkrSheet ? "Add a main OKR to get started." : "Main OKRs are created by authorized OKR editors."}</td></tr>
@@ -243,19 +273,21 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
               </tbody>
             </table>
           </div>
-          <div className="okr-legend text-xs text-muted">Editable cells = lines where you are tagged (owner or member) — edit any month, any number of times. YTD AVG is auto-calculated from the monthly inputs through the current month.</div>
         </div>
         <div className="okr-mobile-sections">
           {Object.entries(bySection).map(([sectionName, rows]) => (
             <section key={sectionName} className="okr-mobile-section">
-              <div className="okr-mobile-section-head">
-                <h2>{sectionName}</h2>
+              <button type="button" className="okr-mobile-section-head" onClick={() => toggleSection(sectionName)} aria-expanded={!collapsedSections.has(sectionName)}>
+                <span className="okr-mobile-section-title">
+                  {collapsedSections.has(sectionName) ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
+                  <strong>{sectionName}</strong>
+                </span>
                 <span>{rows.length}</span>
-              </div>
-              <div className="okr-mobile-list">
+              </button>
+              {!collapsedSections.has(sectionName) && <div className="okr-mobile-list">
                 {rows.map(o => {
                   const editable = canEdit(o);
-                  const ownerName = getUser(o.ownerId).name.split(" ")[0];
+                  const ownerName = getObjectiveAssignmentLabel(o);
                   return (
                     <article key={o.id} className="okr-mobile-card">
                       <div className="okr-mobile-card-head">
@@ -295,7 +327,7 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
                     </article>
                   );
                 })}
-              </div>
+              </div>}
             </section>
           ))}
           {okrs.length === 0 && <div className="card okr-empty">No OKRs yet.</div>}
@@ -326,7 +358,7 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
                   {rows.map(o => (
                     <tr key={o.id}>
                       <td className="okr-name-col">
-                        {o.title} <span className="okr-print-owner">— {getUser(o.ownerId).name.split(" ")[0]}</span>
+                        {o.title} <span className="okr-print-owner">— {getObjectiveAssignmentLabel(o)}</span>
                         <span className="okr-print-submeta">{getOkrSheetSubmeta(o)}</span>
                       </td>
                       <td className="okr-ref-cell okr-ref-short">

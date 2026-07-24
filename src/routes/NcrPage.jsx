@@ -1816,7 +1816,6 @@ const NcrPage = ({
   const [importSearch, setImportSearch] = useState('');
   const [importActionFilter, setImportActionFilter] = useState('all');
   const [ncrMode, setNcrMode] = useState('tracker');
-  const [ncrView, setNcrView] = useState('advanced');
   const canTriage = ['executive', 'manager'].includes(currentUser?.role);
   const canCloseOut = ['executive', 'manager'].includes(currentUser?.role);
   const untriagedReports = useMemo(() => reports.filter(r => !OMP_DEPARTMENTS.includes(r.mainDepartment)), [reports]);
@@ -1915,7 +1914,7 @@ const NcrPage = ({
   const severities = [...new Set(reports.map(report => report.severity || 'Unspecified').filter(Boolean))].sort();
   const worksites = [...new Set(reports.map(report => report.worksiteArea).filter(Boolean))].sort();
   const people = getProfiles().filter(user => user?.id).sort((a, b) => a.name.localeCompare(b.name));
-  const isAdvancedNcrView = ncrView === 'advanced';
+  const isAdvancedNcrView = true;
   const departmentFilterLabel = departmentFilters.length === 0 ? 'All Groups' : departmentFilters.length === 1 ? departmentFilters[0] : `${departmentFilters.length} groups selected`;
   const departmentFilterTitle = departmentFilters.length ? departmentFilters.join(', ') : 'All Groups';
   const toggleDepartmentFilter = value => {
@@ -2723,13 +2722,6 @@ const NcrPage = ({
               <tab.icon size={14} /> {tab.label}
             </button>)}
         </div>
-        {(ncrMode === 'tracker' || ncrMode === 'analytics') && <div className="ncr-view-bar">
-          <span>View</span>
-          <div className="segmented-control" role="group" aria-label="NCR detail level">
-            <button type="button" className={ncrView === 'basic' ? 'active' : ''} onClick={() => setNcrView('basic')}>Basic</button>
-            <button type="button" className={ncrView === 'advanced' ? 'active' : ''} onClick={() => setNcrView('advanced')}>Advanced</button>
-          </div>
-        </div>}
       </div>
       {ncrMode === 'triage' && canTriage && <NcrTriagePanel reports={untriagedReports} currentUser={currentUser} onUpdateReport={onUpdateReport} addToast={addToast} />}
       {ncrMode === 'closeout' && canCloseOut && <NcrCloseoutReport reports={reports} currentUser={currentUser} people={people} onUpdateReport={onUpdateReport} onUpdateActionItem={onUpdateActionItem} onCaptureSignature={onCaptureSignature} onOpenTracker={reportId => {
@@ -3450,7 +3442,7 @@ const NcrPage = ({
               {issueExplorer.matches.length === 0 && <small>No matching NCRs yet. Import the KPA history or broaden the issue term.</small>}
             </div>
           </div>
-          <div className={`ncr-analytics-grid ${isAdvancedNcrView ? '' : 'ncr-analytics-grid-basic'}`}>
+          <div className="ncr-analytics-grid">
             <NcrBreakdownCard icon={Sparkles} title="Normalized Failure Trends" rows={analytics.byFailure} />
             <NcrBreakdownCard icon={Building2} title="Framework departments" rows={analytics.byDepartment} />
             <NcrBreakdownCard icon={PieChart} title="Event Type" rows={analytics.byType} />

@@ -1,0 +1,6 @@
+# Local analysis and QA artifacts are not part of the production application.
+outputs/
+docs/evidence/
+test-results/
+playwright-report/
+tests/

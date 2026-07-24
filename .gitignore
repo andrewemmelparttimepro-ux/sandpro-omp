@@ -10,6 +10,7 @@ tmp/
 tmp-*/
 tests/tmp-*.js
 output/
+outputs/
 scripts/.tmp-*.mjs
 
 # Generated audit and closure evidence

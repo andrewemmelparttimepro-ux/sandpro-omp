@@ -8,16 +8,12 @@ test.describe('OKR + project assessment framework cohesion', () => {
     await dismissDailyBrief(page);
   });
 
-  test('dashboard framework strip opens the same Objective lens filters', async ({ page }, testInfo) => {
-    await expect(page.locator('.framework-dashboard-strip')).toBeVisible();
-    await page.getByRole('button', { name: /Projects in assessment/i }).click();
-
-    await expect(page).toHaveURL(/page=objectives/);
-    await expect(page).toHaveURL(/projectStage=assessment/);
-    await expect(page).toHaveURL(/view=tree/);
-    if (testInfo.project.name !== 'mobile-chrome') {
-      await expect(page.getByText('OKR + Project Tree')).toBeVisible();
-    }
+  test('dashboard keeps only the KPI banner and filters the visible list in place', async ({ page }) => {
+    await expect(page.locator('.framework-dashboard-strip')).toHaveCount(0);
+    await expect(page.locator('.global-kpi-strip')).toBeVisible();
+    await page.getByRole('button', { name: /Active/i }).first().click();
+    await expect(page).not.toHaveURL(/page=objectives/);
+    await expect(page.locator('.dashboard-page .lv-card')).toBeVisible();
   });
 
   test('objectives tab exposes tree view, OKR filters, and report exports', async ({ page }, testInfo) => {

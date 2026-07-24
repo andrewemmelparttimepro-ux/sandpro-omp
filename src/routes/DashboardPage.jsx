@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Search, ChevronDown, ChevronLeft, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle, Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3, Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText, Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw, PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio, ClipboardCheck } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, formatDate, formatObjectiveTimestamp, timeAgo, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports } from '../data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, formatDate, timeAgo, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, isObjectiveAssignedToUser } from '../data';
 import { Avatar, Badge } from '../uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from '../sharedWidgets';
 import { useAltNotes } from '../hooks/useSupabase';
@@ -563,7 +563,8 @@ const DashboardListView = ({
   onOpenCard,
   onProjectClick,
   onNcrClick,
-  onUpdateNcrReport
+  onUpdateNcrReport,
+  filterPreset
 }) => {
   const [dept, setDept] = useState("all");
   const [sub, setSub] = useState("all");
@@ -578,6 +579,17 @@ const DashboardListView = ({
   const profiles = getProfiles();
   const companyOkrIds = useMemo(() => new Set(allObjectives.filter(o => o.okrLevel === "company").map(o => o.id)), [allObjectives]);
   const ncrLinkedObjectiveIds = useMemo(() => new Set(allNcrReports.map(r => r.linkedObjectiveId).filter(Boolean)), [allNcrReports]);
+
+  useEffect(() => {
+    if (!filterPreset?.version) return;
+    setDept("all");
+    setSub("all");
+    setType("all");
+    setLinked("all");
+    setOriginator("all");
+    setAssigned("all");
+    setAging(filterPreset.aging || "all_due");
+  }, [filterPreset?.aging, filterPreset?.version]);
 
   // One canonical row per item — the de-duplicated "pen list", digital.
   const rows = useMemo(() => {
@@ -627,7 +639,7 @@ const DashboardListView = ({
       linkedNcr: false,
       originatorId: p.sponsorId,
       ownerId: p.leadId,
-      memberIds: [],
+      memberIds: p.memberIds || [],
       dueDate: p.dueDate || null,
       isCompleted: p.stage === "done"
     }));
@@ -918,21 +930,26 @@ export const DashboardPage = ({
   onNcrClick,
   onUpdateNcrReport,
   onKpiClick,
+  filterPreset,
   scope = "company"
 }) => {
   const directReports = getDirectReports(currentUser.id);
-  const scopedObjectives = scope === "individual" ? objectives.filter(o => o.ownerId === currentUser.id) : scope === "team" ? objectives.filter(o => o.ownerId === currentUser.id || directReports.some(r => r.id === o.ownerId) || o.delegatedBy === currentUser.id) : objectives;
-  const allActive = scopedObjectives.filter(o => o.status !== "completed" && o.status !== "cancelled");
+  const scopedObjectives = scope === "individual" ? objectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id)) : scope === "team" ? objectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id) || directReports.some(r => isObjectiveAssignedToUser(o, r.id)) || o.delegatedBy === currentUser.id) : objectives;
   const scopedProjectIds = new Set(scopedObjectives.flatMap(objective => (objective.linkedProjects || []).map(project => project.id)));
-  const scopedProjects = okrProjects.filter(project => scopedProjectIds.has(project.id) || scope === "company" || project.sponsorId === currentUser.id || project.leadId === currentUser.id);
+  const scopedProjects = okrProjects.filter(project => (
+    scopedProjectIds.has(project.id)
+    || scope === "company"
+    || project.sponsorId === currentUser.id
+    || project.leadId === currentUser.id
+    || (project.memberIds || []).some(memberId => (
+      memberId === currentUser.id
+      || (scope === "team" && directReports.some(reportUser => reportUser.id === memberId))
+    ))
+  ));
   const scopedNcrReports = scope === "company" ? ncrReports : ncrReports.filter(report => {
     const visibleUserIds = new Set([currentUser.id, ...(scope === "team" ? directReports.map(reportUser => reportUser.id) : [])]);
     return [report.ownerId, report.reviewerId, report.verifierId, report.createdBy, report.authorId, ...(Array.isArray(report.personnelInvolvedIds) ? report.personnelInvolvedIds : [])].filter(Boolean).some(userId => visibleUserIds.has(userId));
   });
-  // "My Work" for manager/contributor
-  const delegatedToMe = scopedObjectives.filter(o => o.ownerId === currentUser.id && o.delegatedBy && o.delegatedBy !== currentUser.id);
-  const needsAck = delegatedToMe.filter(o => !o.acknowledged);
-  const needsTag = allActive.filter(o => (o.members || []).length === 0 && o.ownerId === currentUser.id).slice(0, 4);
   const isAlternativeDashboard = dashboardMode === ALT_DASHBOARD_MODE;
   return <div className="dashboard-page" style={{
     height: "100%",
@@ -941,78 +958,8 @@ export const DashboardPage = ({
     overflow: "hidden"
   }}>
       {isAlternativeDashboard ? <AlternativeDashboardView objectives={objectives} currentUser={currentUser} preferences={altDashboardPreferences} presence={altDashboardPresence} onOpenCard={onOpenCard} onPreferenceChange={onAltPreferenceChange} onAltTagPerson={onAltTagPerson} /> : <>
-      {/* Delegated-to-me needing acknowledgement */}
-      {needsAck.length > 0 && <div className="card" style={{
-        marginBottom: 16,
-        borderColor: "rgba(139,92,246,0.3)",
-        flexShrink: 0
-      }}>
-          <div className="card-header" style={{
-          background: "rgba(139,92,246,0.05)"
-        }}>
-            <Bell size={14} color="#8B5CF6" />
-            <span className="text-sm font-bold" style={{
-            color: "#8B5CF6"
-          }}>Needs Your Acknowledgement</span>
-            <Badge color="#8B5CF6">{needsAck.length}</Badge>
-          </div>
-          <div style={{
-          padding: "8px 12px"
-        }}>
-            {needsAck.map(obj => <div key={obj.id} onClick={() => onOpenCard(obj)} className="flex items-center gap-10 cursor-pointer" style={{
-            padding: "8px 4px"
-          }}>
-                <div className="status-dot" style={{
-              background: getStatusColor(obj.status)
-            }} />
-                <div style={{
-              flex: 1
-            }}>
-                  <div className="text-md font-medium">{obj.title}</div>
-                  <div className="objective-timestamp-line">{formatObjectiveTimestamp(obj)}</div>
-                  <div className="text-xs text-muted">Delegated by {getUser(obj.delegatedBy).name}</div>
-                </div>
-                <span className="text-xs text-muted">{formatDate(obj.dueDate)}</span>
-              </div>)}
-          </div>
-        </div>}
-
-      {needsTag.length > 0 && <div className="card" style={{
-        marginBottom: 16,
-        borderColor: "var(--brand-border)",
-        flexShrink: 0
-      }}>
-          <div className="card-header" style={{
-          background: "var(--brand-bg)"
-        }}>
-            <UserPlus size={14} color="var(--brand)" />
-            <span className="text-sm font-bold text-brand">Needs A Supporting Tag</span>
-            <Badge color="var(--brand)">{needsTag.length}</Badge>
-          </div>
-          <div style={{
-          padding: "8px 12px"
-        }}>
-            {needsTag.map(obj => <div key={obj.id} onClick={() => onOpenCard(obj, "details")} className="flex items-center gap-10 cursor-pointer" style={{
-            padding: "8px 4px"
-          }}>
-                <div className="status-dot" style={{
-              background: getStatusColor(obj.status)
-            }} />
-                <div style={{
-              flex: 1,
-              minWidth: 0
-            }}>
-                  <div className="text-md font-medium truncate">{obj.title}</div>
-                  <div className="objective-timestamp-line">{formatObjectiveTimestamp(obj)}</div>
-                  <div className="text-xs text-muted">Tag the teammate who should help move this forward.</div>
-                </div>
-                <span className="text-xs text-muted">{formatDate(obj.dueDate)}</span>
-              </div>)}
-          </div>
-        </div>}
-
       {/* The list view — Jake's home-screen drill-down */}
-      <DashboardListView objectives={scopedObjectives} allObjectives={objectives} okrProjects={scopedProjects} ncrReports={scopedNcrReports} allNcrReports={ncrReports} currentUser={currentUser} onOpenCard={onOpenCard} onProjectClick={project => onKpiClick?.({
+      <DashboardListView objectives={scopedObjectives} allObjectives={objectives} okrProjects={scopedProjects} ncrReports={scopedNcrReports} allNcrReports={ncrReports} currentUser={currentUser} filterPreset={filterPreset} onOpenCard={onOpenCard} onProjectClick={project => onKpiClick?.({
         label: project.name,
         view: "tree"
       })} onNcrClick={onNcrClick} onUpdateNcrReport={onUpdateNcrReport} />

@@ -269,6 +269,17 @@ CREATE TABLE IF NOT EXISTS public.okr_projects (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.okr_project_members (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID NOT NULL REFERENCES public.okr_projects(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'member',
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT okr_project_members_project_user_key UNIQUE(project_id, user_id),
+  CONSTRAINT okr_project_members_role_check CHECK (role IN ('member', 'manager'))
+);
+
 CREATE TABLE IF NOT EXISTS public.okr_project_kr_links (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID NOT NULL REFERENCES public.okr_projects(id) ON DELETE CASCADE,
@@ -845,6 +856,8 @@ CREATE INDEX IF NOT EXISTS idx_okr_projects_type ON public.okr_projects(project_
 CREATE INDEX IF NOT EXISTS idx_okr_projects_linked_kr ON public.okr_projects(linked_kr_id);
 CREATE INDEX IF NOT EXISTS idx_okr_projects_sponsor ON public.okr_projects(sponsor_id);
 CREATE INDEX IF NOT EXISTS idx_okr_projects_lead ON public.okr_projects(lead_id);
+CREATE INDEX IF NOT EXISTS idx_okr_project_members_user ON public.okr_project_members(user_id, project_id);
+CREATE INDEX IF NOT EXISTS idx_okr_project_members_created_by ON public.okr_project_members(created_by) WHERE created_by IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_okr_project_links_project ON public.okr_project_kr_links(project_id);
 CREATE INDEX IF NOT EXISTS idx_okr_project_links_objective ON public.okr_project_kr_links(objective_id);
 CREATE INDEX IF NOT EXISTS idx_okr_artifacts_project ON public.okr_assessment_artifacts(project_id);
@@ -1106,6 +1119,7 @@ ALTER TABLE public.kpi_import_batches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_workflow_steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_agent_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.okr_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.okr_project_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.okr_project_kr_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.okr_assessment_artifacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.okr_project_signatures ENABLE ROW LEVEL SECURITY;
@@ -1389,6 +1403,84 @@ CREATE POLICY "Authenticated users can delete OKR projects"
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
       AND (role = 'executive' OR lower(email) IN ('jfeil@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro'))
+    )
+  );
+
+DROP POLICY IF EXISTS "OKR project members viewable by authenticated" ON public.okr_project_members;
+CREATE POLICY "OKR project members viewable by authenticated"
+  ON public.okr_project_members FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Project owners manage project members" ON public.okr_project_members;
+
+DROP POLICY IF EXISTS "Project owners add project members" ON public.okr_project_members;
+CREATE POLICY "Project owners add project members"
+  ON public.okr_project_members FOR INSERT TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.okr_projects project
+      WHERE project.id = project_id
+      AND (
+        project.created_by = auth.uid()
+        OR project.sponsor_id = auth.uid()
+        OR project.lead_id = auth.uid()
+      )
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = auth.uid() AND viewer.role = 'executive'
+    )
+  );
+
+DROP POLICY IF EXISTS "Project owners update project members" ON public.okr_project_members;
+CREATE POLICY "Project owners update project members"
+  ON public.okr_project_members FOR UPDATE TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.okr_projects project
+      WHERE project.id = project_id
+      AND (
+        project.created_by = auth.uid()
+        OR project.sponsor_id = auth.uid()
+        OR project.lead_id = auth.uid()
+      )
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = auth.uid() AND viewer.role = 'executive'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.okr_projects project
+      WHERE project.id = project_id
+      AND (
+        project.created_by = auth.uid()
+        OR project.sponsor_id = auth.uid()
+        OR project.lead_id = auth.uid()
+      )
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = auth.uid() AND viewer.role = 'executive'
+    )
+  );
+
+DROP POLICY IF EXISTS "Project owners remove project members" ON public.okr_project_members;
+CREATE POLICY "Project owners remove project members"
+  ON public.okr_project_members FOR DELETE TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.okr_projects project
+      WHERE project.id = project_id
+      AND (
+        project.created_by = auth.uid()
+        OR project.sponsor_id = auth.uid()
+        OR project.lead_id = auth.uid()
+      )
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = auth.uid() AND viewer.role = 'executive'
     )
   );
 
@@ -1711,6 +1803,7 @@ CREATE POLICY "Authenticated users can create Fix-It attachments"
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.fix_it_comments TO authenticated;
 GRANT SELECT, INSERT ON public.fix_it_attachments TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.okr_projects TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.okr_project_members TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.okr_project_kr_links TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.okr_assessment_artifacts TO authenticated;
 GRANT SELECT, INSERT, DELETE ON public.okr_project_signatures TO authenticated;
@@ -2057,6 +2150,13 @@ END $$;
 
 DO $$
 BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.okr_project_members;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE public.okr_project_kr_links;
 EXCEPTION WHEN duplicate_object THEN
   NULL;
@@ -2215,3 +2315,513 @@ BEGIN
 EXCEPTION WHEN duplicate_object THEN
   NULL;
 END $$;
+
+-- 2026-07-23: optional rotating ownership for Tasks and OKRs.
+CREATE TABLE IF NOT EXISTS public.assignment_groups (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT NOT NULL DEFAULT '',
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT assignment_groups_slug_format CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+);
+
+CREATE TABLE IF NOT EXISTS public.assignment_group_members (
+  group_id UUID NOT NULL REFERENCES public.assignment_groups(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (group_id, user_id)
+);
+
+ALTER TABLE public.objectives
+  ADD COLUMN IF NOT EXISTS assignment_group_id UUID REFERENCES public.assignment_groups(id) ON DELETE RESTRICT;
+ALTER TABLE public.objectives ALTER COLUMN owner_id DROP NOT NULL;
+ALTER TABLE public.objectives DROP CONSTRAINT IF EXISTS objectives_one_assignment_target;
+ALTER TABLE public.objectives
+  ADD CONSTRAINT objectives_one_assignment_target CHECK (
+    (owner_id IS NOT NULL AND assignment_group_id IS NULL)
+    OR (owner_id IS NULL AND assignment_group_id IS NOT NULL)
+  ) NOT VALID;
+ALTER TABLE public.objectives VALIDATE CONSTRAINT objectives_one_assignment_target;
+
+CREATE INDEX IF NOT EXISTS idx_objectives_assignment_group
+  ON public.objectives(assignment_group_id) WHERE assignment_group_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_assignment_group_members_user
+  ON public.assignment_group_members(user_id, group_id);
+
+DROP TRIGGER IF EXISTS set_assignment_groups_updated_at ON public.assignment_groups;
+CREATE TRIGGER set_assignment_groups_updated_at
+  BEFORE UPDATE ON public.assignment_groups
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+ALTER TABLE public.assignment_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assignment_group_members ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.assignment_groups TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.assignment_group_members TO authenticated;
+
+DROP POLICY IF EXISTS "Assignment groups viewable by authenticated" ON public.assignment_groups;
+CREATE POLICY "Assignment groups viewable by authenticated"
+  ON public.assignment_groups FOR SELECT TO authenticated USING (TRUE);
+DROP POLICY IF EXISTS "Assignment group members viewable by authenticated" ON public.assignment_group_members;
+CREATE POLICY "Assignment group members viewable by authenticated"
+  ON public.assignment_group_members FOR SELECT TO authenticated USING (TRUE);
+
+DROP POLICY IF EXISTS "Platform admins manage assignment groups" ON public.assignment_groups;
+CREATE POLICY "Platform admins manage assignment groups"
+  ON public.assignment_groups FOR ALL TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid())
+        AND (
+          viewer.role = 'executive'
+          OR LOWER(viewer.email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro')
+        )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid())
+        AND (
+          viewer.role = 'executive'
+          OR LOWER(viewer.email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro')
+        )
+    )
+  );
+
+DROP POLICY IF EXISTS "Platform admins manage assignment group members" ON public.assignment_group_members;
+CREATE POLICY "Platform admins manage assignment group members"
+  ON public.assignment_group_members FOR ALL TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid())
+        AND (
+          viewer.role = 'executive'
+          OR LOWER(viewer.email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro')
+        )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid())
+        AND (
+          viewer.role = 'executive'
+          OR LOWER(viewer.email) IN ('mjimenez@sandpro.com', 'tdibben@sandpro.com', 'jfeil@sandpro.com', 'andrew@ndai.pro')
+        )
+    )
+  );
+
+DROP POLICY IF EXISTS "Owners creators can update" ON public.objectives;
+DROP POLICY IF EXISTS "Objective team can update objectives" ON public.objectives;
+CREATE POLICY "Objective team can update objectives"
+  ON public.objectives FOR UPDATE TO authenticated
+  USING (
+    (SELECT auth.uid()) = owner_id
+    OR (SELECT auth.uid()) = created_by
+    OR EXISTS (
+      SELECT 1 FROM public.objective_members member
+      WHERE member.objective_id = objectives.id
+        AND member.user_id = (SELECT auth.uid())
+        AND member.role IN ('assignee', 'manager')
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.assignment_group_members group_member
+      WHERE group_member.group_id = objectives.assignment_group_id
+        AND group_member.user_id = (SELECT auth.uid())
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role = 'executive'
+    )
+  )
+  WITH CHECK (
+    (SELECT auth.uid()) = owner_id
+    OR (SELECT auth.uid()) = created_by
+    OR EXISTS (
+      SELECT 1 FROM public.objective_members member
+      WHERE member.objective_id = objectives.id
+        AND member.user_id = (SELECT auth.uid())
+        AND member.role IN ('assignee', 'manager')
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.assignment_group_members group_member
+      WHERE group_member.group_id = objectives.assignment_group_id
+        AND group_member.user_id = (SELECT auth.uid())
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role = 'executive'
+    )
+  );
+
+INSERT INTO public.assignment_groups (name, slug, description)
+VALUES
+  ('Dispatch', 'dispatch', 'Rotating Operations Coordinator and Dispatch coverage.'),
+  ('Field Service Managers', 'field-service-managers', 'Rotating field-service management coverage.'),
+  ('Trainers', 'trainers', 'Field trainer coverage.'),
+  ('Sales Team', 'sales-team', 'Shared sales ownership for co-mingled goals.'),
+  ('CP Shop Leads', 'cp-shop-leads', 'Customer Property Warehouse shop leadership.'),
+  ('Flowback Shop Leads', 'flowback-shop-leads', 'Flowback shop leadership and rotating coverage.'),
+  ('Wellhead Shop Leads', 'wellhead-shop-leads', 'Wellhead shop leadership and rotating coverage.'),
+  ('Leadership / Business Team', 'leadership-business-team', 'Leadership and business-team roll-up.')
+ON CONFLICT (slug) DO UPDATE SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  is_active = TRUE;
+
+-- Preserve each NCR import revision while the stable NCR record and all of its
+-- attachments, actions, workflow, and signatures remain in place.
+CREATE TABLE IF NOT EXISTS public.ncr_import_revisions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  ncr_id UUID NOT NULL REFERENCES public.ncr_reports(id) ON DELETE CASCADE,
+  batch_id UUID REFERENCES public.ncr_import_batches(id) ON DELETE SET NULL,
+  report_number TEXT NOT NULL,
+  action TEXT NOT NULL CHECK (action IN ('created', 'refreshed')),
+  previous_source_record JSONB NOT NULL DEFAULT '{}'::JSONB,
+  imported_source_record JSONB NOT NULL DEFAULT '{}'::JSONB,
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_ncr_import_revisions_ncr_created
+  ON public.ncr_import_revisions(ncr_id, created_at DESC);
+ALTER TABLE public.ncr_import_revisions ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT ON public.ncr_import_revisions TO authenticated;
+DROP POLICY IF EXISTS "Authenticated users view NCR import revisions" ON public.ncr_import_revisions;
+CREATE POLICY "Authenticated users view NCR import revisions"
+  ON public.ncr_import_revisions FOR SELECT TO authenticated USING (TRUE);
+DROP POLICY IF EXISTS "NCR importers record revisions" ON public.ncr_import_revisions;
+CREATE POLICY "NCR importers record revisions"
+  ON public.ncr_import_revisions FOR INSERT TO authenticated
+  WITH CHECK (created_by = (SELECT auth.uid()));
+
+DROP POLICY IF EXISTS "Executives and objective owners manage members" ON public.objective_members;
+CREATE POLICY "Executives and objective owners manage members"
+  ON public.objective_members FOR ALL TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.objectives objective
+      WHERE objective.id = objective_id
+        AND (
+          objective.owner_id = (SELECT auth.uid())
+          OR objective.created_by = (SELECT auth.uid())
+          OR EXISTS (
+            SELECT 1 FROM public.assignment_group_members group_member
+            WHERE group_member.group_id = objective.assignment_group_id
+              AND group_member.user_id = (SELECT auth.uid())
+          )
+        )
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role = 'executive'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.objectives objective
+      WHERE objective.id = objective_id
+        AND (
+          objective.owner_id = (SELECT auth.uid())
+          OR objective.created_by = (SELECT auth.uid())
+          OR EXISTS (
+            SELECT 1 FROM public.assignment_group_members group_member
+            WHERE group_member.group_id = objective.assignment_group_id
+              AND group_member.user_id = (SELECT auth.uid())
+          )
+        )
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role = 'executive'
+    )
+  );
+
+DROP POLICY IF EXISTS "Objective team manages workflow steps" ON public.objective_workflow_steps;
+CREATE POLICY "Objective team manages workflow steps"
+  ON public.objective_workflow_steps FOR ALL TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.objectives objective
+      WHERE objective.id = objective_id
+        AND (
+          objective.owner_id = (SELECT auth.uid())
+          OR objective.created_by = (SELECT auth.uid())
+          OR EXISTS (
+            SELECT 1 FROM public.assignment_group_members group_member
+            WHERE group_member.group_id = objective.assignment_group_id
+              AND group_member.user_id = (SELECT auth.uid())
+          )
+        )
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.objective_members member
+      WHERE member.objective_id = objective_id
+        AND member.user_id = (SELECT auth.uid())
+        AND member.role IN ('assignee', 'manager')
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role = 'executive'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.objectives objective
+      WHERE objective.id = objective_id
+        AND (
+          objective.owner_id = (SELECT auth.uid())
+          OR objective.created_by = (SELECT auth.uid())
+          OR EXISTS (
+            SELECT 1 FROM public.assignment_group_members group_member
+            WHERE group_member.group_id = objective.assignment_group_id
+              AND group_member.user_id = (SELECT auth.uid())
+          )
+        )
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.objective_members member
+      WHERE member.objective_id = objective_id
+        AND member.user_id = (SELECT auth.uid())
+        AND member.role IN ('assignee', 'manager')
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role = 'executive'
+    )
+  );
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.assignment_groups;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.assignment_group_members;
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END $$;
+
+-- Equal-rank reporting managers and Merci-approved rotating groups (2026-07-24).
+CREATE TABLE IF NOT EXISTS public.profile_managers (
+  employee_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  manager_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (employee_id, manager_id),
+  CONSTRAINT profile_managers_no_self_management CHECK (employee_id <> manager_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_profile_managers_manager
+  ON public.profile_managers(manager_id, employee_id);
+CREATE INDEX IF NOT EXISTS idx_profile_managers_created_by
+  ON public.profile_managers(created_by)
+  WHERE created_by IS NOT NULL;
+
+ALTER TABLE public.profile_managers ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profile_managers TO authenticated;
+
+DROP POLICY IF EXISTS "Profile managers viewable by authenticated" ON public.profile_managers;
+CREATE POLICY "Profile managers viewable by authenticated"
+  ON public.profile_managers FOR SELECT TO authenticated USING (TRUE);
+
+DROP POLICY IF EXISTS "Platform admins manage profile managers" ON public.profile_managers;
+DROP POLICY IF EXISTS "Platform admins insert profile managers" ON public.profile_managers;
+CREATE POLICY "Platform admins insert profile managers"
+  ON public.profile_managers FOR INSERT TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid())
+        AND (
+          viewer.role = 'executive'
+          OR LOWER(viewer.email) IN (
+            'mjimenez@sandpro.com',
+            'tdibben@sandpro.com',
+            'jfeil@sandpro.com',
+            'andrew@ndai.pro'
+          )
+      )
+    )
+  );
+
+DROP POLICY IF EXISTS "Platform admins update profile managers" ON public.profile_managers;
+CREATE POLICY "Platform admins update profile managers"
+  ON public.profile_managers FOR UPDATE TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid())
+        AND (
+          viewer.role = 'executive'
+          OR LOWER(viewer.email) IN (
+            'mjimenez@sandpro.com',
+            'tdibben@sandpro.com',
+            'jfeil@sandpro.com',
+            'andrew@ndai.pro'
+          )
+        )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid())
+        AND (
+          viewer.role = 'executive'
+          OR LOWER(viewer.email) IN (
+            'mjimenez@sandpro.com',
+            'tdibben@sandpro.com',
+            'jfeil@sandpro.com',
+            'andrew@ndai.pro'
+          )
+      )
+    )
+  );
+
+DROP POLICY IF EXISTS "Platform admins delete profile managers" ON public.profile_managers;
+CREATE POLICY "Platform admins delete profile managers"
+  ON public.profile_managers FOR DELETE TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles viewer
+      WHERE viewer.id = (SELECT auth.uid())
+        AND (
+          viewer.role = 'executive'
+          OR LOWER(viewer.email) IN (
+            'mjimenez@sandpro.com',
+            'tdibben@sandpro.com',
+            'jfeil@sandpro.com',
+            'andrew@ndai.pro'
+          )
+        )
+    )
+  );
+
+INSERT INTO public.profile_managers (employee_id, manager_id)
+SELECT profile.id, profile.reports_to
+FROM public.profiles profile
+WHERE profile.reports_to IS NOT NULL
+ON CONFLICT (employee_id, manager_id) DO NOTHING;
+
+WITH dual_managed_employee_names(name) AS (
+  VALUES
+    ('Garl McGraw'),
+    ('Julius Williams'),
+    ('Hunter Jones'),
+    ('Richard Griffin'),
+    ('Phillip Leviner'),
+    ('Bob Young'),
+    ('Curtis Jones'),
+    ('Corey Sharkey'),
+    ('Logan Howard'),
+    ('Austin Dees'),
+    ('Marcos Vega'),
+    ('Brian Brower'),
+    ('Kris Trone'),
+    ('Fred Floyd Jr.'),
+    ('Joseph Dingal'),
+    ('Shane Vogel'),
+    ('Abel Lua'),
+    ('Bill Anderson'),
+    ('Jake Beck'),
+    ('Able Conley'),
+    ('Wyatt Phipps'),
+    ('Austin Griffin'),
+    ('Jean Bazile'),
+    ('Kobie Jones'),
+    ('Josef Mcconnell'),
+    ('Kevin Johnson'),
+    ('Jeremy Tate'),
+    ('Jerimiah Howard'),
+    ('Nick Reiter'),
+    ('Dexter Sotelo'),
+    ('Dion Carter')
+),
+employees AS (
+  SELECT profile.id
+  FROM public.profiles profile
+  JOIN dual_managed_employee_names approved
+    ON LOWER(profile.name) = LOWER(approved.name)
+),
+managers AS (
+  SELECT profile.id
+  FROM public.profiles profile
+  WHERE LOWER(profile.name) IN ('isaac badillo', 'zedek harris')
+)
+INSERT INTO public.profile_managers (employee_id, manager_id)
+SELECT employee.id, manager.id
+FROM employees employee
+CROSS JOIN managers manager
+ON CONFLICT (employee_id, manager_id) DO NOTHING;
+
+DELETE FROM public.assignment_group_members member
+USING public.assignment_groups assignment_group
+WHERE member.group_id = assignment_group.id
+  AND assignment_group.slug IN (
+    'dispatch',
+    'field-service-managers',
+    'trainers',
+    'sales-team',
+    'cp-shop-leads',
+    'flowback-shop-leads',
+    'wellhead-shop-leads',
+    'leadership-business-team'
+  );
+
+WITH approved_group_members(group_slug, member_name) AS (
+  VALUES
+    ('dispatch', 'Dustin Saunders'),
+    ('dispatch', 'Gershom Dingal'),
+    ('dispatch', 'Luke Feil'),
+    ('dispatch', 'Shawn Cockrell'),
+    ('field-service-managers', 'Isaac Badillo'),
+    ('field-service-managers', 'Zedek Harris'),
+    ('trainers', 'Bryce Christoffersen'),
+    ('trainers', 'Brad Beck'),
+    ('sales-team', 'John Sommerfeld'),
+    ('sales-team', 'Jon Ostby'),
+    ('sales-team', 'Brandon Schatz'),
+    ('sales-team', 'Josh Pfeifer'),
+    ('sales-team', 'Joshua Blackaby'),
+    ('cp-shop-leads', 'Kelby Kraft'),
+    ('cp-shop-leads', 'Eric Macy'),
+    ('cp-shop-leads', 'Tim Dibben'),
+    ('flowback-shop-leads', 'Matthew Bornschein'),
+    ('flowback-shop-leads', 'Jaelen Maslowski'),
+    ('flowback-shop-leads', 'Tim Dibben'),
+    ('wellhead-shop-leads', 'Thomas Goldsberry'),
+    ('wellhead-shop-leads', 'Jeramiah Walls'),
+    ('wellhead-shop-leads', 'Jaelen Maslowski'),
+    ('wellhead-shop-leads', 'Tim Dibben'),
+    ('leadership-business-team', 'Jake Feil'),
+    ('leadership-business-team', 'Joshua Blackaby'),
+    ('leadership-business-team', 'Andrew Emmel'),
+    ('leadership-business-team', 'Tim Dibben'),
+    ('leadership-business-team', 'Kelby Kraft'),
+    ('leadership-business-team', 'Drew Anderson'),
+    ('leadership-business-team', 'Malcolm Blackaby'),
+    ('leadership-business-team', 'Mark Elliott'),
+    ('leadership-business-team', 'Kayla Sebastian'),
+    ('leadership-business-team', 'Heather Allard-Kotaska'),
+    ('leadership-business-team', 'Adam Allan'),
+    ('leadership-business-team', 'Jaelen Maslowski')
+)
+INSERT INTO public.assignment_group_members (group_id, user_id, created_by)
+SELECT assignment_group.id, profile.id, NULL
+FROM approved_group_members approved
+JOIN public.assignment_groups assignment_group
+  ON assignment_group.slug = approved.group_slug
+JOIN public.profiles profile
+  ON LOWER(profile.name) = LOWER(approved.member_name)
+ON CONFLICT (group_id, user_id) DO NOTHING;

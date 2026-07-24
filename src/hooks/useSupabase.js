@@ -616,11 +616,29 @@ export function useProfiles() {
   }, []);
 
   const fetchProfiles = async () => {
-    const { data } = await timedQuery(supabase
-      .from('profiles')
-      .select('*')
-      .order('name'), 'profiles fetch');
-    if (data) setProfiles(data);
+    const [profileResult, managerResult] = await Promise.all([
+      timedQuery(
+        supabase.from('profiles').select('*').order('name'),
+        'profiles fetch',
+      ),
+      timedQuery(
+        supabase.from('profile_managers').select('employee_id,manager_id'),
+        'profile managers fetch',
+      ),
+    ]);
+    if (profileResult.data) {
+      const managersByEmployee = (managerResult.data || []).reduce((map, row) => {
+        map.set(row.employee_id, [...(map.get(row.employee_id) || []), row.manager_id]);
+        return map;
+      }, new Map());
+      setProfiles(profileResult.data.map(profile => ({
+        ...profile,
+        manager_ids: [...new Set([
+          profile.reports_to,
+          ...(managersByEmployee.get(profile.id) || []),
+        ].filter(Boolean))],
+      })));
+    }
     setLoading(false);
   };
 
@@ -1299,6 +1317,135 @@ export function useKpis(userId, enabled = false) {
 // ============================================================================
 // OBJECTIVES HOOK — full CRUD with related data
 // ============================================================================
+export function useAssignmentGroups(enabled = true) {
+  const [assignmentGroups, setAssignmentGroups] = useState([]);
+  const [loading, setLoading] = useState(Boolean(enabled));
+
+  const fetchAssignmentGroups = useCallback(async () => {
+    if (!enabled) {
+      setAssignmentGroups([]);
+      setLoading(false);
+      return [];
+    }
+    const [groups, members] = await Promise.all([
+      nullableSelect(
+        supabase
+          .from('assignment_groups')
+          .select('id,name,slug,description,is_active,created_by,updated_by,created_at,updated_at')
+          .order('name'),
+        [],
+        'assignment groups fetch',
+      ),
+      nullableSelect(
+        supabase
+          .from('assignment_group_members')
+          .select('group_id,user_id,created_by,created_at')
+          .order('created_at'),
+        [],
+        'assignment group members fetch',
+      ),
+    ]);
+    const membersByGroup = (members || []).reduce((acc, member) => {
+      (acc[member.group_id] = acc[member.group_id] || []).push({
+        groupId: member.group_id,
+        userId: member.user_id,
+        createdBy: member.created_by,
+        createdAt: member.created_at,
+      });
+      return acc;
+    }, {});
+    const mapped = (groups || []).map(group => ({
+      id: group.id,
+      name: group.name,
+      slug: group.slug,
+      description: group.description || '',
+      isActive: group.is_active !== false,
+      createdBy: group.created_by,
+      updatedBy: group.updated_by,
+      createdAt: group.created_at,
+      updatedAt: group.updated_at,
+      members: membersByGroup[group.id] || [],
+      memberIds: (membersByGroup[group.id] || []).map(member => member.userId),
+    }));
+    setAssignmentGroups(mapped);
+    setLoading(false);
+    return mapped;
+  }, [enabled]);
+
+  useEffect(() => { fetchAssignmentGroups(); }, [fetchAssignmentGroups]);
+
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const channel = supabase
+      .channel('assignment-groups-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignment_groups' }, () => fetchAssignmentGroups())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignment_group_members' }, () => fetchAssignmentGroups())
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [enabled, fetchAssignmentGroups]);
+
+  const createAssignmentGroup = async (draft = {}, userId = null) => {
+    const slug = String(draft.slug || draft.name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    const { data, error } = await supabase
+      .from('assignment_groups')
+      .insert({
+        name: String(draft.name || '').trim(),
+        slug,
+        description: String(draft.description || '').trim(),
+        is_active: draft.isActive !== false,
+        created_by: userId,
+        updated_by: userId,
+      })
+      .select('id')
+      .single();
+    if (error) throw error;
+    await fetchAssignmentGroups();
+    return data;
+  };
+
+  const updateAssignmentGroup = async (groupId, changes = {}, userId = null) => {
+    const patch = { updated_by: userId };
+    if (changes.name !== undefined) patch.name = String(changes.name || '').trim();
+    if (changes.description !== undefined) patch.description = String(changes.description || '').trim();
+    if (changes.isActive !== undefined) patch.is_active = Boolean(changes.isActive);
+    const { error } = await supabase.from('assignment_groups').update(patch).eq('id', groupId);
+    if (error) throw error;
+    await fetchAssignmentGroups();
+  };
+
+  const addAssignmentGroupMember = async (groupId, userId, createdBy = null) => {
+    const { error } = await supabase
+      .from('assignment_group_members')
+      .upsert({ group_id: groupId, user_id: userId, created_by: createdBy }, { onConflict: 'group_id,user_id' });
+    if (error) throw error;
+    await fetchAssignmentGroups();
+  };
+
+  const removeAssignmentGroupMember = async (groupId, userId) => {
+    const { error } = await supabase
+      .from('assignment_group_members')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+    if (error) throw error;
+    await fetchAssignmentGroups();
+  };
+
+  return {
+    assignmentGroups,
+    loading,
+    createAssignmentGroup,
+    updateAssignmentGroup,
+    addAssignmentGroupMember,
+    removeAssignmentGroupMember,
+    refetch: fetchAssignmentGroups,
+  };
+}
+
 export function useObjectives(enabled = true) {
   const [objectives, setObjectives] = useState([]);
   const [okrProjects, setOkrProjects] = useState([]);
@@ -1329,19 +1476,20 @@ export function useObjectives(enabled = true) {
       setLoading(false);
       return;
     }
-    const [messagesRes, subtasksRes, updatesRes, filesRes, members, metricCheckins, agentRuns, workflowSteps, messageReads, projectRows, projectLinks, projectArtifacts, projectSignatures, projectAttachments, projectAuditEvents] = await Promise.all([
+    const [messagesRes, subtasksRes, updatesRes, filesRes, members, metricCheckins, agentRuns, workflowSteps, messageReads, projectRows, projectMembers, projectLinks, projectArtifacts, projectSignatures, projectAttachments, projectAuditEvents] = await Promise.all([
       timedQuery(supabase.from('messages').select('*').in('objective_id', ids).order('created_at'), 'messages fetch'),
       timedQuery(supabase.from('subtasks').select('*').in('objective_id', ids), 'subtasks fetch'),
       timedQuery(supabase.from('objective_updates').select('*').in('objective_id', ids).order('created_at'), 'objective updates fetch'),
       timedQuery(supabase.from('files').select('*').in('objective_id', ids).order('created_at'), 'objective files fetch'),
       nullableSelect(supabase.from('objective_members').select('*').in('objective_id', ids), [], 'objective members fetch'),
-      nullableSelect(supabase.from('objective_metric_checkins').select('*').in('objective_id', ids).order('checkin_date'), [], 'objective metric checkins fetch'),
+      nullableSelect(supabase.from('objective_metric_checkins').select('*').in('objective_id', ids).order('checkin_date').order('created_at'), [], 'objective metric checkins fetch'),
       nullableSelect(supabase.from('objective_agent_runs').select('*').in('objective_id', ids).order('created_at'), [], 'objective agent runs fetch'),
       nullableSelect(supabase.from('objective_workflow_steps').select('*').in('objective_id', ids).order('step_order'), [], 'objective workflow steps fetch'),
       currentUserId
         ? nullableSelect(supabase.from('objective_message_reads').select('*').eq('user_id', currentUserId).in('objective_id', ids), [], 'objective message reads fetch')
         : Promise.resolve([]),
       nullableSelect(supabase.from('okr_projects').select('*').order('updated_at', { ascending: false }), [], 'OKR projects fetch'),
+      nullableSelect(supabase.from('okr_project_members').select('*').order('created_at'), [], 'OKR project members fetch'),
       nullableSelect(supabase.from('okr_project_kr_links').select('*'), [], 'OKR project links fetch'),
       nullableSelect(supabase.from('okr_assessment_artifacts').select('*').order('artifact_key'), [], 'OKR assessment artifacts fetch'),
       nullableSelect(supabase.from('okr_project_signatures').select('*').order('created_at'), [], 'OKR signatures fetch'),
@@ -1415,6 +1563,7 @@ export function useObjectives(enabled = true) {
     const workflowByObj = groupBy(workflowSteps, 'objective_id');
     const readsByObj = groupBy(messageReads, 'objective_id');
     const reactionsByMessage = groupBy(messageReactions, 'message_id');
+    const projectMembersByProject = groupBy(projectMembers, 'project_id');
     const projectLinksByProject = groupBy(projectLinks, 'project_id');
     const projectsByLinkedObjective = groupBy(
       [
@@ -1455,6 +1604,15 @@ export function useObjectives(enabled = true) {
         createdBy: project.created_by,
         createdAt: project.created_at,
         updatedAt: project.updated_at,
+        members: (projectMembersByProject[project.id] || []).map(member => ({
+          id: member.id,
+          projectId: member.project_id,
+          userId: member.user_id,
+          role: member.role || 'member',
+          createdBy: member.created_by,
+          createdAt: member.created_at,
+        })),
+        memberIds: (projectMembersByProject[project.id] || []).map(member => member.user_id),
         artifacts: (artifactsByProject[project.id] || []).map(artifact => ({
           id: artifact.id,
           projectId: artifact.project_id,
@@ -1502,6 +1660,7 @@ export function useObjectives(enabled = true) {
       ...o,
       // Map DB snake_case to camelCase for UI compatibility
       ownerId: o.owner_id,
+      assignmentGroupId: o.assignment_group_id,
       createdBy: o.created_by,
       createdAt: o.created_at,
       delegatedBy: o.delegated_by,
@@ -1696,6 +1855,7 @@ export function useObjectives(enabled = true) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_agent_runs' }, () => fetchObjectives())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_workflow_steps' }, () => fetchObjectives())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_projects' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_members' }, () => fetchObjectives())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_kr_links' }, () => fetchObjectives())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_assessment_artifacts' }, () => fetchObjectives())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_signatures' }, () => fetchObjectives())
@@ -1708,6 +1868,7 @@ export function useObjectives(enabled = true) {
   const toLocalObjective = (row, source = {}) => ({
     ...row,
     ownerId: row.owner_id,
+    assignmentGroupId: row.assignment_group_id,
     createdBy: row.created_by,
     delegatedBy: row.delegated_by,
     parentId: row.parent_id,
@@ -1752,7 +1913,8 @@ export function useObjectives(enabled = true) {
       .insert({
         title: obj.title,
         description: obj.description || '',
-        owner_id: obj.ownerId,
+        owner_id: obj.assignmentGroupId ? null : (obj.ownerId || null),
+        assignment_group_id: obj.assignmentGroupId || null,
         created_by: obj.createdBy,
         delegated_by: obj.delegatedBy || null,
         parent_id: obj.parentId || null,
@@ -1863,7 +2025,8 @@ export function useObjectives(enabled = true) {
     const dbChanges = {};
     if (changes.title !== undefined) dbChanges.title = changes.title;
     if (changes.description !== undefined) dbChanges.description = changes.description;
-    if (changes.ownerId !== undefined) dbChanges.owner_id = changes.ownerId;
+    if (changes.ownerId !== undefined) dbChanges.owner_id = changes.ownerId || null;
+    if (changes.assignmentGroupId !== undefined) dbChanges.assignment_group_id = changes.assignmentGroupId || null;
     if (changes.status !== undefined) dbChanges.status = changes.status;
     if (changes.priority !== undefined) dbChanges.priority = changes.priority;
     if (changes.progress !== undefined) dbChanges.progress = changes.progress;
@@ -2246,6 +2409,11 @@ export function useObjectives(enabled = true) {
 
   const createOkrProject = async (project) => {
     const linkedObjectiveIds = project.linkedObjectiveIds || (project.linkedKrId ? [project.linkedKrId] : []);
+    const memberIds = [...new Set(project.memberIds || [])].filter(userId => (
+      userId
+      && userId !== project.leadId
+      && userId !== project.createdBy
+    ));
     const { data, error } = await supabase.from('okr_projects').insert({
       name: project.name,
       description: project.description || '',
@@ -2265,12 +2433,27 @@ export function useObjectives(enabled = true) {
       created_by: project.createdBy || null,
     }).select().single();
     if (error) throw error;
-    await syncProjectLinks(data.id, linkedObjectiveIds, project.createdBy || null);
+    try {
+      await syncProjectLinks(data.id, linkedObjectiveIds, project.createdBy || null);
+      if (memberIds.length > 0) {
+        const { error: memberError } = await supabase.from('okr_project_members').insert(memberIds.map(userId => ({
+          project_id: data.id,
+          user_id: userId,
+          role: 'member',
+          created_by: project.createdBy || null,
+        })));
+        if (memberError) throw memberError;
+      }
+    } catch (setupError) {
+      const { error: cleanupError } = await supabase.from('okr_projects').delete().eq('id', data.id);
+      if (cleanupError) console.error('Could not clean up incomplete project creation', cleanupError);
+      throw setupError;
+    }
     await writeProjectAudit(data.id, {
       actorId: project.createdBy || null,
       eventType: 'project_created',
       fieldName: 'okr_projects',
-      newValue: { name: project.name, stage: project.stage || 'idea' },
+      newValue: { name: project.name, stage: project.stage || 'idea', memberCount: memberIds.length },
       note: `Project created: ${project.name}`,
     });
     await fetchObjectives();
@@ -2986,7 +3169,7 @@ export function useNcrReports(enabled = false) {
     if (reportNumbers.length > 0) {
       const { data: existingReports, error: existingError } = await supabase
         .from('ncr_reports')
-        .select('report_number,main_department,status,closed,lifecycle_stage,source_batch_id')
+        .select('id,report_number,main_department,status,closed,lifecycle_stage,source_batch_id,source_raw_record')
         .in('report_number', reportNumbers);
       if (existingError) throw existingError;
       (existingReports || []).forEach(report => {
@@ -3029,6 +3212,18 @@ export function useNcrReports(enabled = false) {
           .select('id,report_number')
           .single();
         if (error) throw error;
+        const { error: revisionError } = await supabase
+          .from('ncr_import_revisions')
+          .insert({
+            ncr_id: data.id,
+            batch_id: batch.id,
+            report_number: data.report_number,
+            action: existedBefore ? 'refreshed' : 'created',
+            previous_source_record: existingReport?.source_raw_record || {},
+            imported_source_record: fullPayload.source_raw_record || row.sourceRawRecord || row,
+            created_by: userId,
+          });
+        if (revisionError) throw revisionError;
         imported += 1;
         if (existedBefore) refreshed += 1;
         else {

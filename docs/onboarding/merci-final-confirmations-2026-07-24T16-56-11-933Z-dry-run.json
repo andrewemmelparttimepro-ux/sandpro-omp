@@ -1,0 +1,25 @@
+{
+  "generatedAt": "2026-07-24T16:56:11.933Z",
+  "apply": false,
+  "decisionSource": "Merci OMP Confirmation Checklist 2026-07-24",
+  "identities": {
+    "found": 64,
+    "needsConfirmation": 64,
+    "alreadyConfirmed": 0,
+    "emailPolicy": "disabled until onboarding; daily email remains limited to Andrew, Jake, Merci, and Tim"
+  },
+  "keith": {
+    "found": true,
+    "id": "b02579c7-0788-493f-8a5b-34656d098a2a",
+    "email": "kmappes@sandpro.com",
+    "lastSignInAt": null,
+    "blockingWork": {
+      "objectives": 0,
+      "subtasks": 0,
+      "messages": 0,
+      "Fix-It Feed posts": 0
+    }
+  },
+  "actions": [],
+  "errors": []
+}

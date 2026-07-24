@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, Suspense } from 'react';
 import { Search, ChevronDown, ChevronLeft, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle, Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3, Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText, Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw, PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio, ClipboardCheck } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports } from '../data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, isObjectiveAssignedToUser, getObjectiveAssignmentLabel } from '../data';
 import { Avatar, Badge } from '../uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from '../sharedWidgets';
 import { FieldKeyProvider, DefinedTerm, FieldKeyHint } from '../glossary';
@@ -193,10 +193,10 @@ export const ObjectivesPage = ({
     return due >= new Date(now.getFullYear(), now.getMonth(), now.getDate()) && due < new Date(now.getTime() + Number(dueWindow) * 86400000);
   };
   const isInScope = useCallback(o => {
-    if (scopeFilter === "individual") return o.ownerId === currentUser.id;
+    if (scopeFilter === "individual") return isObjectiveAssignedToUser(o, currentUser.id);
     if (scopeFilter === "team") {
       const reports = getDirectReports(currentUser.id);
-      return o.ownerId === currentUser.id || reports.some(r => r.id === o.ownerId) || o.delegatedBy === currentUser.id;
+      return isObjectiveAssignedToUser(o, currentUser.id) || reports.some(r => isObjectiveAssignedToUser(o, r.id)) || o.delegatedBy === currentUser.id;
     }
     return true;
   }, [scopeFilter, currentUser.id]);
@@ -211,7 +211,7 @@ export const ObjectivesPage = ({
       if (filter !== "all" && o.status !== filter) return false;
       if (activeOnly && (o.status === "completed" || o.status === "cancelled")) return false;
       if (search && !o.title.toLowerCase().includes(search.toLowerCase()) && !o.description?.toLowerCase().includes(search.toLowerCase())) return false;
-      if (ownerFilter !== "all" && o.ownerId !== ownerFilter) return false;
+      if (ownerFilter !== "all" && !isObjectiveAssignedToUser(o, ownerFilter)) return false;
       if (departmentFilter !== "all" && o.department !== departmentFilter) return false;
       if (priorityFilter !== "all" && o.priority !== priorityFilter) return false;
       if (!isInDueWindow(o, dueFilter)) return false;
@@ -232,7 +232,7 @@ export const ObjectivesPage = ({
       if (sortBy === "priority") return (PRIORITY_ORDER[a.priority] || 3) - (PRIORITY_ORDER[b.priority] || 3);
       if (sortBy === "due") return new Date(a.dueDate || "9999") - new Date(b.dueDate || "9999");
       if (sortBy === "progress") return b.progress - a.progress;
-      if (sortBy === "owner") return getUser(a.ownerId).name.localeCompare(getUser(b.ownerId).name);
+      if (sortBy === "owner") return getObjectiveAssignmentLabel(a).localeCompare(getObjectiveAssignmentLabel(b));
       if (sortBy === "newest") return createdTime(b) - createdTime(a);
       if (sortBy === "oldest") return createdTime(a) - createdTime(b);
       return 0;
@@ -342,7 +342,7 @@ export const ObjectivesPage = ({
   const exportJakeWeeklyOnePager = () => {
     const staleKrs = filtered.filter(isKeyResultStale);
     const blockedProjects = visibleProjects.filter(project => buildProjectGateBlockers(project).length > 0);
-    downloadRows('sandpro_jake_weekly_okr_one_pager.csv', [['Section', 'Name', 'Owner', 'Status', 'Note'], ['Snapshot', 'Visible objectives', currentUser.name, filtered.length, `${visibleProjects.length} project assessments`], ...staleKrs.map(objective => ['Stale KR', objective.title, getUser(objective.ownerId).name, objective.status, objective.okrPeriod || '']), ...blockedProjects.map(project => ['Project blocker', project.name, getUser(project.leadId).name, project.stage, buildProjectGateBlockers(project).join(' | ')])]);
+    downloadRows('sandpro_jake_weekly_okr_one_pager.csv', [['Section', 'Name', 'Owner', 'Status', 'Note'], ['Snapshot', 'Visible objectives', currentUser.name, filtered.length, `${visibleProjects.length} project assessments`], ...staleKrs.map(objective => ['Stale KR', objective.title, getObjectiveAssignmentLabel(objective), objective.status, objective.okrPeriod || '']), ...blockedProjects.map(project => ['Project blocker', project.name, getUser(project.leadId).name, project.stage, buildProjectGateBlockers(project).join(' | ')])]);
   };
   const exportQuarterlyExcel = async () => {
     const rows = buildQuarterlyScorecardRows(filtered, visibleProjects);
@@ -439,7 +439,7 @@ export const ObjectivesPage = ({
         filename: 'sandpro_company_summary',
         headers: ['Company goal', 'Owner', 'Status', 'Target', 'Progress'],
         stats: [['Company goals', co.length]],
-        rows: co.map(o => [o.title, getUser(o.ownerId).name, getStatusLabel(o.status), o.targetText ?? o.target_text ?? (o.targetMetric != null ? `${o.targetMetric}${o.metricUnit || ''}` : ''), `${o.progress || 0}%`])
+        rows: co.map(o => [o.title, getObjectiveAssignmentLabel(o), getStatusLabel(o.status), o.targetText ?? o.target_text ?? (o.targetMetric != null ? `${o.targetMetric}${o.metricUnit || ''}` : ''), `${o.progress || 0}%`])
       };
     }
     if (id === 'team') {
@@ -464,7 +464,7 @@ export const ObjectivesPage = ({
         filename: 'sandpro_needs_attention',
         headers: ['Type', 'Name', 'Owner', 'What needs attention'],
         stats: [['Stale goals', stale.length], ['Blocked projects', blocked.length]],
-        rows: [...stale.map(o => ['Stale goal', o.title, getUser(o.ownerId).name, `No recent update — ${o.okrGroup || o.department || o.okrPeriod || ''}`]), ...blocked.map(p => ['Blocked project', p.name, getUser(p.leadId).name, buildProjectGateBlockers(p).join('; ')])]
+        rows: [...stale.map(o => ['Stale goal', o.title, getObjectiveAssignmentLabel(o), `No recent update — ${o.okrGroup || o.department || o.okrPeriod || ''}`]), ...blocked.map(p => ['Blocked project', p.name, getUser(p.leadId).name, buildProjectGateBlockers(p).join('; ')])]
       };
     }
     if (id === 'projects') {
@@ -481,7 +481,7 @@ export const ObjectivesPage = ({
       filename: 'sandpro_goals_current',
       headers: ['Goal', 'Owner', 'Team', 'Department', 'Status', 'Progress', 'Due'],
       stats: [['Goals', filtered.length], ['Stale', filtered.filter(isKeyResultStale).length], ['Projects', visibleProjects.length]],
-      rows: filtered.map(o => [o.title, getUser(o.ownerId).name, o.okrGroup || '—', o.department || '—', getStatusLabel(o.status), `${o.progress || 0}%`, o.dueDate ? formatDate(o.dueDate) : '—'])
+      rows: filtered.map(o => [o.title, getObjectiveAssignmentLabel(o), o.okrGroup || '—', o.department || '—', getStatusLabel(o.status), `${o.progress || 0}%`, o.dueDate ? formatDate(o.dueDate) : '—'])
     };
   };
   const printReport = ({
@@ -672,7 +672,9 @@ export const ObjectivesPage = ({
   const MobileObjectiveCard = ({
     obj
   }) => {
-    const owner = getUser(obj.ownerId);
+    const owner = obj.assignmentGroupId
+      ? { id: obj.assignmentGroupId, name: getObjectiveAssignmentLabel(obj), initials: "RG", color: "var(--brand)" }
+      : getUser(obj.ownerId);
     const workflow = getWorkflowSummary(obj);
     const unreadMessages = getUnreadMessageCount(obj);
     return <article className="mobile-objective-card" role="button" tabIndex={0} onClick={() => onOpenCard(obj)} onKeyDown={event => {
@@ -742,7 +744,7 @@ export const ObjectivesPage = ({
           <button type="button" className="okr-tree-title" onClick={() => onOpenCard(objective, "structure")}>
             <span>
               <strong>{objective.title}</strong>
-              <small>{getUser(objective.ownerId).name} · {objective.department || 'Unassigned'} · {objective.okrPeriod || 'No period'}</small>
+              <small>{getObjectiveAssignmentLabel(objective)} · {objective.department || 'Unassigned'} · {objective.okrPeriod || 'No period'}</small>
             </span>
           </button>
           {isKeyResultStale(objective) && <Badge color="#EF4444">Stale KR</Badge>}
@@ -1093,7 +1095,9 @@ export const ObjectivesPage = ({
               </thead>
               <tbody>
 	                {filtered.map(obj => {
-                const owner = getUser(obj.ownerId);
+                const owner = obj.assignmentGroupId
+                  ? { id: obj.assignmentGroupId, name: getObjectiveAssignmentLabel(obj), initials: "RG", color: "var(--brand)" }
+                  : getUser(obj.ownerId);
                 const workflow = getWorkflowSummary(obj);
                 const unreadMessages = getUnreadMessageCount(obj);
                 return <tr key={obj.id} onClick={() => onOpenCard(obj)}>

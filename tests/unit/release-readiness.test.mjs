@@ -44,7 +44,10 @@ test('release migration contains P0/P1 persistence surfaces', () => {
   const migration = read('supabase/release_ready_migration.sql');
   for (const required of [
     'objective-files',
-	    'objective_members',
+    'objective_members',
+    'okr_project_members',
+    'assignment_groups',
+    'assignment_group_members',
 	    'objective_metric_checkins',
     'kpi_definitions',
     'kpi_datapoints',
@@ -65,6 +68,7 @@ test('release migration contains P0/P1 persistence surfaces', () => {
     'fix_it_attachments',
     'ncr_reports',
     'ncr_import_batches',
+    'ncr_import_revisions',
     'ncr_signatures',
     'ncr_failure_codes',
     'org_chart_updates',
@@ -149,7 +153,9 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(pages, /Template CSV/);
   assert.match(pages, /sandpro_kpa_ncr_import_template\.csv/);
   assert.match(pages, /Participation Ranking/);
-  assert.match(pages, /ncrView/);
+  const ncrPage = read('src/routes/NcrPage.jsx');
+  assert.doesNotMatch(ncrPage, />Basic</);
+  assert.doesNotMatch(ncrPage, />Advanced</);
   assert.match(pages, /Audit Trail/);
   assert.match(pages, /Detail PDF packet/);
   assert.match(pages, /KPA Historical Import/);
@@ -201,6 +207,7 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(hook, /ncr_attachments/);
   assert.match(hook, /ncr_audit_events/);
   assert.match(hook, /ncr_import_batches/);
+  assert.match(hook, /ncr_import_revisions/);
   assert.match(hook, /ncr_signatures/);
   assert.match(hook, /importReports/);
   assert.match(hook, /\.upsert\(payload, \{ onConflict: 'report_number' \}\)/);
@@ -216,6 +223,7 @@ test('NCR tracker is a database-backed production page with objective handoff', 
   assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.ncr_attachments/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.ncr_audit_events/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.ncr_import_batches/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.ncr_import_revisions/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.ncr_signatures/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.ncr_failure_codes/);
   assert.match(migration, /source_raw_record/);
@@ -330,13 +338,36 @@ test('Create New delegated tasks create assignee notifications and await fan-out
   const hook = read('src/hooks/useSupabase.js');
 
   assert.match(app, /const notifyWizardOwnerAssignment = async/);
-  assert.match(app, /ownerId === profile\.id\) return false/);
-  assert.match(app, /await notifyWizardOwnerAssignment\(\{ objectiveId: created\.id, title, ownerId, dueDate, contextLabel: 'Task assigned'/);
-  assert.match(app, /await notifyWizardOwnerAssignment\(\{ objectiveId: created\.id, title, ownerId, dueDate, contextLabel: 'Main OKR assigned'/);
+  assert.match(app, /const group = assignmentGroupId \? assignmentGroups\.find/);
+  assert.match(app, /group\.memberIds\.filter\(id => id !== profile\.id\)/);
+  assert.match(app, /await notifyWizardOwnerAssignment\(\{ objectiveId: created\.id, title, ownerId, assignmentGroupId, dueDate, contextLabel: 'Task assigned'/);
+  assert.match(app, /await notifyWizardOwnerAssignment\(\{ objectiveId: created\.id, title, ownerId, assignmentGroupId, dueDate, contextLabel: 'Main OKR assigned'/);
   assert.match(app, /Created, but the \$\{failureLabel\} notification did not send\./);
   assert.match(hook, /const response = await fetch\('\/api\/notifications\/send-event'/);
   assert.match(hook, /notification fan-out failed/);
   assert.match(hook, /return \{ \.\.\.data, fanout \}/);
+});
+
+test('Create New projects persist and notify individually tagged teammates', () => {
+  const app = read('src/App.jsx');
+  const pages = read('src/pages.jsx');
+  const dashboard = read('src/routes/DashboardPage.jsx');
+  const hook = read('src/hooks/useSupabase.js');
+  const migration = read('supabase/migrations/20260723165120_project_teammate_tags.sql');
+  const schemaCheck = read('scripts/check-release-schema.mjs');
+
+  assert.match(pages, /type === "task" \|\| type === "project" \|\| type === "okr"/);
+  assert.match(app, /handleWizardCreateProject = async \(\{[^}]*taggedIds = \[\]/);
+  assert.match(app, /memberIds: projectMemberIds/);
+  assert.match(app, /tagged you on project/);
+  assert.match(hook, /from\('okr_project_members'\)\.insert/);
+  assert.match(hook, /memberIds: \(projectMembersByProject\[project\.id\]/);
+  assert.match(pages, /memberIds: p\.memberIds \|\| \[\]/);
+  assert.match(dashboard, /memberIds: p\.memberIds \|\| \[\]/);
+  assert.match(migration, /create table if not exists public\.okr_project_members/);
+  assert.match(migration, /alter table public\.okr_project_members enable row level security/);
+  assert.match(migration, /grant select, insert, update, delete on public\.okr_project_members to authenticated/);
+  assert.match(schemaCheck, /OKR project members table/);
 });
 
 test('account menu exposes standard settings and password change', () => {
@@ -419,8 +450,36 @@ test('org chart editing is available to Merci and Tim and guarded server-side', 
   assert.match(endpoint, /getAuthedProfile\(req,\s*body\.accessToken\)/);
   assert.match(endpoint, /Only platform administrators can change platform roles/);
   assert.match(endpoint, /wouldCreateCycle/);
+  assert.match(endpoint, /profile_managers/);
+  assert.match(endpoint, /managerIds/);
   assert.match(endpoint, /org_chart_updates/);
   assert.match(endpoint, /buildOrgChartNote/);
+  assert.match(page, /ManagerChecklist/);
+  assert.match(page, /Reporting managers/);
+});
+
+test('Merci final confirmations preserve equal managers and the approved rotating-group roster', () => {
+  const migration = read('supabase/migrations/20260724153000_equal_rank_profile_managers_and_approved_groups.sql');
+  const releaseMigration = read('supabase/release_ready_migration.sql');
+  const rosterSync = read('scripts/sync-sandpro-roster-workbook.mjs');
+  const confirmationScript = read('scripts/apply-merci-2026-07-24-confirmations.mjs');
+  const schemaCheck = read('scripts/check-release-schema.mjs');
+
+  for (const sql of [migration, releaseMigration]) {
+    assert.match(sql, /CREATE TABLE IF NOT EXISTS public\.profile_managers/i);
+    assert.match(sql, /Isaac Badillo/i);
+    assert.match(sql, /Zedek Harris/i);
+    assert.match(sql, /Joshua Blackaby/i);
+    assert.match(sql, /Jaelen Maslowski/i);
+    assert.match(sql, /Tim Dibben/i);
+  }
+  assert.match(schemaCheck, /profile_managers table/);
+  assert.match(rosterSync, /equalRankManagers/);
+  assert.match(rosterSync, /'sales-team': \['John Sommerfeld', 'Jon Ostby', 'Brandon Schatz', 'Josh Pfeifer', 'Joshua Blackaby'\]/);
+  assert.doesNotMatch(rosterSync, /'sales-team': \[[^\n]*Larry Debold/);
+  assert.match(confirmationScript, /Expected 64 inferred identities/);
+  assert.match(confirmationScript, /email_enabled: false/);
+  assert.match(confirmationScript, /kmappes@sandpro\.com/);
 });
 
 test('Jake, Tim, and Andrew can edit user permissions from settings', () => {
@@ -753,13 +812,34 @@ test('Merci feedback items are covered by durable UI paths', () => {
 
 test('OKR sheet includes bare department OKRs', () => {
   const pages = readMany('src/pages.jsx', 'src/routes/OkrPage.jsx');
+  const route = read('src/routes/OkrPage.jsx');
 
   assert.match(pages, /level === "company" \|\| level === "department" \|\| level === "key_result"/);
   assert.match(pages, /\.filter\(isOkrSheetObjective\)/);
   assert.match(pages, /getOkrSheetSection/);
   assert.match(pages, /OKR_REFERENCE_COLUMNS = \["YTD AVG", "Cadence", "Department", "Audit Form", "Baseline", "Target"\]/);
-  assert.match(pages, /YTD AVG is auto-calculated/);
   assert.match(pages, /formatOkrAverage\(ytdAverage\(o\)\)/);
+  assert.match(route, /okr-group-row/);
+  assert.match(route, /collapsedSections/);
+  assert.match(route, /okr-sticky-status/);
+  assert.match(route, /okr-sticky-average/);
+  assert.doesNotMatch(route, /The spreadsheet, digitized and locked/);
+});
+
+test('Merci consolidated review keeps the home surface focused and corrections deterministic', () => {
+  const app = read('src/App.jsx');
+  const dashboard = read('src/routes/DashboardPage.jsx');
+  const pages = read('src/pages.jsx');
+  const hook = read('src/hooks/useSupabase.js');
+
+  assert.match(app, /route\.page === "dashboard" && <GlobalKpiStrip/);
+  assert.match(app, /applyDashboardKpiFilter/);
+  assert.match(app, /filterPreset=\{dashboardFilterPreset\}/);
+  assert.match(dashboard, /setAging\(filterPreset\.aging \|\| "all_due"\)/);
+  assert.doesNotMatch(dashboard, /Needs A Supporting Tag/);
+  assert.doesNotMatch(dashboard, /Needs Your Acknowledgement/);
+  assert.doesNotMatch(pages, /framework-dashboard-strip/);
+  assert.match(hook, /order\('checkin_date'\)\.order\('created_at'\)/);
 });
 
 test('objective progress calculation copy is professional SandPro language', () => {

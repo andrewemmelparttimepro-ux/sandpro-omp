@@ -1,0 +1,1229 @@
+{
+  "generatedAt": "2026-07-23T15:05:10.477Z",
+  "apply": false,
+  "workbook": "SandPro OMP-Org Chart 7.22.2026_Rev2.xlsx",
+  "rosterRows": 91,
+  "created": [
+    {
+      "name": "Mark Elliott",
+      "email": "melliott@sandpro.com",
+      "title": "CTO",
+      "department": "Automation"
+    },
+    {
+      "name": "Bryce Christoffersen",
+      "email": "bchristoffersen@sandpro.com",
+      "title": "Trainer",
+      "department": "Quality"
+    },
+    {
+      "name": "Brad Beck",
+      "email": "bbeck@sandpro.com",
+      "title": "Trainer",
+      "department": "Quality"
+    },
+    {
+      "name": "Derek Holen",
+      "email": "dholen@sandpro.com",
+      "title": "Automation I&E Technician",
+      "department": "Automation"
+    },
+    {
+      "name": "Hunter Haataia",
+      "email": "hhaataia@sandpro.com",
+      "title": "Automation Shop Supervisor",
+      "department": "Automation"
+    },
+    {
+      "name": "Eric Macy",
+      "email": "emacy@sandpro.com",
+      "title": "Customer Property Coordinator",
+      "department": "CP Warehouse"
+    },
+    {
+      "name": "Adrian Blackaby",
+      "email": "ablackaby@sandpro.com",
+      "title": "Shop Technician (CP Warehouse)",
+      "department": "CP Warehouse"
+    },
+    {
+      "name": "Jonathan Shelstad",
+      "email": "jshelstad@sandpro.com",
+      "title": "Shop Technician (CP Warehouse)",
+      "department": "CP Warehouse"
+    },
+    {
+      "name": "Carter Caswell",
+      "email": "ccaswell@sandpro.com",
+      "title": "Shop Technician (CP Warehouse)",
+      "department": "CP Warehouse"
+    },
+    {
+      "name": "Edwin Blanco",
+      "email": "eblanco@sandpro.com",
+      "title": "Shop Technician (CP Warehouse)",
+      "department": "CP Warehouse"
+    },
+    {
+      "name": "Marvin Roa Baca",
+      "email": "mroabaca@sandpro.com",
+      "title": "Shop Technician (CP Warehouse)",
+      "department": "CP Warehouse"
+    },
+    {
+      "name": "Aidyn Ross",
+      "email": "aross@sandpro.com",
+      "title": "Shop Technician (CP Warehouse)",
+      "department": "CP Warehouse"
+    },
+    {
+      "name": "Reene Calderon",
+      "email": "rcalderon@sandpro.com",
+      "title": "Shop Technician (CP Warehouse)",
+      "department": "CP Warehouse"
+    },
+    {
+      "name": "Garl McGraw",
+      "email": "gmcgraw@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Julius Williams",
+      "email": "jwilliams@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Hunter Jones",
+      "email": "hjones@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Richard Griffin",
+      "email": "rgriffin@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Phillip Leviner",
+      "email": "pleviner@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Bob Young",
+      "email": "byoung@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Curtis Jones",
+      "email": "cjones@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Corey Sharkey",
+      "email": "csharkey@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Logan Howard",
+      "email": "lhoward@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Austin Dees",
+      "email": "adees@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Marcos Vega",
+      "email": "mvega@sandpro.com",
+      "title": "Flowback Service Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Brian Brower",
+      "email": "bbrower@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Kris Trone",
+      "email": "ktrone@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Fred Floyd Jr.",
+      "email": "ffloydjr@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Joseph Dingal",
+      "email": "jdingal@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Luke Feil",
+      "email": "lfeil@sandpro.com",
+      "title": "Operations Coordinator & Dispatch",
+      "department": "Field"
+    },
+    {
+      "name": "Shane Vogel",
+      "email": "svogel@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Abel Lua",
+      "email": "alua@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Shawn Cockrell",
+      "email": "scockrell@sandpro.com",
+      "title": "Operations Coordinator & Dispatch",
+      "department": "Field"
+    },
+    {
+      "name": "Bill Anderson",
+      "email": "banderson@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Jake Beck",
+      "email": "jbeck@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Able Conley",
+      "email": "aconley@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Wyatt Phipps",
+      "email": "wphipps@sandpro.com",
+      "title": "Wellhead Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Austin Griffin",
+      "email": "agriffin@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Jean Bazile",
+      "email": "jbazile@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Kobie Jones",
+      "email": "kjones@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Josef Mcconnell",
+      "email": "jmcconnell@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Kevin Johnson",
+      "email": "kjohnson@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Jeremy Tate",
+      "email": "jtate@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Jerimiah Howard",
+      "email": "jhoward@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Nick Reiter",
+      "email": "nreiter@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Dexter Sotelo",
+      "email": "dsotelo@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Dion Carter",
+      "email": "dcarter@sandpro.com",
+      "title": "Field Technician",
+      "department": "Field"
+    },
+    {
+      "name": "Josh Preston",
+      "email": "jpreston@sandpro.com",
+      "title": "Inventory Coordinator",
+      "department": "Inventory"
+    },
+    {
+      "name": "Ben Blanco",
+      "email": "bblanco@sandpro.com",
+      "title": "Mechanic",
+      "department": "Field"
+    },
+    {
+      "name": "Ryan Yensal",
+      "email": "ryensal@sandpro.com",
+      "title": "Pressure Tester - Day",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Jerry Hassler",
+      "email": "jhassler@sandpro.com",
+      "title": "Shop Technician - Maintenance/Hauling",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Matthew Bornschein",
+      "email": "mbornschein@sandpro.com",
+      "title": "Shop Technician - Flowback Supervisor",
+      "department": "FB-Shop"
+    },
+    {
+      "name": "Alex Mora",
+      "email": "amora@sandpro.com",
+      "title": "Shop Technician - Build/Teardown/Valve",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Dylan DeBold",
+      "email": "ddebold@sandpro.com",
+      "title": "Shop Technician - Flowback Technician",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Kaden Mackay",
+      "email": "kmackay@sandpro.com",
+      "title": "Shop Technician",
+      "department": "FB-Shop"
+    },
+    {
+      "name": "Travis Bell",
+      "email": "tbell@sandpro.com",
+      "title": "Shop Technician",
+      "department": "FB-Shop"
+    },
+    {
+      "name": "Andrii Navrotskyi",
+      "email": "anavrotskyi@sandpro.com",
+      "title": "Shop Technician",
+      "department": "FB-Shop"
+    },
+    {
+      "name": "Oleg Postolatii",
+      "email": "opostolatii@sandpro.com",
+      "title": "Shop Technician",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Jeramiah Walls",
+      "email": "jwalls@sandpro.com",
+      "title": "WH Shop Lead",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Brandon Besselman",
+      "email": "bbesselman@sandpro.com",
+      "title": "Shop Technician",
+      "department": "FB-Shop"
+    },
+    {
+      "name": "Zachary Campana",
+      "email": "zcampana@sandpro.com",
+      "title": "Shop Technician",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Wyatt Decoteau",
+      "email": "wdecoteau@sandpro.com",
+      "title": "Shop Technician",
+      "department": "FB-Shop"
+    },
+    {
+      "name": "Jovan Blanco",
+      "email": "jblanco@sandpro.com",
+      "title": "Shop Technician",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Tobay Hall",
+      "email": "thall@sandpro.com",
+      "title": "Shop Technicain",
+      "department": "WH Shop"
+    },
+    {
+      "name": "Keion Louden",
+      "email": "klouden@sandpro.com",
+      "title": "Shop Technician",
+      "department": "FB-Shop"
+    }
+  ],
+  "updated": [
+    {
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "title": "CEO",
+      "department": "Leadership",
+      "role": "executive"
+    },
+    {
+      "name": "Joshua Blackaby",
+      "email": "jblackaby@sandpro.com",
+      "title": "Vice President",
+      "department": "Leadership",
+      "role": "executive"
+    },
+    {
+      "name": "Tim Dibben",
+      "email": "tdibben@sandpro.com",
+      "title": "Facilities Operations Manager",
+      "department": "Quality",
+      "role": "manager"
+    },
+    {
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "title": "Platform Admin",
+      "department": "Leadership",
+      "role": "contributor"
+    },
+    {
+      "name": "Malcolm Blackaby",
+      "email": "mblackaby@sandpro.com",
+      "title": "Operations Manager",
+      "department": "Field",
+      "role": "manager"
+    },
+    {
+      "name": "Kayla Sebastian",
+      "email": "ksebastian@sandpro.com",
+      "title": "Office Manager",
+      "department": "Admin",
+      "role": "manager"
+    },
+    {
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "title": "Executive Assistant",
+      "department": "Admin",
+      "role": "contributor"
+    },
+    {
+      "name": "Drew Anderson",
+      "email": "danderson@sandpro.com",
+      "title": "Director of Automated Solutions & Project Development",
+      "department": "Automation",
+      "role": "manager"
+    },
+    {
+      "name": "John Latz",
+      "email": "jlatz@sandpro.com",
+      "title": "R&D Technician",
+      "department": "Automation",
+      "role": "contributor"
+    },
+    {
+      "name": "Scott Johnson",
+      "email": "sjohnson@sandpro.com",
+      "title": "Automation I&E Technician",
+      "department": "Automation",
+      "role": "contributor"
+    },
+    {
+      "name": "Isaac Badillo",
+      "email": "ibadillo@sandpro.com",
+      "title": "Field Service Manager",
+      "department": "Field",
+      "role": "manager"
+    },
+    {
+      "name": "Zedek Harris",
+      "email": "zharris@sandpro.com",
+      "title": "Field Service Manager",
+      "department": "Field",
+      "role": "manager"
+    },
+    {
+      "name": "Dustin Saunders",
+      "email": "dsaunders@sandpro.com",
+      "title": "Operations Coordinator & Dispatch",
+      "department": "Field",
+      "role": "contributor"
+    },
+    {
+      "name": "Gershom Dingal",
+      "email": "gdingal@sandpro.com",
+      "title": "Operations Coordinator & Dispatch",
+      "department": "Field",
+      "role": "contributor"
+    },
+    {
+      "name": "Kelby Kraft",
+      "email": "kkraft@sandpro.com",
+      "title": "CP Operations Manager",
+      "department": "CP Warehouse",
+      "role": "manager"
+    },
+    {
+      "name": "Jaelen Maslowski",
+      "email": "jmaslowski@sandpro.com",
+      "title": "Shop Manager",
+      "department": "WH & FB Shop",
+      "role": "manager"
+    },
+    {
+      "name": "Thomas Goldsberry",
+      "email": "tgoldsberry@sandpro.com",
+      "title": "WH Shop Lead",
+      "department": "WH Shop",
+      "role": "manager"
+    },
+    {
+      "name": "Heather Allard-Kotaska",
+      "email": "hallard-kotaska@sandpro.com",
+      "title": "HR Manager",
+      "department": "HR",
+      "role": "manager"
+    },
+    {
+      "name": "Adam Allan",
+      "email": "aallan@sandpro.com",
+      "title": "Procurement Manager",
+      "department": "Inventory",
+      "role": "manager"
+    },
+    {
+      "name": "Casey Loving",
+      "email": "cloving@sandpro.com",
+      "title": "Safety Coordinator",
+      "department": "Safety",
+      "role": "contributor"
+    },
+    {
+      "name": "John Sommerfeld",
+      "email": "jsommerfeld@sandpro.com",
+      "title": "Business Development Manager",
+      "department": "Sales",
+      "role": "manager"
+    },
+    {
+      "name": "Jon Ostby",
+      "email": "jostby@sandpro.com",
+      "title": "Field Coordinator",
+      "department": "Sales",
+      "role": "contributor"
+    },
+    {
+      "name": "Brandon Schatz",
+      "email": "bschatz@sandpro.com",
+      "title": "Field Coordinator",
+      "department": "Sales",
+      "role": "contributor"
+    },
+    {
+      "name": "Josh Pfeifer",
+      "email": "jpfeifer@sandpro.com",
+      "title": "Account Manager",
+      "department": "Sales",
+      "role": "manager"
+    },
+    {
+      "name": "Paige Olson-Cramer",
+      "email": "polson-cramer@sandpro.com",
+      "title": "Accounts Payable",
+      "department": "Admin",
+      "role": "contributor"
+    },
+    {
+      "name": "Serena Laumb",
+      "email": "slaumb@sandpro.com",
+      "title": "Accounts Receivable",
+      "department": "Admin",
+      "role": "contributor"
+    },
+    {
+      "name": "Larry Debold",
+      "email": "ldebold@sandpro.com",
+      "title": "Inside Sales",
+      "department": "Sales",
+      "role": "contributor"
+    }
+  ],
+  "inferredIdentities": [
+    {
+      "name": "Mark Elliott",
+      "email": "melliott@sandpro.com"
+    },
+    {
+      "name": "Bryce Christoffersen",
+      "email": "bchristoffersen@sandpro.com"
+    },
+    {
+      "name": "Brad Beck",
+      "email": "bbeck@sandpro.com"
+    },
+    {
+      "name": "Derek Holen",
+      "email": "dholen@sandpro.com"
+    },
+    {
+      "name": "Hunter Haataia",
+      "email": "hhaataia@sandpro.com"
+    },
+    {
+      "name": "Eric Macy",
+      "email": "emacy@sandpro.com"
+    },
+    {
+      "name": "Adrian Blackaby",
+      "email": "ablackaby@sandpro.com"
+    },
+    {
+      "name": "Jonathan Shelstad",
+      "email": "jshelstad@sandpro.com"
+    },
+    {
+      "name": "Carter Caswell",
+      "email": "ccaswell@sandpro.com"
+    },
+    {
+      "name": "Edwin Blanco",
+      "email": "eblanco@sandpro.com"
+    },
+    {
+      "name": "Marvin Roa Baca",
+      "email": "mroabaca@sandpro.com"
+    },
+    {
+      "name": "Aidyn Ross",
+      "email": "aross@sandpro.com"
+    },
+    {
+      "name": "Reene Calderon",
+      "email": "rcalderon@sandpro.com"
+    },
+    {
+      "name": "Garl McGraw",
+      "email": "gmcgraw@sandpro.com"
+    },
+    {
+      "name": "Julius Williams",
+      "email": "jwilliams@sandpro.com"
+    },
+    {
+      "name": "Hunter Jones",
+      "email": "hjones@sandpro.com"
+    },
+    {
+      "name": "Richard Griffin",
+      "email": "rgriffin@sandpro.com"
+    },
+    {
+      "name": "Phillip Leviner",
+      "email": "pleviner@sandpro.com"
+    },
+    {
+      "name": "Bob Young",
+      "email": "byoung@sandpro.com"
+    },
+    {
+      "name": "Curtis Jones",
+      "email": "cjones@sandpro.com"
+    },
+    {
+      "name": "Corey Sharkey",
+      "email": "csharkey@sandpro.com"
+    },
+    {
+      "name": "Logan Howard",
+      "email": "lhoward@sandpro.com"
+    },
+    {
+      "name": "Austin Dees",
+      "email": "adees@sandpro.com"
+    },
+    {
+      "name": "Marcos Vega",
+      "email": "mvega@sandpro.com"
+    },
+    {
+      "name": "Brian Brower",
+      "email": "bbrower@sandpro.com"
+    },
+    {
+      "name": "Kris Trone",
+      "email": "ktrone@sandpro.com"
+    },
+    {
+      "name": "Fred Floyd Jr.",
+      "email": "ffloydjr@sandpro.com"
+    },
+    {
+      "name": "Joseph Dingal",
+      "email": "jdingal@sandpro.com"
+    },
+    {
+      "name": "Luke Feil",
+      "email": "lfeil@sandpro.com"
+    },
+    {
+      "name": "Shane Vogel",
+      "email": "svogel@sandpro.com"
+    },
+    {
+      "name": "Abel Lua",
+      "email": "alua@sandpro.com"
+    },
+    {
+      "name": "Shawn Cockrell",
+      "email": "scockrell@sandpro.com"
+    },
+    {
+      "name": "Bill Anderson",
+      "email": "banderson@sandpro.com"
+    },
+    {
+      "name": "Jake Beck",
+      "email": "jbeck@sandpro.com"
+    },
+    {
+      "name": "Able Conley",
+      "email": "aconley@sandpro.com"
+    },
+    {
+      "name": "Wyatt Phipps",
+      "email": "wphipps@sandpro.com"
+    },
+    {
+      "name": "Austin Griffin",
+      "email": "agriffin@sandpro.com"
+    },
+    {
+      "name": "Jean Bazile",
+      "email": "jbazile@sandpro.com"
+    },
+    {
+      "name": "Kobie Jones",
+      "email": "kjones@sandpro.com"
+    },
+    {
+      "name": "Josef Mcconnell",
+      "email": "jmcconnell@sandpro.com"
+    },
+    {
+      "name": "Kevin Johnson",
+      "email": "kjohnson@sandpro.com"
+    },
+    {
+      "name": "Jeremy Tate",
+      "email": "jtate@sandpro.com"
+    },
+    {
+      "name": "Jerimiah Howard",
+      "email": "jhoward@sandpro.com"
+    },
+    {
+      "name": "Nick Reiter",
+      "email": "nreiter@sandpro.com"
+    },
+    {
+      "name": "Dexter Sotelo",
+      "email": "dsotelo@sandpro.com"
+    },
+    {
+      "name": "Dion Carter",
+      "email": "dcarter@sandpro.com"
+    },
+    {
+      "name": "Josh Preston",
+      "email": "jpreston@sandpro.com"
+    },
+    {
+      "name": "Ben Blanco",
+      "email": "bblanco@sandpro.com"
+    },
+    {
+      "name": "Ryan Yensal",
+      "email": "ryensal@sandpro.com"
+    },
+    {
+      "name": "Jerry Hassler",
+      "email": "jhassler@sandpro.com"
+    },
+    {
+      "name": "Matthew Bornschein",
+      "email": "mbornschein@sandpro.com"
+    },
+    {
+      "name": "Alex Mora",
+      "email": "amora@sandpro.com"
+    },
+    {
+      "name": "Dylan DeBold",
+      "email": "ddebold@sandpro.com"
+    },
+    {
+      "name": "Kaden Mackay",
+      "email": "kmackay@sandpro.com"
+    },
+    {
+      "name": "Travis Bell",
+      "email": "tbell@sandpro.com"
+    },
+    {
+      "name": "Andrii Navrotskyi",
+      "email": "anavrotskyi@sandpro.com"
+    },
+    {
+      "name": "Oleg Postolatii",
+      "email": "opostolatii@sandpro.com"
+    },
+    {
+      "name": "Jeramiah Walls",
+      "email": "jwalls@sandpro.com"
+    },
+    {
+      "name": "Brandon Besselman",
+      "email": "bbesselman@sandpro.com"
+    },
+    {
+      "name": "Zachary Campana",
+      "email": "zcampana@sandpro.com"
+    },
+    {
+      "name": "Wyatt Decoteau",
+      "email": "wdecoteau@sandpro.com"
+    },
+    {
+      "name": "Jovan Blanco",
+      "email": "jblanco@sandpro.com"
+    },
+    {
+      "name": "Tobay Hall",
+      "email": "thall@sandpro.com"
+    },
+    {
+      "name": "Keion Louden",
+      "email": "klouden@sandpro.com"
+    }
+  ],
+  "preservedCredentials": [
+    {
+      "name": "Jake Feil",
+      "email": "jfeil@sandpro.com",
+      "lastSignInAt": "2026-07-22T12:29:05.788513Z"
+    },
+    {
+      "name": "Joshua Blackaby",
+      "email": "jblackaby@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Tim Dibben",
+      "email": "tdibben@sandpro.com",
+      "lastSignInAt": "2026-06-15T21:37:58.352559Z"
+    },
+    {
+      "name": "Andrew Emmel",
+      "email": "andrew@ndai.pro",
+      "lastSignInAt": "2026-07-01T22:27:03.73905Z"
+    },
+    {
+      "name": "Malcolm Blackaby",
+      "email": "mblackaby@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Kayla Sebastian",
+      "email": "ksebastian@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Mercileidy Jimenez",
+      "email": "mjimenez@sandpro.com",
+      "lastSignInAt": "2026-07-15T13:36:55.158766Z"
+    },
+    {
+      "name": "Drew Anderson",
+      "email": "danderson@sandpro.com",
+      "lastSignInAt": "2026-06-04T16:45:07.25136Z"
+    },
+    {
+      "name": "John Latz",
+      "email": "jlatz@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Scott Johnson",
+      "email": "sjohnson@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Isaac Badillo",
+      "email": "ibadillo@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Zedek Harris",
+      "email": "zharris@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Dustin Saunders",
+      "email": "dsaunders@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Gershom Dingal",
+      "email": "gdingal@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Kelby Kraft",
+      "email": "kkraft@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Jaelen Maslowski",
+      "email": "jmaslowski@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Thomas Goldsberry",
+      "email": "tgoldsberry@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Heather Allard-Kotaska",
+      "email": "hallard-kotaska@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Adam Allan",
+      "email": "aallan@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Casey Loving",
+      "email": "cloving@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "John Sommerfeld",
+      "email": "jsommerfeld@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Jon Ostby",
+      "email": "jostby@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Brandon Schatz",
+      "email": "bschatz@sandpro.com",
+      "lastSignInAt": "2026-06-16T17:01:53.395541Z"
+    },
+    {
+      "name": "Josh Pfeifer",
+      "email": "jpfeifer@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Paige Olson-Cramer",
+      "email": "polson-cramer@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Serena Laumb",
+      "email": "slaumb@sandpro.com",
+      "lastSignInAt": null
+    },
+    {
+      "name": "Larry Debold",
+      "email": "ldebold@sandpro.com",
+      "lastSignInAt": null
+    }
+  ],
+  "managerAssumptions": [
+    {
+      "name": "Garl McGraw",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Julius Williams",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Hunter Jones",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Richard Griffin",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Phillip Leviner",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Bob Young",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Curtis Jones",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Corey Sharkey",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Logan Howard",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Austin Dees",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Marcos Vega",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Brian Brower",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Kris Trone",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Fred Floyd Jr.",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Joseph Dingal",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Shane Vogel",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Abel Lua",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Bill Anderson",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Jake Beck",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Able Conley",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Wyatt Phipps",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Austin Griffin",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Jean Bazile",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Kobie Jones",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Josef Mcconnell",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Kevin Johnson",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Jeremy Tate",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Jerimiah Howard",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Nick Reiter",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Dexter Sotelo",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    },
+    {
+      "name": "Dion Carter",
+      "workbookValue": "Isaac Badillo /Zedek Harris",
+      "primaryManagerUsed": "Isaac Badillo"
+    }
+  ],
+  "groupMemberships": [
+    {
+      "group": "Dispatch",
+      "name": "Dustin Saunders"
+    },
+    {
+      "group": "Dispatch",
+      "name": "Gershom Dingal"
+    },
+    {
+      "group": "Dispatch",
+      "name": "Luke Feil"
+    },
+    {
+      "group": "Dispatch",
+      "name": "Shawn Cockrell"
+    },
+    {
+      "group": "Field Service Managers",
+      "name": "Isaac Badillo"
+    },
+    {
+      "group": "Field Service Managers",
+      "name": "Zedek Harris"
+    },
+    {
+      "group": "Trainers",
+      "name": "Bryce Christoffersen"
+    },
+    {
+      "group": "Trainers",
+      "name": "Brad Beck"
+    },
+    {
+      "group": "Sales Team",
+      "name": "John Sommerfeld"
+    },
+    {
+      "group": "Sales Team",
+      "name": "Jon Ostby"
+    },
+    {
+      "group": "Sales Team",
+      "name": "Brandon Schatz"
+    },
+    {
+      "group": "Sales Team",
+      "name": "Josh Pfeifer"
+    },
+    {
+      "group": "Sales Team",
+      "name": "Larry Debold"
+    },
+    {
+      "group": "CP Shop Leads",
+      "name": "Kelby Kraft"
+    },
+    {
+      "group": "CP Shop Leads",
+      "name": "Eric Macy"
+    },
+    {
+      "group": "Flowback Shop Leads",
+      "name": "Matthew Bornschein"
+    },
+    {
+      "group": "Wellhead Shop Leads",
+      "name": "Thomas Goldsberry"
+    },
+    {
+      "group": "Wellhead Shop Leads",
+      "name": "Jeramiah Walls"
+    },
+    {
+      "group": "Leadership / Business Team",
+      "name": "Jake Feil"
+    },
+    {
+      "group": "Leadership / Business Team",
+      "name": "Joshua Blackaby"
+    },
+    {
+      "group": "Leadership / Business Team",
+      "name": "Andrew Emmel"
+    }
+  ],
+  "extraExistingProfiles": [
+    {
+      "name": "Keith Mappes",
+      "email": "kmappes@sandpro.com",
+      "title": "I&E Technician"
+    }
+  ],
+  "errors": []
+}

@@ -7,7 +7,7 @@ import {
   PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio,
   ClipboardCheck
 } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, DEPARTMENTS, DEFAULT_DEPARTMENT, getDepartmentOptions, canManageOrgChart, canManagePermissions } from '../data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, DEPARTMENTS, DEFAULT_DEPARTMENT, getDepartmentOptions, canManageOrgChart, canManagePermissions, canManageAssignmentGroups, getProfileManagerIds, isObjectiveAssignedToUser } from '../data';
 import { Avatar, Badge } from '../uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from '../sharedWidgets';
 import { usePushNotifications } from '../hooks/useSupabase';
@@ -160,6 +160,37 @@ const ORG_BRANCH_PALETTE = [
 const WIDE_ORG_CANVAS_MIN_WIDTH = 2000;
 const WIDE_ORG_CANVAS_MIN_HEIGHT = 1200;
 
+const sameIdSet = (left = [], right = []) => (
+  [...new Set(left)].sort().join(',') === [...new Set(right)].sort().join(',')
+);
+
+const ManagerChecklist = ({ value = [], options = [], onChange }) => {
+  const selected = new Set(value);
+  const toggle = (managerId) => {
+    onChange(selected.has(managerId)
+      ? value.filter(id => id !== managerId)
+      : [...value, managerId]);
+  };
+  return (
+    <fieldset className="org-manager-picker">
+      <legend>Reporting managers</legend>
+      <div className="org-manager-options">
+        {options.map(manager => (
+          <label key={manager.id}>
+            <input
+              type="checkbox"
+              checked={selected.has(manager.id)}
+              onChange={() => toggle(manager.id)}
+            />
+            <span>{manager.name}</span>
+            <small>{manager.title || manager.department}</small>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+};
+
 const getOrgBranchPath = (entry, entries = []) => {
   if (!entry) return [];
   const byId = new Map(entries.map(item => [item.id, item]));
@@ -255,8 +286,10 @@ const buildOrgChildrenByManager = (profiles = []) => {
   const exportProfiles = sortOrgProfilesForExport(profiles);
   const knownIds = new Set(exportProfiles.map(profile => profile.id));
   return exportProfiles.reduce((acc, profile) => {
-    if (!profile.reports_to || !knownIds.has(profile.reports_to)) return acc;
-    acc.set(profile.reports_to, [...(acc.get(profile.reports_to) || []), profile]);
+    getProfileManagerIds(profile).forEach(managerId => {
+      if (!knownIds.has(managerId)) return;
+      acc.set(managerId, [...(acc.get(managerId) || []), profile]);
+    });
     return acc;
   }, new Map());
 };
@@ -290,7 +323,9 @@ const buildOrgChartExportRows = ({ profiles = [], objectives = [] }) => {
   const exportProfiles = sortOrgProfilesForExport(profiles);
   const childrenByManager = buildOrgChildrenByManager(exportProfiles);
   return exportProfiles.map(profile => {
-    const manager = profile.reports_to ? exportProfiles.find(item => item.id === profile.reports_to) : null;
+    const managers = getProfileManagerIds(profile)
+      .map(managerId => exportProfiles.find(item => item.id === managerId))
+      .filter(Boolean);
     const span = calculateOrgSpanSummary(profile, childrenByManager);
     const ownerObjectives = getOrgObjectivesForExport(profile, objectives);
     const activeObjectives = ownerObjectives.filter(obj => obj.status !== "completed" && obj.status !== "cancelled");
@@ -301,7 +336,7 @@ const buildOrgChartExportRows = ({ profiles = [], objectives = [] }) => {
       department: profile.department || "Unassigned",
       type: profile.isPlaceholder ? "Group placeholder" : "Employee",
       email: profile.isPlaceholder ? "" : profile.email || "",
-      reportsTo: manager?.name || "Company root",
+      reportsTo: managers.map(manager => manager.name).join(" + ") || "Company root",
       directReports: span.direct,
       averageSpanOfControl: span.average,
       reportingGroup: getOrgBranchName(profile, exportProfiles),
@@ -512,12 +547,14 @@ const buildDepartmentRoster = (profiles = []) => {
         <thead><tr><th>Name</th><th>Title</th><th>Reports To</th><th>Email</th></tr></thead>
         <tbody>
           ${people.map(person => {
-            const manager = profiles.find(profile => profile.id === person.reports_to);
+            const managers = getProfileManagerIds(person)
+              .map(managerId => profiles.find(profile => profile.id === managerId))
+              .filter(Boolean);
             return `
               <tr>
                 <td>${escapeExportHtml(person.name || "")}</td>
                 <td>${escapeExportHtml(person.title || "")}</td>
-                <td>${escapeExportHtml(manager?.name || "Company root")}</td>
+                <td>${escapeExportHtml(managers.map(manager => manager.name).join(" + ") || "Company root")}</td>
                 <td>${escapeExportHtml(person.isPlaceholder ? "Visual group" : person.email || "")}</td>
               </tr>
             `;
@@ -532,11 +569,7 @@ const buildOrgChartExportHtml = ({ profiles = [], objectives = [] }) => {
   const exportProfiles = sortOrgProfilesForExport(profiles);
   const knownIds = new Set(exportProfiles.map(profile => profile.id));
   const roots = exportProfiles.filter(profile => !profile.reports_to || !knownIds.has(profile.reports_to));
-  const childrenByManager = exportProfiles.reduce((acc, profile) => {
-    if (!profile.reports_to || !knownIds.has(profile.reports_to)) return acc;
-    acc.set(profile.reports_to, [...(acc.get(profile.reports_to) || []), profile]);
-    return acc;
-  }, new Map());
+  const childrenByManager = buildOrgChildrenByManager(exportProfiles);
   const objectivesByOwner = objectives.reduce((acc, obj) => {
     if (!obj.ownerId) return acc;
     acc.set(obj.ownerId, [...(acc.get(obj.ownerId) || []), obj]);
@@ -905,10 +938,10 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
   const [dropTargetId, setDropTargetId] = useState(null);
   const [movingUserId, setMovingUserId] = useState(null);
   const [deleteConfirmUser, setDeleteConfirmUser] = useState(null);
-  const [editDraft, setEditDraft] = useState({ name: "", title: "", department: DEFAULT_DEPARTMENT, reportsTo: "", role: "contributor" });
+  const [editDraft, setEditDraft] = useState({ name: "", title: "", department: DEFAULT_DEPARTMENT, reportsTo: "", managerIds: [], role: "contributor" });
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [addingEmployee, setAddingEmployee] = useState(false);
-  const [addEmployeeDraft, setAddEmployeeDraft] = useState({ entryType: "employee", name: "", email: "", title: "", department: DEFAULT_DEPARTMENT, role: "contributor", reportsTo: "", tempPassword: "" });
+  const [addEmployeeDraft, setAddEmployeeDraft] = useState({ entryType: "employee", name: "", email: "", title: "", department: DEFAULT_DEPARTMENT, role: "contributor", reportsTo: "", managerIds: [], tempPassword: "" });
   const [orgViewMode, setOrgViewMode] = useState("tree");
   const [orgTreeOrientation, setOrgTreeOrientation] = useState("wide");
   const [orgProofMode, setOrgProofMode] = useState(false);
@@ -935,6 +968,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       title: item.title || "Group placeholder",
       department: item.department || DEFAULT_DEPARTMENT,
       reports_to: item.reports_to || null,
+      manager_ids: item.reports_to ? [item.reports_to] : [],
       isPlaceholder: true,
       orgType: "placeholder",
     })),
@@ -942,7 +976,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
   const orgEntryIds = useMemo(() => new Set(orgEntries.map(entry => entry.id)), [orgEntries]);
   const getOrgReports = useCallback((parentId) => (
     orgEntries
-      .filter(entry => (entry.reports_to || "") === parentId)
+      .filter(entry => getProfileManagerIds(entry).includes(parentId))
       .sort((a, b) => (a.isPlaceholder === b.isPlaceholder ? (a.name || "").localeCompare(b.name || "") : a.isPlaceholder ? 1 : -1))
   ), [orgEntries]);
   const getOrgEntry = useCallback((id) => orgEntries.find(entry => entry.id === id), [orgEntries]);
@@ -950,7 +984,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
   const getBranchName = useCallback((entry) => getOrgBranchName(entry, orgEntries), [orgEntries]);
   const orgChildrenByManager = useMemo(() => buildOrgChildrenByManager(orgEntries), [orgEntries]);
 
-  const getUserObjectives = (userId) => objectives.filter(o => o.ownerId === userId);
+  const getUserObjectives = (userId) => objectives.filter(o => isObjectiveAssignedToUser(o, userId));
   const getOrgSpanSummary = useCallback((entry) => calculateOrgSpanSummary(entry, orgChildrenByManager), [orgChildrenByManager]);
   const orgChartStats = useMemo(() => {
     const entriesWithReports = orgEntries
@@ -1191,7 +1225,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
         entry,
         depth,
         reports,
-        manager: entry.reports_to ? getOrgEntry(entry.reports_to) : null,
+        managers: getProfileManagerIds(entry).map(getOrgEntry).filter(Boolean),
         branchColor: getBranchColor(entry),
         branchName: getBranchName(entry),
         path,
@@ -1212,7 +1246,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
     .map(entry => ({
       entry,
       reports: getOrgReports(entry.id),
-      manager: entry.reports_to ? getOrgEntry(entry.reports_to) : null,
+      managers: getProfileManagerIds(entry).map(getOrgEntry).filter(Boolean),
       branchColor: getBranchColor(entry),
       branchName: getBranchName(entry),
       activeObjs: entry.isPlaceholder ? [] : getUserObjectives(entry.id).filter(o => o.status !== "completed" && o.status !== "cancelled"),
@@ -1246,12 +1280,16 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
         await loadPlaceholders();
         if (selectedUser?.id === draggedUser.id && data) setSelectedUser({ ...data, isPlaceholder: true, orgType: "placeholder", role: "placeholder", email: "" });
       } else {
+        const additionalManagerIds = getProfileManagerIds(draggedUser)
+          .filter(managerId => managerId !== draggedUser.reports_to && managerId !== targetUser?.id);
+        const managerIds = targetUser ? [targetUser.id, ...additionalManagerIds] : [];
         const updated = await onUpdateUser({
           userId: draggedUser.id,
           name: draggedUser.name,
           title: draggedUser.title || "",
           department: draggedUser.department || DEFAULT_DEPARTMENT,
           reportsTo: targetUser?.id || null,
+          managerIds,
         });
         if (selectedUser?.id === draggedUser.id && updated?.profile) setSelectedUser(updated.profile);
       }
@@ -1422,6 +1460,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
       title: user.title || "",
       department: user.department || DEFAULT_DEPARTMENT,
       reportsTo: user.reports_to || "",
+      managerIds: user.isPlaceholder ? [] : getProfileManagerIds(user),
       role: user.role || "contributor",
     });
   };
@@ -1435,6 +1474,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
         title: selectedUser.title || "",
         department: selectedUser.department || DEFAULT_DEPARTMENT,
         reportsTo: selectedUser.reports_to || "",
+        managerIds: selectedUser.isPlaceholder ? [] : getProfileManagerIds(selectedUser),
         role: selectedUser.role || "contributor",
       });
     }
@@ -1459,7 +1499,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
           .single();
         if (error) throw error;
         await loadPlaceholders();
-        const updatedPlaceholder = { ...data, isPlaceholder: true, orgType: "placeholder", role: "placeholder", email: "" };
+        const updatedPlaceholder = { ...data, manager_ids: data.reports_to ? [data.reports_to] : [], isPlaceholder: true, orgType: "placeholder", role: "placeholder", email: "" };
         setSelectedUser(updatedPlaceholder);
         setEditingUser(updatedPlaceholder);
         setEditDraft({
@@ -1467,6 +1507,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
           title: updatedPlaceholder.title || "",
           department: updatedPlaceholder.department || DEFAULT_DEPARTMENT,
           reportsTo: updatedPlaceholder.reports_to || "",
+          managerIds: [],
           role: "placeholder",
         });
       } else {
@@ -1475,7 +1516,8 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
           name: editDraft.name,
           title: editDraft.title,
           department: editDraft.department,
-          reportsTo: editDraft.reportsTo || null,
+          reportsTo: editDraft.managerIds[0] || null,
+          managerIds: editDraft.managerIds,
           ...(canEditRoles ? { role: editDraft.role } : {}),
         });
         if (updated?.profile) {
@@ -1486,6 +1528,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
             title: updated.profile.title || "",
             department: updated.profile.department || DEFAULT_DEPARTMENT,
             reportsTo: updated.profile.reports_to || "",
+            managerIds: getProfileManagerIds(updated.profile),
             role: updated.profile.role || "contributor",
           });
         }
@@ -1503,7 +1546,9 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
     editDraft.name !== (editingUser.name || "") ||
     editDraft.title !== (editingUser.title || "") ||
     editDraft.department !== (editingUser.department || DEFAULT_DEPARTMENT) ||
-    editDraft.reportsTo !== (editingUser.reports_to || "") ||
+    (editingUser.isPlaceholder
+      ? editDraft.reportsTo !== (editingUser.reports_to || "")
+      : !sameIdSet(editDraft.managerIds, getProfileManagerIds(editingUser))) ||
     (!editingUser.isPlaceholder && canEditRoles && editDraft.role !== (editingUser.role || "contributor"))
   );
 
@@ -1541,7 +1586,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
         onUsersChanged?.();
       }
       addToast?.({ type: 'success', message: `${addEmployeeDraft.name} added to the org chart` });
-      setAddEmployeeDraft({ entryType: "employee", name: "", email: "", title: "", department: DEFAULT_DEPARTMENT, role: "contributor", reportsTo: "", tempPassword: "" });
+      setAddEmployeeDraft({ entryType: "employee", name: "", email: "", title: "", department: DEFAULT_DEPARTMENT, role: "contributor", reportsTo: "", managerIds: [], tempPassword: "" });
       setShowAddEmployee(false);
     } catch (error) {
       addToast?.({ type: 'error', message: error.message || 'Could not add employee' });
@@ -1838,7 +1883,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
               .filter(({ entry }) => !orgSearch.trim() || matchesSearch(entry))
               .map(({ entry: user, depth }) => {
                 const reports = getOrgReports(user.id);
-                const manager = user.reports_to ? getOrgEntry(user.reports_to) : null;
+                const managers = getProfileManagerIds(user).map(getOrgEntry).filter(Boolean);
                 const userObjs = user.isPlaceholder ? [] : getUserObjectives(user.id);
                 const activeObjs = userObjs.filter(o => o.status !== "completed" && o.status !== "cancelled");
                 const branchColor = getBranchColor(user);
@@ -1849,7 +1894,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                     <span className="org-mobile-person-copy">
                       <strong>{user.name}</strong>
                       <small>{user.title} · {user.department}</small>
-                      <small>{manager ? `Reports to ${manager.name}` : 'Company root'} · {reports.length} reports{user.isPlaceholder ? ' · Visual group' : ` · ${activeObjs.length} active obj`}</small>
+                      <small>{managers.length ? `Reports to ${managers.map(manager => manager.name).join(' + ')}` : 'Company root'} · {reports.length} reports{user.isPlaceholder ? ' · Visual group' : ` · ${activeObjs.length} active obj`}</small>
                       <small className="org-mobile-branch">Group: {branchName}</small>
                     </span>
                     {canEditOrg && <Edit3 size={15} color="var(--brand)" onClick={(event) => { event.stopPropagation(); beginEdit(user); }} />}
@@ -1876,7 +1921,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                     <span className="org-directory-copy">
                       <strong>{row.entry.name}</strong>
                       <small>{row.entry.title} · {row.entry.department}</small>
-                      <small>{row.manager ? `Reports to ${row.manager.name}` : 'Company root'} · {row.reports.length} direct reports</small>
+                      <small>{row.managers.length ? `Reports to ${row.managers.map(manager => manager.name).join(' + ')}` : 'Company root'} · {row.reports.length} direct reports</small>
                       <small className="org-branch-label">Group: {row.branchName}</small>
                     </span>
                     <span className="org-directory-meta">
@@ -1915,7 +1960,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                         <small className="org-branch-label">Group: {row.branchName}</small>
                       </span>
                     </span>
-                    <span className="org-compact-manager">{row.manager ? row.manager.name : 'Company root'}</span>
+                    <span className="org-compact-manager">{row.managers.length ? row.managers.map(manager => manager.name).join(' + ') : 'Company root'}</span>
                     <span className="org-compact-meta">
                       <span>{row.reports.length} direct</span>
                       {row.entry.isPlaceholder && <span>Group</span>}
@@ -1973,6 +2018,13 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
             <div>
               <div className="text-md font-bold">{selectedUser.name}</div>
               <div className="text-xs text-muted">{selectedUser.title} · {selectedUser.isPlaceholder ? 'Visual group, no login' : selectedUser.email}</div>
+              {!selectedUser.isPlaceholder && (
+                <div className="text-xs text-muted">
+                  {getProfileManagerIds(selectedUser).length
+                    ? `Reports to ${getProfileManagerIds(selectedUser).map(managerId => getOrgEntry(managerId)?.name).filter(Boolean).join(' + ')}`
+                    : 'Company root'}
+                </div>
+              )}
             </div>
             <div style={{ flex: 1 }} />
             {canEditOrg && (
@@ -2001,13 +2053,24 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                       {getDepartmentOptions(editDraft.department).map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </label>
-                  <label>
-                    <span>Reports to</span>
-                    <select value={editDraft.reportsTo} onChange={e => { setOrgSaveStatus(""); setEditDraft(d => ({ ...d, reportsTo: e.target.value })); }}>
-                      <option value="">No reporting manager</option>
-                      {reportingOptions.map(u => <option key={u.id} value={u.id}>{u.name} - {u.title}</option>)}
-                    </select>
-                  </label>
+                  {editingUser.isPlaceholder ? (
+                    <label>
+                      <span>Reports to</span>
+                      <select value={editDraft.reportsTo} onChange={e => { setOrgSaveStatus(""); setEditDraft(d => ({ ...d, reportsTo: e.target.value })); }}>
+                        <option value="">No reporting manager</option>
+                        {reportingOptions.map(u => <option key={u.id} value={u.id}>{u.name} - {u.title}</option>)}
+                      </select>
+                    </label>
+                  ) : (
+                    <ManagerChecklist
+                      value={editDraft.managerIds}
+                      options={reportingOptions}
+                      onChange={managerIds => {
+                        setOrgSaveStatus("");
+                        setEditDraft(draft => ({ ...draft, managerIds }));
+                      }}
+                    />
+                  )}
                   {canEditRoles && !editingUser.isPlaceholder && (
                     <label>
                       <span>Role</span>
@@ -2059,7 +2122,11 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                 <button
                   type="button"
                   className={addEmployeeDraft.entryType === "employee" ? "active" : ""}
-                  onClick={() => setAddEmployeeDraft(d => ({ ...d, entryType: "employee", reportsTo: profileUsers.some(user => user.id === d.reportsTo) ? d.reportsTo : "" }))}
+                  onClick={() => setAddEmployeeDraft(d => ({
+                    ...d,
+                    entryType: "employee",
+                    reportsTo: profileUsers.some(user => user.id === d.reportsTo) ? d.reportsTo : "",
+                  }))}
                 >
                   Employee login
                 </button>
@@ -2081,7 +2148,15 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                 {addEmployeeDraft.entryType === "employee" && <label><span>Email</span><input type="email" value={addEmployeeDraft.email} onChange={e => setAddEmployeeDraft(d => ({ ...d, email: e.target.value }))} /></label>}
                 <label><span>Title</span><input value={addEmployeeDraft.title} onChange={e => setAddEmployeeDraft(d => ({ ...d, title: e.target.value }))} /></label>
                 <label><span>Department</span><select value={addEmployeeDraft.department} onChange={e => setAddEmployeeDraft(d => ({ ...d, department: e.target.value }))}>{getDepartmentOptions(addEmployeeDraft.department).map(d => <option key={d} value={d}>{d}</option>)}</select></label>
-                <label><span>Reports to</span><select value={addEmployeeDraft.reportsTo} onChange={e => setAddEmployeeDraft(d => ({ ...d, reportsTo: e.target.value }))}><option value="">No reporting manager</option>{addReportsToOptions.map(u => <option key={u.id} value={u.id}>{u.name} - {u.title}</option>)}</select></label>
+                {addEmployeeDraft.entryType === "placeholder" ? (
+                  <label><span>Reports to</span><select value={addEmployeeDraft.reportsTo} onChange={e => setAddEmployeeDraft(d => ({ ...d, reportsTo: e.target.value }))}><option value="">No reporting manager</option>{addReportsToOptions.map(u => <option key={u.id} value={u.id}>{u.name} - {u.title}</option>)}</select></label>
+                ) : (
+                  <ManagerChecklist
+                    value={addEmployeeDraft.managerIds}
+                    options={addReportsToOptions}
+                    onChange={managerIds => setAddEmployeeDraft(draft => ({ ...draft, managerIds }))}
+                  />
+                )}
                 {addEmployeeDraft.entryType === "employee" && canEditRoles && <label><span>Role</span><select value={addEmployeeDraft.role} onChange={e => setAddEmployeeDraft(d => ({ ...d, role: e.target.value }))}><option value="contributor">Contributor</option><option value="manager">Manager</option><option value="executive">Executive</option></select></label>}
                 {addEmployeeDraft.entryType === "employee" && <label><span>Temporary password</span><input type="password" value={addEmployeeDraft.tempPassword} onChange={e => setAddEmployeeDraft(d => ({ ...d, tempPassword: e.target.value }))} /></label>}
               </div>
@@ -2194,6 +2269,7 @@ const SettingsPanel = ({ currentUser, objectives, createNotification, onUpdateUs
         title: selectedPermissionUser.title || "",
         department: selectedPermissionUser.department || "",
         reportsTo: selectedPermissionUser.reports_to || null,
+        managerIds: getProfileManagerIds(selectedPermissionUser),
         role: permissionRole,
         color: selectedPermissionUser.color,
       });
@@ -2476,12 +2552,20 @@ export const AdminSidebar = ({
   createNotification,
   onUsersChanged,
   onUpdateUser,
+  assignmentGroups = [],
+  onCreateAssignmentGroup,
+  onUpdateAssignmentGroup,
+  onAddAssignmentGroupMember,
+  onRemoveAssignmentGroupMember,
+  onAssignmentGroupsChanged,
 }) => {
   const [activeSection, setActiveSection] = useState(requestedSection || "users");
   const [showInvite, setShowInvite] = useState(false);
   const [inviteStatus, setInviteStatus] = useState("");
   const [exportFilters, setExportFilters] = useState({ status: "all", owner: "all", department: "all", priority: "all" });
   const [ncrExportFilters, setNcrExportFilters] = useState({ status: "all", group: "all", type: "all", severity: "all" });
+  const [groupDraft, setGroupDraft] = useState({ name: "", description: "" });
+  const [groupStatus, setGroupStatus] = useState("");
   const [inviteForm, setInviteForm] = useState({
     email: "",
     name: "",
@@ -2490,10 +2574,12 @@ export const AdminSidebar = ({
     role: "contributor",
     tempPassword: "",
     reportsTo: "",
+    managerIds: [],
   });
   const sections = [
     { id: "fixit", label: "Feed", icon: Wrench, count: fixItCount },
     { id: "users", label: "Users", icon: Users },
+    { id: "groups", label: "Groups", icon: UserPlus },
     { id: "departments", label: "Depts", icon: Building2 },
     { id: "reports", label: "Reports", icon: BarChart3 },
     { id: "export", label: "Export", icon: Download },
@@ -2505,6 +2591,45 @@ export const AdminSidebar = ({
   const selectSection = (sectionId, options = {}) => {
     setActiveSection(sectionId);
     onSectionChange?.(sectionId, options);
+  };
+  const canEditGroups = canManageAssignmentGroups(currentUser);
+  const createGroup = async () => {
+    const name = groupDraft.name.trim();
+    if (!name || !onCreateAssignmentGroup) return;
+    setGroupStatus("Creating group...");
+    try {
+      await onCreateAssignmentGroup({ name, description: groupDraft.description }, currentUser.id);
+      setGroupDraft({ name: "", description: "" });
+      setGroupStatus("Group created.");
+      await onAssignmentGroupsChanged?.();
+    } catch (error) {
+      setGroupStatus(error.message || "Could not create group.");
+    }
+  };
+  const addGroupMember = async (group, user) => {
+    if (!group?.id || !user?.id || !onAddAssignmentGroupMember) return;
+    setGroupStatus(`Adding ${user.name}...`);
+    try {
+      await onAddAssignmentGroupMember(group.id, user.id, currentUser.id);
+      for (const objective of objectives.filter(item => item.assignmentGroupId === group.id)) {
+        await createNotification?.(user.id, "assignment", objective.id, `${currentUser.name} added you to ${group.name}, which owns "${objective.title}".`);
+      }
+      setGroupStatus(`${user.name} added to ${group.name}.`);
+      await onAssignmentGroupsChanged?.();
+    } catch (error) {
+      setGroupStatus(error.message || "Could not add group member.");
+    }
+  };
+  const removeGroupMember = async (group, userId) => {
+    if (!group?.id || !userId || !onRemoveAssignmentGroupMember) return;
+    setGroupStatus("Removing member...");
+    try {
+      await onRemoveAssignmentGroupMember(group.id, userId);
+      setGroupStatus(`Member removed from ${group.name}.`);
+      await onAssignmentGroupsChanged?.();
+    } catch (error) {
+      setGroupStatus(error.message || "Could not remove group member.");
+    }
   };
   const downloadCsv = (filename, rows) => {
     const csv = rows.map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
@@ -2597,7 +2722,7 @@ export const AdminSidebar = ({
       return;
     }
     setInviteStatus(`Created ${payload.email}. They will be forced to change the temporary password.`);
-    setInviteForm({ email: "", name: "", title: "", department: DEFAULT_DEPARTMENT, role: "contributor", tempPassword: "", reportsTo: "" });
+    setInviteForm({ email: "", name: "", title: "", department: DEFAULT_DEPARTMENT, role: "contributor", tempPassword: "", reportsTo: "", managerIds: [] });
     setShowInvite(false);
     onUsersChanged?.();
   };
@@ -2659,10 +2784,11 @@ export const AdminSidebar = ({
                     <option value="manager">Manager</option>
                     <option value="executive">Executive</option>
                   </select>
-                  <select value={inviteForm.reportsTo} onChange={e => setInviteForm(f => ({ ...f, reportsTo: e.target.value }))}>
-                    <option value="">No reporting manager</option>
-                    {getProfiles().map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-                  </select>
+                  <ManagerChecklist
+                    value={inviteForm.managerIds}
+                    options={getProfiles()}
+                    onChange={managerIds => setInviteForm(form => ({ ...form, managerIds }))}
+                  />
                   <input type="password" value={inviteForm.tempPassword} onChange={e => setInviteForm(f => ({ ...f, tempPassword: e.target.value }))} placeholder="Temporary password" />
                   <div className="flex gap-8">
                     <button className="btn btn-secondary btn-sm" onClick={() => setShowInvite(false)}>Cancel</button>
@@ -2682,6 +2808,53 @@ export const AdminSidebar = ({
                 <Badge color={u.role === "executive" ? "var(--brand)" : u.role === "manager" ? "var(--info)" : "var(--accent-7)"}>{u.role}</Badge>
               </div>
             ))}
+          </div>
+        )}
+        {activeSection === "groups" && (
+          <div>
+            <div className="text-sm font-semibold" style={{ marginBottom: 4 }}>Rotating assignment groups</div>
+            <div className="text-xs text-muted" style={{ marginBottom: 12 }}>Tasks and OKRs can be owned by one person or one of these admin-controlled groups. Membership changes do not change the work item.</div>
+            {canEditGroups && (
+              <div className="card" style={{ padding: 12, marginBottom: 12 }}>
+                <input value={groupDraft.name} onChange={event => setGroupDraft(draft => ({ ...draft, name: event.target.value }))} placeholder="Group name" style={{ width: "100%", marginBottom: 6 }} />
+                <input value={groupDraft.description} onChange={event => setGroupDraft(draft => ({ ...draft, description: event.target.value }))} placeholder="Purpose or rotation note" style={{ width: "100%", marginBottom: 8 }} />
+                <button type="button" className="btn btn-primary btn-sm" onClick={createGroup} disabled={!groupDraft.name.trim()}><Plus size={12} /> Create group</button>
+              </div>
+            )}
+            {groupStatus && <div className="text-xs text-muted" style={{ marginBottom: 8 }}>{groupStatus}</div>}
+            {assignmentGroups.map(group => {
+              const members = group.memberIds.map(id => getUser(id)).filter(user => user.id !== "unknown");
+              const candidates = getProfiles().filter(user => user?.id && !group.memberIds.includes(user.id));
+              return (
+                <div key={group.id} className="card" style={{ padding: 12, marginBottom: 10 }}>
+                  <div className="flex items-center justify-between gap-8" style={{ marginBottom: 4 }}>
+                    <strong className="text-sm">{group.name}</strong>
+                    <Badge color={group.isActive ? "var(--success)" : "var(--accent-7)"}>{group.isActive ? "Active" : "Inactive"}</Badge>
+                  </div>
+                  {group.description && <div className="text-xs text-muted" style={{ marginBottom: 8 }}>{group.description}</div>}
+                  <div className="flex flex-col gap-6">
+                    {members.map(member => (
+                      <div key={member.id} className="flex items-center gap-8">
+                        <Avatar user={member} size={22} />
+                        <span className="text-xs" style={{ flex: 1 }}>{member.name}</span>
+                        {canEditGroups && <button type="button" className="icon-btn" onClick={() => removeGroupMember(group, member.id)} title={`Remove ${member.name}`}><X size={12} /></button>}
+                      </div>
+                    ))}
+                    {members.length === 0 && <span className="text-xs text-muted">No active members.</span>}
+                  </div>
+                  {canEditGroups && (
+                    <>
+                      <div style={{ marginTop: 8 }}>
+                        <TagMentionControl candidates={candidates} currentUserId={currentUser.id} compact addLabel="Add member" placeholder="@name" onTag={user => addGroupMember(group, user)} />
+                      </div>
+                      <button type="button" className="btn btn-xs btn-secondary" style={{ marginTop: 8 }} onClick={() => onUpdateAssignmentGroup?.(group.id, { isActive: !group.isActive }, currentUser.id)}>
+                        {group.isActive ? "Deactivate" : "Reactivate"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
         {activeSection === "departments" && [...new Set([

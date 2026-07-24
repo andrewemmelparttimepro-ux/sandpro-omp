@@ -13,6 +13,7 @@ import {
   formatDate,
   formatObjectiveTimestamp,
   isOverdue,
+  getObjectiveAssignmentLabel,
 } from './data';
 import {
   PROJECT_TYPES,
@@ -68,6 +69,7 @@ export const KPICard = ({ icon: Icon, label, value, sub, color = "#ff7f02", onCl
 // ============================================================================
 export const ObjectiveCard = ({ obj, onClick }) => {
   const owner = getUser(obj.ownerId);
+  const assignmentLabel = getObjectiveAssignmentLabel(obj);
   const overdue = isOverdue(obj);
   const msgCount = obj.messages?.length || 0;
   const unreadCount = (obj.messages || []).filter(message => message.isUnread).length;
@@ -90,8 +92,8 @@ export const ObjectiveCard = ({ obj, onClick }) => {
         <ProgressBar value={obj.progress} color={getStatusColor(obj.status)} height={3} />
         <div className="flex items-center justify-between" style={{ marginTop: 10 }}>
           <div className="flex items-center gap-6">
-            <Avatar user={owner} size={22} />
-            <span className="text-xs text-muted">{owner.name.split(" ")[0]}</span>
+            {obj.assignmentGroupId ? <Users size={18} color="var(--brand)" /> : <Avatar user={owner} size={22} />}
+            <span className="text-xs text-muted">{obj.assignmentGroupId ? assignmentLabel : owner.name.split(" ")[0]}</span>
           </div>
           <div className="flex items-center gap-8">
             {msgCount > 0 && <div className="flex items-center gap-4"><MessageSquare size={11} color={unreadCount > 0 ? "var(--brand)" : "var(--accent-7)"} /><span className={unreadCount > 0 ? "text-xs font-semibold text-brand" : "text-xs text-muted"}>{unreadCount > 0 ? `${unreadCount}/${msgCount}` : msgCount}</span></div>}

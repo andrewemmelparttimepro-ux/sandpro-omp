@@ -287,12 +287,19 @@ export const assertNoMobileCrop = async (page, label = 'mobile screen') => {
       const rect = el.getBoundingClientRect();
       return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
     };
+    const isInsideHorizontalScroller = (el) => {
+      for (let current = el.parentElement; current; current = current.parentElement) {
+        const style = window.getComputedStyle(current);
+        if ((style.overflowX === 'auto' || style.overflowX === 'scroll') && current.scrollWidth > current.clientWidth + 2) return true;
+      }
+      return false;
+    };
     const result = [];
     for (const el of document.querySelectorAll(selectors.join(','))) {
       if (!visible(el)) continue;
       const rect = el.getBoundingClientRect();
       const tag = el.getAttribute('data-testid') || el.getAttribute('aria-label') || el.textContent?.trim()?.slice(0, 48) || el.className || el.tagName;
-      if (rect.left < -2 || rect.right > viewportWidth + 2) {
+      if ((rect.left < -2 || rect.right > viewportWidth + 2) && !isInsideHorizontalScroller(el)) {
         result.push(`${tag}: left=${rect.left.toFixed(1)} right=${rect.right.toFixed(1)} viewport=${viewportWidth.toFixed(1)}`);
       }
       if (rect.top < -2 && !el.closest('.mobile-sheet-overlay')) {

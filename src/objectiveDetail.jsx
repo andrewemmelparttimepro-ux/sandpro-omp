@@ -7,7 +7,7 @@ import {
   Sparkles, AlertCircle, Users, UserPlus, HelpCircle, Bell, Home, Smartphone, SmilePlus, Languages,
   ThumbsUp, Wrench, Handshake
 } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT } from './data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT, getObjectiveAssignmentLabel } from './data';
 import { findMentionCandidates, getActiveMention, getMentionedUsers, insertMentionText } from './mentions';
 import { Avatar, Badge } from './uiPrimitives';
 import {
@@ -648,7 +648,9 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   const childObjectives = objectives.filter(item => item.parentId === localObj.id);
   const parentObjective = localObj.parentId ? objectives.find(item => item.id === localObj.parentId) : null;
 
-  const owner = getUser(localObj.ownerId);
+  const owner = localObj.assignmentGroupId
+    ? { id: localObj.assignmentGroupId, name: getObjectiveAssignmentLabel(localObj), initials: "RG", color: "var(--brand)", title: "Rotating assignment group" }
+    : getUser(localObj.ownerId);
   const creator = getUser(localObj.createdBy);
   const delegator = localObj.delegatedBy ? getUser(localObj.delegatedBy) : null;
   const taggedMembers = (localObj.members || []).map(m => ({ ...m, user: getUser(m.userId) })).filter(m => m.user?.name);
@@ -1346,7 +1348,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
           </div>
           {/* Owner bar */}
           <div className="flex items-center gap-16 flex-wrap text-sm text-secondary" style={{ marginBottom: 12 }}>
-            <div className="flex items-center gap-6"><Avatar user={owner} size={22} /><span><strong className="text-primary">{owner.name}</strong> owns</span></div>
+            <div className="flex items-center gap-6">{localObj.assignmentGroupId ? <Users size={20} color="var(--brand)" /> : <Avatar user={owner} size={22} />}<span><strong className="text-primary">{owner.name}</strong> owns</span></div>
             {delegator && <div className="flex items-center gap-6"><ArrowLeft size={12} /><span>Delegated by <strong className="text-primary">{delegator.name}</strong></span></div>}
             <div className="flex items-center gap-4"><Calendar size={12} /><span style={{ color: overdue ? "var(--warning)" : undefined, fontWeight: overdue ? 600 : 400 }}>{formatDate(localObj.dueDate)}</span></div>
             {(() => {
@@ -1933,10 +1935,20 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
                 />
               </div>
               <div className="flex items-center gap-10" style={{ padding: "10px 0", borderBottom: "1px solid var(--accent-4)" }}>
-                <Avatar user={owner} size={28} />
-                <div style={{ flex: 1 }}><div className="text-sm font-semibold">{owner.name}</div><div className="text-xs text-muted">Owner - receives all critical alerts</div></div>
-                <Badge color="var(--brand)">Owner</Badge>
+                {localObj.assignmentGroupId ? <Users size={26} color="var(--brand)" /> : <Avatar user={owner} size={28} />}
+                <div style={{ flex: 1 }}><div className="text-sm font-semibold">{owner.name}</div><div className="text-xs text-muted">{localObj.assignmentGroupId ? "Rotating owner - active members receive access and alerts" : "Owner - receives all critical alerts"}</div></div>
+                <Badge color="var(--brand)">{localObj.assignmentGroupId ? "Group owner" : "Owner"}</Badge>
               </div>
+              {localObj.assignmentGroupId && (localObj.assignmentGroupMemberIds || []).map(memberId => {
+                const member = getUser(memberId);
+                return (
+                  <div key={`group-${memberId}`} className="flex items-center gap-10" style={{ padding: "10px 0", borderBottom: "1px solid var(--accent-4)" }}>
+                    <Avatar user={member} size={28} />
+                    <div style={{ flex: 1 }}><div className="text-sm font-semibold">{member.name}</div><div className="text-xs text-muted">{member.title}</div></div>
+                    <Badge color="var(--success)">Rotating owner</Badge>
+                  </div>
+                );
+              })}
               {(localObj.members || []).map(m => {
                 const user = getUser(m.userId);
                 return (

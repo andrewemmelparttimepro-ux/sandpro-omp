@@ -7,7 +7,7 @@ import {
   Sparkles, AlertCircle, Users, UserPlus, HelpCircle, Bell, Home, Smartphone, SmilePlus, Languages,
   ThumbsUp, Wrench, Handshake
 } from 'lucide-react';
-import { getUser, getProfiles, getDirectReports, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT, getDepartmentOptions } from './data';
+import { getUser, getProfiles, getDirectReports, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT, getDepartmentOptions, isObjectiveAssignedToUser } from './data';
 import { findMentionCandidates, getActiveMention, getMentionedUsers, insertMentionText } from './mentions';
 import { Avatar, Badge } from './uiPrimitives';
 import {
@@ -2269,7 +2269,7 @@ const FilesTab = ({ objectiveId, files, addToast, onFileChange, uploadObjectiveF
 // ============================================================================
 // CREATE / EDIT OBJECTIVE MODAL
 // ============================================================================
-export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, editObj = null }) => {
+export const ObjectiveFormModal = ({ objectives, assignmentGroups = [], currentUser, onSave, onClose, editObj = null }) => {
   const formDraftKey = `sandpro-objective-form-draft-${currentUser.id}`;
   const savedDraft = editObj ? null : (() => {
     try { return JSON.parse(window.localStorage.getItem(formDraftKey) || "null"); } catch { return null; }
@@ -2280,6 +2280,8 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const [priority, setPriority] = useState(editObj?.priority || savedDraft?.priority || "medium");
   const [dueDate, setDueDate] = useState(editObj?.dueDate ? new Date(editObj.dueDate).toISOString().split("T")[0] : savedDraft?.dueDate || "");
   const [ownerId, setOwnerId] = useState(editObj?.ownerId || savedDraft?.ownerId || currentUser.id);
+  const [assignmentMode, setAssignmentMode] = useState(editObj?.assignmentGroupId || savedDraft?.assignmentGroupId ? "group" : "person");
+  const [assignmentGroupId, setAssignmentGroupId] = useState(editObj?.assignmentGroupId || savedDraft?.assignmentGroupId || "");
   const [parentId, setParentId] = useState(editObj?.parentId || savedDraft?.parentId || "");
   const [department, setDepartment] = useState(editObj?.department || savedDraft?.department || currentUser.department || DEFAULT_DEPARTMENT);
   const [type, setType] = useState(editObj?.type || savedDraft?.type || "simple");
@@ -2300,14 +2302,14 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
   const [pendingDescriptionCursor, setPendingDescriptionCursor] = useState(null);
   const descriptionRef = useRef(null);
 
-  const isDelegation = ownerId !== currentUser.id;
+  const isDelegation = assignmentMode === "person" && ownerId !== currentUser.id;
   const allUsers = getProfiles();
-  const availableOwners = currentUser.role === "executive" ? allUsers : currentUser.role === "manager" ? [currentUser, ...allUsers.filter(u => u.reports_to === currentUser.id)] : [currentUser];
+  const availableOwners = currentUser.role === "executive" ? allUsers : currentUser.role === "manager" ? [currentUser, ...getDirectReports(currentUser.id)] : [currentUser];
   const descriptionMentionCandidates = findMentionCandidates(
     allUsers,
     activeDescriptionMention?.query || "",
     currentUser.id,
-    [ownerId, ...(editObj?.members || []).map(member => member.userId)]
+    [assignmentMode === "person" ? ownerId : null, ...(editObj?.members || []).map(member => member.userId)]
   );
 
   useLayoutEffect(() => {
@@ -2319,11 +2321,11 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
 
   useEffect(() => {
     if (editObj) return;
-    const draft = { title, description, priority, dueDate, ownerId, parentId, department, type, okrLevel, okrPeriod, okrWeight, measurementCadence, metricUnit, baselineMetric, targetMetric, currentMetric, rollupMethod };
+    const draft = { title, description, priority, dueDate, ownerId, assignmentMode, assignmentGroupId, parentId, department, type, okrLevel, okrPeriod, okrWeight, measurementCadence, metricUnit, baselineMetric, targetMetric, currentMetric, rollupMethod };
     try { window.localStorage.setItem(formDraftKey, JSON.stringify(draft)); } catch {
       // Drafts are best effort and should never block objective creation.
     }
-  }, [baselineMetric, currentMetric, department, description, dueDate, editObj, formDraftKey, measurementCadence, metricUnit, okrLevel, okrPeriod, okrWeight, ownerId, parentId, priority, rollupMethod, targetMetric, title, type]);
+  }, [assignmentGroupId, assignmentMode, baselineMetric, currentMetric, department, description, dueDate, editObj, formDraftKey, measurementCadence, metricUnit, okrLevel, okrPeriod, okrWeight, ownerId, parentId, priority, rollupMethod, targetMetric, title, type]);
 
   const hasDraftContent = !editObj && Boolean(
     title.trim() ||
@@ -2386,7 +2388,8 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
     if (saving) return;
     if (!title.trim()) { setTitleError(true); return; }
     const requiredErrors = [];
-    if (!ownerId) requiredErrors.push("Owner is required.");
+    if (assignmentMode === "person" && !ownerId) requiredErrors.push("Owner is required.");
+    if (assignmentMode === "group" && !assignmentGroupId) requiredErrors.push("Rotating group is required.");
     if (["company", "department", "key_result"].includes(okrLevel) && !okrPeriod.trim()) requiredErrors.push("Period is required for OKR work.");
     if (["department", "key_result"].includes(okrLevel) && !parentId) requiredErrors.push(okrLevel === "key_result" ? "Key Results need a parent OKR." : "Department OKRs need a Company OKR parent.");
     if (okrLevel === "key_result") {
@@ -2407,7 +2410,8 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
       descriptionMentionIds: getMentionedUsers(description, selectedDescriptionMentionIds, allUsers, currentUser.id).map(user => user.id),
       priority,
       dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-      ownerId,
+      ownerId: assignmentMode === "person" ? ownerId : null,
+      assignmentGroupId: assignmentMode === "group" ? assignmentGroupId : null,
       createdBy: editObj?.createdBy || currentUser.id,
       delegatedBy: isDelegation ? currentUser.id : editObj?.delegatedBy || null,
       parentId: parentId || null,
@@ -2516,9 +2520,22 @@ export const ObjectiveFormModal = ({ objectives, currentUser, onSave, onClose, e
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div>
               <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Owner {isDelegation && <Badge color="#8B5CF6">Delegation</Badge>}</label>
-              <select value={ownerId} onChange={e => setOwnerId(e.target.value)} style={{ width: "100%" }}>
-                {availableOwners.map(u => <option key={u.id} value={u.id}>{u.name} — {u.title}</option>)}
-              </select>
+              {assignmentGroups.length > 0 && (
+                <div className="flex gap-4" style={{ marginBottom: 6 }}>
+                  <button type="button" className={`btn btn-xs ${assignmentMode === "person" ? "btn-primary" : "btn-secondary"}`} onClick={() => setAssignmentMode("person")}>Person</button>
+                  <button type="button" className={`btn btn-xs ${assignmentMode === "group" ? "btn-primary" : "btn-secondary"}`} onClick={() => setAssignmentMode("group")}>Rotating group</button>
+                </div>
+              )}
+              {assignmentMode === "group" ? (
+                <select value={assignmentGroupId} onChange={e => setAssignmentGroupId(e.target.value)} style={{ width: "100%" }}>
+                  <option value="">Select a rotating group…</option>
+                  {assignmentGroups.filter(group => group.isActive !== false).map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
+                </select>
+              ) : (
+                <select value={ownerId} onChange={e => setOwnerId(e.target.value)} style={{ width: "100%" }}>
+                  {availableOwners.map(u => <option key={u.id} value={u.id}>{u.name} — {u.title}</option>)}
+                </select>
+              )}
             </div>
             <div>
               <label className="text-xs font-semibold text-muted" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Department</label>
@@ -2718,7 +2735,7 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss, onOpenCard, onO
   const bulletin = DAILY_BULLETIN;
 
   // Computed data for the brief
-  const myObjectives = objs.filter(o => o && o.ownerId === me.id && o.status !== 'completed' && o.status !== 'cancelled');
+  const myObjectives = objs.filter(o => o && isObjectiveAssignedToUser(o, me.id) && o.status !== 'completed' && o.status !== 'cancelled');
   const allActive = objs.filter(o => o && o.status !== 'completed' && o.status !== 'cancelled');
   const overdue = allActive.filter(o => { try { return isOverdue(o); } catch { return false; } });
   const blocked = allActive.filter(o => o.blockerFlag || o.status === 'blocked');
@@ -2748,7 +2765,7 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss, onOpenCard, onO
     return (aOverdue + (priorityOrder[a.priority] || 3)) - (bOverdue + (priorityOrder[b.priority] || 3));
   }).slice(0, 5);
 
-  const taggedToMe = allActive.filter(o => o.ownerId !== me.id && (o.members || []).some(member => member.userId === me.id));
+  const taggedToMe = allActive.filter(o => !isObjectiveAssignedToUser(o, me.id) && (o.members || []).some(member => member.userId === me.id));
   const needsSupportingTag = allActive.filter(o => o.ownerId === me.id && (o.members || []).length === 0).slice(0, 5);
   const staleObjectives = allActive.filter(o => {
     const activityDates = [

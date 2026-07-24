@@ -1,0 +1,286 @@
+{
+  "generatedAt": "2026-07-24T16:56:39.229Z",
+  "apply": true,
+  "decisionSource": "Merci OMP Confirmation Checklist 2026-07-24",
+  "identities": {
+    "found": 64,
+    "needsConfirmation": 64,
+    "alreadyConfirmed": 0,
+    "emailPolicy": "disabled until onboarding; daily email remains limited to Andrew, Jake, Merci, and Tim"
+  },
+  "keith": {
+    "found": true,
+    "id": "b02579c7-0788-493f-8a5b-34656d098a2a",
+    "email": "kmappes@sandpro.com",
+    "lastSignInAt": null,
+    "blockingWork": {
+      "objectives": 0,
+      "subtasks": 0,
+      "messages": 0,
+      "Fix-It Feed posts": 0
+    }
+  },
+  "actions": [
+    {
+      "email": "klouden@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "thall@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jblanco@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "wdecoteau@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "zcampana@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "bbesselman@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jwalls@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "opostolatii@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "anavrotskyi@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "tbell@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "kmackay@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "ddebold@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "amora@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "mbornschein@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jhassler@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "ryensal@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "bblanco@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jpreston@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "dcarter@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "dsotelo@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "nreiter@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jhoward@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jtate@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "kjohnson@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jmcconnell@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "kjones@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jbazile@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "agriffin@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "wphipps@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "aconley@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jbeck@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "banderson@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "scockrell@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "alua@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "svogel@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "lfeil@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jdingal@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "ffloydjr@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "ktrone@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "bbrower@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "mvega@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "adees@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "lhoward@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "csharkey@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "cjones@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "byoung@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "pleviner@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "rgriffin@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "hjones@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jwilliams@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "gmcgraw@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "rcalderon@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "aross@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "mroabaca@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "eblanco@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "ccaswell@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "jshelstad@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "ablackaby@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "emacy@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "hhaataia@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "dholen@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "bbeck@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "bchristoffersen@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "melliott@sandpro.com",
+      "action": "identity confirmed; pilot email and push remain disabled until onboarding"
+    },
+    {
+      "email": "kmappes@sandpro.com",
+      "action": "auth user and cascading employee profile deleted"
+    }
+  ],
+  "errors": []
+}

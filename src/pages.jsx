@@ -7,7 +7,7 @@ import {
   PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio,
   ClipboardCheck
 } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, canManageOkrs } from './data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, canManageOkrs, isObjectiveAssignedToUser } from './data';
 import { Avatar, Badge } from './uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from './sharedWidgets';
 import { useAltNotes } from './hooks/useSupabase';
@@ -23,7 +23,6 @@ import {
   isOkrClassificationUncertain,
   buildOkrTree,
   buildProjectGateBlockers,
-  summarizeFramework,
   buildQuarterlyScorecardRows,
 } from './okrFramework';
 import {
@@ -719,11 +718,10 @@ const AlternativeDashboardView = ({
 // DASHBOARD PAGE — Role-adaptive
 // ============================================================================
 // ============================================================================
-// GLOBAL KPI STRIP — rides the top of EVERY view (Jake: an element across
-// views, top of page, no matter which tab is active). View type scope +
-// Active/Completed/Past due/Due horizon + the framework mini-strip.
+// GLOBAL KPI STRIP — Tasks & Projects overview. View type scope +
+// Active/Completed/Past due/Due horizon.
 // ============================================================================
-const GLOBAL_KPI_COLLAPSED_KEY = "sandpro-global-kpi-strip-collapsed";
+const GLOBAL_KPI_COLLAPSED_KEY = "sandpro-global-kpi-strip-collapsed-v2";
 // Pages where the company overview is off-topic (7/8 meeting: "when you click
 // into Organization it shouldn't show you all the top... NCR and org, yes").
 // On these pages the strip defaults to a single quiet line; anyone (Jake) can
@@ -741,7 +739,6 @@ const readStripCollapsed = (storageKey, fallback) => {
 
 export const GlobalKpiStrip = ({
   objectives,
-  okrProjects = [],
   currentUser,
   scope,
   onScopeChange,
@@ -758,7 +755,7 @@ export const GlobalKpiStrip = ({
     : isSlimPage
       ? `${GLOBAL_KPI_COLLAPSED_KEY}:${page}`
       : GLOBAL_KPI_COLLAPSED_KEY;
-  const collapseByDefault = isMobile || isSlimPage;
+  const collapseByDefault = false;
   const [collapsed, setCollapsed] = useState(() => readStripCollapsed(storageKey, collapseByDefault));
   // The strip stays mounted across page switches — re-read the per-page
   // preference whenever the page (and therefore the storage key) changes.
@@ -767,9 +764,9 @@ export const GlobalKpiStrip = ({
   }, [storageKey, collapseByDefault]);
   const directReports = getDirectReports(currentUser.id);
   const scopedObjectives = scope === "individual"
-    ? objectives.filter(o => o.ownerId === currentUser.id)
+    ? objectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id))
     : scope === "team"
-      ? objectives.filter(o => o.ownerId === currentUser.id || directReports.some(r => r.id === o.ownerId) || o.delegatedBy === currentUser.id)
+      ? objectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id) || directReports.some(r => isObjectiveAssignedToUser(o, r.id)) || o.delegatedBy === currentUser.id)
       : objectives;
   const allActive = scopedObjectives.filter(o => o.status !== "completed" && o.status !== "cancelled");
   const atRisk = allActive.filter(o => o.status === "at_risk").length;
@@ -798,13 +795,6 @@ export const GlobalKpiStrip = ({
     { key: "14", label: "14 days", value: dueWithin(14), dueWindow: 14, tone: dueWithin(14) > 0 ? "mid" : "empty" },
     { key: "28", label: "28 days", value: dueWithin(28), dueWindow: 28, tone: dueWithin(28) > 0 ? "far" : "empty" },
   ];
-  const scopedProjectIds = new Set(scopedObjectives.flatMap(objective => (objective.linkedProjects || []).map(project => project.id)));
-  const scopedProjects = okrProjects.filter(project => (
-    scopedProjectIds.has(project.id) || scope === "company" || project.sponsorId === currentUser.id || project.leadId === currentUser.id
-  ));
-  const frameworkSummary = summarizeFramework(scopedObjectives, scopedProjects);
-  const reviewNeeded = scopedObjectives.filter(objective => objective.okrLevel === "needs_review" || objective.classificationStatus === "needs_review").length;
-
   const isExecutive = currentUser.role === "executive";
   const isManager = currentUser.role === "manager";
 
@@ -907,28 +897,6 @@ export const GlobalKpiStrip = ({
             <KPICard bucket="time" icon={AlertTriangle} label="Past Due" value={overdue} sub={`${atRisk} at risk · ${blocked} blocked`} color="#EF4444" breakdown={statusBreakdown(overdueItems)} onClick={() => onKpiClick?.({ label: "Past Due", overdue: true, activeOnly: true, scope })} />
             <DueHorizonStrip items={dueHorizonItems} onSelect={(item) => onKpiClick?.({ label: `Due Next ${item.label}`, dueWindow: item.dueWindow, activeOnly: true, scope })} />
           </div>
-          <div className="framework-dashboard-strip">
-            <button type="button" className="omp-tip omp-tip-left" data-tip="The top-line company goals everything rolls up to — Net Profit 15%, Zero TRIR, Employee Cost under 27%, 2.0 Digital Operating System. Click to see them." onClick={() => onKpiClick?.({ label: "Company OKRs", okrLevel: "company", scope, view: "tree" })}>
-              <span>Company OKRs</span>
-              <strong>{frameworkSummary.levelCounts.company || 0}</strong>
-            </button>
-            <button type="button" className="omp-tip" data-tip="Key results (the measurable part of a goal) with no update in 30+ days — nobody has worked them. Stale = untouched; blocked = worked but stopped." onClick={() => onKpiClick?.({ label: "Stale KRs", okrLevel: "key_result", stale: "true", scope, view: "list" })}>
-              <span>Stale KRs</span>
-              <strong>{frameworkSummary.staleKrs.length}</strong>
-            </button>
-            <button type="button" className="omp-tip" data-tip="Projects still in the evaluation stage — economics, risk review, and approvals — before being green-lit as active work." onClick={() => onKpiClick?.({ label: "Project Assessments", projectStage: "assessment", scope, view: "tree" })}>
-              <span>Projects in assessment</span>
-              <strong>{frameworkSummary.projectStageCounts.assessment || 0}</strong>
-            </button>
-            <button type="button" className="omp-tip" data-tip="Something outside the team's control is preventing progress — a missing approval, part, or decision from a higher level. These need leadership eyes." onClick={() => onKpiClick?.({ label: "Approval blockers", projectStage: "blocked", scope, view: "tree" })}>
-              <span>Gate blockers</span>
-              <strong>{frameworkSummary.blockedProjects.length}</strong>
-            </button>
-            <button type="button" className="omp-tip" data-tip="Entries the system classified automatically and is asking a person to confirm — the type was assumed, not chosen." onClick={() => onKpiClick?.({ label: "Needs classification review", okrLevel: "needs_review", scope, view: "list" })}>
-              <span>Needs review</span>
-              <strong>{reviewNeeded}</strong>
-            </button>
-          </div>
         </div>
       )}
     </div>
@@ -971,6 +939,7 @@ export const CreateWizardModal = ({
   objectives,
   okrProjects = [],
   ncrReports = [],
+  assignmentGroups = [],
   currentUser,
   initialType = null,
   onClose,
@@ -997,6 +966,8 @@ export const CreateWizardModal = ({
   });
   const [klass, setKlass] = useState("");
   const [ownerId, setOwnerId] = useState(currentUser.id);
+  const [assignmentMode, setAssignmentMode] = useState("person");
+  const [assignmentGroupId, setAssignmentGroupId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [taggedIds, setTaggedIds] = useState([]);
   const [files, setFiles] = useState([]);
@@ -1014,8 +985,9 @@ export const CreateWizardModal = ({
   const openNcrs = ncrReports.filter(r => !r.closed && r.status !== "closed");
   const taggedUsers = taggedIds.map(id => profiles.find(pr => pr.id === id)).filter(Boolean);
   const tagCandidates = profiles
-    .filter(pr => pr.id && pr.id !== ownerId && !taggedIds.includes(pr.id))
+    .filter(pr => pr.id && (assignmentMode !== "person" || pr.id !== ownerId) && !taggedIds.includes(pr.id))
     .sort((a, b) => a.name.localeCompare(b.name));
+  const activeAssignmentGroups = assignmentGroups.filter(group => group.isActive !== false);
 
   const pickType = (t) => {
     if (t === "ncr") { onGoNcr?.(); return; }
@@ -1026,6 +998,8 @@ export const CreateWizardModal = ({
     setParentId("");
     setTaggedIds([]);
     setFiles([]);
+    setAssignmentMode("person");
+    setAssignmentGroupId("");
     setProjectTasks(t === "project" ? [createProjectTaskDraft(ownerId)] : []);
   };
 
@@ -1058,7 +1032,7 @@ export const CreateWizardModal = ({
   // automatically, so the bar never starts at zero — but nothing is faked.
   const progressChecks = [
     true, // originator — captured automatically
-    Boolean(ownerId), // assigned to — defaults to the creator
+    assignmentMode === "group" ? Boolean(assignmentGroupId) : Boolean(ownerId),
     type !== null,
     ...(type === "task" ? [taskKind !== null] : []),
     ...(linkNeeded ? [link !== null] : []),
@@ -1072,6 +1046,7 @@ export const CreateWizardModal = ({
   const submit = async () => {
     if (!title.trim()) return setError("Title is required.");
     if (!dept) return setError("Main department is required.");
+    if (assignmentMode === "group" && !assignmentGroupId) return setError("Choose a rotating group.");
     setError("");
     setBusy(true);
     try {
@@ -1081,7 +1056,8 @@ export const CreateWizardModal = ({
         description: (description.trim() + recurringNote).trim(),
         department: dept,
         class: klass || null,
-        ownerId,
+        ownerId: assignmentMode === "group" ? null : ownerId,
+        assignmentGroupId: assignmentMode === "group" ? assignmentGroupId : null,
         dueDate: dueDate || null,
         taggedIds,
         files,
@@ -1233,12 +1209,25 @@ export const CreateWizardModal = ({
                 </label>
               </div>
               <div className="wiz-field-grid">
-                <label className="wiz-field">
+                <div className="wiz-field">
                   <span>Assigned to</span>
-                  <select value={ownerId} onChange={e => { const nextOwnerId = e.target.value; setOwnerId(nextOwnerId); setTaggedIds(prev => prev.filter(id => id !== nextOwnerId)); }}>
-                    {profiles.map(pr => <option key={pr.id} value={pr.id}>{pr.name}</option>)}
-                  </select>
-                </label>
+                  {type !== "project" && activeAssignmentGroups.length > 0 && (
+                    <div className="wiz-chip-row" style={{ marginBottom: 6 }}>
+                      <WizChip label="Person" selected={assignmentMode === "person"} onClick={() => setAssignmentMode("person")} />
+                      <WizChip label="Rotating group" selected={assignmentMode === "group"} onClick={() => setAssignmentMode("group")} />
+                    </div>
+                  )}
+                  {assignmentMode === "group" && type !== "project" ? (
+                    <select value={assignmentGroupId} onChange={e => setAssignmentGroupId(e.target.value)}>
+                      <option value="">Select a rotating group…</option>
+                      {activeAssignmentGroups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
+                    </select>
+                  ) : (
+                    <select value={ownerId} onChange={e => { const nextOwnerId = e.target.value; setOwnerId(nextOwnerId); setTaggedIds(prev => prev.filter(id => id !== nextOwnerId)); }}>
+                      {profiles.map(pr => <option key={pr.id} value={pr.id}>{pr.name}</option>)}
+                    </select>
+                  )}
+                </div>
                 <label className="wiz-field">
                   <span>Due date</span>
                   <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
@@ -1281,7 +1270,7 @@ export const CreateWizardModal = ({
                     </button>
                   </div>
                 )}
-                {(type === "task" || type === "okr") && (
+                {(type === "task" || type === "project" || type === "okr") && (
                   <div className="wiz-extra-panel">
                     <div className="wiz-extra-head">
                       <UserPlus size={14} />
@@ -1295,7 +1284,7 @@ export const CreateWizardModal = ({
                       placeholder="@name"
                       disabled={!formEnabled || busy}
                       onTag={async (user) => {
-                        if (!user?.id || user.id === ownerId) return;
+                        if (!user?.id || (assignmentMode === "person" && user.id === ownerId)) return;
                         setTaggedIds(prev => prev.includes(user.id) ? prev : [...prev, user.id]);
                       }}
                     />
@@ -1494,7 +1483,7 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
       linkedNcr: false,
       originatorId: p.sponsorId,
       ownerId: p.leadId,
-      memberIds: [],
+      memberIds: p.memberIds || [],
       dueDate: p.dueDate || null,
       isCompleted: p.stage === "done",
     }));
@@ -1792,6 +1781,10 @@ export const DashboardPage = ({
     || scope === "company"
     || project.sponsorId === currentUser.id
     || project.leadId === currentUser.id
+    || (project.memberIds || []).some(memberId => (
+      memberId === currentUser.id
+      || (scope === "team" && directReports.some(reportUser => reportUser.id === memberId))
+    ))
   ));
   const scopedNcrReports = scope === "company" ? ncrReports : ncrReports.filter(report => {
     const visibleUserIds = new Set([

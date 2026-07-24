@@ -59,34 +59,6 @@
   --safe-left: env(safe-area-inset-left, 0px);
 }
 
-.framework-dashboard-strip {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(120px, 1fr));
-  gap: 8px;
-  margin: -6px 0 14px;
-  flex-shrink: 0;
-}
-
-.framework-dashboard-strip button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 44px;
-  padding: 9px 11px;
-  border: 1px solid var(--accent-5);
-  border-radius: 8px;
-  background: var(--accent-2);
-  color: var(--accent-8);
-  text-align: left;
-}
-
-.framework-dashboard-strip button:hover {
-  border-color: var(--brand-border);
-  background: var(--brand-bg);
-}
-
-.framework-dashboard-strip span,
 .okr-export-group span,
 .project-section-heading span,
 .project-gate-header span,
@@ -94,11 +66,6 @@
   color: var(--accent-7);
   font-size: 11px;
   line-height: 1.35;
-}
-
-.framework-dashboard-strip strong {
-  color: var(--brand);
-  font-size: 18px;
 }
 
 .objective-form-section,
@@ -521,11 +488,6 @@
 }
 
 @media (max-width: 860px) {
-  .framework-dashboard-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow: visible;
-  }
-
   .objective-classification-grid,
   .project-create-grid,
   .objective-structure-summary,
@@ -3969,6 +3931,75 @@ button.alt-command-body:disabled {
 .org-edit-grid input,
 .org-edit-grid select {
   width: 100%;
+}
+
+.org-manager-picker {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--accent-5);
+  border-radius: 6px;
+}
+
+.org-manager-picker legend {
+  padding: 0 4px;
+  color: var(--accent-8);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.org-manager-options {
+  display: grid;
+  gap: 2px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.org-manager-options label,
+.org-edit-grid .org-manager-options label {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) minmax(0, auto);
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 3px 5px;
+  border-radius: 4px;
+}
+
+.org-manager-options label:hover {
+  background: var(--accent-3);
+}
+
+.org-manager-options input,
+.org-edit-grid .org-manager-options input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.org-manager-options span,
+.org-edit-grid .org-manager-options label span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--accent-10);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.org-manager-options small {
+  max-width: 150px;
+  overflow: hidden;
+  color: var(--accent-7);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .org-tree-scroll {
@@ -13385,7 +13416,15 @@ button.alt-command-body:disabled {
 .okr-mobile-sections { display: none; }
 .okr-grid-card { overflow: hidden; display: flex; flex-direction: column; }
 .okr-grid-scroll { overflow-x: auto; }
-.okr-grid { width: 100%; border-collapse: collapse; min-width: 1480px; font-size: 12px; }
+.okr-grid {
+  --okr-name-width: 300px;
+  --okr-status-width: 104px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 1480px;
+  font-size: 12px;
+}
 .okr-grid th {
   text-align: center; padding: 8px 6px;
   font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
@@ -13394,11 +13433,60 @@ button.alt-command-body:disabled {
   background: var(--accent-3);
 }
 .okr-grid th.current { color: var(--brand); }
-.okr-grid .okr-name-col { text-align: left; min-width: 260px; max-width: 340px; padding-left: 12px; }
+.okr-grid .okr-name-col {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: var(--okr-name-width);
+  min-width: var(--okr-name-width);
+  max-width: var(--okr-name-width);
+  text-align: left;
+  padding-left: 12px;
+  background: var(--surface);
+}
+.okr-grid thead .okr-name-col { z-index: 7; background: var(--accent-3); }
 .okr-grid td { border-bottom: 1px solid var(--accent-4); border-left: 1px solid var(--accent-4); }
 .okr-grid .okr-ref-col {
   min-width: 84px;
 }
+.okr-grid .okr-sticky-status {
+  position: sticky;
+  left: var(--okr-name-width);
+  z-index: 3;
+  width: var(--okr-status-width);
+  min-width: var(--okr-status-width);
+  background: var(--surface);
+}
+.okr-grid .okr-sticky-average {
+  position: sticky;
+  left: calc(var(--okr-name-width) + var(--okr-status-width));
+  z-index: 3;
+  min-width: 84px;
+  background: var(--surface);
+  box-shadow: 2px 0 0 var(--border);
+}
+.okr-grid thead .okr-sticky-status,
+.okr-grid thead .okr-sticky-average { z-index: 7; background: var(--accent-3); }
+.okr-group-row td {
+  padding: 0;
+  border-left: 0;
+  background: color-mix(in srgb, var(--brand) 9%, var(--surface));
+}
+.okr-group-row button {
+  position: sticky;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--brand);
+  cursor: pointer;
+}
+.okr-group-row button strong { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; }
+.okr-group-row button span { color: var(--text-muted); font-size: 10px; font-weight: 700; }
 .okr-name-btn {
   background: none; border: none; text-align: left; cursor: pointer;
   padding: 8px 4px; width: 100%; color: var(--text);
@@ -13540,7 +13628,7 @@ button.alt-command-body:disabled {
   }
 
   .global-kpi-strip:not(.mobile-collapsed) .global-kpi-summary-row {
-    align-items: stretch;
+    display: block;
   }
 
   .global-kpi-strip:not(.mobile-collapsed) .dashboard-lens-controls {
@@ -13560,8 +13648,13 @@ button.alt-command-body:disabled {
     flex: 1;
   }
 
+  .global-kpi-strip:not(.mobile-collapsed) .global-kpi-collapse-cluster {
+    display: none;
+  }
+
   .global-kpi-strip:not(.mobile-collapsed) .kpi-grid {
     display: flex !important;
+    align-items: stretch;
     gap: 8px !important;
     overflow-x: auto !important;
     scroll-snap-type: x proximity;
@@ -13573,8 +13666,15 @@ button.alt-command-body:disabled {
   }
 
   .global-kpi-strip:not(.mobile-collapsed) .kpi-grid > * {
-    flex: 0 0 min(82vw, 310px);
+    flex: 0 0 auto !important;
+    width: calc(100vw - 48px) !important;
+    min-width: 280px !important;
+    max-width: 360px !important;
     scroll-snap-align: start;
+  }
+
+  .global-kpi-strip:not(.mobile-collapsed) .kpi-status-breakdown {
+    display: none;
   }
 
   .feature-help-trigger {
@@ -13651,8 +13751,21 @@ button.alt-command-body:disabled {
     padding: 0 2px;
   }
 
-  .okr-mobile-section-head h2 {
-    margin: 0;
+  .okr-mobile-section-head {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .okr-mobile-section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .okr-mobile-section-title strong {
     color: var(--brand);
     font-size: 11px;
     font-weight: 850;

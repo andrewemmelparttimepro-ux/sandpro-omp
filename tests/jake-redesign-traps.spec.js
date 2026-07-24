@@ -16,11 +16,6 @@ test.describe('Jake module redesign traps', () => {
       await expect(navItem(page, name)).toBeVisible();
     }
     await expect(page.locator('.desktop-header').getByRole('link', { name: 'Fix-It Feed', exact: true })).toHaveCount(0);
-    await expect(page.getByTitle('Open Fix-It Feed')).toBeVisible();
-    await page.getByTitle('Open Fix-It Feed').click();
-    await expect(page.locator('aside.admin-sidebar-fixit')).toBeVisible();
-    await expect(page.getByRole('tab', { name: /Active/i })).toBeVisible();
-    await expect(oldObjectivesNav(page)).toHaveCount(0);
     await expect(page.locator('.global-kpi-strip')).toBeVisible();
     await expect(page.locator('.global-kpi-strip .kpi-grid')).toBeVisible();
     await page.getByRole('button', { name: /Hide overview/i }).click({ force: true });
@@ -28,17 +23,24 @@ test.describe('Jake module redesign traps', () => {
     await expect(page.getByLabel('Collapsed KPI summary')).toBeVisible();
     await page.getByRole('button', { name: /Show overview/i }).click({ force: true });
     await expect(page.locator('.global-kpi-strip .kpi-grid')).toBeVisible();
+    await expect(page.getByTitle('Open Fix-It Feed')).toBeVisible();
+    await page.getByTitle('Open Fix-It Feed').click();
+    await expect(page.locator('aside.admin-sidebar-fixit')).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Active/i })).toBeVisible();
+    await expect(oldObjectivesNav(page)).toHaveCount(0);
+    await expect(page.locator('.global-kpi-strip')).toHaveCount(0);
 
     await page.goto('/?page=okr', { waitUntil: 'domcontentloaded' });
     await dismissGuidance(page);
     await expect(page).toHaveURL(/page=okr/);
     await expect(page.getByRole('heading', { name: 'OKR' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Presentation view' })).toBeVisible();
-    await expect(page.locator('.global-kpi-strip')).toBeVisible();
+    await expect(page.locator('.global-kpi-strip')).toHaveCount(0);
     await expect(page.locator('.okr-grid thead')).toContainText('YTD AVG');
     await expect(page.locator('.okr-grid thead')).toContainText('Audit Form');
     await expect(page.locator('.okr-grid thead')).toContainText('Baseline');
     await expect(page.locator('.okr-grid thead')).toContainText('Target');
+    await expect(page.locator('.okr-group-row').first()).toBeVisible();
     await expect.poll(async () => page.locator('.okr-grid tbody tr').count()).toBeGreaterThan(4);
     await page.getByRole('button', { name: 'Presentation view' }).click();
     await expect(page.locator('.okr-print-summary')).toContainText(/OKR lines/);
@@ -105,6 +107,12 @@ test.describe('Jake module redesign traps', () => {
     await expect(wizard.getByText('Tasks')).toBeVisible();
     await expect(wizard.getByLabel('Project task 1 description')).toBeVisible();
     await expect(wizard.getByLabel('Assign project task 1')).toBeVisible();
+    await expect(wizard.getByText('Tagged teammates')).toBeVisible();
+    const projectTagInput = wizard.getByPlaceholder('@name');
+    await projectTagInput.fill('@Tim');
+    await expect(page.locator('.tag-mention-menu .mention-name', { hasText: 'Tim Dibben' })).toBeVisible();
+    await page.locator('.tag-mention-menu .mention-name', { hasText: 'Tim Dibben' }).click();
+    await expect(wizard.getByRole('button', { name: 'Remove Tim Dibben' })).toBeVisible();
     await wizard.getByLabel('Project task 1 description').fill('Kayla training materials');
     await wizard.getByRole('button', { name: /Add another task/i }).click();
     await expect(wizard.getByLabel('Project task 2 description')).toBeVisible();

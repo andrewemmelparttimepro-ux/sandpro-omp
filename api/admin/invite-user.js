@@ -30,13 +30,26 @@ export default async function handler(req, res) {
     if (auth.error) return json(res, 401, { error: auth.error });
     if (!canManageOrgChart(auth.profile)) return json(res, 403, { error: 'You do not have permission to add org chart users.' });
 
-    const { email, name, title = '', department = '', role = 'contributor', reportsTo = null, tempPassword } = req.body || {};
+    const { email, name, title = '', department = '', role = 'contributor', reportsTo = null, managerIds, tempPassword } = req.body || {};
+    const nextManagerIds = [...new Set([
+      ...(Array.isArray(managerIds) ? managerIds : []),
+      ...(!Array.isArray(managerIds) && reportsTo ? [reportsTo] : []),
+    ].filter(Boolean))];
     if (!email || !name || !tempPassword) return json(res, 400, { error: 'email, name, and tempPassword are required.' });
     if (tempPassword.length < 8) return json(res, 400, { error: 'Temporary password must be at least 8 characters.' });
     if (!['executive', 'manager', 'contributor'].includes(role)) return json(res, 400, { error: 'Invalid role.' });
     if (!canAssignRole(auth.profile, role)) return json(res, 403, { error: 'Only platform administrators can add manager/executive users.' });
 
     const supabase = getSupabaseAdmin();
+    if (nextManagerIds.length > 0) {
+      const { data: managers = [], error: managersError } = await supabase
+        .from('profiles')
+        .select('id')
+        .in('id', nextManagerIds);
+      if (managersError || managers.length !== nextManagerIds.length) {
+        return json(res, 400, { error: 'One or more reporting managers no longer exist.' });
+      }
+    }
     const metadata = {
       name,
       initials: initialsFor(name),
@@ -62,11 +75,28 @@ export default async function handler(req, res) {
       department,
       role,
       color: metadata.color,
-      reports_to: reportsTo || null,
+      reports_to: nextManagerIds[0] || null,
     };
-    await supabase.from('profiles').upsert({ id: data.user.id, email, ...profilePatch });
+    const { error: profileError } = await supabase.from('profiles').upsert({ id: data.user.id, email, ...profilePatch });
+    if (profileError) {
+      await supabase.auth.admin.deleteUser(data.user.id).catch(() => {});
+      return json(res, 400, { error: profileError.message });
+    }
+    if (nextManagerIds.length > 0) {
+      const { error: managerError } = await supabase.from('profile_managers').insert(
+        nextManagerIds.map(managerId => ({
+          employee_id: data.user.id,
+          manager_id: managerId,
+          created_by: auth.profile.id,
+        })),
+      );
+      if (managerError) {
+        await supabase.auth.admin.deleteUser(data.user.id).catch(() => {});
+        return json(res, 400, { error: managerError.message });
+      }
+    }
 
-    return json(res, 200, { id: data.user.id, email, mustChangePassword: true });
+    return json(res, 200, { id: data.user.id, email, managerIds: nextManagerIds, mustChangePassword: true });
   } catch (error) {
     return json(res, 500, { error: error.message || 'Could not invite user.' });
   }

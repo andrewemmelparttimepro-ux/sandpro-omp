@@ -109,7 +109,12 @@ export const getUser = (id) => {
   return { id: id || "unknown", name: "Unknown", initials: "??", color: "#666", role: "contributor", department: "-", title: "-" };
 };
 
-export const getDirectReports = (userId) => _profiles.filter(u => u.reports_to === userId);
+export const getProfileManagerIds = (profile = {}) => {
+  const ids = Array.isArray(profile.manager_ids) ? profile.manager_ids : [];
+  return [...new Set([profile.reports_to, ...ids].filter(Boolean))];
+};
+
+export const getDirectReports = (userId) => _profiles.filter(profile => getProfileManagerIds(profile).includes(userId));
 
 export const canDelegate = (user, targetUser) => {
   if (user.role === "executive") return true;
@@ -129,6 +134,34 @@ export const canManagePermissions = (user) => {
   const email = (user?.email || "").toLowerCase();
   return user?.role === "executive" || ["jfeil@sandpro.com", "tdibben@sandpro.com", "andrew@ndai.pro"].includes(email);
 };
+
+export const canManageAssignmentGroups = (user) => {
+  const email = (user?.email || "").toLowerCase();
+  return user?.role === "executive" || [
+    "mjimenez@sandpro.com",
+    "tdibben@sandpro.com",
+    "jfeil@sandpro.com",
+    "andrew@ndai.pro",
+  ].includes(email);
+};
+
+export const getObjectiveAssignmentMemberIds = (objective = {}) => (
+  objective.assignmentGroupId
+    ? [...new Set(objective.assignmentGroupMemberIds || objective.assignmentGroup?.memberIds || [])]
+    : objective.ownerId
+      ? [objective.ownerId]
+      : []
+);
+
+export const isObjectiveAssignedToUser = (objective, userId) => (
+  Boolean(userId && getObjectiveAssignmentMemberIds(objective).includes(userId))
+);
+
+export const getObjectiveAssignmentLabel = (objective = {}) => (
+  objective.assignmentGroupName
+  || objective.assignmentGroup?.name
+  || getUser(objective.ownerId).name
+);
 
 export const canManageOkrs = (user) => {
   const email = (user?.email || "").toLowerCase();
