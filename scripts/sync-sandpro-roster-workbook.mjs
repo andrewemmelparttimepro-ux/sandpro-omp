@@ -37,6 +37,12 @@ const roleFromTitle = title => {
   if (/\b(manager|director|lead|supervisor)\b/.test(value)) return 'manager';
   return 'contributor';
 };
+const PLATFORM_ADMIN_EMAILS = new Set(['mjimenez@sandpro.com']);
+const authorizationRoleFor = (email, title) => (
+  PLATFORM_ADMIN_EMAILS.has(String(email || '').trim().toLowerCase())
+    ? 'executive'
+    : roleFromTitle(title)
+);
 
 const GROUP_MEMBERS = {
   dispatch: ['Dustin Saunders', 'Gershom Dingal', 'Luke Feil', 'Shawn Cockrell'],
@@ -145,7 +151,7 @@ for (const employee of roster) {
     report.errors.push({ name: employee.name, email, error: `Email already belongs to auth user ${emailOwner.id}.` });
     continue;
   }
-  const role = roleFromTitle(employee.title);
+  const role = authorizationRoleFor(email, employee.title);
   let userId = existingProfile?.id || null;
   try {
     if (!existingProfile) {

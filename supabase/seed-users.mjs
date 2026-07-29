@@ -31,7 +31,7 @@ const defaultUsers = [
   { email: "bcarpenter@sandpro.com", name: "Bryan Carpenter", initials: "BC", title: "Business Development Manager", department: "Sales", role: "contributor", reports_to: "kkraft@sandpro.com", color: "#ff7f02" },
   { email: "slaumb@sandpro.com", name: "Serena Laumb", initials: "SL", title: "Administrative Assistant", department: "Admin", role: "contributor", reports_to: "hallard-kotaska@sandpro.com", color: "#10B981" },
   { email: "ksebastian@sandpro.com", name: "Kara Jo Sebastian", initials: "KS", title: "Controller", department: "Admin", role: "contributor", reports_to: "jfeil@sandpro.com", color: "#F59E0B" },
-  { email: "mjimenez@sandpro.com", name: "Mercileidy Jimenez", initials: "MJ", title: "Executive Assistant", department: "Admin", role: "contributor", reports_to: "jfeil@sandpro.com", color: "#EC4899" },
+  { email: "mjimenez@sandpro.com", name: "Mercileidy Jimenez", initials: "MJ", title: "Executive Assistant", department: "Admin", role: "executive", reports_to: "jfeil@sandpro.com", color: "#EC4899" },
   { email: "jleier@sandpro.com", name: "Jeremy Leier", initials: "JL", title: "Field Technician", department: "Field Operations", role: "contributor", reports_to: "mblackaby@sandpro.com", color: "#84CC16" },
   { email: "mlang@sandpro.com", name: "Michael Lang", initials: "ML", title: "Field Technician", department: "Field Operations", role: "contributor", reports_to: "mblackaby@sandpro.com", color: "#06B6D4" },
   { email: "trauschenberger@sandpro.com", name: "Tyler Rauschenberger", initials: "TR", title: "Automation Technician", department: "Automation", role: "contributor", reports_to: "danderson@sandpro.com", color: "#ff7f02" },
