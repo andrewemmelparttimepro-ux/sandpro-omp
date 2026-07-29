@@ -13409,13 +13409,18 @@ button.alt-command-body:disabled {
 /* ============================================================================
    OKR PAGE — monthly edit grid + printable presentation view
    ========================================================================= */
-.okr-page { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.okr-page { display: flex; flex: 1; flex-direction: column; gap: 14px; min-height: 0; }
 .okr-page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .okr-page-head .page-title { font-size: 22px; font-weight: 800; margin: 0 0 2px; }
 .okr-head-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .okr-mobile-sections { display: none; }
-.okr-grid-card { overflow: hidden; display: flex; flex-direction: column; }
-.okr-grid-scroll { overflow-x: auto; }
+.okr-grid-card { overflow: hidden; display: flex; flex: 1; flex-direction: column; min-height: 0; }
+.okr-grid-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
 .okr-grid {
   --okr-name-width: 300px;
   --okr-status-width: 104px;
@@ -13426,11 +13431,15 @@ button.alt-command-body:disabled {
   font-size: 12px;
 }
 .okr-grid th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   text-align: center; padding: 8px 6px;
   font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
   background: var(--accent-3);
+  box-shadow: 0 1px 0 var(--border);
 }
 .okr-grid th.current { color: var(--brand); }
 .okr-grid .okr-name-col {
