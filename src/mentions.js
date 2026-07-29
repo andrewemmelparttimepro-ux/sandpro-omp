@@ -35,15 +35,29 @@ const mentionTokens = (text = "") => (
     .filter(Boolean)
 );
 
-const queryMatchesUser = (user = {}, normalizedQuery = "") => {
-  if (!normalizedQuery) return true;
-  const searchable = normalizeMentionValue(`${user.name || ""} ${user.email || ""} ${user.title || ""}`);
-  if (searchable.includes(normalizedQuery)) return true;
-
+const mentionMatchRank = (user = {}, normalizedQuery = "") => {
+  if (!normalizedQuery) return 0;
   const aliases = mentionAliases(user);
-  return [aliases.name, aliases.firstName, aliases.emailLocal]
-    .filter(Boolean)
-    .some(alias => alias.startsWith(normalizedQuery) || normalizedQuery.startsWith(alias));
+  const nameWords = aliases.name.split(/\s+/).filter(Boolean);
+  const title = normalizeMentionValue(user.title || "");
+  const titleWords = title.split(/\s+/).filter(Boolean);
+
+  if (aliases.name === normalizedQuery || aliases.emailLocal === normalizedQuery) return 0;
+  if (
+    aliases.name.startsWith(normalizedQuery)
+    || aliases.firstName.startsWith(normalizedQuery)
+    || (aliases.firstName && normalizedQuery.startsWith(aliases.firstName))
+  ) return 1;
+  if (
+    aliases.emailLocal.startsWith(normalizedQuery)
+    || (aliases.emailLocal && normalizedQuery.startsWith(aliases.emailLocal))
+  ) return 2;
+  if (nameWords.some(word => word.startsWith(normalizedQuery))) return 3;
+  if (aliases.name.includes(normalizedQuery)) return 4;
+  if (aliases.emailLocal.includes(normalizedQuery)) return 5;
+  if (titleWords.some(word => word.startsWith(normalizedQuery))) return 6;
+  if (title.includes(normalizedQuery)) return 7;
+  return Number.POSITIVE_INFINITY;
 };
 
 const tokenMatchesAlias = (token, alias) => alias && (token === alias || token.startsWith(`${alias} `));
@@ -76,13 +90,16 @@ export const findMentionCandidates = (users = [], query = "", currentUserId = nu
 
   const people = users
     .filter(user => user?.id && user.id !== currentUserId)
-    .filter(user => queryMatchesUser(user, normalizedQuery))
+    .map(user => ({ user, matchRank: mentionMatchRank(user, normalizedQuery) }))
+    .filter(candidate => Number.isFinite(candidate.matchRank))
     .sort((a, b) => {
-      const aMember = memberSet.has(a.id) ? 0 : 1;
-      const bMember = memberSet.has(b.id) ? 0 : 1;
+      const aMember = memberSet.has(a.user.id) ? 0 : 1;
+      const bMember = memberSet.has(b.user.id) ? 0 : 1;
       if (aMember !== bMember) return aMember - bMember;
-      return (a.name || "").localeCompare(b.name || "");
+      if (a.matchRank !== b.matchRank) return a.matchRank - b.matchRank;
+      return (a.user.name || "").localeCompare(b.user.name || "");
     })
+    .map(candidate => candidate.user)
     .slice(0, showAllCompany ? 5 : 6);
 
   return [

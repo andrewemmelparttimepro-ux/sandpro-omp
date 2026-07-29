@@ -5850,7 +5850,7 @@ button.alt-command-body:disabled {
   z-index: 40;
 }
 
-.tag-mention-menu-portal {
+.mention-menu.tag-mention-menu-portal {
   position: fixed !important;
   right: auto;
   bottom: auto !important;

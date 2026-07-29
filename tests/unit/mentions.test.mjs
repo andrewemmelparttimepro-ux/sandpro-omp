@@ -27,6 +27,22 @@ test('keeps teammate suggestions visible after a small name overtype', () => {
   assert.equal(candidates[0].id, 'tim');
 });
 
+test('ranks name-prefix matches ahead of generic title matches from the first letter', () => {
+  const genericProfiles = ['Abel Lua', 'Able Conley', 'Adam Allan', 'Adrian Blackaby', 'Agent Fixit', 'Aidyn Ross']
+    .map((name, index) => ({
+      id: `generic-${index}`,
+      name,
+      email: `person${index}@sandpro.com`,
+      title: 'Team Member',
+    }));
+  const tim = { id: 'tim', name: 'Tim Dibben', email: 'tdibben@sandpro.com', title: 'Facilities Operations Manager' };
+
+  for (const query of ['t', 'ti', 'tim']) {
+    const candidates = findMentionCandidates([...genericProfiles, tim], query, 'andrew');
+    assert.equal(candidates[0].id, 'tim');
+  }
+});
+
 test('inserts selected mention text and returns selected users for notifications', () => {
   const active = getActiveMention('Please @mer review this', 11);
   const text = insertMentionText('Please @mer review this', active, users[1]);
