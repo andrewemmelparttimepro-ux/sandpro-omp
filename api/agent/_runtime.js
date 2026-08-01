@@ -11,7 +11,11 @@
 // tenants; providers over fetch. A runtime that can break because of a
 // package update is a runtime that will.
 
-const env = (name, fallback = '') => (process.env[name] || fallback).trim();
+// Values pasted into dashboards sometimes arrive with a LITERAL \n on the
+// end (two characters, not a newline). Strip both forms — a URL with a
+// stray escape breaks every request downstream with an unhelpful error.
+const env = (name, fallback = '') =>
+  (process.env[name] || fallback).replace(/\\[nr]/g, '').trim();
 
 export const SUPABASE_URL = env('SUPABASE_URL') || env('VITE_SUPABASE_URL');
 export const SUPABASE_ANON = env('SUPABASE_ANON_KEY') || env('VITE_SUPABASE_ANON_KEY');
