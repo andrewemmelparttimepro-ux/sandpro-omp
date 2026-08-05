@@ -82,10 +82,18 @@ export const buildPushPayload = ({ type, objective, message, url, notificationId
       renotify: urgent,
       requireInteraction: urgent,
       silent: false,
-      badge: '/pwa/icon-192.png',
-      icon: '/pwa/icon-192.png',
+      badge: '/pwa/sandpro-omp-icon-192-v2.png',
+      icon: '/pwa/sandpro-omp-icon-192-v2.png',
     },
   };
+};
+
+// Android can defer normal-priority messages while the phone is idle. These
+// windows keep a valid push alive long enough to survive a Doze cycle.
+export const pushDeliveryOptions = (type, urgent) => {
+  if (urgent) return { TTL: 60 * 60 * 6, urgency: 'high' };
+  if (type === 'daily_digest') return { TTL: 60 * 60 * 10, urgency: 'normal' };
+  return { TTL: 60 * 60 * 4, urgency: 'normal' };
 };
 
 const insertLog = async (supabase, row) => {
@@ -176,9 +184,7 @@ export const sendPushNotifications = async ({
           p256dh: subscription.p256dh,
           auth: subscription.auth,
         },
-      }, JSON.stringify(payload), {
-        TTL: payload.urgent ? 60 * 60 * 6 : 60 * 20,
-      });
+      }, JSON.stringify(payload), pushDeliveryOptions(type, payload.urgent));
       await updateLog(supabase, logId, { status: 'sent', sent_at: new Date().toISOString() });
       results.push({ subscriptionId: subscription.id, sent: true, statusCode: response?.statusCode || 201 });
     } catch (error) {

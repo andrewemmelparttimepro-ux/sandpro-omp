@@ -307,6 +307,64 @@ const sortNotifications = (items = []) => [...items].sort((left, right) => {
   return new Date(right.ts || 0) - new Date(left.ts || 0);
 });
 
+const PUSH_DEVICE_MARKER = 'sandpro-omp-push-device';
+
+const readPushDeviceMarker = () => {
+  try { return window.localStorage.getItem(PUSH_DEVICE_MARKER); } catch { return null; }
+};
+
+const writePushDeviceMarker = (value) => {
+  try { window.localStorage.setItem(PUSH_DEVICE_MARKER, value); } catch { /* private mode */ }
+};
+
+const persistPushSubscription = async (subscription) => authFetch('/api/push/subscribe', {
+  method: 'POST',
+  body: JSON.stringify({
+    subscription: subscription.toJSON(),
+    deviceLabel: isStandalonePwa() ? 'Installed PWA' : 'Browser',
+    userAgent: navigator.userAgent || '',
+    platform: navigator.platform || '',
+    isPwa: isStandalonePwa(),
+  }),
+});
+
+const pushShouldBeEnabled = async (userId) => {
+  const marker = readPushDeviceMarker();
+  if (marker === 'off') return false;
+  if (marker === 'on') return true;
+  if (!userId) return false;
+  const { data, error } = await supabase
+    .from('notification_preferences')
+    .select('push_enabled')
+    .eq('user_id', userId)
+    .maybeSingle();
+  return !error && data?.push_enabled === true;
+};
+
+// Push services can expire an endpoint without changing browser permission.
+// Re-sync an existing endpoint, and recreate a missing Installed PWA endpoint,
+// only when the user's persisted preference says push is enabled. That heals
+// expired devices without silently opting a previously disabled user back in.
+const healPushSubscription = async (registration, subscription, userId) => {
+  const shouldEnable = await pushShouldBeEnabled(userId);
+  if (!shouldEnable) return subscription;
+  if (subscription) {
+    await persistPushSubscription(subscription).catch(() => {});
+    return subscription;
+  }
+  if (!isStandalonePwa() && readPushDeviceMarker() !== 'on') return null;
+  const keyResponse = await fetch('/api/push/public-key');
+  const keyPayload = await keyResponse.json().catch(() => ({}));
+  if (!keyResponse.ok || !keyPayload.publicKey) return null;
+  const fresh = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: base64UrlToUint8Array(keyPayload.publicKey),
+  });
+  const saved = await persistPushSubscription(fresh);
+  if (!saved.ok) return null;
+  return fresh;
+};
+
 export function usePushNotifications(userId) {
   const [state, setState] = useState({
     supported: false,
@@ -336,7 +394,15 @@ export function usePushNotifications(userId) {
     }
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      let subscription = await registration.pushManager.getSubscription();
+      if (permission === 'granted') {
+        try {
+          subscription = await healPushSubscription(registration, subscription, userId);
+        } catch {
+          // Healing is best-effort; state below reflects what the device has.
+          subscription = await registration.pushManager.getSubscription();
+        }
+      }
       setState(prev => ({
         ...prev,
         supported: true,
@@ -357,7 +423,7 @@ export function usePushNotifications(userId) {
         message: error.message || 'Service worker is not ready yet.',
       }));
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) {
@@ -398,21 +464,13 @@ export function usePushNotifications(userId) {
       userVisibleOnly: true,
       applicationServerKey: base64UrlToUint8Array(keyPayload.publicKey),
     });
-    const response = await authFetch('/api/push/subscribe', {
-      method: 'POST',
-      body: JSON.stringify({
-        subscription: subscription.toJSON(),
-        deviceLabel: isStandalonePwa() ? 'Installed PWA' : 'Browser',
-        userAgent: navigator.userAgent || '',
-        platform: navigator.platform || '',
-        isPwa: isStandalonePwa(),
-      }),
-    });
+    const response = await persistPushSubscription(subscription);
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       setState(prev => ({ ...prev, loading: false, message: payload.error || 'Could not save push subscription.' }));
       return { ok: false, reason: payload.error || 'subscribe_failed' };
     }
+    writePushDeviceMarker('on');
     setState(prev => ({
       ...prev,
       supported: true,
@@ -427,6 +485,7 @@ export function usePushNotifications(userId) {
 
   const disable = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, message: 'Disabling push on this device...' }));
+    writePushDeviceMarker('off');
     let endpoint = '';
     try {
       const registration = await navigator.serviceWorker.ready;

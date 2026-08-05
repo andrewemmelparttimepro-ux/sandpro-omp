@@ -9,14 +9,17 @@ export default async function handler(req, res) {
     const { endpoint = '' } = req.body || {};
     const supabase = getSupabaseAdmin();
     const now = new Date().toISOString();
-    let query = supabase
-      .from('push_subscriptions')
-      .update({ active: false, revoked_at: now, updated_at: now })
-      .eq('user_id', auth.profile.id)
-      .eq('active', true);
-    if (endpoint) query = query.eq('endpoint', endpoint);
-    const { error } = await query;
-    if (error) throw error;
+    // Deactivate only the identified device. The preference flip below stops
+    // all sends without silently revoking subscriptions on a second device.
+    if (endpoint) {
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .update({ active: false, revoked_at: now, updated_at: now })
+        .eq('user_id', auth.profile.id)
+        .eq('endpoint', endpoint)
+        .eq('active', true);
+      if (error) throw error;
+    }
 
     await supabase
       .from('notification_preferences')
