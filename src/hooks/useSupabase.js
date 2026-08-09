@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress } from '../okrFramework';
 import { getRecurrenceInterval, getNextRecurringDueDate } from '../data';
+import { ensureFlagsLoaded, getFlag } from '../lib/flags';
 import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
 import { parseKpiCsv } from '../kpiSystem';
 import { buildNcrImportDbPayload } from '../ncrImport';
@@ -134,6 +135,38 @@ const makeCoalescedRefetch = (fn, delayMs = 2000) => {
 // 412 rows. The full record (raw payload included) hydrates per report on
 // open via hydrateReport.
 const NCR_LIST_COLUMNS = 'id,report_number,source_sheet,source_link,report_date,observer,follow_up_count,follow_up_details,follow_up_due_date,worksite_area,operator_location,event_at,internal_external,event_type,non_productive_time,non_productive_time_amount,author,personnel_involved,event_description,severity,root_cause_codes,root_cause_analysis,immediate_action,permanent_action,affected_departments,department_group,long_term_follow_up,action_effective,status,closed,linked_objective_id,created_by,updated_by,created_at,updated_at,lifecycle_stage,owner_id,reviewer_id,verifier_id,closure_approved_by,closure_approved_at,containment_required,containment_summary,affected_product,affected_equipment,affected_job,disposition,disposition_notes,effectiveness_summary,effectiveness_checked_at,effectiveness_checked_by,recurrence_prevented,repeat_issue,customer_approval_required,customer_approval_status,event_types,estimated_cost,criticality,author_id,personnel_involved_ids,time_frame_for_action,affected_department_list,date_initial_corrective_action,date_permanent_corrective_action_completed,date_of_review,date_of_sign_off,signed_off_by_management_id,reviewed_by_id,final_management_signoff_id,source_system,source_record_id,source_batch_id,canonical_failure_code,normalized_failure_summary,ai_confidence,ai_classification_reason,main_department';
+
+const mapWorkflowStepRow = (step) => ({
+  id: step.id,
+  objectiveId: step.objective_id,
+  title: step.title,
+  description: step.description || '',
+  stepOrder: step.step_order,
+  status: step.status,
+  ownerId: step.owner_id,
+  dueDate: step.due_date,
+  completedAt: step.completed_at,
+  completedBy: step.completed_by,
+  createdAt: step.created_at,
+  updatedAt: step.updated_at,
+});
+
+const mapAgentRunRow = (r) => ({
+  id: r.id,
+  objectiveId: r.objective_id,
+  requestedBy: r.requested_by,
+  agentKey: r.agent_key,
+  runType: r.run_type,
+  status: r.status,
+  inputSnapshot: r.input_snapshot,
+  outputSummary: r.output_summary,
+  outputJson: r.output_json,
+  sourceLinks: r.source_links || [],
+  fileId: r.file_id,
+  error: r.error,
+  createdAt: r.created_at,
+  completedAt: r.completed_at,
+});
 
 const mapNcrAuditEvent = (event) => ({
   id: event.id,
@@ -1559,7 +1592,7 @@ export function useObjectives(enabled = true) {
   const [okrProjects, setOkrProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchObjectives = useCallback(async () => {
+  const fetchObjectivesInner = useCallback(async () => {
     if (!enabled) {
       setObjectives([]);
       setOkrProjects([]);
@@ -1584,15 +1617,21 @@ export function useObjectives(enabled = true) {
       setLoading(false);
       return;
     }
-    const [messagesRes, subtasksRes, updatesRes, filesRes, members, metricCheckins, agentRuns, workflowSteps, messageReads, projectRows, projectMembers, projectLinks, projectArtifacts, projectSignatures, projectAttachments, projectAuditEvents] = await Promise.all([
+    // Rebuild Phase 2 (lean_boot flag): heavy per-card tables (workflow steps,
+    // agent runs) stay out of boot; derived progress comes from
+    // objective_progress_view (parity-gated vs client math) and cards hydrate
+    // their detail on open.
+    await ensureFlagsLoaded();
+    const leanBoot = getFlag('lean_boot');
+    const [messagesRes, subtasksRes, updatesRes, filesRes, members, metricCheckins, agentRuns, workflowSteps, messageReads, projectRows, projectMembers, projectLinks, projectArtifacts, projectSignatures, projectAttachments, projectAuditEvents, progressRows] = await Promise.all([
       timedQuery(supabase.from('messages').select('*').in('objective_id', ids).order('created_at'), 'messages fetch'),
       timedQuery(supabase.from('subtasks').select('*').in('objective_id', ids), 'subtasks fetch'),
       timedQuery(supabase.from('objective_updates').select('*').in('objective_id', ids).order('created_at'), 'objective updates fetch'),
       timedQuery(supabase.from('files').select('*').in('objective_id', ids).order('created_at'), 'objective files fetch'),
       nullableSelect(supabase.from('objective_members').select('*').in('objective_id', ids), [], 'objective members fetch'),
       nullableSelect(supabase.from('objective_metric_checkins').select('*').in('objective_id', ids).order('checkin_date').order('created_at'), [], 'objective metric checkins fetch'),
-      nullableSelect(supabase.from('objective_agent_runs').select('*').in('objective_id', ids).order('created_at'), [], 'objective agent runs fetch'),
-      nullableSelect(supabase.from('objective_workflow_steps').select('*').in('objective_id', ids).order('step_order'), [], 'objective workflow steps fetch'),
+      leanBoot ? Promise.resolve([]) : nullableSelect(supabase.from('objective_agent_runs').select('*').in('objective_id', ids).order('created_at'), [], 'objective agent runs fetch'),
+      leanBoot ? Promise.resolve([]) : nullableSelect(supabase.from('objective_workflow_steps').select('*').in('objective_id', ids).order('step_order'), [], 'objective workflow steps fetch'),
       currentUserId
         ? nullableSelect(supabase.from('objective_message_reads').select('*').eq('user_id', currentUserId).in('objective_id', ids), [], 'objective message reads fetch')
         : Promise.resolve([]),
@@ -1603,6 +1642,9 @@ export function useObjectives(enabled = true) {
       nullableSelect(supabase.from('okr_project_signatures').select('*').order('created_at'), [], 'OKR signatures fetch'),
       nullableSelect(supabase.from('okr_project_attachments').select('*').order('created_at'), [], 'OKR attachments fetch'),
       nullableSelect(supabase.from('okr_project_audit_events').select('*').order('created_at', { ascending: false }), [], 'OKR audit events fetch'),
+      leanBoot
+        ? nullableSelect(supabase.from('objective_progress_view').select('id,derived_progress,progress_source'), [], 'objective progress view fetch')
+        : Promise.resolve([]),
     ]);
 
     const messageIds = (messagesRes.data || []).map(message => message.id).filter(Boolean);
@@ -1928,7 +1970,19 @@ export function useObjectives(enabled = true) {
     // type, computed on read so every ProgressBar consumer of obj.progress gets
     // a value made from real work. getObjectiveProgress also reports its source
     // (metric | rollup | workflow | manual | none) for "label what's real" UI.
+    const progressById = new Map((progressRows || []).map(row => [row.id, row]));
     const withRollups = classifiedRich.map((objective) => {
+      if (leanBoot && progressById.has(objective.id)) {
+        const pv = progressById.get(objective.id);
+        const value = Number(pv.derived_progress) || 0;
+        const source = pv.progress_source;
+        return {
+          ...objective,
+          progress: value,
+          progressSource: source,
+          rollupProgress: source === 'rollup' ? value : objective.rollupProgress,
+        };
+      }
       const childObjectives = byParent[objective.id] || [];
       const { value, source } = getObjectiveProgress(objective, childObjectives);
       return {
@@ -1944,6 +1998,41 @@ export function useObjectives(enabled = true) {
     setLoading(false);
     return withRollups;
   }, [enabled]);
+
+  // Single-flight: concurrent triggers (boot + realtime bursts) share one
+  // request instead of issuing 3-5 duplicate full pulls.
+  const inFlightFetchRef = useRef(null);
+  const fetchObjectives = useCallback(async () => {
+    if (inFlightFetchRef.current) return inFlightFetchRef.current;
+    const run = fetchObjectivesInner();
+    inFlightFetchRef.current = run;
+    try {
+      return await run;
+    } finally {
+      inFlightFetchRef.current = null;
+    }
+  }, [fetchObjectivesInner]);
+
+  // Lean boot defers workflow steps + agent runs; opening a card hydrates
+  // them for that one objective and returns the merged record.
+  const hydrateObjective = useCallback(async (id) => {
+    if (!id) return null;
+    const [stepRows, runRows] = await Promise.all([
+      nullableSelect(supabase.from('objective_workflow_steps').select('*').eq('objective_id', id).order('step_order'), [], 'objective steps hydrate'),
+      nullableSelect(supabase.from('objective_agent_runs').select('*').eq('objective_id', id).order('created_at'), [], 'objective agent runs hydrate'),
+    ]);
+    let merged = null;
+    setObjectives(prev => prev.map(o => {
+      if (o.id !== id) return o;
+      merged = {
+        ...o,
+        workflowSteps: (stepRows || []).map(mapWorkflowStepRow),
+        agentRuns: (runRows || []).map(mapAgentRunRow),
+      };
+      return merged;
+    }));
+    return merged;
+  }, []);
 
   useEffect(() => { fetchObjectives(); }, [fetchObjectives]);
 
@@ -2720,7 +2809,7 @@ export function useObjectives(enabled = true) {
     await fetchObjectives();
   };
 
-  return { objectives, okrProjects, loading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, refetch: fetchObjectives };
+  return { objectives, okrProjects, loading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, hydrateObjective, refetch: fetchObjectives };
 }
 
 const mapNcrReport = (row) => ({
@@ -2988,7 +3077,8 @@ export function useNcrReports(enabled = false) {
   const [loading, setLoading] = useState(Boolean(enabled));
   const loadedRef = useRef(false);
 
-  const fetchReports = useCallback(async () => {
+  const inFlightReportsRef = useRef(null);
+  const fetchReportsInner = useCallback(async () => {
     if (!enabled) {
       setReports([]);
       setLoading(false);
@@ -3100,6 +3190,17 @@ export function useNcrReports(enabled = false) {
     setLoading(false);
     return mapped;
   }, [enabled]);
+
+  const fetchReports = useCallback(async () => {
+    if (inFlightReportsRef.current) return inFlightReportsRef.current;
+    const run = fetchReportsInner();
+    inFlightReportsRef.current = run;
+    try {
+      return await run;
+    } finally {
+      inFlightReportsRef.current = null;
+    }
+  }, [fetchReportsInner]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 

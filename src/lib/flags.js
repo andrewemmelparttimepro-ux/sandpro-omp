@@ -19,6 +19,15 @@ export const refreshFlags = async () => {
   }
 };
 
+// Non-hook access for data-layer code paths.
+let loadPromise = null;
+export const ensureFlagsLoaded = () => {
+  if (state.loaded) return Promise.resolve();
+  if (!loadPromise) loadPromise = refreshFlags().finally(() => { loadPromise = null; });
+  return loadPromise;
+};
+export const getFlag = (key) => Boolean(state.flags[key]);
+
 export const useAppFlag = (key) => {
   const [, force] = useReducer((c) => c + 1, 0);
   useEffect(() => {

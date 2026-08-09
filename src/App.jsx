@@ -286,7 +286,7 @@ function App() {
     || readRouteFromLocation().page === 'fixit'
   ));
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
-  const { objectives: rawObjectives, okrProjects, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, refetch: refetchObjectives } = useObjectives(Boolean(user));
+  const { objectives: rawObjectives, okrProjects, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, hydrateObjective, refetch: refetchObjectives } = useObjectives(Boolean(user));
   const {
     assignmentGroups,
     createAssignmentGroup,
@@ -848,6 +848,14 @@ function App() {
   const handleOpenCard = (obj, tab = "messages") => {
     setOpenCard(obj);
     updateRoute(prev => ({ ...prev, objectiveId: obj.id, objectiveTab: tab }));
+    // Lean boot defers per-card detail (workflow steps, agent runs) — pull it
+    // for this card now and refresh the open snapshot when it lands.
+    hydrateObjective?.(obj.id).then((fresh) => {
+      if (!fresh) return;
+      setOpenCard(prev => (prev && prev.id === obj.id
+        ? { ...prev, workflowSteps: fresh.workflowSteps, agentRuns: fresh.agentRuns }
+        : prev));
+    }).catch(() => {});
   };
   const handleCloseCard = () => {
     setOpenCard(null);
