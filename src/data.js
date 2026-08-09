@@ -163,6 +163,56 @@ export const getObjectiveAssignmentLabel = (objective = {}) => (
   || getUser(objective.ownerId).name
 );
 
+// Recurrence lives as a "[Recurring — every X]" note in the description (the
+// Create New wizard writes it; there is no schema field). Completing a
+// recurring task rolls it to the next occurrence instead of staying done, so
+// OVERDUE only ever means a cycle was actually missed.
+export const getRecurrenceInterval = (description) => {
+  const match = String(description || '').match(/\[recurring\s*[—–-]\s*every\s+(week|month|quarter|semi annual|annual)\]/i);
+  return match ? match[1].toLowerCase() : null;
+};
+
+// Visual language for routines: a standing recurring task wears a calm
+// cadence chip; one that actually missed its cycle reads "MISSED WEEK" rather
+// than the generic OVERDUE a dropped one-off gets.
+const RECURRENCE_LABELS = { week: 'Weekly', month: 'Monthly', quarter: 'Quarterly', 'semi annual': 'Semi-annual', annual: 'Annual' };
+const MISSED_CYCLE_LABELS = { week: 'MISSED WEEK', month: 'MISSED MONTH', quarter: 'MISSED QUARTER', 'semi annual': 'MISSED CYCLE', annual: 'MISSED CYCLE' };
+export const getRecurrenceLabel = (description) => RECURRENCE_LABELS[getRecurrenceInterval(description)] || null;
+export const getMissedCycleLabel = (description) => MISSED_CYCLE_LABELS[getRecurrenceInterval(description)] || null;
+
+export const getNextRecurringDueDate = (dueDate, interval, todayIso = null) => {
+  if (!interval) return null;
+  const pad = (n) => String(n).padStart(2, '0');
+  // Tolerate every date shape this value arrives in: 'YYYY-MM-DD' from the
+  // app, 'YYYY-MM-DD HH:MM:SS+00' timestamptz straight from Postgres.
+  const dayPart = String(dueDate || '').match(/^(\d{4}-\d{2}-\d{2})/)?.[1] || null;
+  const today = todayIso
+    ? new Date(`${todayIso}T00:00:00`)
+    : new Date(new Date().setHours(0, 0, 0, 0));
+  // Roll forward from the current due date (keeps the weekday/day-of-month
+  // anchor) until the next occurrence is strictly in the future.
+  const next = dayPart ? new Date(`${dayPart}T00:00:00`) : new Date(today);
+  if (Number.isNaN(next.getTime())) return null;
+  const step = () => {
+    if (interval === 'week') next.setDate(next.getDate() + 7);
+    else if (interval === 'month') next.setMonth(next.getMonth() + 1);
+    else if (interval === 'quarter') next.setMonth(next.getMonth() + 3);
+    else if (interval === 'semi annual') next.setMonth(next.getMonth() + 6);
+    else next.setFullYear(next.getFullYear() + 1);
+  };
+  do { step(); } while (next <= today);
+  return `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`;
+};
+
+// The Fix-It Feed wall is restricted to its two human moderators (Andrew's
+// call, Aug 5 2026): every change request routes through Merci, so nobody
+// else sees the feed in their profile at all. Mirrored by RLS on the
+// fix_it_* tables — this helper only controls UI surfaces.
+export const FIX_IT_FEED_MODERATOR_EMAILS = ["andrew@ndai.pro", "mjimenez@sandpro.com"];
+export const canAccessFixItFeed = (user) => (
+  FIX_IT_FEED_MODERATOR_EMAILS.includes((user?.email || "").toLowerCase())
+);
+
 export const canManageOkrs = (user) => {
   const email = (user?.email || "").toLowerCase();
   return user?.role === "executive" || [

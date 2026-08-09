@@ -20,7 +20,7 @@ test.describe('PWA installability and cache safety', () => {
     const sw = await response.text();
     expect(sw).toContain('CACHE_NAME');
     expect(sw).not.toContain("CACHE_NAME = 'sandpro-omp-shell-v1'");
-    expect(sw).toContain("CACHE_NAME = 'sandpro-omp-shell-v10'");
+    expect(sw).toContain("CACHE_NAME = 'sandpro-omp-shell-v11'");
     expect(sw).toContain('fetch(request)');
     expect(sw).toContain('OFFLINE_HTML');
     expect(sw).toContain('supabase.co');

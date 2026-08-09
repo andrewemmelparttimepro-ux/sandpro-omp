@@ -25,6 +25,7 @@
     "deploy:prod": "vercel pull --yes --environment=production && node scripts/require-release-env.mjs prod && npm run release:preflight && vercel deploy --prod --yes && npm run smoke:prod",
     "evidence:capture": "node scripts/require-release-env.mjs prod && SANDPRO_SMOKE_BASE_URL=https://objectivetracker.net playwright test tests/evidence-capture.spec.js",
     "smoke:prod": "node scripts/require-release-env.mjs prod && SANDPRO_SMOKE_BASE_URL=https://objectivetracker.net playwright test tests/prod-smoke.spec.js",
+    "chaos:lock": "node scripts/qa/lock-steal-resilience.mjs",
     "smoke:push:prod": "node scripts/run-push-production-smoke.mjs",
     "smoke:push:android": "node scripts/verify-live-android-push.mjs",
     "smoke:org-placeholder": "node scripts/verify-org-placeholder-workflow.mjs",

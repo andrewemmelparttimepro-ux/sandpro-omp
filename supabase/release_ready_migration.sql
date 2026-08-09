@@ -2471,7 +2471,9 @@ VALUES
   ('CP Shop Leads', 'cp-shop-leads', 'Customer Property Warehouse shop leadership.'),
   ('Flowback Shop Leads', 'flowback-shop-leads', 'Flowback shop leadership and rotating coverage.'),
   ('Wellhead Shop Leads', 'wellhead-shop-leads', 'Wellhead shop leadership and rotating coverage.'),
-  ('Leadership / Business Team', 'leadership-business-team', 'Leadership and business-team roll-up.')
+  ('Leadership / Business Team', 'leadership-business-team', 'Leadership and business-team roll-up.'),
+  ('ALL Personnel', 'all-personnel', 'Company-wide SandPro assignment group containing every SandPro employee account.'),
+  ('Office Personnel', 'office-personnel', 'SandPro office and administration personnel.')
 ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
@@ -2825,3 +2827,150 @@ JOIN public.assignment_groups assignment_group
 JOIN public.profiles profile
   ON LOWER(profile.name) = LOWER(approved.member_name)
 ON CONFLICT (group_id, user_id) DO NOTHING;
+
+DELETE FROM public.assignment_group_members member
+USING public.assignment_groups assignment_group
+WHERE member.group_id = assignment_group.id
+  AND assignment_group.slug IN ('all-personnel', 'office-personnel');
+
+INSERT INTO public.assignment_group_members (group_id, user_id, created_by)
+SELECT assignment_group.id, profile.id, NULL
+FROM public.assignment_groups assignment_group
+CROSS JOIN public.profiles profile
+WHERE assignment_group.slug = 'all-personnel'
+  AND LOWER(COALESCE(profile.email, '')) LIKE '%@sandpro.com'
+ON CONFLICT (group_id, user_id) DO NOTHING;
+
+INSERT INTO public.assignment_group_members (group_id, user_id, created_by)
+SELECT assignment_group.id, profile.id, NULL
+FROM public.assignment_groups assignment_group
+CROSS JOIN public.profiles profile
+WHERE assignment_group.slug = 'office-personnel'
+  AND LOWER(COALESCE(profile.email, '')) LIKE '%@sandpro.com'
+  AND LOWER(COALESCE(profile.department, '')) = 'admin'
+ON CONFLICT (group_id, user_id) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- Client error telemetry (2026-08-05): every red toast / unhandled client
+-- error phones home so problems surface before screenshots do. Write-only
+-- from the app (insert for anon + authenticated, no select policy) — read
+-- via service role or SQL only.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.client_errors (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  user_id uuid REFERENCES auth.users (id) ON DELETE SET NULL,
+  source text NOT NULL,
+  message text NOT NULL,
+  stack text,
+  page text,
+  user_agent text,
+  context text,
+  app_version text,
+  CONSTRAINT client_errors_source_len CHECK (char_length(source) <= 60),
+  CONSTRAINT client_errors_message_len CHECK (char_length(message) <= 2000),
+  CONSTRAINT client_errors_stack_len CHECK (char_length(stack) <= 8000),
+  CONSTRAINT client_errors_context_len CHECK (char_length(context) <= 4000)
+);
+
+CREATE INDEX IF NOT EXISTS client_errors_created_at_idx
+  ON public.client_errors (created_at DESC);
+
+ALTER TABLE public.client_errors ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can file a client error report" ON public.client_errors;
+CREATE POLICY "Anyone can file a client error report"
+  ON public.client_errors FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (user_id IS NULL OR auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------------
+-- Fix-It Feed lockdown (2026-08-05, Andrew's order): the wall is visible to
+-- its two human moderators only — Andrew (ea6781e6…) and Merci (801402ec…).
+-- All change requests route through Merci. Service role bypasses RLS.
+-- UI counterpart: canAccessFixItFeed in src/data.js.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.is_fix_it_moderator()
+RETURNS boolean
+LANGUAGE sql STABLE
+SET search_path = public
+AS $$
+  SELECT auth.uid() IN (
+    'ea6781e6-d332-401b-a3d0-6d90ebc4dc79'::uuid,
+    '801402ec-7815-44f3-8948-9daae10b4407'::uuid
+  )
+$$;
+
+DROP POLICY IF EXISTS "Fix-It posts viewable by all authenticated" ON public.fix_it_posts;
+CREATE POLICY "Fix-It posts visible to moderators"
+  ON public.fix_it_posts FOR SELECT TO authenticated
+  USING (public.is_fix_it_moderator());
+DROP POLICY IF EXISTS "Authenticated users can create Fix-It posts" ON public.fix_it_posts;
+CREATE POLICY "Moderators create Fix-It posts"
+  ON public.fix_it_posts FOR INSERT TO authenticated
+  WITH CHECK (public.is_fix_it_moderator() AND auth.uid() = created_by);
+DROP POLICY IF EXISTS "Authenticated users can update Fix-It posts" ON public.fix_it_posts;
+CREATE POLICY "Moderators update Fix-It posts"
+  ON public.fix_it_posts FOR UPDATE TO authenticated
+  USING (public.is_fix_it_moderator());
+DROP POLICY IF EXISTS "Fix-It owners and moderators can delete posts" ON public.fix_it_posts;
+CREATE POLICY "Moderators delete Fix-It posts"
+  ON public.fix_it_posts FOR DELETE TO authenticated
+  USING (public.is_fix_it_moderator());
+
+DROP POLICY IF EXISTS "Fix-It comments viewable by all authenticated" ON public.fix_it_comments;
+CREATE POLICY "Fix-It comments visible to moderators"
+  ON public.fix_it_comments FOR SELECT TO authenticated
+  USING (public.is_fix_it_moderator());
+DROP POLICY IF EXISTS "Authenticated users can create Fix-It comments" ON public.fix_it_comments;
+CREATE POLICY "Moderators create Fix-It comments"
+  ON public.fix_it_comments FOR INSERT TO authenticated
+  WITH CHECK (public.is_fix_it_moderator() AND auth.uid() = created_by);
+DROP POLICY IF EXISTS "Fix-It comment authors and moderators can update comments" ON public.fix_it_comments;
+CREATE POLICY "Moderators update Fix-It comments"
+  ON public.fix_it_comments FOR UPDATE TO authenticated
+  USING (public.is_fix_it_moderator());
+DROP POLICY IF EXISTS "Fix-It comment authors and moderators can delete comments" ON public.fix_it_comments;
+CREATE POLICY "Moderators delete Fix-It comments"
+  ON public.fix_it_comments FOR DELETE TO authenticated
+  USING (public.is_fix_it_moderator());
+
+DROP POLICY IF EXISTS "Fix-It attachments viewable by all authenticated" ON public.fix_it_attachments;
+CREATE POLICY "Fix-It attachments visible to moderators"
+  ON public.fix_it_attachments FOR SELECT TO authenticated
+  USING (public.is_fix_it_moderator());
+DROP POLICY IF EXISTS "Authenticated users can create Fix-It attachments" ON public.fix_it_attachments;
+CREATE POLICY "Moderators create Fix-It attachments"
+  ON public.fix_it_attachments FOR INSERT TO authenticated
+  WITH CHECK (public.is_fix_it_moderator() AND auth.uid() = uploaded_by);
+
+DROP POLICY IF EXISTS "Authenticated users can read Fix-It file objects" ON storage.objects;
+CREATE POLICY "Moderators read Fix-It file objects"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (bucket_id = 'fix-it-files' AND public.is_fix_it_moderator());
+DROP POLICY IF EXISTS "Authenticated users can upload Fix-It file objects" ON storage.objects;
+CREATE POLICY "Moderators upload Fix-It file objects"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'fix-it-files' AND owner = auth.uid() AND public.is_fix_it_moderator());
+DROP POLICY IF EXISTS "Fix-It upload owners and moderators can delete file objects" ON storage.objects;
+CREATE POLICY "Moderators delete Fix-It file objects"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'fix-it-files' AND public.is_fix_it_moderator());
+
+-- ---------------------------------------------------------------------------
+-- Rebuild Phase 1 tranche 1 (2026-08-08): app_flags + server-side counts.
+-- Mirrors migration phase1_server_counts (applied via MCP). See that
+-- migration for full commentary; objects are additive and flag-gated.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.app_flags (
+  key text PRIMARY KEY,
+  enabled boolean NOT NULL DEFAULT false,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.app_flags ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Flags readable by authenticated" ON public.app_flags;
+CREATE POLICY "Flags readable by authenticated"
+  ON public.app_flags FOR SELECT TO authenticated USING (true);
+INSERT INTO public.app_flags (key, enabled) VALUES ('server_counts', false)
+ON CONFLICT (key) DO NOTHING;
+-- rpc_kpi_strip / rpc_ncr_counts: see migration phase1_server_counts.

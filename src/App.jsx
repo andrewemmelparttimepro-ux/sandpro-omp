@@ -6,10 +6,12 @@ import {
 } from 'lucide-react';
 import { FieldKeyProvider } from './glossary';
 import { OMP_GLOSSARY, useFieldKey } from './glossaryData';
-import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, canManageOkrs, formatDate } from './data';
+import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, canManageOkrs, canAccessFixItFeed, formatDate } from './data';
 import { useAuth, useProfiles, useObjectives, useAssignmentGroups, useNotifications, usePushNotifications, useFixItFeed, useNcrReports, useAlternativeDashboard, useKpis } from './hooks/useSupabase';
 import { Avatar } from './uiPrimitives';
 import { supabase } from './lib/supabase';
+import { humanizeErrorMessage } from './lib/errors';
+import { reportClientError, setTelemetryUser } from './lib/telemetry';
 import { getMentionedUsers } from './mentions';
 import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
 import { formatKpiTarget, formatKpiValue } from './kpiSystem';
@@ -23,24 +25,39 @@ import './index.css';
 
 const PAGE_IDS = ["dashboard", "objectives", "okr", "kpi", "fixit", "ncr", "organization"];
 
-const DashboardPage = lazy(() => import('./routes/DashboardPage'));
-const GlobalKpiStrip = lazy(() => import('./routes/GlobalKpiStrip'));
-const OkrPage = lazy(() => import('./routes/OkrPage'));
-const ObjectivesPage = lazy(() => import('./routes/ObjectivesPage'));
-const KpiPage = lazy(() => import('./routes/KpiPage'));
-const FixItFeedPage = lazy(() => import('./routes/FixItFeedPage'));
-const NcrPage = lazy(() => import('./routes/NcrPage'));
-const OrgPage = lazy(() => import('./routes/OrgPage'));
-const AdminSidebar = lazy(() => import('./routes/AdminSidebar'));
-const CreateWizardModal = lazy(() => import('./routes/CreateWizardModal'));
-const LoginScreen = lazy(() => import('./app-shell/LoginScreen'));
-const NotificationPanel = lazy(() => import('./app-shell/NotificationPanel'));
-const AccountSettingsModal = lazy(() => import('./app-shell/AccountSettingsModal'));
-const SuperCard = lazy(() => import('./objectiveDetail').then((module) => ({ default: module.SuperCard })));
-const ObjectiveFormModal = lazy(() => import('./components').then((module) => ({ default: module.ObjectiveFormModal })));
-const ToastContainer = lazy(() => import('./components').then((module) => ({ default: module.ToastContainer })));
-const DailyBrief = lazy(() => import('./components').then((module) => ({ default: module.DailyBrief })));
-const BriefErrorBoundary = lazy(() => import('./components').then((module) => ({ default: module.BriefErrorBoundary })));
+// A deploy replaces hashed lazy chunks; a session opened before it will 404
+// on the next lazy navigation (caught live by telemetry 8/5: "Failed to fetch
+// dynamically imported module"). Self-heal: reload once to pick up the fresh
+// bundle instead of leaving dead tabs/buttons.
+const lazyWithReload = (factory) => lazy(() => factory().catch((error) => {
+  const key = 'omp-chunk-reload-at';
+  const last = Number(sessionStorage.getItem(key) || 0);
+  if (Date.now() - last > 30_000) {
+    sessionStorage.setItem(key, String(Date.now()));
+    window.location.reload();
+    return new Promise(() => {});
+  }
+  throw error;
+}));
+
+const DashboardPage = lazyWithReload(() => import('./routes/DashboardPage'));
+const GlobalKpiStrip = lazyWithReload(() => import('./routes/GlobalKpiStrip'));
+const OkrPage = lazyWithReload(() => import('./routes/OkrPage'));
+const ObjectivesPage = lazyWithReload(() => import('./routes/ObjectivesPage'));
+const KpiPage = lazyWithReload(() => import('./routes/KpiPage'));
+const FixItFeedPage = lazyWithReload(() => import('./routes/FixItFeedPage'));
+const NcrPage = lazyWithReload(() => import('./routes/NcrPage'));
+const OrgPage = lazyWithReload(() => import('./routes/OrgPage'));
+const AdminSidebar = lazyWithReload(() => import('./routes/AdminSidebar'));
+const CreateWizardModal = lazyWithReload(() => import('./routes/CreateWizardModal'));
+const LoginScreen = lazyWithReload(() => import('./app-shell/LoginScreen'));
+const NotificationPanel = lazyWithReload(() => import('./app-shell/NotificationPanel'));
+const AccountSettingsModal = lazyWithReload(() => import('./app-shell/AccountSettingsModal'));
+const SuperCard = lazyWithReload(() => import('./objectiveDetail').then((module) => ({ default: module.SuperCard })));
+const ObjectiveFormModal = lazyWithReload(() => import('./components').then((module) => ({ default: module.ObjectiveFormModal })));
+const ToastContainer = lazyWithReload(() => import('./components').then((module) => ({ default: module.ToastContainer })));
+const DailyBrief = lazyWithReload(() => import('./components').then((module) => ({ default: module.DailyBrief })));
+const BriefErrorBoundary = lazyWithReload(() => import('./components').then((module) => ({ default: module.BriefErrorBoundary })));
 
 // Release-contract anchors stay in App.jsx even after these surfaces moved behind lazy boundaries.
 // NotificationPanel still renders `notification-priority-badge` and `Jake priority` for priority alerts.
@@ -263,7 +280,7 @@ const LoadingScreen = () => (
 function App() {
   // Supabase hooks
   const { user, profile, loading: authLoading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile } = useAuth();
-  const shouldLoadFixItFeed = Boolean(user && (
+  const shouldLoadFixItFeed = Boolean(user && canAccessFixItFeed(user) && (
     typeof window === 'undefined'
     || !window.matchMedia('(max-width: 768px)').matches
     || readRouteFromLocation().page === 'fixit'
@@ -291,10 +308,12 @@ function App() {
     });
   }, [assignmentGroups, rawObjectives]);
   const { posts: fixItPosts, createPost: createFixItPost, createComment: createFixItComment, deleteComment: deleteFixItComment, updatePostStatus: updateFixItPostStatus, uploadValidationProof: uploadFixItValidationProof, deletePost: deleteFixItPost } = useFixItFeed(shouldLoadFixItFeed);
-  const { reports: ncrReports, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports } = useNcrReports(Boolean(user));
+  const { reports: ncrReports, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports, hydrateReport: hydrateNcrReport } = useNcrReports(Boolean(user));
   const { notifications, markRead, markAllRead, createNotification: createRawNotification } = useNotifications(profile?.id);
   const pushNotifications = usePushNotifications(profile?.id);
-  const altDashboard = useAlternativeDashboard(profile?.id);
+  // null id disables the alt-dashboard machinery (fetches, presence pings,
+  // realtime channels) for every client while the retired code still exists.
+  const altDashboard = useAlternativeDashboard(null);
   const kpiData = useKpis(profile?.id, Boolean(profile));
   const fixItAgentRecipientIds = useMemo(() => (
     profiles.filter(isFixItAgentPushRecipient).map(userProfile => userProfile.id)
@@ -340,6 +359,7 @@ function App() {
   const objectiveFilters = useMemo(() => ({ ...DEFAULT_OBJECTIVE_FILTERS, ...route.filters }), [route.filters]);
   const mustChangePassword = user?.user_metadata?.must_change_password === true;
   const mustSetPassword = mustChangePassword || passwordRecovery;
+  const [ncrFocusReportId, setNcrFocusReportId] = useState(null);
   const updateRoute = useCallback((updater, options = {}) => {
     const next = typeof updater === "function" ? updater(route) : updater;
     const normalized = {
@@ -488,9 +508,11 @@ function App() {
     setPushSetupDismissed(profile?.id ? safeStorage.get(pushSetupDismissKey(profile.id)) === '1' : false);
   }, [profile?.id]);
 
-  const dashboardMode = route.page === "dashboard"
-    ? (route.dashboardMode || altDashboard.preferences.lastDashboardMode) === ALT_DASHBOARD_MODE ? ALT_DASHBOARD_MODE : 'standard'
-    : 'standard';
+  // Alt dashboard retired (Andrew, 8/6/2026 — "personal experiment"). Mode is
+  // pinned to standard: saved preferences, ?dashboard=alt links, and the
+  // hotkey all resolve here and go inert. Full code removal happens in the
+  // rebuild's dedupe phase.
+  const dashboardMode = 'standard';
 
   // View type scope — shared by the global KPI strip and the Tasks & Projects list
   const [viewScope, setViewScope] = useState("company");
@@ -666,6 +688,7 @@ function App() {
 
     const nextAnnouncement = NEW_FEATURE_ANNOUNCEMENTS.find(feature =>
       !safeStorage.get(featureAnnouncementKey(profile.id, feature.id))
+      && (feature.page !== 'fixit' || canAccessFixItFeed(profile))
     );
     if (!nextAnnouncement) return undefined;
 
@@ -677,10 +700,22 @@ function App() {
     return () => window.clearTimeout(timer);
   }, [profile, mustSetPassword, showDailyBrief, showFrameworkExplainer, showAltExplainer, openCard, showCreateForm, editingObj, activeFeatureAnnouncement, isMobileViewport]);
 
+  useEffect(() => {
+    setTelemetryUser(profile?.id || null);
+  }, [profile?.id]);
+
   // Toast helpers
   const addToast = useCallback((toast) => {
     const id = generateId();
-    setToasts(prev => [...prev, { ...toast, id }]);
+    let entry = toast;
+    // Every error toast is a pit-wall sensor: log the raw message to
+    // telemetry, and swap internal jargon for human copy before display.
+    if (toast?.type === 'error' && typeof toast.message === 'string') {
+      reportClientError('toast', toast.message);
+      const friendly = humanizeErrorMessage(toast.message);
+      if (friendly !== toast.message) entry = { ...toast, message: friendly };
+    }
+    setToasts(prev => [...prev, { ...entry, id }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
   }, []);
   const removeToast = useCallback((id) => setToasts(prev => prev.filter(t => t.id !== id)), []);
@@ -1195,6 +1230,14 @@ function App() {
     return extras.length ? `${base} with ${extras.join(' and ')}` : base;
   };
 
+  // Once the primary record exists, follow-up failures must never reject the
+  // submit — a rejected submit keeps the form open and invites a duplicate.
+  const reportWizardFollowupFailure = (label, err) => {
+    console.warn(`Create New ${label} follow-up failed`, err);
+    reportClientError('create-wizard-followup', err?.message || String(err), { stack: err?.stack, context: { label } });
+    addToast({ type: 'error', message: `${label} was created, but a follow-up step didn't finish (links, tags, tasks, or files). Open it to complete setup.` });
+  };
+
   const handleWizardCreateTask = async ({ title, description, department, class: klass, ownerId, assignmentGroupId, dueDate, link, parentId, taggedIds = [], files = [] }) => {
     const created = await createObjective({
       title, description, ownerId, assignmentGroupId,
@@ -1206,27 +1249,31 @@ function App() {
       parentId: link === 'okr' ? parentId : null,
       okrLevel: link === 'okr' ? 'department' : 'run_the_business',
     });
-    if (link === 'project' && parentId) {
-      const proj = okrProjects.find(pr => pr.id === parentId);
-      await updateOkrProject(parentId, { linkedObjectiveIds: [...new Set([...(proj?.linkedObjectiveIds || []), created.id])], userId: profile.id });
-    }
-    if (link === 'ncr' && parentId) {
-      await updateNcrReport(parentId, { linkedObjectiveId: created.id, updatedBy: profile.id });
-    }
-    await notifyWizardOwnerAssignment({ objectiveId: created.id, title, ownerId, assignmentGroupId, dueDate, contextLabel: 'Task assigned', failureLabel: 'task assignment' });
-    const tagged = await tagWizardObjectiveMembers(created.id, title, ownerId, taggedIds);
-    const uploaded = await uploadWizardObjectiveFiles(created.id, files);
-    addToast({ type: 'success', message: buildCreateToastMessage('Task created', { uploaded, tagged }) });
-    const fresh = await refetchObjectives();
-    const obj = fresh?.find(o => o.id === created.id);
-    if (obj) {
-      const group = obj.assignmentGroupId ? assignmentGroups.find(item => item.id === obj.assignmentGroupId) : null;
-      handleOpenCard({
-        ...obj,
-        assignmentGroup: group,
-        assignmentGroupName: group?.name || "",
-        assignmentGroupMemberIds: group?.memberIds || [],
-      });
+    try {
+      if (link === 'project' && parentId) {
+        const proj = okrProjects.find(pr => pr.id === parentId);
+        await updateOkrProject(parentId, { linkedObjectiveIds: [...new Set([...(proj?.linkedObjectiveIds || []), created.id])], userId: profile.id });
+      }
+      if (link === 'ncr' && parentId) {
+        await updateNcrReport(parentId, { linkedObjectiveId: created.id, updatedBy: profile.id });
+      }
+      await notifyWizardOwnerAssignment({ objectiveId: created.id, title, ownerId, assignmentGroupId, dueDate, contextLabel: 'Task assigned', failureLabel: 'task assignment' });
+      const tagged = await tagWizardObjectiveMembers(created.id, title, ownerId, taggedIds);
+      const uploaded = await uploadWizardObjectiveFiles(created.id, files);
+      addToast({ type: 'success', message: buildCreateToastMessage('Task created', { uploaded, tagged }) });
+      const fresh = await refetchObjectives();
+      const obj = fresh?.find(o => o.id === created.id);
+      if (obj) {
+        const group = obj.assignmentGroupId ? assignmentGroups.find(item => item.id === obj.assignmentGroupId) : null;
+        handleOpenCard({
+          ...obj,
+          assignmentGroup: group,
+          assignmentGroupName: group?.name || "",
+          assignmentGroupMemberIds: group?.memberIds || [],
+        });
+      }
+    } catch (err) {
+      reportWizardFollowupFailure('Task', err);
     }
     return created;
   };
@@ -1245,11 +1292,15 @@ function App() {
       nextAction: '', type: 'simple', rollupMethod: 'average',
       okrLevel: 'company',
     });
-    await notifyWizardOwnerAssignment({ objectiveId: created.id, title, ownerId, assignmentGroupId, dueDate, contextLabel: 'Main OKR assigned', failureLabel: 'OKR assignment' });
-    const tagged = await tagWizardObjectiveMembers(created.id, title, ownerId, taggedIds);
-    const uploaded = await uploadWizardObjectiveFiles(created.id, files);
-    addToast({ type: 'success', message: buildCreateToastMessage('Main OKR created', { uploaded, tagged }) });
-    await refetchObjectives();
+    try {
+      await notifyWizardOwnerAssignment({ objectiveId: created.id, title, ownerId, assignmentGroupId, dueDate, contextLabel: 'Main OKR assigned', failureLabel: 'OKR assignment' });
+      const tagged = await tagWizardObjectiveMembers(created.id, title, ownerId, taggedIds);
+      const uploaded = await uploadWizardObjectiveFiles(created.id, files);
+      addToast({ type: 'success', message: buildCreateToastMessage('Main OKR created', { uploaded, tagged }) });
+      await refetchObjectives();
+    } catch (err) {
+      reportWizardFollowupFailure('Main OKR', err);
+    }
     return created;
   };
 
@@ -1263,65 +1314,69 @@ function App() {
       stage: 'idea', targetDate: dueDate || null,
       linkedObjectiveIds: linkedOkrId ? [linkedOkrId] : [],
     });
-    const linkedObjectiveIds = new Set(linkedOkrId ? [linkedOkrId] : []);
-    let taskCount = 0;
-    for (const task of projectTasks || []) {
-      const taskTitle = String(task?.title || '').trim();
-      if (!taskTitle) continue;
-      const taskOwnerId = task.ownerId || ownerId;
-      const taskObjective = await createObjective({
-        title: taskTitle,
-        description: `Project task for "${title}"`,
-        ownerId: taskOwnerId,
-        createdBy: profile.id,
-        delegatedBy: taskOwnerId !== profile.id ? profile.id : null,
-        status: 'not_started',
-        priority: 'medium',
-        progress: 0,
-        dueDate: dueDate || null,
-        department,
-        class: klass,
-        okrGroup: null,
-        nextAction: '',
-        type: 'simple',
-        rollupMethod: 'average',
-        parentId: null,
-        okrLevel: 'run_the_business',
-      });
-      linkedObjectiveIds.add(taskObjective.id);
-      taskCount += 1;
-      if (taskOwnerId !== profile.id) {
-        try {
-          await createNotification(taskOwnerId, 'assignment', taskObjective.id, `${profile.name} assigned you "${taskTitle}" for project "${title}".`);
-        } catch (notificationError) {
-          console.warn('Create New project task notification failed', notificationError);
+    try {
+      const linkedObjectiveIds = new Set(linkedOkrId ? [linkedOkrId] : []);
+      let taskCount = 0;
+      for (const task of projectTasks || []) {
+        const taskTitle = String(task?.title || '').trim();
+        if (!taskTitle) continue;
+        const taskOwnerId = task.ownerId || ownerId;
+        const taskObjective = await createObjective({
+          title: taskTitle,
+          description: `Project task for "${title}"`,
+          ownerId: taskOwnerId,
+          createdBy: profile.id,
+          delegatedBy: taskOwnerId !== profile.id ? profile.id : null,
+          status: 'not_started',
+          priority: 'medium',
+          progress: 0,
+          dueDate: dueDate || null,
+          department,
+          class: klass,
+          okrGroup: null,
+          nextAction: '',
+          type: 'simple',
+          rollupMethod: 'average',
+          parentId: null,
+          okrLevel: 'run_the_business',
+        });
+        linkedObjectiveIds.add(taskObjective.id);
+        taskCount += 1;
+        if (taskOwnerId !== profile.id) {
+          try {
+            await createNotification(taskOwnerId, 'assignment', taskObjective.id, `${profile.name} assigned you "${taskTitle}" for project "${title}".`);
+          } catch (notificationError) {
+            console.warn('Create New project task notification failed', notificationError);
+          }
         }
       }
-    }
-    if (linkedObjectiveIds.size > (linkedOkrId ? 1 : 0)) {
-      await updateOkrProject(created.id, { linkedObjectiveIds: [...linkedObjectiveIds], userId: profile.id });
-    }
-    const uploaded = await uploadWizardProjectFiles(created.id, files);
-    let notificationFailures = 0;
-    for (const targetId of projectMemberIds) {
-      try {
-        await createNotification(
-          targetId,
-          'assignment',
-          null,
-          `${profile.name} tagged you on project "${title}".`,
-          { detailLabel: 'Project teammate', detailText: dueDate ? `Due ${formatDate(dueDate)}` : '' },
-        );
-      } catch (notificationError) {
-        notificationFailures += 1;
-        console.warn('Create New project tag notification failed', notificationError);
+      if (linkedObjectiveIds.size > (linkedOkrId ? 1 : 0)) {
+        await updateOkrProject(created.id, { linkedObjectiveIds: [...linkedObjectiveIds], userId: profile.id });
       }
+      const uploaded = await uploadWizardProjectFiles(created.id, files);
+      let notificationFailures = 0;
+      for (const targetId of projectMemberIds) {
+        try {
+          await createNotification(
+            targetId,
+            'assignment',
+            null,
+            `${profile.name} tagged you on project "${title}".`,
+            { detailLabel: 'Project teammate', detailText: dueDate ? `Due ${formatDate(dueDate)}` : '' },
+          );
+        } catch (notificationError) {
+          notificationFailures += 1;
+          console.warn('Create New project tag notification failed', notificationError);
+        }
+      }
+      if (notificationFailures > 0) {
+        addToast({ type: 'error', message: `Project saved, but ${notificationFailures} teammate notification${notificationFailures === 1 ? '' : 's'} did not send.` });
+      }
+      addToast({ type: 'success', message: buildCreateToastMessage('Project created', { uploaded, tasks: taskCount, tagged: projectMemberIds.length }) });
+      await refetchObjectives();
+    } catch (err) {
+      reportWizardFollowupFailure('Project', err);
     }
-    if (notificationFailures > 0) {
-      addToast({ type: 'error', message: `Project saved, but ${notificationFailures} teammate notification${notificationFailures === 1 ? '' : 's'} did not send.` });
-    }
-    addToast({ type: 'success', message: buildCreateToastMessage('Project created', { uploaded, tasks: taskCount, tagged: projectMemberIds.length }) });
-    await refetchObjectives();
     return created;
   };
 
@@ -1462,10 +1517,19 @@ function App() {
     { id: "dashboard", label: "Tasks & Projects", mobileLabel: "Work", icon: LayoutDashboard },
     { id: "okr", label: "OKR", mobileLabel: "OKR", icon: Target },
     { id: "ncr", label: "NCR", mobileLabel: "NCR", icon: ClipboardCheck },
-    { id: "fixit", label: "Fix-It Feed", mobileLabel: "Fix-It", icon: Wrench },
+    // Fix-It Feed is moderator-only (Andrew + Merci) — everyone else routes
+    // change requests through Merci and never sees the wall.
+    ...(canAccessFixItFeed(profile) ? [{ id: "fixit", label: "Fix-It Feed", mobileLabel: "Fix-It", icon: Wrench }] : []),
     { id: "organization", label: "Organization", mobileLabel: "Org", icon: Network },
   ];
   const desktopPages = pages.filter(page => page.id !== "fixit");
+
+  // Deep links (?page=fixit) bounce non-moderators back to the dashboard.
+  useEffect(() => {
+    if (profile && route.page === 'fixit' && !canAccessFixItFeed(profile)) {
+      updateRoute({ page: 'dashboard' });
+    }
+  }, [profile, route.page, updateRoute]);
   // Deep-linked pages that highlight a parent tab. Objectives is hidden (Jake
   // banned the word); KPI is hidden because to Jake "OKRs or KPIs, whatever
   // you want to call it" ARE the OKR page — the command center stays routable
@@ -2088,12 +2152,12 @@ function App() {
               isMobile={isMobileViewport}
               scope={viewScope}
               onScopeChange={(next) => { setViewScope(next); if (showDashboardSurface) setDashboardMode('standard'); }}
-              showAltToggle={showDashboardSurface}
+              showAltToggle={false}
               isAltActive={showDashboardSurface && dashboardMode === ALT_DASHBOARD_MODE}
               onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
               onKpiClick={applyDashboardKpiFilter}
             />}
-            {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={() => updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS })} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
+            {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={(report) => { setNcrFocusReportId(report?.id ?? null); updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS }); }} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
               status: preset.status || "all",
               owner: preset.scope === "individual" ? currentUser.id : "all",
               due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
@@ -2111,15 +2175,16 @@ function App() {
             {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onQuickStatus={handleQuickStatusObjective} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
             {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
             {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
-            {route.page === "fixit" && isMobileViewport && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} focusPostId={new URLSearchParams(window.location.search).get('fixit')} />}
-            {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
+            {route.page === "fixit" && isMobileViewport && canAccessFixItFeed(profile) && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} focusPostId={new URLSearchParams(window.location.search).get('fixit')} />}
+            {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} initialReportId={ncrFocusReportId} onHydrateReport={hydrateNcrReport} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
             {route.page === "organization" && <OrgPage objectives={objectives} assignmentGroups={assignmentGroups} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}
           </Suspense>
         </main>
         {!isMobileViewport && <div className="desktop-admin-shell">
           <Suspense fallback={null}>
             <AdminSidebar
-              isOpen={route.adminOpen || route.page === "fixit"}
+              showFixIt={canAccessFixItFeed(profile)}
+              isOpen={route.adminOpen || (route.page === "fixit" && canAccessFixItFeed(profile))}
               onToggle={() => updateRoute(prev => ({
                 ...prev,
                 page: prev.page === "fixit" ? "dashboard" : prev.page,

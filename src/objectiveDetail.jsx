@@ -7,7 +7,7 @@ import {
   Sparkles, AlertCircle, Users, UserPlus, HelpCircle, Bell, Home, Smartphone, SmilePlus, Languages,
   ThumbsUp, Wrench, Handshake
 } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT, getObjectiveAssignmentLabel } from './data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT, getObjectiveAssignmentLabel, getRecurrenceLabel, getMissedCycleLabel } from './data';
 import { findMentionCandidates, getActiveMention, getMentionedUsers, insertMentionText } from './mentions';
 import { Avatar, Badge } from './uiPrimitives';
 import {
@@ -1330,7 +1330,8 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
                 <Badge color={okrMeta.color} outline>{okrMeta.shortLabel}</Badge>
                 {lowConfidence && <Badge color="#F59E0B">Review classification</Badge>}
                 {staleKr && <Badge color="#EF4444">Stale KR</Badge>}
-                {overdue && <Badge color="#F59E0B">OVERDUE</Badge>}
+                {!overdue && getRecurrenceLabel(localObj.description) && <Badge color="#6E7280" outline>↻ {getRecurrenceLabel(localObj.description)}</Badge>}
+                {overdue && <Badge color="#F59E0B">{getMissedCycleLabel(localObj.description) ? `↻ ${getMissedCycleLabel(localObj.description)}` : 'OVERDUE'}</Badge>}
                 {!localObj.acknowledged && localObj.delegatedBy && <Badge color="#8B5CF6">Needs Acknowledgement</Badge>}
               </div>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.3 }}>{localObj.title}</h2>
@@ -1798,10 +1799,14 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
                   <button className={`btn btn-sm ${subtaskDraft.isMilestone ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setSubtaskDraft(d => ({ ...d, isMilestone: !d.isMilestone }))}>Milestone</button>
                   <button className="btn btn-sm btn-primary" onClick={async () => {
                     if (!subtaskDraft.title.trim()) return;
-                    await addSubtask?.(localObj.id, subtaskDraft);
-                    setSubtaskDraft({ title: "", ownerId: currentUser.id, dueDate: "", weight: 1, isMilestone: false });
-                    addToast({ type: 'success', message: 'Subtask added' });
-                    await refreshOpenObjective();
+                    try {
+                      await addSubtask?.(localObj.id, subtaskDraft);
+                      setSubtaskDraft({ title: "", ownerId: currentUser.id, dueDate: "", weight: 1, isMilestone: false });
+                      addToast({ type: 'success', message: 'Subtask added' });
+                      await refreshOpenObjective();
+                    } catch (err) {
+                      addToast({ type: 'error', message: err?.message || 'Could not add the subtask. Try again.' });
+                    }
                   }}><Plus size={12} /> Add</button>
                 </div>
               </div>

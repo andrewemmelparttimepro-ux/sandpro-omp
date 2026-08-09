@@ -14000,3 +14000,6 @@ button.alt-command-body:disabled {
   font-weight: 700;
   white-space: nowrap;
 }
+
+/* NCR detail header: source + lifecycle badges side by side */
+.ncr-detail-badges { display: inline-flex; gap: 6px; align-items: center; flex-shrink: 0; }

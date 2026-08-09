@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Search, ChevronDown, ChevronLeft, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle, Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3, Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText, Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw, PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio, ClipboardCheck } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, formatDate, timeAgo, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, isObjectiveAssignedToUser } from '../data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, formatDate, timeAgo, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, isObjectiveAssignedToUser, getRecurrenceLabel } from '../data';
 import { Avatar, Badge } from '../uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from '../sharedWidgets';
 import { useAltNotes } from '../hooks/useSupabase';
@@ -545,13 +545,17 @@ const rowMatchesAging = (row, bucket) => {
 const AgingPill = ({
   row
 }) => {
+  // Recurring routines carry a ↻ marker; one that slipped its cycle reads
+  // "Missed week", not the generic past-due a dropped one-off gets.
+  const cadence = getRecurrenceLabel(row.description);
+  const mark = cadence ? "↻ " : "";
   if (row.isCompleted) return <span className="lv-aging tone-done">Completed</span>;
   const days = daysUntilDue(row.dueDate);
-  if (days === null) return <span className="lv-aging tone-none">No due date</span>;
-  if (days < 0) return <span className="lv-aging tone-past">Past due {Math.abs(days)}d</span>;
-  if (days === 0) return <span className="lv-aging tone-today">Due today</span>;
-  if (days <= 7) return <span className="lv-aging tone-soon">Due in {days}d</span>;
-  return <span className="lv-aging tone-far">Due in {days}d</span>;
+  if (days === null) return <span className="lv-aging tone-none">{cadence ? `↻ ${cadence}` : "No due date"}</span>;
+  if (days < 0) return <span className="lv-aging tone-past">{cadence ? `↻ Missed ${cadence.toLowerCase().replace("ly", "")} · ${Math.abs(days)}d` : `Past due ${Math.abs(days)}d`}</span>;
+  if (days === 0) return <span className="lv-aging tone-today">{mark}Due today</span>;
+  if (days <= 7) return <span className="lv-aging tone-soon">{mark}Due in {days}d</span>;
+  return <span className="lv-aging tone-far">{mark}Due in {days}d</span>;
 };
 const DashboardListView = ({
   objectives,
@@ -623,6 +627,7 @@ const DashboardListView = ({
       ownerId: o.ownerId,
       memberIds: (o.members || []).map(m => m.userId),
       dueDate: o.dueDate || null,
+      description: o.description || "",
       isCompleted: o.status === "completed"
     }));
     const projectRows = okrProjects.map(p => ({
@@ -908,7 +913,7 @@ const DashboardListView = ({
               </div>
               <div className="flex items-center gap-6 flex-shrink-0">
                 <Avatar user={owner} size={20} />
-                <span className="text-xs text-muted lv-owner-name">{(owner?.name || "—").split(" ")[0]}</span>
+                <span className="text-xs text-muted lv-owner-name">{(owner?.name || (row.kind === "ncr" ? row.ncr?.observer : null) || "—").split(" ")[0]}</span>
               </div>
               <AgingPill row={row} />
             </div>;

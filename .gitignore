@@ -36,3 +36,4 @@ docs/reports/evidence/fixit-closure-*/
 
 # Supabase local link/cache
 supabase/.temp/
+.codex_work/

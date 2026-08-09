@@ -2544,6 +2544,7 @@ export const AdminSidebar = ({
   onToggle,
   requestedSection = null,
   onSectionChange,
+  showFixIt = false,
   fixItCount = 0,
   fixItContent = null,
   objectives,
@@ -2559,7 +2560,9 @@ export const AdminSidebar = ({
   onRemoveAssignmentGroupMember,
   onAssignmentGroupsChanged,
 }) => {
-  const [activeSection, setActiveSection] = useState(requestedSection || "users");
+  const [activeSection, setActiveSection] = useState(
+    (requestedSection === "fixit" && !showFixIt ? null : requestedSection) || "users"
+  );
   const [showInvite, setShowInvite] = useState(false);
   const [inviteStatus, setInviteStatus] = useState("");
   const [exportFilters, setExportFilters] = useState({ status: "all", owner: "all", department: "all", priority: "all" });
@@ -2577,7 +2580,9 @@ export const AdminSidebar = ({
     managerIds: [],
   });
   const sections = [
-    { id: "fixit", label: "Feed", icon: Wrench, count: fixItCount },
+    // Fix-It Feed is moderator-only; the section disappears entirely for
+    // everyone else (mirrored by RLS — hiding the button is not the fence).
+    ...(showFixIt ? [{ id: "fixit", label: "Feed", icon: Wrench, count: fixItCount }] : []),
     { id: "users", label: "Users", icon: Users },
     { id: "groups", label: "Groups", icon: UserPlus },
     { id: "departments", label: "Depts", icon: Building2 },
@@ -2586,8 +2591,8 @@ export const AdminSidebar = ({
     { id: "settings", label: "Settings", icon: Settings },
   ];
   useEffect(() => {
-    if (requestedSection) setActiveSection(requestedSection);
-  }, [requestedSection]);
+    if (requestedSection && (requestedSection !== "fixit" || showFixIt)) setActiveSection(requestedSection);
+  }, [requestedSection, showFixIt]);
   const selectSection = (sectionId, options = {}) => {
     setActiveSection(sectionId);
     onSectionChange?.(sectionId, options);

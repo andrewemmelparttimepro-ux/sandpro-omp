@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -10,6 +11,8 @@ import {
   isObjectiveAssignedToUser,
   setProfiles,
 } from '../../src/data.js';
+
+const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
 
 test('objective ownership is exactly one person or one rotating group in the UI model', () => {
   setProfiles([{ id: 'person-1', name: 'One Person' }]);
@@ -49,4 +52,21 @@ test('equal-rank managers both receive the same direct-report relationship', () 
   assert.deepEqual(getProfileManagerIds(employee), ['manager-1', 'manager-2']);
   assert.deepEqual(getDirectReports('manager-1').map(profile => profile.id), ['employee-1']);
   assert.deepEqual(getDirectReports('manager-2').map(profile => profile.id), ['employee-1']);
+});
+
+test('ALL Personnel and Office Personnel stay seeded from the SandPro roster', () => {
+  const migration = read('supabase/migrations/20260731152917_add_all_and_office_personnel_groups.sql');
+  const releaseMigration = read('supabase/release_ready_migration.sql');
+  const rosterSync = read('scripts/sync-sandpro-roster-workbook.mjs');
+
+  for (const source of [migration, releaseMigration]) {
+    assert.match(source, /'ALL Personnel',\s*'all-personnel'/i);
+    assert.match(source, /'Office Personnel',\s*'office-personnel'/i);
+    assert.match(source, /LIKE '%@sandpro\.com'/i);
+    assert.match(source, /COALESCE\(profile\.department, ''\)\) = 'admin'/i);
+  }
+
+  assert.match(rosterSync, /'all-personnel': roster\.map/);
+  assert.match(rosterSync, /'office-personnel': roster/);
+  assert.match(rosterSync, /normalizedName\(employee\.department\) === 'admin'/);
 });

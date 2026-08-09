@@ -264,6 +264,9 @@ export const NCR_GROUP_TO_DEPARTMENT = {
   "Sales": "Business Team",
   "Office": "Business Team",
   "Quality Control": "Business Team",
+  // Aliases seen in KPA imports — same intent as the approved mappings above.
+  "Quality": "Business Team",
+  "Office/Admin/Accounting": "Business Team",
 };
 
 export const getNcrGroupDepartment = (group) => NCR_GROUP_TO_DEPARTMENT[String(group || "").trim()] || null;

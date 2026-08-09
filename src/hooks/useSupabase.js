@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress } from '../okrFramework';
+import { getRecurrenceInterval, getNextRecurringDueDate } from '../data';
 import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
 import { parseKpiCsv } from '../kpiSystem';
 import { buildNcrImportDbPayload } from '../ncrImport';
@@ -100,6 +101,51 @@ const nullableSelect = async (query, fallback = [], label = 'optional query') =>
   if (error) return fallback;
   return data || fallback;
 };
+
+// Fresh short-lived URL for one NCR file, resolved at view/click time so a
+// link can never arrive dead (load-time signing timeout) or expire mid-session.
+export const resolveNcrFileUrl = async (file = {}) => {
+  const path = file.storagePath || file.storage_path;
+  if (path) {
+    const fresh = await createSignedUrlSafe('ncr-files', path);
+    if (fresh) return fresh;
+  }
+  return file.url || '';
+};
+
+// Lap 1 (2026-08-05): coalesce realtime-triggered refetches. A burst of
+// change events (one edit = update + audit insert, a wizard create = 5-6
+// inserts) becomes ONE trailing refetch instead of N immediate full
+// re-downloads on every connected client.
+const makeCoalescedRefetch = (fn, delayMs = 2000) => {
+  let timer = null;
+  const schedule = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => { timer = null; fn(); }, delayMs);
+  };
+  schedule.cancel = () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+  };
+  return schedule;
+};
+
+// Lap 1: the NCR list fetch carries every column EXCEPT source_raw_record —
+// the imported KPA payload that made select('*') 2 MB instead of ~500 KB for
+// 412 rows. The full record (raw payload included) hydrates per report on
+// open via hydrateReport.
+const NCR_LIST_COLUMNS = 'id,report_number,source_sheet,source_link,report_date,observer,follow_up_count,follow_up_details,follow_up_due_date,worksite_area,operator_location,event_at,internal_external,event_type,non_productive_time,non_productive_time_amount,author,personnel_involved,event_description,severity,root_cause_codes,root_cause_analysis,immediate_action,permanent_action,affected_departments,department_group,long_term_follow_up,action_effective,status,closed,linked_objective_id,created_by,updated_by,created_at,updated_at,lifecycle_stage,owner_id,reviewer_id,verifier_id,closure_approved_by,closure_approved_at,containment_required,containment_summary,affected_product,affected_equipment,affected_job,disposition,disposition_notes,effectiveness_summary,effectiveness_checked_at,effectiveness_checked_by,recurrence_prevented,repeat_issue,customer_approval_required,customer_approval_status,event_types,estimated_cost,criticality,author_id,personnel_involved_ids,time_frame_for_action,affected_department_list,date_initial_corrective_action,date_permanent_corrective_action_completed,date_of_review,date_of_sign_off,signed_off_by_management_id,reviewed_by_id,final_management_signoff_id,source_system,source_record_id,source_batch_id,canonical_failure_code,normalized_failure_summary,ai_confidence,ai_classification_reason,main_department';
+
+const mapNcrAuditEvent = (event) => ({
+  id: event.id,
+  ncrId: event.ncr_id,
+  actorId: event.actor_id,
+  eventType: event.event_type,
+  fieldName: event.field_name,
+  oldValue: event.old_value,
+  newValue: event.new_value,
+  note: event.note || '',
+  createdAt: event.created_at,
+});
 
 const createSignedUrlSafe = async (bucket, path, expiresIn = 60 * 60) => {
   if (!path) return '';
@@ -307,6 +353,64 @@ const sortNotifications = (items = []) => [...items].sort((left, right) => {
   return new Date(right.ts || 0) - new Date(left.ts || 0);
 });
 
+const PUSH_DEVICE_MARKER = 'sandpro-omp-push-device';
+
+const readPushDeviceMarker = () => {
+  try { return window.localStorage.getItem(PUSH_DEVICE_MARKER); } catch { return null; }
+};
+
+const writePushDeviceMarker = (value) => {
+  try { window.localStorage.setItem(PUSH_DEVICE_MARKER, value); } catch { /* private mode */ }
+};
+
+const persistPushSubscription = async (subscription) => authFetch('/api/push/subscribe', {
+  method: 'POST',
+  body: JSON.stringify({
+    subscription: subscription.toJSON(),
+    deviceLabel: isStandalonePwa() ? 'Installed PWA' : 'Browser',
+    userAgent: navigator.userAgent || '',
+    platform: navigator.platform || '',
+    isPwa: isStandalonePwa(),
+  }),
+});
+
+const pushShouldBeEnabled = async (userId) => {
+  const marker = readPushDeviceMarker();
+  if (marker === 'off') return false;
+  if (marker === 'on') return true;
+  if (!userId) return false;
+  const { data, error } = await supabase
+    .from('notification_preferences')
+    .select('push_enabled')
+    .eq('user_id', userId)
+    .maybeSingle();
+  return !error && data?.push_enabled === true;
+};
+
+// Push services can expire an endpoint without changing browser permission.
+// Re-sync an existing endpoint, and recreate a missing Installed PWA endpoint,
+// only when the user's persisted preference says push is enabled. That heals
+// expired devices without silently opting a previously disabled user back in.
+const healPushSubscription = async (registration, subscription, userId) => {
+  const shouldEnable = await pushShouldBeEnabled(userId);
+  if (!shouldEnable) return subscription;
+  if (subscription) {
+    await persistPushSubscription(subscription).catch(() => {});
+    return subscription;
+  }
+  if (!isStandalonePwa() && readPushDeviceMarker() !== 'on') return null;
+  const keyResponse = await fetch('/api/push/public-key');
+  const keyPayload = await keyResponse.json().catch(() => ({}));
+  if (!keyResponse.ok || !keyPayload.publicKey) return null;
+  const fresh = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: base64UrlToUint8Array(keyPayload.publicKey),
+  });
+  const saved = await persistPushSubscription(fresh);
+  if (!saved.ok) return null;
+  return fresh;
+};
+
 export function usePushNotifications(userId) {
   const [state, setState] = useState({
     supported: false,
@@ -336,7 +440,15 @@ export function usePushNotifications(userId) {
     }
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      let subscription = await registration.pushManager.getSubscription();
+      if (permission === 'granted') {
+        try {
+          subscription = await healPushSubscription(registration, subscription, userId);
+        } catch {
+          // Healing is best-effort; state below reflects what the device has.
+          subscription = await registration.pushManager.getSubscription();
+        }
+      }
       setState(prev => ({
         ...prev,
         supported: true,
@@ -357,7 +469,7 @@ export function usePushNotifications(userId) {
         message: error.message || 'Service worker is not ready yet.',
       }));
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) {
@@ -398,21 +510,13 @@ export function usePushNotifications(userId) {
       userVisibleOnly: true,
       applicationServerKey: base64UrlToUint8Array(keyPayload.publicKey),
     });
-    const response = await authFetch('/api/push/subscribe', {
-      method: 'POST',
-      body: JSON.stringify({
-        subscription: subscription.toJSON(),
-        deviceLabel: isStandalonePwa() ? 'Installed PWA' : 'Browser',
-        userAgent: navigator.userAgent || '',
-        platform: navigator.platform || '',
-        isPwa: isStandalonePwa(),
-      }),
-    });
+    const response = await persistPushSubscription(subscription);
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       setState(prev => ({ ...prev, loading: false, message: payload.error || 'Could not save push subscription.' }));
       return { ok: false, reason: payload.error || 'subscribe_failed' };
     }
+    writePushDeviceMarker('on');
     setState(prev => ({
       ...prev,
       supported: true,
@@ -427,6 +531,7 @@ export function usePushNotifications(userId) {
 
   const disable = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, message: 'Disabling push on this device...' }));
+    writePushDeviceMarker('off');
     let endpoint = '';
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -693,6 +798,7 @@ export function useAlternativeDashboard(userId) {
 
   useEffect(() => {
     if (!userId) return undefined;
+    const scheduleAltDashboardRefetch = makeCoalescedRefetch(fetchAlternativeDashboard);
     const channel = supabase
       .channel(`alt-dashboard-${userId}`)
       .on('postgres_changes', {
@@ -700,14 +806,14 @@ export function useAlternativeDashboard(userId) {
         schema: 'public',
         table: 'alt_dashboard_preferences',
         filter: `user_id=eq.${userId}`,
-      }, () => fetchAlternativeDashboard())
+      }, scheduleAltDashboardRefetch)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'alt_dashboard_presence',
-      }, () => fetchAlternativeDashboard())
+      }, scheduleAltDashboardRefetch)
       .subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => { scheduleAltDashboardRefetch.cancel(); supabase.removeChannel(channel); };
   }, [fetchAlternativeDashboard, userId]);
 
   const savePreferences = useCallback(async (changes = {}) => {
@@ -848,6 +954,7 @@ export function useAltNotes(userId) {
 
   useEffect(() => {
     if (!userId) return undefined;
+    const scheduleAltNotesRefetch = makeCoalescedRefetch(fetchAltNotes);
     const channel = supabase
       .channel(`alt-notes-${userId}`)
       .on('postgres_changes', {
@@ -855,21 +962,21 @@ export function useAltNotes(userId) {
         schema: 'public',
         table: 'alt_dashboard_notes',
         filter: `user_id=eq.${userId}`,
-      }, () => fetchAltNotes())
+      }, scheduleAltNotesRefetch)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'alt_dashboard_note_folders',
         filter: `user_id=eq.${userId}`,
-      }, () => fetchAltNotes())
+      }, scheduleAltNotesRefetch)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'alt_dashboard_note_attachments',
         filter: `user_id=eq.${userId}`,
-      }, () => fetchAltNotes())
+      }, scheduleAltNotesRefetch)
       .subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => { scheduleAltNotesRefetch.cancel(); supabase.removeChannel(channel); };
   }, [fetchAltNotes, userId]);
 
   const createFolder = useCallback(async (name) => {
@@ -1151,15 +1258,16 @@ export function useKpis(userId, enabled = false) {
 
   useEffect(() => {
     if (!enabled) return undefined;
+    const scheduleKpisRefetch = makeCoalescedRefetch(fetchKpis);
     const channel = supabase
       .channel('kpi-system-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_definitions' }, () => fetchKpis())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_datapoints' }, () => fetchKpis())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_objective_links' }, () => fetchKpis())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_checkins' }, () => fetchKpis())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_alert_events' }, () => fetchKpis())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_definitions' }, scheduleKpisRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_datapoints' }, scheduleKpisRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_objective_links' }, scheduleKpisRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_checkins' }, scheduleKpisRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kpi_alert_events' }, scheduleKpisRefetch)
       .subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => { scheduleKpisRefetch.cancel(); supabase.removeChannel(channel); };
   }, [enabled, fetchKpis]);
 
   const createDefinition = async (definition = {}) => {
@@ -1842,27 +1950,28 @@ export function useObjectives(enabled = true) {
   // Realtime subscription for objectives
   useEffect(() => {
     if (!enabled) return undefined;
+    const scheduleObjectivesRefetch = makeCoalescedRefetch(fetchObjectives);
     const channel = supabase
       .channel('objectives-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'subtasks' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_updates' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'files' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_members' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_metric_checkins' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_agent_runs' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_workflow_steps' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_projects' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_members' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_kr_links' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_assessment_artifacts' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_signatures' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_attachments' }, () => fetchObjectives())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_audit_events' }, () => fetchObjectives())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subtasks' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_updates' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'files' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_members' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_metric_checkins' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_agent_runs' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'objective_workflow_steps' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_projects' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_members' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_kr_links' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_assessment_artifacts' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_signatures' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_attachments' }, scheduleObjectivesRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_project_audit_events' }, scheduleObjectivesRefetch)
       .subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => { scheduleObjectivesRefetch.cancel(); supabase.removeChannel(channel); };
   }, [enabled, fetchObjectives]);
 
   const toLocalObjective = (row, source = {}) => ({
@@ -2099,6 +2208,34 @@ export function useObjectives(enabled = true) {
         new_value: changes.newValue || null,
         reference_id: id,
       });
+    }
+
+    // Recurring tasks (description carries "[Recurring — every X]"): a
+    // completion rolls the task to its next occurrence — due date advances
+    // along the original anchor and status resets — so OVERDUE only ever
+    // means a cycle was actually missed. The completion itself stays in the
+    // update trail before the roll entry.
+    if (statusChanged && dbChanges.status === 'completed') {
+      const { data: recurRow } = await supabase
+        .from('objectives')
+        .select('description,due_date')
+        .eq('id', id)
+        .maybeSingle();
+      const interval = getRecurrenceInterval(recurRow?.description);
+      const nextDue = interval ? getNextRecurringDueDate(recurRow?.due_date, interval) : null;
+      if (nextDue) {
+        await updateObjective(id, {
+          status: 'not_started',
+          progress: 0,
+          dueDate: nextDue,
+          updateNote: `Recurring task completed — rolled to the next ${interval} (due ${nextDue})`,
+          actionType: 'status_change',
+          oldValue: 'completed',
+          newValue: 'not_started',
+          currentStatus: 'completed',
+        });
+        return;
+      }
     }
 
     await fetchObjectives();
@@ -2861,7 +2998,7 @@ export function useNcrReports(enabled = false) {
     if (!loadedRef.current) setLoading(true);
     const { data, error } = await timedQuery(supabase
       .from('ncr_reports')
-      .select('*')
+      .select(NCR_LIST_COLUMNS)
       .order('report_date', { ascending: false, nullsFirst: false })
       .order('report_number', { ascending: false }), 'NCR reports fetch');
     if (error) {
@@ -2877,32 +3014,29 @@ export function useNcrReports(enabled = false) {
       ids.length
         ? nullableSelect(supabase.from('ncr_attachments').select('*').in('ncr_id', ids).order('created_at'), [], 'NCR attachments fetch')
         : Promise.resolve([]),
-      ids.length
-        ? nullableSelect(supabase.from('ncr_audit_events').select('*').in('ncr_id', ids).order('created_at', { ascending: false }), [], 'NCR audit events fetch')
-        : Promise.resolve([]),
+      // Lap 1: audit events (900+ rows) hydrate per report on open, not at boot.
+      Promise.resolve([]),
       ids.length
         ? nullableSelect(supabase.from('ncr_signatures').select('*').in('ncr_id', ids).order('created_at'), [], 'NCR signatures fetch')
         : Promise.resolve([]),
     ]);
-    const signedAttachments = await Promise.all((attachmentRows || []).map(async (file) => {
-      let signedUrl = file.url || '';
-      if (file.storage_path) {
-        signedUrl = await createSignedUrlSafe('ncr-files', file.storage_path) || signedUrl;
-      }
-      return {
-        id: file.id,
-        ncrId: file.ncr_id,
-        actionItemId: file.action_item_id,
-        uploadedBy: file.uploaded_by,
-        name: file.name,
-        purpose: file.purpose || 'evidence',
-        type: file.type,
-        size: file.size,
-        mimeType: file.mime_type,
-        storagePath: file.storage_path,
-        url: signedUrl,
-        ts: file.created_at,
-      };
+    // Signed URLs are resolved lazily (resolveNcrFileUrl) when a file is
+    // viewed or clicked. Bulk-signing 400+ attachments per fetch flooded the
+    // storage API, timed out on slow connections (dead links), and the
+    // 60-minute expiry left long-lived PWA sessions with stale links.
+    const signedAttachments = (attachmentRows || []).map((file) => ({
+      id: file.id,
+      ncrId: file.ncr_id,
+      actionItemId: file.action_item_id,
+      uploadedBy: file.uploaded_by,
+      name: file.name,
+      purpose: file.purpose || 'evidence',
+      type: file.type,
+      size: file.size,
+      mimeType: file.mime_type,
+      storagePath: file.storage_path,
+      url: file.url || '',
+      ts: file.created_at,
     }));
     const groupBy = (arr, key) => (arr || []).reduce((acc, item) => {
       (acc[item[key]] = acc[item[key]] || []).push(item);
@@ -2951,7 +3085,17 @@ export function useNcrReports(enabled = false) {
         createdAt: signature.created_at,
       })),
     }));
-    setReports(mapped);
+    // Lap 1: refetches deliver lean rows — preserve hydrated extras (raw KPA
+    // payload, audit trail) already loaded for reports someone has open.
+    setReports(prev => {
+      if (!prev.length) return mapped;
+      const prevById = new Map(prev.map(report => [report.id, report]));
+      return mapped.map(report => {
+        const old = prevById.get(report.id);
+        const hasExtras = old && (old.auditEvents?.length || Object.keys(old.sourceRawRecord || {}).length);
+        return hasExtras ? { ...report, auditEvents: old.auditEvents, sourceRawRecord: old.sourceRawRecord } : report;
+      });
+    });
     loadedRef.current = true;
     setLoading(false);
     return mapped;
@@ -2961,15 +3105,16 @@ export function useNcrReports(enabled = false) {
 
   useEffect(() => {
     if (!enabled) return undefined;
+    const scheduleReportsRefetch = makeCoalescedRefetch(fetchReports);
     const channel = supabase
       .channel('ncr-reports-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_reports' }, () => fetchReports())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_action_items' }, () => fetchReports())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_attachments' }, () => fetchReports())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_audit_events' }, () => fetchReports())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_signatures' }, () => fetchReports())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_reports' }, scheduleReportsRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_action_items' }, scheduleReportsRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_attachments' }, scheduleReportsRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_audit_events' }, scheduleReportsRefetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ncr_signatures' }, scheduleReportsRefetch)
       .subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => { scheduleReportsRefetch.cancel(); supabase.removeChannel(channel); };
   }, [enabled, fetchReports]);
 
   const updateReport = async (id, changes) => {
@@ -3254,7 +3399,30 @@ export function useNcrReports(enabled = false) {
     return { batchId: batch.id, imported, created, refreshed, skipped: errors.length, errors };
   };
 
-  return { reports, loading, updateReport, createReport, createActionItem, updateActionItem, uploadAttachment, captureSignature, importReports, refetch: fetchReports };
+  // Lap 1: hydrate one report on open — full row (incl. the raw KPA payload
+  // the lean list fetch skips) plus its audit trail. Existing mapped
+  // sub-resources (actions/attachments/signatures) are reused as-is.
+  const hydrateReport = useCallback(async (id) => {
+    if (!id) return null;
+    const [fullRes, auditRes] = await Promise.all([
+      supabase.from('ncr_reports').select('*').eq('id', id).maybeSingle(),
+      supabase.from('ncr_audit_events').select('*').eq('ncr_id', id).order('created_at', { ascending: false }),
+    ]);
+    if (fullRes.error || !fullRes.data) return null;
+    const auditEvents = (auditRes.data || []).map(mapNcrAuditEvent);
+    setReports(prev => prev.map(report => report.id === id
+      ? mapNcrReport({
+          ...fullRes.data,
+          actionItems: report.actionItems || [],
+          attachments: report.attachments || [],
+          signatures: report.signatures || [],
+          auditEvents,
+        })
+      : report));
+    return true;
+  }, []);
+
+  return { reports, loading, updateReport, createReport, createActionItem, updateActionItem, uploadAttachment, captureSignature, importReports, hydrateReport, refetch: fetchReports };
 }
 
 // ============================================================================

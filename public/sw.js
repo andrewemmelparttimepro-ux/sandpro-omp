@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sandpro-omp-shell-v10';
+const CACHE_NAME = 'sandpro-omp-shell-v11';
 const SHELL_ASSETS = [
   '/',
   '/manifest.webmanifest',

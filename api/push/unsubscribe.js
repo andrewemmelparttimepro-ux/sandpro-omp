@@ -9,14 +9,19 @@ export default async function handler(req, res) {
     const { endpoint = '' } = req.body || {};
     const supabase = getSupabaseAdmin();
     const now = new Date().toISOString();
-    let query = supabase
-      .from('push_subscriptions')
-      .update({ active: false, revoked_at: now, updated_at: now })
-      .eq('user_id', auth.profile.id)
-      .eq('active', true);
-    if (endpoint) query = query.eq('endpoint', endpoint);
-    const { error } = await query;
-    if (error) throw error;
+    // Only deactivate the device we can identify. With no endpoint (the local
+    // subscription was already gone) the preference flip below still stops all
+    // sends; nuking every device's row here would leave other devices dark
+    // even after the user turns push back on.
+    if (endpoint) {
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .update({ active: false, revoked_at: now, updated_at: now })
+        .eq('user_id', auth.profile.id)
+        .eq('endpoint', endpoint)
+        .eq('active', true);
+      if (error) throw error;
+    }
 
     await supabase
       .from('notification_preferences')

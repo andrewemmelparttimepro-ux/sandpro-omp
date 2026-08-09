@@ -70,11 +70,6 @@ export default function LoginScreen({ onSignIn, onSignUp, onResetPassword, brand
         </div>
         <p className="text-sm text-muted" style={{ textAlign: 'center', marginBottom: 24 }}>Objective Management Platform</p>
 
-        <div className="nav-pills" style={{ marginBottom: 20 }}>
-          <button onClick={() => { setMode('signin'); setError(''); setResetSent(false); }} className={`nav-pill ${mode === 'signin' ? 'active' : ''}`} style={{ flex: 1, justifyContent: 'center' }}>Sign In</button>
-          <button onClick={() => { setMode('signup'); setError(''); setResetSent(false); }} className={`nav-pill ${mode === 'signup' ? 'active' : ''}`} style={{ flex: 1, justifyContent: 'center' }}>Sign Up</button>
-        </div>
-
         {resetSent && (
           <div style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--success-bg)', border: '1px solid rgba(16,185,129,0.2)', marginBottom: 16, textAlign: 'center' }}>
             <p className="text-sm" style={{ color: 'var(--success)', margin: 0 }}>Password reset link sent! Check your email.</p>
@@ -117,6 +112,11 @@ export default function LoginScreen({ onSignIn, onSignUp, onResetPassword, brand
           {mode === 'signin' && (
             <button type="button" onClick={() => { setMode('reset'); setError(''); }} className="text-sm" style={{ color: 'var(--brand)', marginTop: 8, display: 'block', textAlign: 'center', width: '100%' }}>
               Forgot password?
+            </button>
+          )}
+          {mode === 'reset' && (
+            <button type="button" onClick={() => { setMode('signin'); setError(''); setResetSent(false); }} className="text-sm" style={{ color: 'var(--brand)', marginTop: 8, display: 'block', textAlign: 'center', width: '100%' }}>
+              Back to sign in
             </button>
           )}
         </form>

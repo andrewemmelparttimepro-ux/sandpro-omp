@@ -11,11 +11,19 @@ You are working in the SandPro OMP app.
 - Fix-It schema: `supabase/release_ready_migration.sql`
 - Automation config: `/Users/andrewemmel/.codex/automations/sandpro-fix-it-feed-agent-closure/automation.toml`
 
-The user expectation is simple: Fix-It Feed items are not truly done until they are fixed, deployed, validated in production like a real user, given screenshot proof, and left for human archive.
+The user expectation is simple: humans put problems on the Fix-It Feed; Agents fix existing human posts. Those items are not truly done until they are fixed, deployed, validated in production like a real user, given screenshot proof, and left for human archive.
 
 ## Fix-It Feed Workflow
 
 The Fix-It Feed is a proof-based closure workflow, not a simple status board.
+
+### Absolute authorship rule
+
+An Agent never creates, inserts, or auto-files a Fix-It Feed post. Do not use the composer, call a post-creation helper, insert into `fix_it_posts`, delegate post creation to another agent, or create temporary Fix-It posts for QA.
+
+Telemetry, `client_errors`, email, chat, direct reports, agent-discovered incidents, root-cause analyses, postmortems, validation evidence, and already-completed fixes stay off the wall. Fix off-wall problems in the correct workspace and report the result through the original channel and the Codex task. If a human wants the issue on the wall, that human creates it.
+
+Agent actions are limited to existing human-created posts: claim, add a short useful reply when needed, attach validation proof, mark validation complete, and leave archive to a human. No active human-created post means no Fix-It mutation and no Fix-It notification.
 
 Statuses:
 
@@ -147,7 +155,8 @@ cwd: /Users/andrewemmel/Documents/New project/sandpro-omp
 Current automation prompt summary:
 
 - Review production Fix-It Feed at `https://objectivetracker.net`.
-- Look only at non-archived posts.
+- Look only at existing human-created, non-archived posts.
+- Never create or backfill a Fix-It post, including for an off-wall incident that is already fixed.
 - For each open or in-progress item, determine the concrete app issue.
 - Implement clear and safe fixes.
 - Run local gates.
@@ -160,6 +169,34 @@ Current automation prompt summary:
 - Report leftovers or blockers.
 
 Important caution: the automation memory currently contains stale/contradictory notes from a prior isolated run that claimed the workspace did not contain the Fix-It implementation. Do not inherit that as truth. The current repo does contain the Fix-It Feed, push system, NCR code, and production scripts.
+
+## Client Error Telemetry (added 2026-08-05)
+
+The app now phones home on every user-visible error. Table: `client_errors`
+(write-only from clients; read via service role / SQL only).
+
+Columns: `id, created_at, user_id, source, message, stack, page, user_agent, context, app_version`.
+
+Sources: `toast` (any red toast a user saw), `create-wizard` / `create-wizard-followup`
+(Create New failures), `window` / `promise` (uncaught errors).
+
+On each run, before reviewing feed posts, query for fresh signals:
+
+```sql
+select created_at, source, message, page, app_version
+from client_errors
+where created_at > now() - interval '2 hours'
+order by created_at desc limit 50;
+```
+
+- Repeated signatures from multiple users = a live incident; investigate and fix
+  before touching feed backlog items.
+- Never translate telemetry into a Fix-It post. Investigate, fix, validate, and
+  report the result through the Codex task and the original human-reporting
+  channel. The wall remains human-authored even when the incident is real and
+  the root cause is understood.
+- QA runs (`npm run chaos:lock`) clean their own rows; rows from
+  release-smoke/QA accounts are noise — ignore them and never file a wall post.
 
 ## Push Updates
 
@@ -245,9 +282,11 @@ Common cleanup targets:
 - temporary QA users/profiles;
 - temporary objectives;
 - temporary NCR reports/actions/attachments/audit rows;
-- temporary Fix-It posts;
 - temporary push subscriptions/logs;
 - temporary uploaded files.
+
+Temporary Fix-It posts are prohibited. Validate against an existing human post,
+non-production fixtures, or a read-only production path instead.
 
 After any mutating production QA, report cleanup explicitly.
 

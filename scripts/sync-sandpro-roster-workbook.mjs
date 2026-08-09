@@ -270,7 +270,14 @@ for (const employee of roster) {
 }
 
 const groupsBySlug = new Map(groups.map(group => [group.slug, group]));
-for (const [slug, names] of Object.entries(GROUP_MEMBERS)) {
+const groupMembers = {
+  ...GROUP_MEMBERS,
+  'all-personnel': roster.map(employee => employee.name),
+  'office-personnel': roster
+    .filter(employee => normalizedName(employee.department) === 'admin')
+    .map(employee => employee.name),
+};
+for (const [slug, names] of Object.entries(groupMembers)) {
   const group = groupsBySlug.get(slug);
   if (!group) {
     report.errors.push({ group: slug, error: 'Assignment group not found.' });

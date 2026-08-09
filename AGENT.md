@@ -14,11 +14,24 @@ This file is the operating contract for agents working on the SandPro OMP Fix-It
 
 ## What The Feed Is
 
-The Fix-It Feed is a chronological beta feedback wall for screenshots, photos, PDFs, notes, clarifications, and small safe fixes. The app describes it as:
+The Fix-It Feed is a human-authored chronological beta feedback wall for screenshots, photos, PDFs, notes, clarifications, and small safe fixes. The app describes it as:
 
 `Chronological beta feedback wall. No DMs, no guessing, no algorithm.`
 
-Agents inspect the active feed, reply when helpful, claim clear safe work, fix only what is clear or already approved, validate live like a real user, attach proof, and then mark validation complete. Human reviewers decide when to archive.
+Humans put problems on the wall. Agents inspect existing human posts, reply when helpful, claim clear safe work, fix only what is clear or already approved, validate live like a real user, attach proof, and then mark validation complete. Human reviewers decide when to archive.
+
+## Non-Negotiable Authorship Boundary
+
+An Agent never creates a Fix-It Feed post.
+
+- Do not use the composer, call a post-creation helper, insert into `fix_it_posts`, ask another agent to create a post, or create a temporary Fix-It post for QA.
+- Do not turn telemetry, `client_errors`, email, chat, a direct human report, an agent-discovered issue, an incident, a postmortem, validation evidence, or a completed fix into a new wall post.
+- If a problem reaches an Agent outside the feed, fix it in the appropriate workspace and report the result through the original channel and the Codex task. If a human wants it recorded on the wall, that human creates the post.
+- A solved problem is never backfilled onto the wall. Agent work notes, evidence, root-cause analysis, and completion reporting stay off the feed.
+- Agent mutations are limited to existing human-created posts: claim when appropriate, add the shortest useful public reply, attach validation proof, and mark validation complete. Never archive unless Andrew explicitly asks in the current task.
+- If there is no active human-created post, make no Fix-It mutation and generate no Fix-It notification.
+
+This boundary is the point of the workflow: the wall is human problem intake, while Agents are the fixing and validation layer.
 
 ## UI Structure
 
@@ -299,19 +312,20 @@ Do not use permissive update access as permission to make product calls, archive
 
 For every active, non-archived item:
 
-1. Read the post body, screenshots/files, comments, status, owner, and proof state.
-2. Determine the target client/project and exact app behavior requested.
-3. If someone asks a question, needs clarification, or the card needs a concise decision question, reply in task comments; otherwise keep internal notes in the Codex report.
-4. If the request is clear, safe, and already approved or obviously a bug, claim it.
-5. Implement the smallest correct fix in the right workspace.
-6. Run the relevant checks for the touched surface.
-7. Deploy or confirm the fix is live in production.
-8. Validate production like a user while signed in.
-9. Capture screenshot proof that shows the requested behavior working.
-10. Attach proof as `validation_proof`.
-11. Mark validation complete only when proof is attached and visible.
-12. Leave the item unarchived for Andrew/human review.
-13. Report items found, actions taken, replies posted, tests, deploys, proof, cleanup, and blockers.
+1. Confirm it is an existing human-created post. Never create or backfill a post to start this workflow.
+2. Read the post body, screenshots/files, comments, status, owner, and proof state.
+3. Determine the target client/project and exact app behavior requested.
+4. If someone asks a question, needs clarification, or the card needs a concise decision question, reply in task comments; otherwise keep internal notes in the Codex report.
+5. If the request is clear, safe, and already approved or obviously a bug, claim it.
+6. Implement the smallest correct fix in the right workspace.
+7. Run the relevant checks for the touched surface.
+8. Deploy or confirm the fix is live in production.
+9. Validate production like a user while signed in.
+10. Capture screenshot proof that shows the requested behavior working.
+11. Attach proof as `validation_proof`.
+12. Mark validation complete only when proof is attached and visible.
+13. Leave the item unarchived for Andrew/human review.
+14. Report items found, actions taken, replies posted, tests, deploys, proof, cleanup, and blockers.
 
 If an item says validation complete but proof is missing or the UI says proof is needed, treat it as not fully closed. Attach valid proof or comment the proof blocker.
 

@@ -10,6 +10,9 @@ import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePrevi
 
 
 import { supabase } from "../lib/supabase";
+import { resolveNcrFileUrl } from "../hooks/useSupabase";
+import { useServerCounts } from "../hooks/useServerCounts";
+import { useAppFlag } from "../lib/flags";
 
 import { FieldKeyProvider, DefinedTerm, FieldKeyHint } from "../glossary";
 
@@ -1032,10 +1035,86 @@ const getNcrDocumentFiles = (report = {}) => (report.attachments || []).filter(f
 
 const getNcrAttachmentPurpose = (file = {}) => isNcrImageAttachment(file) ? 'pictures' : 'evidence';
 
+// NCR files live in private storage, so links need signed URLs. These are
+// resolved fresh at view/click time (never in bulk at fetch): a stored URL
+// can time out during load or expire mid-session, and a dead href navigates
+// the app shell — the "click a PDF, land back on the NCR list" glitch.
+const ncrSignedUrlCache = new Map();
+const NCR_SIGNED_URL_REUSE_MS = 45 * 60 * 1000;
+
+const useNcrFileDisplayUrl = (file) => {
+  const key = file?.storagePath || '';
+  const cached = key ? ncrSignedUrlCache.get(key) : null;
+  const cachedFresh = cached && Date.now() - cached.ts < NCR_SIGNED_URL_REUSE_MS ? cached.url : '';
+  const [url, setUrl] = useState(cachedFresh || file?.url || '');
+  useEffect(() => {
+    if (!key || cachedFresh) return undefined;
+    let alive = true;
+    resolveNcrFileUrl(file).then((fresh) => {
+      if (!alive || !fresh) return;
+      ncrSignedUrlCache.set(key, { url: fresh, ts: Date.now() });
+      setUrl(fresh);
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return url;
+};
+
+const openNcrFile = async (event, file, addToast) => {
+  event.preventDefault();
+  event.stopPropagation();
+  // Open a window synchronously (Safari popup rules), then point it at a
+  // freshly signed URL — never a stored one that may have expired.
+  const popup = window.open('', '_blank');
+  try {
+    const url = await resolveNcrFileUrl(file);
+    if (!url) throw new Error('File URL unavailable');
+    if (popup) {
+      popup.opener = null;
+      popup.location.replace(url);
+    } else {
+      window.location.assign(url);
+    }
+  } catch {
+    if (popup) popup.close();
+    addToast?.({ type: 'error', message: `Couldn't open ${file?.name || 'this file'} — check your connection and try again.` });
+  }
+};
+
+const NcrFileLink = ({ file, addToast, className, 'aria-label': ariaLabel, children }) => (
+  <a
+    href={file?.url || '#'}
+    onClick={(event) => openNcrFile(event, file, addToast)}
+    className={className}
+    aria-label={ariaLabel}
+    rel="noreferrer"
+  >
+    {children}
+  </a>
+);
+
+const NcrImageFileLink = ({ file, addToast, className, 'aria-label': ariaLabel, caption }) => {
+  const displayUrl = useNcrFileDisplayUrl(file);
+  return (
+    <a
+      href={file?.url || '#'}
+      onClick={(event) => openNcrFile(event, file, addToast)}
+      className={className}
+      aria-label={ariaLabel}
+      rel="noreferrer"
+    >
+      <img src={displayUrl || undefined} alt={caption} loading="lazy" />
+      <span>{caption}</span>
+    </a>
+  );
+};
+
 const NcrEventPhotoStrip = ({
   report,
   onUpload,
-  uploading
+  uploading,
+  addToast
 }) => {
   const imageFiles = getNcrImageFiles(report);
   const documentFiles = getNcrDocumentFiles(report);
@@ -1061,19 +1140,16 @@ const NcrEventPhotoStrip = ({
         </div>
       </div>
       {imageFiles.length > 0 ? <div className="ncr-event-photo-grid">
-          {imageFiles.slice(0, 4).map(file => <a key={file.id || file.url || file.name} href={file.url} target="_blank" rel="noreferrer" className="ncr-event-photo-thumb" aria-label={`Open ${file.name || 'NCR event photo'}`}>
-              <img src={file.url} alt={file.name || 'NCR event photo'} loading="lazy" />
-              <span>{file.name || 'NCR photo'}</span>
-            </a>)}
+          {imageFiles.slice(0, 4).map(file => <NcrImageFileLink key={file.id || file.url || file.name} file={file} addToast={addToast} className="ncr-event-photo-thumb" aria-label={`Open ${file.name || 'NCR event photo'}`} caption={file.name || 'NCR photo'} />)}
           {imageFiles.length > 4 && <span className="ncr-event-photo-more">+{imageFiles.length - 4}</span>}
         </div> : <div className="ncr-event-photo-empty">
           <Camera size={14} />
           <span>No event photos yet.</span>
         </div>}
       {documentFiles.length > 0 && <div className="ncr-event-doc-list">
-          {documentFiles.slice(0, 4).map(file => <a key={file.id || file.url || file.name} href={file.url} target="_blank" rel="noreferrer" className="ncr-event-doc-file">
+          {documentFiles.slice(0, 4).map(file => <NcrFileLink key={file.id || file.url || file.name} file={file} addToast={addToast} className="ncr-event-doc-file">
               <Paperclip size={12} /> <span>{file.name || 'Supporting document'}</span>
-            </a>)}
+            </NcrFileLink>)}
           {documentFiles.length > 4 && <span className="ncr-event-doc-more">+{documentFiles.length - 4} more</span>}
         </div>}
     </div>;
@@ -1082,22 +1158,20 @@ const NcrEventPhotoStrip = ({
 const NcrEvidencePanel = ({
   report,
   onUpload,
-  uploading
+  uploading,
+  addToast
 }) => {
   const files = report?.attachments || [];
   const imageFiles = getNcrImageFiles(report);
   return <div className="ncr-section ncr-evidence-section">
       <h3>Photos + Documentation</h3>
       {imageFiles.length > 0 && <div className="ncr-image-strip">
-          {imageFiles.slice(0, 6).map(file => <a key={file.id || file.url || file.name} href={file.url} target="_blank" rel="noreferrer" className="ncr-image-evidence" aria-label={`Open ${file.name}`}>
-              <img src={file.url} alt={file.name || 'NCR evidence'} loading="lazy" />
-              <span>{file.name || 'NCR image'}</span>
-            </a>)}
+          {imageFiles.slice(0, 6).map(file => <NcrImageFileLink key={file.id || file.url || file.name} file={file} addToast={addToast} className="ncr-image-evidence" aria-label={`Open ${file.name}`} caption={file.name || 'NCR image'} />)}
         </div>}
       <div className="ncr-evidence-list">
-        {files.map(file => <a key={file.id || file.url || file.name} href={file.url} target="_blank" rel="noreferrer" className="ncr-evidence-file">
+        {files.map(file => <NcrFileLink key={file.id || file.url || file.name} file={file} addToast={addToast} className="ncr-evidence-file">
             <Paperclip size={13} /> {file.name} <small>{file.size || file.purpose || ''}</small>
-          </a>)}
+          </NcrFileLink>)}
         {files.length === 0 && <p>No NCR evidence uploaded yet.</p>}
       </div>
       <div className="ncr-evidence-buttons">
@@ -1507,6 +1581,7 @@ const NcrCloseoutReport = ({
   reports = [],
   currentUser,
   people = [],
+  onHydrateReport,
   onUpdateReport,
   onUpdateActionItem,
   onCaptureSignature,
@@ -1516,6 +1591,12 @@ const NcrCloseoutReport = ({
   const [scope, setScope] = useState('open');
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(null);
+  // Lap 1: expanding a closeout row hydrates the full record + audit trail;
+  // updatedAt in the deps re-hydrates after each saved row.
+  const selectedUpdatedAt = selectedId ? (reports.find(report => report.id === selectedId)?.updatedAt || null) : null;
+  useEffect(() => {
+    if (selectedId) onHydrateReport?.(selectedId);
+  }, [selectedId, selectedUpdatedAt, onHydrateReport]);
   const [draft, setDraft] = useState(null);
   const [dirty, setDirty] = useState(false);
   const [pending, setPending] = useState('');
@@ -1711,7 +1792,7 @@ const NcrCloseoutReport = ({
               {expanded && draft && <tr className="ncr-closeout-editor-row"><td colSpan={8}>
                 <div className="ncr-closeout-editor">
                   <div className="ncr-closeout-editor-head">
-                    <div><span>Editing report row</span><h3>NCR #{report.reportNumber}</h3></div>
+                    <div><span>Editing report row</span><h3>NCR #{report.reportNumber} {report.sourceSystem === 'KPA' && <Badge color="#6b7280">KPA import</Badge>}</h3></div>
                     <div className="ncr-closeout-editor-state">{dirty ? <Badge color="var(--warning)">Unsaved changes</Badge> : <Badge color="var(--success)">Saved</Badge>}</div>
                   </div>
                   <div className="ncr-closeout-editor-grid">
@@ -1787,6 +1868,8 @@ const NcrPage = ({
   reports = [],
   objectives = [],
   currentUser,
+  initialReportId = null,
+  onHydrateReport,
   onUpdateReport,
   onCreateReport,
   onCreateActionItem,
@@ -1820,6 +1903,18 @@ const NcrPage = ({
   const canCloseOut = ['executive', 'manager'].includes(currentUser?.role);
   const untriagedReports = useMemo(() => reports.filter(r => !OMP_DEPARTMENTS.includes(r.mainDepartment)), [reports]);
   const [selectedId, setSelectedId] = useState(null);
+  // Deep link from the dashboard list view: focus the clicked report once it
+  // exists in the loaded set; closed reports need the status filter widened.
+  const appliedInitialReportRef = useRef(null);
+  useEffect(() => {
+    if (!initialReportId || appliedInitialReportRef.current === initialReportId) return;
+    const target = reports.find(report => report.id === initialReportId);
+    if (!target) return;
+    appliedInitialReportRef.current = initialReportId;
+    setNcrMode('tracker');
+    if (isNcrClosedReport(target)) setStatus('all');
+    setSelectedId(initialReportId);
+  }, [initialReportId, reports]);
   const [saving, setSaving] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -1872,6 +1967,10 @@ const NcrPage = ({
     }, 75);
     return () => clearTimeout(timeout);
   }, [showCreateModal, createModalPhotoFirst]);
+  // Rebuild Phase 1: server-computed NCR card counts behind the same flag;
+  // client math below stays as the instant fallback.
+  const ncrCountsOn = useAppFlag('server_counts');
+  const ncrServerCounts = useServerCounts('rpc_ncr_counts', {}, ncrCountsOn);
   const openReports = reports.filter(report => !report.closed && report.status !== 'closed');
   const closedReports = reports.filter(report => report.closed || report.status === 'closed');
   const pastDue = reports.filter(isNcrPastDue);
@@ -2005,6 +2104,14 @@ const NcrPage = ({
     setStatus(prev => prev === target ? 'all' : target);
   };
   const selectedReport = reports.find(report => report.id === selectedId) || sorted[0] || null;
+  // Lap 1: the list carries lean rows — the open report (clicked OR the
+  // default first row) hydrates its full record + audit trail on demand.
+  // updatedAt in the deps re-hydrates after a save so the trail stays fresh.
+  const hydrateTargetId = selectedReport?.id || null;
+  const hydrateTargetUpdatedAt = selectedReport?.updatedAt || null;
+  useEffect(() => {
+    if (hydrateTargetId) onHydrateReport?.(hydrateTargetId);
+  }, [hydrateTargetId, hydrateTargetUpdatedAt, onHydrateReport]);
   const selectedOutsideFilter = Boolean(selectedReport && !filtered.some(report => report.id === selectedReport.id));
   const linkedObjective = selectedReport?.linkedObjectiveId ? objectives.find(objective => objective.id === selectedReport.linkedObjectiveId) : null;
   const updateSelected = async (changes, successMessage) => {
@@ -2724,7 +2831,7 @@ const NcrPage = ({
         </div>
       </div>
       {ncrMode === 'triage' && canTriage && <NcrTriagePanel reports={untriagedReports} currentUser={currentUser} onUpdateReport={onUpdateReport} addToast={addToast} />}
-      {ncrMode === 'closeout' && canCloseOut && <NcrCloseoutReport reports={reports} currentUser={currentUser} people={people} onUpdateReport={onUpdateReport} onUpdateActionItem={onUpdateActionItem} onCaptureSignature={onCaptureSignature} onOpenTracker={reportId => {
+      {ncrMode === 'closeout' && canCloseOut && <NcrCloseoutReport reports={reports} currentUser={currentUser} people={people} onHydrateReport={onHydrateReport} onUpdateReport={onUpdateReport} onUpdateActionItem={onUpdateActionItem} onCaptureSignature={onCaptureSignature} onOpenTracker={reportId => {
         setSelectedId(reportId);
         setNcrMode('tracker');
       }} addToast={addToast} />}
@@ -2732,11 +2839,11 @@ const NcrPage = ({
       <FeatureHelp id="ncr-tracker" title="Using the NCR Tracker" items={["Filter by group, status, event type, or criticality to review open non-conformance reports.", "Use Closeout Report to enter review data and close NCRs without round-tripping through Excel.", "Create an objective when an NCR needs assigned action items before closeout."]} />
 
       <div className="ncr-kpis">
-        <KPICard label="Open" value={openReports.length} icon={AlertCircle} color="var(--brand)" onClick={() => applyStatusKpi('open')} active={status === 'open' && flagFilter === 'all'} sub="Click to filter" />
-        <KPICard label="Past Due" value={pastDue.length} icon={AlertTriangle} color="var(--error)" onClick={() => applyQuickFilter('past_due')} active={flagFilter === 'past_due'} sub="Click to filter" />
-        <KPICard label="Due 7 Days" value={dueSoon.length} icon={Clock} color="var(--warning)" onClick={() => applyQuickFilter('due_soon')} active={flagFilter === 'due_soon'} sub="Click to filter" />
-        <KPICard label="Critical Open" value={critical.length} icon={Shield} color="var(--error)" onClick={() => applyQuickFilter('critical')} active={flagFilter === 'critical'} sub="Click to filter" />
-        <KPICard label="Closed" value={closedReports.length} icon={CheckCircle2} color="var(--success)" onClick={() => applyStatusKpi('closed')} active={status === 'closed' && flagFilter === 'all'} sub="Click to filter" />
+        <KPICard label="Open" value={ncrServerCounts ? Number(ncrServerCounts.open) : openReports.length} icon={AlertCircle} color="var(--brand)" onClick={() => applyStatusKpi('open')} active={status === 'open' && flagFilter === 'all'} sub="Click to filter" />
+        <KPICard label="Past Due" value={ncrServerCounts ? Number(ncrServerCounts.past_due) : pastDue.length} icon={AlertTriangle} color="var(--error)" onClick={() => applyQuickFilter('past_due')} active={flagFilter === 'past_due'} sub="Click to filter" />
+        <KPICard label="Due 7 Days" value={ncrServerCounts ? Number(ncrServerCounts.due_soon) : dueSoon.length} icon={Clock} color="var(--warning)" onClick={() => applyQuickFilter('due_soon')} active={flagFilter === 'due_soon'} sub="Click to filter" />
+        <KPICard label="Critical Open" value={ncrServerCounts ? Number(ncrServerCounts.critical_open) : critical.length} icon={Shield} color="var(--error)" onClick={() => applyQuickFilter('critical')} active={flagFilter === 'critical'} sub="Click to filter" />
+        <KPICard label="Closed" value={ncrServerCounts ? Number(ncrServerCounts.closed) : closedReports.length} icon={CheckCircle2} color="var(--success)" onClick={() => applyStatusKpi('closed')} active={status === 'closed' && flagFilter === 'all'} sub="Click to filter" />
       </div>
 
       <div className="ncr-workspace">
@@ -2901,8 +3008,12 @@ const NcrPage = ({
                   <div className="text-xs text-muted">NCR #{selectedReport.reportNumber}</div>
                   <h2>{selectedReport.eventType || 'Non-Conformance Report'}</h2>
                   <div className="text-xs text-muted">{selectedReport.operatorLocation || selectedReport.worksiteArea || 'No location'} · {formatDate(selectedReport.reportDate)}</div>
+                  {(selectedReport.auditEvents || []).slice(0, 1).map(event => <div key={event.id} className="text-xs text-muted">Last change: {(event.fieldName || event.eventType || 'update').replaceAll('_', ' ')} · {people.find(person => person.id === event.actorId)?.name || 'System'} · {timeAgo(event.createdAt)}</div>)}
                 </div>
-                <Badge color={getNcrLifecycleColor(selectedReport.lifecycleStage)}>{getNcrStageLabel(selectedReport.lifecycleStage)}</Badge>
+                <span className="ncr-detail-badges">
+                  {selectedReport.sourceSystem === 'KPA' && <Badge color="#6b7280">KPA import</Badge>}
+                  <Badge color={getNcrLifecycleColor(selectedReport.lifecycleStage)}>{getNcrStageLabel(selectedReport.lifecycleStage)}</Badge>
+                </span>
               </div>
 
               <div className="ncr-detail-grid">
@@ -2939,7 +3050,7 @@ const NcrPage = ({
                 </div>
               </div>
 
-              <NcrEventPhotoStrip report={selectedReport} onUpload={uploadEvidenceWithPurpose} uploading={uploadingEvidence} />
+              <NcrEventPhotoStrip report={selectedReport} onUpload={uploadEvidenceWithPurpose} uploading={uploadingEvidence} addToast={addToast} />
 
               {isAdvancedNcrView && <div className="ncr-section">
                 <h3>Header + Classification</h3>
@@ -3017,7 +3128,7 @@ const NcrPage = ({
                   eventDescription: event.target.value
                 }, 'event description updated')} placeholder="Describe what happened, what was affected, and how it was discovered." />
               </div>
-              <NcrEvidencePanel report={selectedReport} onUpload={uploadEvidenceWithPurpose} uploading={uploadingEvidence} />
+              <NcrEvidencePanel report={selectedReport} onUpload={uploadEvidenceWithPurpose} uploading={uploadingEvidence} addToast={addToast} />
               <div className="ncr-section">
                 <h3>Containment / Disposition</h3>
                 <div className="org-edit-grid">

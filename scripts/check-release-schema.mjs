@@ -82,6 +82,8 @@ const checks = [
   ['objectives release columns', 'objectives', 'id,assignment_group_id,measurement_cadence,rollup_method,okr_level,okr_period,okr_weight,classification_status,classification_confidence,classification_reason'],
   ['subtasks release columns', 'subtasks', 'id,due_date,weight,is_milestone,milestone_date'],
   ['objective_updates release columns', 'objective_updates', 'id,user_id,action_type,old_value,new_value,reference_id'],
+  ['client_errors table', 'client_errors', 'id,user_id,source,message,stack,page,user_agent,context,app_version,created_at'],
+  ['app_flags table', 'app_flags', 'key,enabled,updated_at'],
 ];
 
 const wait = (ms) => new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
@@ -175,6 +177,40 @@ const runClientChecks = async (key, canCheckStorage) => {
       console.log('ok private okr-project-files bucket');
       console.log('ok private alt-note-files bucket');
       console.log('ok public profile-avatars bucket');
+    }
+
+    // NCR file integrity: imported NCR PDFs must stay real, not facades.
+    // rows→objects: a random sample of attachment rows must produce signed
+    // URLs; kpa-original census: listed objects must match attachment rows
+    // one-for-one. Drift in either direction fails the gate.
+    try {
+      const { data: attachmentRows, error: attachmentError } = await withRetry(
+        () => supabase.from('ncr_attachments').select('storage_path').not('storage_path', 'is', null),
+        { label: 'ncr attachment rows' },
+      );
+      if (attachmentError) throw attachmentError;
+      const sample = [...(attachmentRows || [])].sort(() => Math.random() - 0.5).slice(0, 12);
+      for (const row of sample) {
+        const { error: signError } = await withRetry(
+          () => supabase.storage.from('ncr-files').createSignedUrl(row.storage_path, 60),
+          { label: `sign ${row.storage_path}` },
+        );
+        if (signError) throw new Error(`attachment row has no storage object: ${row.storage_path} (${signError.message})`);
+      }
+      const { data: kpaObjects, error: listError } = await withRetry(
+        () => supabase.storage.from('ncr-files').list('kpa-original', { limit: 1000 }),
+        { label: 'ncr kpa-original listing' },
+      );
+      if (listError) throw listError;
+      const kpaRowCount = (attachmentRows || []).filter((row) => row.storage_path.startsWith('kpa-original/')).length;
+      const kpaObjectCount = (kpaObjects || []).filter((entry) => entry.id).length;
+      if (kpaObjectCount !== kpaRowCount) {
+        throw new Error(`kpa-original drift: ${kpaObjectCount} storage objects vs ${kpaRowCount} attachment rows`);
+      }
+      console.log(`ok ncr file integrity (${sample.length} sampled signatures; kpa-original ${kpaObjectCount} objects = ${kpaRowCount} rows)`);
+    } catch (error) {
+      failed = true;
+      console.error(`x ncr file integrity: ${error.message || error}`);
     }
   }
 

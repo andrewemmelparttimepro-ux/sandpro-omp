@@ -40,7 +40,8 @@ const isFixItPushType = (type) => ['fixit_new', 'fixit_agent'].includes(type);
 export const notificationAllowsPush = (prefs, type) => {
   if (prefs && prefs.push_enabled === false) return false;
   if (isFixItPushType(type)) return true;
-  if (type === 'mention' || type === 'comment') return prefs?.comment_notifications !== false;
+  if (type === 'mention') return true; // an @ is a direct address — always deliver
+  if (type === 'comment') return prefs?.comment_notifications !== false;
   if (type === 'assignment' || type === 'delegation') return prefs?.delegation_alerts !== false;
   if (type === 'acknowledgement') return prefs?.delegation_alerts !== false;
   if (type === 'blocker' || type === 'at_risk') return prefs?.blocker_alerts !== false;
@@ -82,10 +83,19 @@ export const buildPushPayload = ({ type, objective, message, url, notificationId
       renotify: urgent,
       requireInteraction: urgent,
       silent: false,
-      badge: '/pwa/icon-192.png',
-      icon: '/pwa/icon-192.png',
+      badge: '/pwa/sandpro-omp-icon-192-v2.png',
+      icon: '/pwa/sandpro-omp-icon-192-v2.png',
     },
   };
+};
+
+// TTL/urgency per type. Short TTLs drop pushes for phones in Doze; Android
+// holds normal-urgency messages for maintenance windows, so anything
+// shorter than a few hours can expire undelivered on an idle device.
+export const pushDeliveryOptions = (type, urgent) => {
+  if (urgent) return { TTL: 60 * 60 * 6, urgency: 'high' };
+  if (type === 'daily_digest') return { TTL: 60 * 60 * 10, urgency: 'normal' };
+  return { TTL: 60 * 60 * 4, urgency: 'normal' };
 };
 
 const insertLog = async (supabase, row) => {
@@ -176,9 +186,7 @@ export const sendPushNotifications = async ({
           p256dh: subscription.p256dh,
           auth: subscription.auth,
         },
-      }, JSON.stringify(payload), {
-        TTL: payload.urgent ? 60 * 60 * 6 : 60 * 20,
-      });
+      }, JSON.stringify(payload), pushDeliveryOptions(type, payload.urgent));
       await updateLog(supabase, logId, { status: 'sent', sent_at: new Date().toISOString() });
       results.push({ subscriptionId: subscription.id, sent: true, statusCode: response?.statusCode || 201 });
     } catch (error) {

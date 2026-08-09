@@ -7,10 +7,14 @@ import {
   PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio,
   ClipboardCheck
 } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, canManageOkrs, isObjectiveAssignedToUser } from './data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, canManageOkrs, isObjectiveAssignedToUser, getRecurrenceLabel } from './data';
 import { Avatar, Badge } from './uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from './sharedWidgets';
 import { useAltNotes } from './hooks/useSupabase';
+import { useServerCounts } from './hooks/useServerCounts';
+import { useAppFlag } from './lib/flags';
+import { humanizeError } from './lib/errors';
+import { reportClientError } from './lib/telemetry';
 import { FieldKeyProvider, DefinedTerm, FieldKeyHint } from './glossary';
 import {
   OKR_LEVELS,
@@ -789,11 +793,40 @@ export const GlobalKpiStrip = ({
       .filter(item => item.count > 0)
   );
   const overdueItems = allActive.filter(o => isOverdue(o));
+  // Rebuild Phase 1: with the server_counts flag on, every number on this
+  // strip comes from one rpc_kpi_strip call (computed in Postgres) instead of
+  // client-side counting. Client math stays as the instant fallback for flag
+  // off or an unreachable RPC.
+  const serverCountsOn = useAppFlag('server_counts');
+  const sc = useServerCounts(
+    'rpc_kpi_strip',
+    { p_scope: scope, p_report_ids: scope === "team" ? directReports.map(r => r.id) : [] },
+    serverCountsOn,
+  );
+  const nActive = sc ? Number(sc.active) : allActive.length;
+  const nCompleted = sc ? Number(sc.completed) : completed;
+  const nOverdue = sc ? Number(sc.overdue) : overdue;
+  const nAtRisk = sc ? Number(sc.at_risk) : atRisk;
+  const nBlocked = sc ? Number(sc.blocked) : blocked;
+  const nDueToday = sc ? Number(sc.due_today) : dueToday;
+  const nDue7 = sc ? Number(sc.due_7) : dueWithin(7);
+  const nDue14 = sc ? Number(sc.due_14) : dueWithin(14);
+  const nDue28 = sc ? Number(sc.due_28) : dueWithin(28);
+  const breakdownFromServer = (bucket) => (
+    ["on_track", "at_risk", "blocked", "not_started", "completed"]
+      .map(status => ({ status, label: getStatusLabel(status), count: Number(bucket?.[status] || 0) }))
+      .filter(item => item.count > 0)
+  );
+  const activeBreakdown = sc ? breakdownFromServer(sc.active_breakdown) : statusBreakdown(allActive);
+  const overdueBreakdown = sc ? breakdownFromServer(sc.overdue_breakdown) : statusBreakdown(overdueItems);
+  const completedBreakdown = sc
+    ? [{ status: "completed", label: getStatusLabel("completed"), count: nCompleted }].filter(item => item.count > 0)
+    : statusBreakdown(scopedObjectives.filter(o => o.status === "completed"));
   const dueHorizonItems = [
-    { key: "today", label: "Today", value: dueToday, dueWindow: "today", tone: dueToday > 0 ? "soon" : "empty" },
-    { key: "7", label: "7 days", value: dueWithin(7), dueWindow: 7, tone: dueWithin(7) > 0 ? "soon" : "empty" },
-    { key: "14", label: "14 days", value: dueWithin(14), dueWindow: 14, tone: dueWithin(14) > 0 ? "mid" : "empty" },
-    { key: "28", label: "28 days", value: dueWithin(28), dueWindow: 28, tone: dueWithin(28) > 0 ? "far" : "empty" },
+    { key: "today", label: "Today", value: nDueToday, dueWindow: "today", tone: nDueToday > 0 ? "soon" : "empty" },
+    { key: "7", label: "7 days", value: nDue7, dueWindow: 7, tone: nDue7 > 0 ? "soon" : "empty" },
+    { key: "14", label: "14 days", value: nDue14, dueWindow: 14, tone: nDue14 > 0 ? "mid" : "empty" },
+    { key: "28", label: "28 days", value: nDue28, dueWindow: 28, tone: nDue28 > 0 ? "far" : "empty" },
   ];
   const isExecutive = currentUser.role === "executive";
   const isManager = currentUser.role === "manager";
@@ -834,8 +867,8 @@ export const GlobalKpiStrip = ({
         <div className="global-kpi-summary-row">
           {isMobile && scopeTabs}
           <div className="global-kpi-compact-metrics" aria-label="Collapsed KPI summary">
-            <span><strong>{allActive.length}</strong> active</span>
-            <span><strong>{overdue}</strong> past due</span>
+            <span><strong>{nActive}</strong> active</span>
+            <span><strong>{nOverdue}</strong> past due</span>
           </div>
           <button
             type="button"
@@ -872,9 +905,9 @@ export const GlobalKpiStrip = ({
         <div className="global-kpi-collapse-cluster">
           {collapsed && (
             <div className="global-kpi-compact-metrics" aria-label="Collapsed KPI summary">
-              <span><strong>{allActive.length}</strong> active</span>
-              <span><strong>{overdue}</strong> past due</span>
-              <span><strong>{dueToday}</strong> due today</span>
+              <span><strong>{nActive}</strong> active</span>
+              <span><strong>{nOverdue}</strong> past due</span>
+              <span><strong>{nDueToday}</strong> due today</span>
             </div>
           )}
           <button
@@ -892,9 +925,9 @@ export const GlobalKpiStrip = ({
       {!collapsed && (
         <div id="global-kpi-strip-body">
           <div className="kpi-grid flex gap-10 flex-shrink-0" style={{ paddingBottom: 12, overflowX: "auto", display: "grid", gridTemplateColumns: "repeat(4, minmax(150px, 1fr))", gap: 10 }}>
-            <KPICard bucket="state" icon={Target} label="Active" value={allActive.length} sub="not completed or cancelled" color="#3B82F6" breakdown={statusBreakdown(allActive)} onClick={() => onKpiClick?.({ label: "Active", activeOnly: true, scope })} />
-            <KPICard bucket="state" icon={CheckCircle2} label="Completed" value={completed} sub="finished work" color="#10B981" breakdown={statusBreakdown(scopedObjectives.filter(o => o.status === "completed"))} onClick={() => onKpiClick?.({ label: "Completed", status: "completed", scope })} />
-            <KPICard bucket="time" icon={AlertTriangle} label="Past Due" value={overdue} sub={`${atRisk} at risk · ${blocked} blocked`} color="#EF4444" breakdown={statusBreakdown(overdueItems)} onClick={() => onKpiClick?.({ label: "Past Due", overdue: true, activeOnly: true, scope })} />
+            <KPICard bucket="state" icon={Target} label="Active" value={nActive} sub="not completed or cancelled" color="#3B82F6" breakdown={activeBreakdown} onClick={() => onKpiClick?.({ label: "Active", activeOnly: true, scope })} />
+            <KPICard bucket="state" icon={CheckCircle2} label="Completed" value={nCompleted} sub="finished work" color="#10B981" breakdown={completedBreakdown} onClick={() => onKpiClick?.({ label: "Completed", status: "completed", scope })} />
+            <KPICard bucket="time" icon={AlertTriangle} label="Past Due" value={nOverdue} sub={`${nAtRisk} at risk · ${nBlocked} blocked`} color="#EF4444" breakdown={overdueBreakdown} onClick={() => onKpiClick?.({ label: "Past Due", overdue: true, activeOnly: true, scope })} />
             <DueHorizonStrip items={dueHorizonItems} onSelect={(item) => onKpiClick?.({ label: `Due Next ${item.label}`, dueWindow: item.dueWindow, activeOnly: true, scope })} />
           </div>
         </div>
@@ -1073,7 +1106,8 @@ export const CreateWizardModal = ({
       else await onCreateTask({ ...base, link, parentId: parentId || null });
       onClose();
     } catch (err) {
-      setError(err?.message || "Could not create. Try again.");
+      reportClientError('create-wizard', err?.message || String(err), { stack: err?.stack, context: { type, link } });
+      setError(humanizeError(err, "Could not create. Try again."));
     } finally {
       setBusy(false);
     }
@@ -1398,13 +1432,17 @@ const rowMatchesAging = (row, bucket) => {
 };
 
 const AgingPill = ({ row }) => {
+  // Recurring routines carry a ↻ marker; one that slipped its cycle reads
+  // "Missed week", not the generic past-due a dropped one-off gets.
+  const cadence = getRecurrenceLabel(row.description);
+  const mark = cadence ? "↻ " : "";
   if (row.isCompleted) return <span className="lv-aging tone-done">Completed</span>;
   const days = daysUntilDue(row.dueDate);
-  if (days === null) return <span className="lv-aging tone-none">No due date</span>;
-  if (days < 0) return <span className="lv-aging tone-past">Past due {Math.abs(days)}d</span>;
-  if (days === 0) return <span className="lv-aging tone-today">Due today</span>;
-  if (days <= 7) return <span className="lv-aging tone-soon">Due in {days}d</span>;
-  return <span className="lv-aging tone-far">Due in {days}d</span>;
+  if (days === null) return <span className="lv-aging tone-none">{cadence ? `↻ ${cadence}` : "No due date"}</span>;
+  if (days < 0) return <span className="lv-aging tone-past">{cadence ? `↻ Missed ${cadence.toLowerCase().replace("ly", "")} · ${Math.abs(days)}d` : `Past due ${Math.abs(days)}d`}</span>;
+  if (days === 0) return <span className="lv-aging tone-today">{mark}Due today</span>;
+  if (days <= 7) return <span className="lv-aging tone-soon">{mark}Due in {days}d</span>;
+  return <span className="lv-aging tone-far">{mark}Due in {days}d</span>;
 };
 
 const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects = [], ncrReports = [], allNcrReports = ncrReports, currentUser, onOpenCard, onProjectClick, onNcrClick, onUpdateNcrReport }) => {
@@ -1468,6 +1506,7 @@ const DashboardListView = ({ objectives, allObjectives = objectives, okrProjects
         ownerId: o.ownerId,
         memberIds: (o.members || []).map(m => m.userId),
         dueDate: o.dueDate || null,
+        description: o.description || "",
         isCompleted: o.status === "completed",
       }));
     const projectRows = okrProjects.map(p => ({

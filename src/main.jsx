@@ -2,8 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import { installMicrosoftClarity } from './analytics.js'
+import { installGlobalErrorReporting } from './lib/telemetry.js'
 
 installMicrosoftClarity();
+installGlobalErrorReporting();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

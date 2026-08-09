@@ -308,7 +308,8 @@ test('Web Push is a visible direct-work layer on top of in-app notifications', (
   assert.match(sender, /fixit_agent/);
   assert.match(endpoint, /sendPushNotifications/);
   assert.match(endpoint, /notificationId/);
-  assert.match(sender, /type === 'mention' \|\| type === 'comment'/);
+  assert.match(sender, /type === 'mention'\) return true/);
+  assert.match(sender, /type === 'comment'\) return prefs\?\.comment_notifications/);
   assert.match(fixItEndpoint, /sendPushNotifications/);
   assert.match(fixItEndpoint, /targetUserId/);
   assert.match(hook, /Notification\.requestPermission/);
@@ -323,6 +324,7 @@ test('Web Push is a visible direct-work layer on top of in-app notifications', (
   assert.match(sw, /addEventListener\('notificationclick'/);
 
   assert.equal(notificationAllowsPush({ push_enabled: true, comment_notifications: true }, 'mention'), true);
+  assert.equal(notificationAllowsPush({ push_enabled: true, comment_notifications: false }, 'mention'), true);
   assert.equal(notificationAllowsPush({ push_enabled: true, comment_notifications: true }, 'comment'), true);
   assert.equal(notificationAllowsPush({ push_enabled: true, comment_notifications: false }, 'comment'), false);
   assert.equal(notificationAllowsPush({ push_enabled: true, due_reminders: true }, 'due_soon', { priority: 'medium' }), true);
@@ -940,7 +942,11 @@ test('dashboard KPI buckets mirror objective drill-down filters', () => {
   assert.match(pages, /Due Next 14/);
   assert.match(pages, /Due Next 28/);
   assert.match(pages, /statusBreakdown/);
-  assert.match(pages, /breakdown=\{statusBreakdown/);
+  // Rebuild Phase 1: card breakdowns route through the server-counts adapter
+  // (activeBreakdown/overdueBreakdown fall back to statusBreakdown client math).
+  assert.match(pages, /breakdown=\{activeBreakdown\}/);
+  assert.match(pages, /breakdown=\{overdueBreakdown\}/);
+  assert.match(pages, /useAppFlag\('server_counts'\)/);
   assert.match(component, /kpi-status-breakdown/);
   assert.match(component, /kpi-card-\$\{bucket\}/);
   assert.match(component, /kpi-status-dot/);
@@ -1479,7 +1485,7 @@ test('mobile PWA rebuild has install assets, safe-area shell, and phone-native w
   assert.doesNotMatch(favicon, /863bff|vite/i);
   assert.match(sw, /\/brand\/sandpro-omp-logo\.png/);
   assert.match(sw, /\/favicon-omp-v2\.png/);
-  assert.match(sw, /sandpro-omp-shell-v10/);
+  assert.match(sw, /sandpro-omp-shell-v11/);
   assert.match(sw, /OFFLINE_HTML/);
   assert.match(sw, /supabase\.co/);
   assert.match(sw, /pathname\.startsWith\('\/api\/'\)/);
