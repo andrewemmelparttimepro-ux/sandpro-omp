@@ -403,7 +403,7 @@ test('production deploy script validates schema before deploy and smokes after d
 
 test('Objective Assistant is behind the personal AI switch and server-disabled only when explicitly off', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const endpoint = read('api/agent/objective-starter.js');
   assert.match(app, /sandpro-ai-features-enabled-v2/);
   assert.match(app, /isPersonalAiDashboardOwner/);
@@ -675,7 +675,7 @@ test('org chart is a draggable tree with research-backed export options for org 
 });
 
 test('new user-facing features include dismissible help that can be reopened', () => {
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const pages = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   assert.match(component, /export const FeatureHelp/);
   assert.match(component, /defaultOpen = true/);
@@ -697,7 +697,7 @@ test('new user-facing features include dismissible help that can be reopened', (
 
 test('The SandPro Times can publish bulletin-board updates with PWA guidance', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const css = read('src/index.css');
   assert.match(app, /DAILY_BRIEF_STORAGE_VERSION/);
   assert.match(app, /bulletin-2026-06-24-company-wide-launch/);
@@ -796,7 +796,7 @@ test('new feature announcements point users to newly shipped tabs once', () => {
 
 test('Merci feedback items are covered by durable UI paths', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const hook = read('src/hooks/useSupabase.js');
   const migration = read('supabase/release_ready_migration.sql');
 
@@ -845,7 +845,7 @@ test('Merci consolidated review keeps the home surface focused and corrections d
 });
 
 test('objective progress calculation copy is professional SandPro language', () => {
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
 
   assert.match(component, /Progress Calculation/);
   assert.match(component, /Average supporting work/);
@@ -867,7 +867,7 @@ test('Merci follow-up visibility fixes are represented in the UI source', () => 
 });
 
 test('objective tagging uses @mention entry instead of teammate dropdowns', () => {
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const pages = read('src/pages.jsx');
   const app = read('src/App.jsx');
 
@@ -888,7 +888,7 @@ test('objective tagging uses @mention entry instead of teammate dropdowns', () =
 
 test('objectives list defaults to one-line titles with opt-in descriptions', () => {
   const pages = read('src/pages.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const css = read('src/index.css');
 
   assert.match(pages, /showListDescriptions/);
@@ -911,7 +911,7 @@ test('objectives list defaults to one-line titles with opt-in descriptions', () 
 test('dashboard KPI buckets mirror objective drill-down filters', () => {
   const app = read('src/App.jsx');
   const pages = read('src/pages.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const css = read('src/index.css');
 
   assert.match(pages, /label="Completed"/);
@@ -1058,7 +1058,7 @@ test('objective list can sort by created date newest and oldest', () => {
 
 test('objective message board tracks per-user unread state', () => {
   const hook = read('src/hooks/useSupabase.js');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const pages = read('src/pages.jsx');
   const css = read('src/index.css');
   const migration = read('supabase/release_ready_migration.sql');
@@ -1082,7 +1082,7 @@ test('objective message board tracks per-user unread state', () => {
 
 test('objective message mentions attach teammates as assigned members', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const mentions = read('src/mentions.js');
 
   assert.match(app, /getMentionedUsers\(msg\.text/);
@@ -1099,7 +1099,7 @@ test('objective rows support direct inline status changes', () => {
   const pages = read('src/pages.jsx');
   const css = read('src/index.css');
   const spec = read('tests/mutating-workflows.spec.js');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
 
   assert.match(app, /handleQuickStatusObjective/);
   assert.match(app, /onQuickStatus=\{handleQuickStatusObjective\}/);
@@ -1128,7 +1128,7 @@ test('assigned objective members can reopen and update assigned objectives', () 
 
 test('objective messages can be edited by the sender and compose areas can grow', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const hook = read('src/hooks/useSupabase.js');
   const migration = read('supabase/release_ready_migration.sql');
   const css = read('src/index.css');
@@ -1145,7 +1145,7 @@ test('objective messages can be edited by the sender and compose areas can grow'
 
 test('objective messages support persisted work-appropriate reactions', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const hook = read('src/hooks/useSupabase.js');
   const migration = read('supabase/release_ready_migration.sql');
   const css = read('src/index.css');
@@ -1170,7 +1170,7 @@ test('objective messages support persisted work-appropriate reactions', () => {
 });
 
 test('objective messages support polished voice notes', () => {
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const hook = read('src/hooks/useSupabase.js');
   const css = read('src/index.css');
 
@@ -1197,7 +1197,7 @@ test('objective messages support polished voice notes', () => {
 
 test('Spanish objective messages can be translated inline for English readers', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const css = read('src/index.css');
   const endpoint = read('api/messages/translate.js');
 
@@ -1237,7 +1237,7 @@ test('persistent SandPro brand mark returns users to the dashboard', () => {
 
 test('objective drafts survive modal closes until successfully saved', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
 
   assert.match(component, /sandpro-objective-form-draft/);
   assert.match(component, /savedDraft/);
@@ -1257,7 +1257,7 @@ test('objective drafts survive modal closes until successfully saved', () => {
 
 test('objective delete is limited to creators and admins, not plain owners', () => {
   const app = read('src/App.jsx');
-  const component = read('src/components.jsx');
+  const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const hook = read('src/hooks/useSupabase.js');
   const migration = read('supabase/release_ready_migration.sql');
 
@@ -1466,7 +1466,7 @@ test('mobile PWA rebuild has install assets, safe-area shell, and phone-native w
     'src/routes/NcrPage.jsx',
     'src/routes/OrgPage.jsx',
   );
-  const components = read('src/components.jsx');
+  const components = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const css = read('src/index.css');
 
   assert.equal(manifest.short_name, 'SandPro');
