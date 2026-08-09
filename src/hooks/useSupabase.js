@@ -134,7 +134,19 @@ const makeCoalescedRefetch = (fn, delayMs = 2000) => {
 // the imported KPA payload that made select('*') 2 MB instead of ~500 KB for
 // 412 rows. The full record (raw payload included) hydrates per report on
 // open via hydrateReport.
-const NCR_LIST_COLUMNS = 'id,report_number,source_sheet,source_link,report_date,observer,follow_up_count,follow_up_details,follow_up_due_date,worksite_area,operator_location,event_at,internal_external,event_type,non_productive_time,non_productive_time_amount,author,personnel_involved,event_description,severity,root_cause_codes,root_cause_analysis,immediate_action,permanent_action,affected_departments,department_group,long_term_follow_up,action_effective,status,closed,linked_objective_id,created_by,updated_by,created_at,updated_at,lifecycle_stage,owner_id,reviewer_id,verifier_id,closure_approved_by,closure_approved_at,containment_required,containment_summary,affected_product,affected_equipment,affected_job,disposition,disposition_notes,effectiveness_summary,effectiveness_checked_at,effectiveness_checked_by,recurrence_prevented,repeat_issue,customer_approval_required,customer_approval_status,event_types,estimated_cost,criticality,author_id,personnel_involved_ids,time_frame_for_action,affected_department_list,date_initial_corrective_action,date_permanent_corrective_action_completed,date_of_review,date_of_sign_off,signed_off_by_management_id,reviewed_by_id,final_management_signoff_id,source_system,source_record_id,source_batch_id,canonical_failure_code,normalized_failure_summary,ai_confidence,ai_classification_reason,main_department';
+const NCR_DETAIL_ONLY_KEYS = [
+  'sourceSheet', 'sourceLink', 'nonProductiveTime', 'nonProductiveTimeAmount',
+  'estimatedCost', 'personnelInvolved', 'personnelInvolvedIds',
+  'timeFrameForAction', 'longTermFollowUp', 'dateInitialCorrectiveAction',
+  'datePermanentCorrectiveActionCompleted', 'dateOfReview', 'dateOfSignOff',
+  'signedOffByManagementId', 'reviewedById', 'finalManagementSignoffId',
+  'sourceRecordId', 'sourceBatchId', 'aiConfidence', 'aiClassificationReason',
+  'containmentSummary', 'disposition', 'dispositionNotes',
+  'effectivenessCheckedAt', 'effectivenessCheckedBy', 'affectedJob',
+  'followUpDetails', 'createdBy', 'updatedBy', 'sourceRawRecord',
+];
+
+const NCR_LIST_COLUMNS = 'id,report_number,report_date,observer,author,author_id,worksite_area,operator_location,event_at,internal_external,event_type,event_types,criticality,severity,status,closed,lifecycle_stage,main_department,department_group,affected_departments,affected_department_list,follow_up_count,follow_up_due_date,owner_id,reviewer_id,verifier_id,event_description,root_cause_codes,root_cause_analysis,immediate_action,permanent_action,action_effective,effectiveness_summary,repeat_issue,recurrence_prevented,customer_approval_required,customer_approval_status,normalized_failure_summary,canonical_failure_code,affected_product,affected_equipment,linked_objective_id,source_system,containment_required,closure_approved_by,closure_approved_at,created_at,updated_at';
 
 const mapWorkflowStepRow = (step) => ({
   id: step.id,
@@ -1592,6 +1604,7 @@ export function useObjectives(enabled = true) {
   const [okrProjects, setOkrProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const lastObjectivesFetchAtRef = useRef(0);
   const fetchObjectivesInner = useCallback(async () => {
     if (!enabled) {
       setObjectives([]);
@@ -1599,6 +1612,10 @@ export function useObjectives(enabled = true) {
       setLoading(false);
       return [];
     }
+    // Boot-time effect churn can start a second identical pull moments after
+    // the first; within 2.5s of a fetch STARTING, later starts are no-ops.
+    if (Date.now() - lastObjectivesFetchAtRef.current < 2500) return null;
+    lastObjectivesFetchAtRef.current = Date.now();
     const { data: authData } = await supabase.auth.getUser();
     const currentUserId = authData?.user?.id || null;
 
@@ -3078,6 +3095,7 @@ export function useNcrReports(enabled = false) {
   const loadedRef = useRef(false);
 
   const inFlightReportsRef = useRef(null);
+  const lastReportsFetchAtRef = useRef(0);
   const fetchReportsInner = useCallback(async () => {
     if (!enabled) {
       setReports([]);
@@ -3085,6 +3103,8 @@ export function useNcrReports(enabled = false) {
       loadedRef.current = false;
       return [];
     }
+    if (Date.now() - lastReportsFetchAtRef.current < 2500) return null;
+    lastReportsFetchAtRef.current = Date.now();
     if (!loadedRef.current) setLoading(true);
     const { data, error } = await timedQuery(supabase
       .from('ncr_reports')
@@ -3182,6 +3202,13 @@ export function useNcrReports(enabled = false) {
       const prevById = new Map(prev.map(report => [report.id, report]));
       return mapped.map(report => {
         const old = prevById.get(report.id);
+        if (old?._hydrated) {
+          // Lean refetch rows lack detail-only columns — keep the hydrated
+          // values (a save bumps updated_at, which re-triggers hydration).
+          const merged = { ...report, auditEvents: old.auditEvents, _hydrated: true };
+          for (const key of NCR_DETAIL_ONLY_KEYS) merged[key] = old[key];
+          return merged;
+        }
         const hasExtras = old && (old.auditEvents?.length || Object.keys(old.sourceRawRecord || {}).length);
         return hasExtras ? { ...report, auditEvents: old.auditEvents, sourceRawRecord: old.sourceRawRecord } : report;
       });
@@ -3512,13 +3539,16 @@ export function useNcrReports(enabled = false) {
     if (fullRes.error || !fullRes.data) return null;
     const auditEvents = (auditRes.data || []).map(mapNcrAuditEvent);
     setReports(prev => prev.map(report => report.id === id
-      ? mapNcrReport({
-          ...fullRes.data,
-          actionItems: report.actionItems || [],
-          attachments: report.attachments || [],
-          signatures: report.signatures || [],
-          auditEvents,
-        })
+      ? {
+          ...mapNcrReport({
+            ...fullRes.data,
+            actionItems: report.actionItems || [],
+            attachments: report.attachments || [],
+            signatures: report.signatures || [],
+            auditEvents,
+          }),
+          _hydrated: true,
+        }
       : report));
     return true;
   }, []);
