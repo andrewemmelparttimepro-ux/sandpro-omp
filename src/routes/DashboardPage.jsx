@@ -722,14 +722,16 @@ const DashboardListView = ({
     return da - db;
   }), [preAging, aging]);
   const profileIds = useMemo(() => new Set(profiles.map(profile => profile.id).filter(Boolean)), [profiles]);
-  const unknownNcrRows = useMemo(() => preAging.filter(row => row.kind === "ncr" && !row.isCompleted && (!row.ownerId || !profileIds.has(row.ownerId))).sort((a, b) => {
+  const [unknownNcrOpen, setUnknownNcrOpen] = useState(false);
+  const unknownNcrAll = useMemo(() => preAging.filter(row => row.kind === "ncr" && !row.isCompleted && (!row.ownerId || !profileIds.has(row.ownerId))).sort((a, b) => {
     const da = daysUntilDue(a.dueDate);
     const db = daysUntilDue(b.dueDate);
     if (da === null && db === null) return 0;
     if (da === null) return 1;
     if (db === null) return -1;
     return da - db;
-  }).slice(0, 4), [preAging, profileIds]);
+  }), [preAging, profileIds]);
+  const unknownNcrRows = useMemo(() => unknownNcrAll.slice(0, 4), [unknownNcrAll]);
   const hasActiveFilters = dept !== "all" || sub !== "all" || type !== "all" || linked !== "all" || originator !== "all" || assigned !== "all" || aging !== "all_due";
   const activeFilterCount = [dept, sub, type, linked, originator, assigned].filter(value => value !== "all").length + (aging !== "all_due" ? 1 : 0);
   const clearAll = () => {
@@ -859,16 +861,17 @@ const DashboardListView = ({
         </div>
       </div>
 
-      {unknownNcrRows.length > 0 && <div className="lv-ncr-owner-callout">
-          <div className="lv-ncr-owner-callout-head">
+      {unknownNcrRows.length > 0 && <div className={`lv-ncr-owner-callout ${unknownNcrOpen ? "" : "collapsed"}`}>
+          <button type="button" className="lv-ncr-owner-callout-head" onClick={() => setUnknownNcrOpen(open => !open)} aria-expanded={unknownNcrOpen}>
             <AlertTriangle size={14} />
             <div>
-              <strong>Unknown NCR owners need a closure contact</strong>
-              <span>Add the real person and phone to the NCR follow-up trail.</span>
+              <strong>{unknownNcrAll.length} NCR{unknownNcrAll.length === 1 ? "" : "s"} need a closure contact</strong>
+              {unknownNcrOpen && <span>Add the real person and phone to the NCR follow-up trail.</span>}
             </div>
-            <Badge color="var(--warning)">{unknownNcrRows.length}</Badge>
-          </div>
-          <div className="lv-ncr-owner-rows">
+            <Badge color="var(--warning)">{unknownNcrAll.length}</Badge>
+            <ChevronDown size={14} className={`lv-ncr-owner-chevron ${unknownNcrOpen ? "open" : ""}`} />
+          </button>
+          {unknownNcrOpen && <div className="lv-ncr-owner-rows">
             {unknownNcrRows.map(row => {
           const draft = unknownNcrDrafts[row.id] || {};
           const disabled = savingUnknownNcr === row.id || !draft.name?.trim() && !draft.phone?.trim();
@@ -884,7 +887,7 @@ const DashboardListView = ({
                   </button>
                 </div>;
         })}
-          </div>
+          </div>}
         </div>}
 
       <div style={{

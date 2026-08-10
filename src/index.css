@@ -14062,3 +14062,25 @@ button.alt-command-body:disabled {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* Unknown-owner NCR callout: a one-line collapsed bar by default — it may
+   inform, it may never wall off the dashboard (Andrew, Aug 10). */
+.lv-ncr-owner-callout.collapsed {
+  padding-bottom: 0;
+}
+.lv-ncr-owner-callout-head {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.lv-ncr-owner-chevron {
+  margin-left: auto;
+  transition: transform 0.15s ease;
+}
+.lv-ncr-owner-chevron.open {
+  transform: rotate(180deg);
+}

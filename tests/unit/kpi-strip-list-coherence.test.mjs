@@ -29,3 +29,10 @@ test('the Create NCR long-text section uses the styled grid, not bare labels', (
   assert.match(styles, /\.ncr-create-longtext label \{[^}]*flex-direction: column/);
   assert.match(styles, /\.ncr-create-longtext textarea \{[^}]*width: 100%/);
 });
+
+test('the unknown-owner NCR callout is a collapsed bar with the honest total', () => {
+  const dashboard = read('src/routes/DashboardPage.jsx');
+  assert.match(dashboard, /const \[unknownNcrOpen, setUnknownNcrOpen\] = useState\(false\)/);
+  assert.match(dashboard, /\{unknownNcrOpen && <div className="lv-ncr-owner-rows">/);
+  assert.match(dashboard, /\{unknownNcrAll\.length\} NCR/);
+});
