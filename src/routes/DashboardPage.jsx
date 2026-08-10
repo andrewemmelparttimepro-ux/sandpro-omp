@@ -716,7 +716,9 @@ const DashboardListView = ({
   // every downstream number coherent: aging counts, the list, the
   // unknown-owner callout all see the same base.
   const preAging = useMemo(() => rows.filter(row => matchesListFilters(row) && (showLegacy || !row.legacy)), [rows, matchesListFilters, showLegacy]);
-  const legacyCount = useMemo(() => rows.filter(row => row.legacy && matchesListFilters(row)).length, [rows, matchesListFilters]);
+  // The chip's count respects the active aging bucket so the number always
+  // matches what one click reveals (the Jake lesson: count = list, always).
+  const legacyCount = useMemo(() => rows.filter(row => row.legacy && matchesListFilters(row) && rowMatchesAging(row, aging)).length, [rows, matchesListFilters, aging]);
 
   // Live counts per aging bucket so the size of what's slipping is visible
   // before anyone clicks — the cost of ignoring it is never hidden.
