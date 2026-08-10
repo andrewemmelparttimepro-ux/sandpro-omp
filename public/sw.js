@@ -1,15 +1,15 @@
-const CACHE_NAME = 'sandpro-omp-shell-v11';
+const CACHE_NAME = 'sandpro-omp-shell-v12';
 const SHELL_ASSETS = [
   '/',
   '/manifest.webmanifest',
   '/brand/sandpro-omp-logo.png',
   '/brand/sandpro-omp-mark.png',
-  '/favicon-omp-v2.png',
+  '/favicon-omp-v3.png',
   '/favicon.png',
   '/favicon.svg',
-  '/pwa/sandpro-omp-icon-192-v2.png',
-  '/pwa/sandpro-omp-icon-512-v2.png',
-  '/pwa/sandpro-omp-apple-touch-icon-v2.png',
+  '/pwa/sandpro-omp-icon-192-v3.png',
+  '/pwa/sandpro-omp-icon-512-v3.png',
+  '/pwa/sandpro-omp-apple-touch-icon-v3.png',
 ];
 
 const OFFLINE_HTML = `<!doctype html>
@@ -89,8 +89,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || 'SandPro OMP', {
       body: payload.body || 'Open SandPro OMP for details.',
-      icon: options.icon || '/pwa/sandpro-omp-icon-192-v2.png',
-      badge: options.badge || '/pwa/sandpro-omp-icon-192-v2.png',
+      icon: options.icon || '/pwa/sandpro-omp-icon-192-v3.png',
+      badge: options.badge || '/pwa/sandpro-omp-icon-192-v3.png',
       tag: options.tag || 'sandpro-omp',
       renotify: Boolean(options.renotify),
       requireInteraction: Boolean(options.requireInteraction),

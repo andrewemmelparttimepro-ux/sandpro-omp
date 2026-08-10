@@ -83,8 +83,8 @@ export const buildPushPayload = ({ type, objective, message, url, notificationId
       renotify: urgent,
       requireInteraction: urgent,
       silent: false,
-      badge: '/pwa/sandpro-omp-icon-192-v2.png',
-      icon: '/pwa/sandpro-omp-icon-192-v2.png',
+      badge: '/pwa/sandpro-omp-icon-192-v3.png',
+      icon: '/pwa/sandpro-omp-icon-192-v3.png',
     },
   };
 };

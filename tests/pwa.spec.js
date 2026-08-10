@@ -10,8 +10,8 @@ test.describe('PWA installability and cache safety', () => {
     expect(manifest.display).toBe('standalone');
     expect(manifest.start_url).toBe('/?source=pwa');
     expect(manifest.orientation).toBe('portrait-primary');
-    expect(manifest.icons.some((icon) => icon.src === '/pwa/sandpro-omp-icon-192-v2.png' && icon.purpose.includes('maskable'))).toBeTruthy();
-    expect(manifest.icons.some((icon) => icon.src === '/pwa/sandpro-omp-icon-512-v2.png' && icon.purpose.includes('maskable'))).toBeTruthy();
+    expect(manifest.icons.some((icon) => icon.src === '/pwa/sandpro-omp-icon-192-v3.png' && icon.purpose.includes('maskable'))).toBeTruthy();
+    expect(manifest.icons.some((icon) => icon.src === '/pwa/sandpro-omp-icon-512-v3.png' && icon.purpose.includes('maskable'))).toBeTruthy();
     expect(manifest.shortcuts.map((shortcut) => shortcut.url)).toEqual(expect.arrayContaining(['/?page=objectives', '/?page=fixit', '/?page=ncr']));
   });
 
@@ -20,7 +20,7 @@ test.describe('PWA installability and cache safety', () => {
     const sw = await response.text();
     expect(sw).toContain('CACHE_NAME');
     expect(sw).not.toContain("CACHE_NAME = 'sandpro-omp-shell-v1'");
-    expect(sw).toContain("CACHE_NAME = 'sandpro-omp-shell-v11'");
+    expect(sw).toContain("CACHE_NAME = 'sandpro-omp-shell-v12'");
     expect(sw).toContain('fetch(request)');
     expect(sw).toContain('OFFLINE_HTML');
     expect(sw).toContain('supabase.co');
@@ -32,7 +32,7 @@ test.describe('PWA installability and cache safety', () => {
 
   test('iPhone install metadata is present in the app shell', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('link[rel="apple-touch-icon"][href="/pwa/sandpro-omp-apple-touch-icon-v2.png"]')).toHaveCount(1);
+    await expect(page.locator('link[rel="apple-touch-icon"][href="/pwa/sandpro-omp-apple-touch-icon-v3.png"]')).toHaveCount(1);
     await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /viewport-fit=cover/);
     await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute('content', 'SandPro');
   });

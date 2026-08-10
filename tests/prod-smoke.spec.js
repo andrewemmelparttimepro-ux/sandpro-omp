@@ -13,7 +13,7 @@ test.describe('production read-only smoke', () => {
     expect(swResponse.ok()).toBeTruthy();
     const sw = await swResponse.text();
     expect(sw).not.toContain("CACHE_NAME = 'sandpro-omp-shell-v1'");
-    expect(sw).toContain("CACHE_NAME = 'sandpro-omp-shell-v11'");
+    expect(sw).toContain("CACHE_NAME = 'sandpro-omp-shell-v12'");
   });
 
   test('release smoke admin can log in and reach core read-only surfaces', async ({ page }, testInfo) => {

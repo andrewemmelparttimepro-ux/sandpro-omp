@@ -22,8 +22,8 @@ test('push delivery gives idle Android devices time to wake', () => {
 
 test('push payload uses the current brand icons', () => {
   const payload = buildPushPayload({ type: 'comment', message: 'hi', url: '/' });
-  assert.equal(payload.options.icon, '/pwa/sandpro-omp-icon-192-v2.png');
-  assert.equal(payload.options.badge, '/pwa/sandpro-omp-icon-192-v2.png');
+  assert.equal(payload.options.icon, '/pwa/sandpro-omp-icon-192-v3.png');
+  assert.equal(payload.options.badge, '/pwa/sandpro-omp-icon-192-v3.png');
 });
 
 test('subscriptions heal after push-service rotation', () => {

@@ -4,12 +4,9 @@
       <stop offset="0" stop-color="#ff9a2f"/>
       <stop offset="1" stop-color="#ff7f02"/>
     </linearGradient>
-    <filter id="mark-shadow" x="3" y="3" width="42" height="42" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-color="#111827" flood-opacity=".18"/>
-    </filter>
   </defs>
   <rect width="48" height="48" rx="12" fill="#fff"/>
-  <g filter="url(#mark-shadow)" fill="none" stroke="url(#sandpro-orange)" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="url(#sandpro-orange)" stroke-linecap="round" stroke-linejoin="round">
     <path d="M16.8 7.5h14.4l8.1 14.1-4.5 7.8" stroke-width="5.4"/>
     <path d="M31.2 40.5H16.8L8.7 26.4l4.5-7.8" stroke-width="5.4"/>
     <path d="M18 15.3h11.2l5.6 9.7-3 5.2" stroke-width="3.6"/>
