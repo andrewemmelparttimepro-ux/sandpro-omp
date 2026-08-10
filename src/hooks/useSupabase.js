@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { toNullableBoolean } from '../lib/coerce';
 import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress } from '../okrFramework';
 import { getRecurrenceInterval, getNextRecurringDueDate } from '../data';
 import { ensureFlagsLoaded, getFlag } from '../lib/flags';
@@ -3005,8 +3006,8 @@ const ncrDbChanges = (changes = {}) => {
   if (changes.effectivenessSummary !== undefined) db.effectiveness_summary = changes.effectivenessSummary;
   if (changes.effectivenessCheckedAt !== undefined) db.effectiveness_checked_at = changes.effectivenessCheckedAt || null;
   if (changes.effectivenessCheckedBy !== undefined) db.effectiveness_checked_by = changes.effectivenessCheckedBy || null;
-  if (changes.recurrencePrevented !== undefined) db.recurrence_prevented = changes.recurrencePrevented;
-  if (changes.repeatIssue !== undefined) db.repeat_issue = changes.repeatIssue;
+  if (changes.recurrencePrevented !== undefined) db.recurrence_prevented = toNullableBoolean(changes.recurrencePrevented);
+  if (changes.repeatIssue !== undefined) db.repeat_issue = toNullableBoolean(changes.repeatIssue);
   if (changes.customerApprovalRequired !== undefined) db.customer_approval_required = Boolean(changes.customerApprovalRequired);
   if (changes.customerApprovalStatus !== undefined) db.customer_approval_status = changes.customerApprovalStatus;
   if (changes.followUpDueDate !== undefined) db.follow_up_due_date = changes.followUpDueDate || null;
@@ -3079,8 +3080,8 @@ const ncrInsertPayload = (draft = {}, currentUserId = null) => ({
   effectiveness_summary: draft.effectivenessSummary || '',
   effectiveness_checked_at: draft.effectivenessCheckedAt || null,
   effectiveness_checked_by: draft.effectivenessCheckedBy || null,
-  recurrence_prevented: draft.recurrencePrevented ?? null,
-  repeat_issue: draft.repeatIssue ?? null,
+  recurrence_prevented: toNullableBoolean(draft.recurrencePrevented),
+  repeat_issue: toNullableBoolean(draft.repeatIssue),
   customer_approval_required: Boolean(draft.customerApprovalRequired),
   customer_approval_status: draft.customerApprovalStatus || '',
   status: draft.status || 'open',

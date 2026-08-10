@@ -133,6 +133,8 @@ test('NCR effectiveness fields use standard controlled yes/no outcomes', () => {
   assert.doesNotMatch(pages, /<span className="text-xs text-muted">Action Effective<\/span><textarea/);
   assert.match(pages, /actionEffective: normalizeNcrYesNo\(report\.actionEffective\)/);
   assert.match(pages, /'Action Effective\?'/);
-  assert.match(hook, /recurrence_prevented: draft\.recurrencePrevented \?\? null/);
+  // `?? null` let '' through to the boolean column and broke Create NCR in
+  // production (Aug 10). The boundary is toNullableBoolean now.
+  assert.match(hook, /recurrence_prevented: toNullableBoolean\(draft\.recurrencePrevented\)/);
   assert.match(hook, /effectiveness_checked_at: draft\.effectivenessCheckedAt \|\| null/);
 });

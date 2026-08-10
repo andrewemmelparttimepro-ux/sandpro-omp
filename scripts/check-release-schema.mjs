@@ -329,5 +329,27 @@ if (serviceKey) {
   process.exit(1);
 }
 
+
+// --- NCR payload boundary probe (static, no network) -----------------------
+// Aug 10 incident: repeat_issue received '' from the create form and Postgres
+// rejected every Create NCR (22P02). Boolean columns must cross a coercion
+// helper at the payload boundary; this fails the release if the guard slips.
+{
+  const hooksSource = readFileSync(resolve(process.cwd(), 'src/hooks/useSupabase.js'), 'utf8');
+  const payloadStart = hooksSource.indexOf('const ncrInsertPayload');
+  const payloadBlock = payloadStart > -1 ? hooksSource.slice(payloadStart, hooksSource.indexOf('});', payloadStart)) : '';
+  const booleanColumns = ['closed', 'containment_required', 'recurrence_prevented', 'repeat_issue', 'customer_approval_required'];
+  const uncoerced = booleanColumns.filter((column) => {
+    const line = payloadBlock.split('\n').find((entry) => entry.trim().startsWith(`${column}:`));
+    return !line || !/toNullableBoolean\(|Boolean\(|===/.test(line);
+  });
+  if (payloadStart === -1 || uncoerced.length) {
+    failed = true;
+    console.error(`x ncr insert payload boolean coercion (${payloadStart === -1 ? 'payload not found' : `uncoerced: ${uncoerced.join(', ')}`})`);
+  } else {
+    console.log('ok ncr insert payload boolean coercion');
+  }
+}
+
 if (failed) process.exit(1);
 console.log('Release schema check passed.');

@@ -716,7 +716,9 @@ function App() {
       if (friendly !== toast.message) entry = { ...toast, message: friendly };
     }
     setToasts(prev => [...prev, { ...entry, id }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+    // Errors stay up long enough to read and screenshot; telemetry has the
+    // raw message either way.
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), entry?.type === 'error' ? 10000 : 4000);
   }, []);
   const removeToast = useCallback((id) => setToasts(prev => prev.filter(t => t.id !== id)), []);
 
