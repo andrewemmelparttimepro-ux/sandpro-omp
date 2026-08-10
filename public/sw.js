@@ -53,6 +53,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.hostname.includes('supabase.co') || url.pathname.startsWith('/api/')) return;
+  if (url.pathname === '/version.json') return; // heartbeat must always hit the network
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)

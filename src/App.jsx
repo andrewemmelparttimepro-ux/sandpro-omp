@@ -12,6 +12,7 @@ import { Avatar } from './uiPrimitives';
 import { supabase } from './lib/supabase';
 import { humanizeErrorMessage } from './lib/errors';
 import { reportClientError, setTelemetryUser } from './lib/telemetry';
+import { startVersionHeartbeat } from './lib/versionHeartbeat';
 import { getMentionedUsers } from './mentions';
 import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
 import { formatKpiTarget, formatKpiValue } from './kpiSystem';
@@ -703,6 +704,11 @@ function App() {
   useEffect(() => {
     setTelemetryUser(profile?.id || null);
   }, [profile?.id]);
+
+  // Stale-bundle heartbeat: when a newer build ships, every open session gets
+  // a persistent refresh banner instead of silently running old code.
+  const [updateReady, setUpdateReady] = useState(false);
+  useEffect(() => startVersionHeartbeat(() => setUpdateReady(true)), []);
 
   // Toast helpers
   const addToast = useCallback((toast) => {
@@ -2301,6 +2307,12 @@ function App() {
         )}
       </Suspense>
       <Suspense fallback={null}>
+        {updateReady && (
+          <div className="update-ready-banner" role="status">
+            <span>A new version of SandPro OMP is ready.</span>
+            <button type="button" onClick={() => window.location.reload()}>Refresh now</button>
+          </div>
+        )}
         {toasts.length > 0 && <ToastContainer toasts={toasts} removeToast={removeToast} />}
       </Suspense>
       {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}

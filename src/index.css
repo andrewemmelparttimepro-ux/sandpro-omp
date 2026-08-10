@@ -14003,3 +14003,31 @@ button.alt-command-body:disabled {
 
 /* NCR detail header: source + lifecycle badges side by side */
 .ncr-detail-badges { display: inline-flex; gap: 6px; align-items: center; flex-shrink: 0; }
+
+/* Stale-bundle heartbeat banner — persistent until the user refreshes. */
+.update-ready-banner {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+  font-size: 13px;
+}
+.update-ready-banner button {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: #ff7f02;
+  color: #111827;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
