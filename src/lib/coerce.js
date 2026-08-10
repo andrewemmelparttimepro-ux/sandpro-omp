@@ -10,6 +10,14 @@ export const toNullableBoolean = (value) => {
   return null;
 };
 
+// Required-boolean twin: preserves explicit false values (including the
+// string "false") while giving invalid/cleared inputs an intentional default.
+// `Boolean("false")` is true, so raw Boolean() is unsafe at write boundaries.
+export const toBoolean = (value, fallback = false) => {
+  const coerced = toNullableBoolean(value);
+  return coerced === null ? fallback === true : coerced;
+};
+
 // Numeric twin of toNullableBoolean: '' / junk -> null, numeric strings ->
 // numbers (currency symbols and commas stripped). Never lets '' reach a
 // numeric column, and never turns a cleared input into a silent 0.

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { toNullableBoolean, toNullableNumber } from '../lib/coerce';
+import { toBoolean, toNullableBoolean, toNullableNumber } from '../lib/coerce';
 import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress } from '../okrFramework';
 import { getRecurrenceInterval, getNextRecurringDueDate } from '../data';
 import { ensureFlagsLoaded, getFlag } from '../lib/flags';
@@ -1552,7 +1552,7 @@ export function useAssignmentGroups(enabled = true) {
         name: String(draft.name || '').trim(),
         slug,
         description: String(draft.description || '').trim(),
-        is_active: draft.isActive !== false,
+        is_active: toBoolean(draft.isActive, true),
         created_by: userId,
         updated_by: userId,
       })
@@ -1567,7 +1567,7 @@ export function useAssignmentGroups(enabled = true) {
     const patch = { updated_by: userId };
     if (changes.name !== undefined) patch.name = String(changes.name || '').trim();
     if (changes.description !== undefined) patch.description = String(changes.description || '').trim();
-    if (changes.isActive !== undefined) patch.is_active = Boolean(changes.isActive);
+    if (changes.isActive !== undefined) patch.is_active = toBoolean(changes.isActive);
     const { error } = await supabase.from('assignment_groups').update(patch).eq('id', groupId);
     if (error) throw error;
     await fetchAssignmentGroups();
@@ -2144,12 +2144,12 @@ export function useObjectives(enabled = true) {
         parent_id: obj.parentId || null,
         status: obj.status || 'not_started',
         priority: obj.priority || 'medium',
-        progress: obj.progress || 0,
+        progress: toNullableNumber(obj.progress) ?? 0,
         due_date: obj.dueDate || null,
         start_date: obj.startDate || null,
         department: obj.department || '',
-        acknowledged: Boolean(obj.acknowledged),
-        blocker_flag: Boolean(obj.blockerFlag),
+        acknowledged: toBoolean(obj.acknowledged),
+        blocker_flag: toBoolean(obj.blockerFlag),
         blocker_reason: obj.blockerReason || '',
         next_action: obj.nextAction || '',
         type: obj.type || 'simple',
@@ -2253,11 +2253,11 @@ export function useObjectives(enabled = true) {
     if (changes.assignmentGroupId !== undefined) dbChanges.assignment_group_id = changes.assignmentGroupId || null;
     if (changes.status !== undefined) dbChanges.status = changes.status;
     if (changes.priority !== undefined) dbChanges.priority = changes.priority;
-    if (changes.progress !== undefined) dbChanges.progress = changes.progress;
+    if (changes.progress !== undefined) dbChanges.progress = toNullableNumber(changes.progress) ?? 0;
     if (changes.dueDate !== undefined) dbChanges.due_date = changes.dueDate || null;
     if (changes.department !== undefined) dbChanges.department = changes.department;
-    if (changes.acknowledged !== undefined) dbChanges.acknowledged = Boolean(changes.acknowledged);
-    if (changes.blockerFlag !== undefined) dbChanges.blocker_flag = Boolean(changes.blockerFlag);
+    if (changes.acknowledged !== undefined) dbChanges.acknowledged = toBoolean(changes.acknowledged);
+    if (changes.blockerFlag !== undefined) dbChanges.blocker_flag = toBoolean(changes.blockerFlag);
     if (changes.blockerReason !== undefined) dbChanges.blocker_reason = changes.blockerReason;
     if (changes.nextAction !== undefined) dbChanges.next_action = changes.nextAction;
     if (changes.parentId !== undefined) dbChanges.parent_id = changes.parentId || null;
@@ -2452,10 +2452,10 @@ export function useObjectives(enabled = true) {
       title: subtask.title,
       owner_id: subtask.ownerId,
       status: subtask.status || 'not_started',
-      progress: subtask.progress ?? 0,
+      progress: toNullableNumber(subtask.progress) ?? 0,
       due_date: subtask.dueDate || null,
-      weight: subtask.weight ?? 1,
-      is_milestone: Boolean(subtask.isMilestone),
+      weight: toNullableNumber(subtask.weight) ?? 1,
+      is_milestone: toBoolean(subtask.isMilestone),
       milestone_date: subtask.milestoneDate || null,
     });
     if (error) throw error;
@@ -2465,12 +2465,12 @@ export function useObjectives(enabled = true) {
   const updateSubtask = async (id, changes) => {
     const dbChanges = {};
     if (changes.status !== undefined) dbChanges.status = changes.status;
-    if (changes.progress !== undefined) dbChanges.progress = changes.progress;
+    if (changes.progress !== undefined) dbChanges.progress = toNullableNumber(changes.progress) ?? 0;
     if (changes.title !== undefined) dbChanges.title = changes.title;
     if (changes.ownerId !== undefined) dbChanges.owner_id = changes.ownerId;
     if (changes.dueDate !== undefined) dbChanges.due_date = changes.dueDate || null;
-    if (changes.weight !== undefined) dbChanges.weight = changes.weight;
-    if (changes.isMilestone !== undefined) dbChanges.is_milestone = Boolean(changes.isMilestone);
+    if (changes.weight !== undefined) dbChanges.weight = toNullableNumber(changes.weight) ?? 1;
+    if (changes.isMilestone !== undefined) dbChanges.is_milestone = toBoolean(changes.isMilestone);
     if (changes.milestoneDate !== undefined) dbChanges.milestone_date = changes.milestoneDate || null;
     const { error } = await supabase.from('subtasks').update(dbChanges).eq('id', id);
     if (error) throw error;
@@ -2484,20 +2484,23 @@ export function useObjectives(enabled = true) {
   };
 
   const addMetricCheckin = async (objectiveId, checkin) => {
+    if (!checkin.date) throw new Error('Pick a check-in date before saving.');
+    const checkinValue = toNullableNumber(checkin.value);
+    if (checkinValue === null) throw new Error('Enter a numeric metric value before saving.');
     const { error } = await supabase.from('objective_metric_checkins').insert({
       objective_id: objectiveId,
       checkin_date: checkin.date,
-      value: checkin.value,
+      value: checkinValue,
       note: checkin.note || '',
       created_by: checkin.createdBy,
     });
     if (error) throw error;
     await updateObjective(objectiveId, {
-      currentMetric: checkin.value,
-      updateNote: `Metric check-in logged: ${checkin.value}`,
+      currentMetric: checkinValue,
+      updateNote: `Metric check-in logged: ${checkinValue}`,
       actionType: 'metric_checkin',
       userId: checkin.createdBy,
-      newValue: String(checkin.value),
+      newValue: String(checkinValue),
     });
   };
 
@@ -2543,7 +2546,7 @@ export function useObjectives(enabled = true) {
       objective_id: objectiveId,
       title: step.title,
       description: step.description || '',
-      step_order: step.stepOrder ?? 0,
+      step_order: toNullableNumber(step.stepOrder) ?? 0,
       status: step.status || 'todo',
       owner_id: step.ownerId || null,
       due_date: step.dueDate || null,
@@ -2575,7 +2578,7 @@ export function useObjectives(enabled = true) {
     const objectiveId = changes.objectiveId || currentStep.objective_id;
     if (changes.title !== undefined) dbChanges.title = changes.title;
     if (changes.description !== undefined) dbChanges.description = changes.description;
-    if (changes.stepOrder !== undefined) dbChanges.step_order = changes.stepOrder;
+    if (changes.stepOrder !== undefined) dbChanges.step_order = toNullableNumber(changes.stepOrder) ?? 0;
     if (changes.status !== undefined) dbChanges.status = changes.status;
     if (changes.ownerId !== undefined) dbChanges.owner_id = changes.ownerId;
     if (changes.dueDate !== undefined) dbChanges.due_date = changes.dueDate || null;
@@ -2671,7 +2674,7 @@ export function useObjectives(enabled = true) {
       description: project.description || '',
       project_type: project.projectType || 'internal',
       linked_kr_id: linkedObjectiveIds[0] || null,
-      run_the_business: Boolean(project.runTheBusiness),
+      run_the_business: toBoolean(project.runTheBusiness),
       sponsor_id: project.sponsorId || null,
       lead_id: project.leadId || null,
       stage: project.stage || 'idea',
@@ -2681,7 +2684,7 @@ export function useObjectives(enabled = true) {
       target_date: project.targetDate || null,
       next_milestone: project.nextMilestone || '',
       next_milestone_due_date: project.nextMilestoneDueDate || null,
-      budget_estimate: project.budgetEstimate === '' ? null : project.budgetEstimate ?? null,
+      budget_estimate: toNullableNumber(project.budgetEstimate),
       created_by: project.createdBy || null,
     }).select().single();
     if (error) throw error;
@@ -2717,7 +2720,7 @@ export function useObjectives(enabled = true) {
     if (changes.name !== undefined) dbChanges.name = changes.name;
     if (changes.description !== undefined) dbChanges.description = changes.description;
     if (changes.projectType !== undefined) dbChanges.project_type = changes.projectType;
-    if (changes.runTheBusiness !== undefined) dbChanges.run_the_business = Boolean(changes.runTheBusiness);
+    if (changes.runTheBusiness !== undefined) dbChanges.run_the_business = toBoolean(changes.runTheBusiness);
     if (changes.sponsorId !== undefined) dbChanges.sponsor_id = changes.sponsorId || null;
     if (changes.leadId !== undefined) dbChanges.lead_id = changes.leadId || null;
     if (changes.stage !== undefined) dbChanges.stage = changes.stage;
@@ -2727,7 +2730,7 @@ export function useObjectives(enabled = true) {
     if (changes.targetDate !== undefined) dbChanges.target_date = changes.targetDate || null;
     if (changes.nextMilestone !== undefined) dbChanges.next_milestone = changes.nextMilestone;
     if (changes.nextMilestoneDueDate !== undefined) dbChanges.next_milestone_due_date = changes.nextMilestoneDueDate || null;
-    if (changes.budgetEstimate !== undefined) dbChanges.budget_estimate = changes.budgetEstimate === '' ? null : changes.budgetEstimate;
+    if (changes.budgetEstimate !== undefined) dbChanges.budget_estimate = toNullableNumber(changes.budgetEstimate);
     if (changes.linkedObjectiveIds !== undefined) dbChanges.linked_kr_id = (changes.linkedObjectiveIds || [])[0] || null;
     if (Object.keys(dbChanges).length > 0) {
       const { error } = await supabase.from('okr_projects').update(dbChanges).eq('id', projectId);
@@ -2932,9 +2935,10 @@ const ncrDbChanges = (changes = {}) => {
     db.closed = changes.status === 'closed';
   }
   if (changes.closed !== undefined) {
-    db.closed = Boolean(changes.closed);
-    db.status = changes.closed ? 'closed' : 'open';
-    if (changes.closed) {
+    const isClosed = toBoolean(changes.closed);
+    db.closed = isClosed;
+    db.status = isClosed ? 'closed' : 'open';
+    if (isClosed) {
       db.lifecycle_stage = 'closed';
       db.closure_approved_by = changes.updatedBy || null;
       db.closure_approved_at = new Date().toISOString();
@@ -3000,7 +3004,7 @@ const ncrDbChanges = (changes = {}) => {
   if (changes.normalizedFailureSummary !== undefined) db.normalized_failure_summary = changes.normalizedFailureSummary || '';
   if (changes.aiConfidence !== undefined) db.ai_confidence = toNullableNumber(changes.aiConfidence);
   if (changes.aiClassificationReason !== undefined) db.ai_classification_reason = changes.aiClassificationReason || '';
-  if (changes.containmentRequired !== undefined) db.containment_required = Boolean(changes.containmentRequired);
+  if (changes.containmentRequired !== undefined) db.containment_required = toBoolean(changes.containmentRequired);
   if (changes.containmentSummary !== undefined) db.containment_summary = changes.containmentSummary;
   if (changes.affectedProduct !== undefined) db.affected_product = changes.affectedProduct;
   if (changes.affectedEquipment !== undefined) db.affected_equipment = changes.affectedEquipment;
@@ -3012,13 +3016,13 @@ const ncrDbChanges = (changes = {}) => {
   if (changes.effectivenessCheckedBy !== undefined) db.effectiveness_checked_by = changes.effectivenessCheckedBy || null;
   if (changes.recurrencePrevented !== undefined) db.recurrence_prevented = toNullableBoolean(changes.recurrencePrevented);
   if (changes.repeatIssue !== undefined) db.repeat_issue = toNullableBoolean(changes.repeatIssue);
-  if (changes.customerApprovalRequired !== undefined) db.customer_approval_required = Boolean(changes.customerApprovalRequired);
+  if (changes.customerApprovalRequired !== undefined) db.customer_approval_required = toBoolean(changes.customerApprovalRequired);
   if (changes.customerApprovalStatus !== undefined) db.customer_approval_status = changes.customerApprovalStatus;
   if (changes.followUpDueDate !== undefined) db.follow_up_due_date = changes.followUpDueDate || null;
   if (changes.reportDate !== undefined) db.report_date = changes.reportDate || null;
   if (changes.observer !== undefined) db.observer = changes.observer || '';
   if (changes.followUpDetails !== undefined) db.follow_up_details = changes.followUpDetails || '';
-  if (changes.followUpCount !== undefined) db.follow_up_count = Number.isFinite(Number(changes.followUpCount)) ? Number(changes.followUpCount) : 0;
+  if (changes.followUpCount !== undefined) db.follow_up_count = toNullableNumber(changes.followUpCount) ?? 0;
   if (changes.updatedBy !== undefined) db.updated_by = changes.updatedBy || null;
   return db;
 };
@@ -3029,7 +3033,7 @@ const ncrInsertPayload = (draft = {}, currentUserId = null) => ({
   source_link: draft.sourceLink || '',
   report_date: draft.reportDate || null,
   observer: draft.observer || '',
-  follow_up_count: Number.isFinite(Number(draft.followUpCount)) ? Number(draft.followUpCount) : 0,
+  follow_up_count: toNullableNumber(draft.followUpCount) ?? 0,
   follow_up_details: draft.followUpDetails || '',
   follow_up_due_date: draft.followUpDueDate || null,
   worksite_area: draft.worksiteArea || '',
@@ -3078,7 +3082,7 @@ const ncrInsertPayload = (draft = {}, currentUserId = null) => ({
   owner_id: draft.ownerId || null,
   reviewer_id: draft.reviewerId || null,
   verifier_id: draft.verifierId || null,
-  containment_required: Boolean(draft.containmentRequired),
+  containment_required: toBoolean(draft.containmentRequired),
   containment_summary: draft.containmentSummary || '',
   affected_product: draft.affectedProduct || '',
   affected_equipment: draft.affectedEquipment || '',
@@ -3090,7 +3094,7 @@ const ncrInsertPayload = (draft = {}, currentUserId = null) => ({
   effectiveness_checked_by: draft.effectivenessCheckedBy || null,
   recurrence_prevented: toNullableBoolean(draft.recurrencePrevented),
   repeat_issue: toNullableBoolean(draft.repeatIssue),
-  customer_approval_required: Boolean(draft.customerApprovalRequired),
+  customer_approval_required: toBoolean(draft.customerApprovalRequired),
   customer_approval_status: draft.customerApprovalStatus || '',
   status: draft.status || 'open',
   closed: draft.status === 'closed',

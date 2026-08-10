@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { toNullableNumber } from '../../src/lib/coerce.js';
+import { toBoolean, toNullableNumber } from '../../src/lib/coerce.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (path) => readFileSync(join(root, path), 'utf8');
@@ -23,6 +23,12 @@ test('toNullableNumber: cleared inputs are null, never 0, never 22P02 fuel', () 
   assert.equal(toNullableNumber('-3.5'), -3.5);
 });
 
+test('required booleans preserve explicit false strings', () => {
+  assert.equal(toBoolean('false'), false);
+  assert.equal(toBoolean('0'), false);
+  assert.equal(toBoolean('true'), true);
+});
+
 test('objectives mappers coerce every typed column at the boundary', () => {
   const hooks = read('src/hooks/useSupabase.js');
   assert.match(hooks, /dbChanges\.parent_id = changes\.parentId \|\| null/);
@@ -33,6 +39,9 @@ test('objectives mappers coerce every typed column at the boundary', () => {
   assert.match(hooks, /dbChanges\.current_metric = toNullableNumber\(changes\.currentMetric\)/);
   assert.match(hooks, /dbChanges\.okr_weight = toNullableNumber\(changes\.okrWeight\) \?\? 1/);
   assert.match(hooks, /baseline_metric: toNullableNumber\(obj\.baselineMetric\)/);
+  assert.match(hooks, /progress: toNullableNumber\(obj\.progress\) \?\? 0/);
+  assert.match(hooks, /acknowledged: toBoolean\(obj\.acknowledged\)/);
+  assert.match(hooks, /blocker_flag: toBoolean\(obj\.blockerFlag\)/);
   assert.match(hooks, /target_value: toNullableNumber\(definition\.targetValue\)/);
 });
 
@@ -41,12 +50,26 @@ test('NCR update mapper persists closeout fields it used to drop', () => {
   assert.match(hooks, /db\.report_date = changes\.reportDate \|\| null/);
   assert.match(hooks, /db\.observer = changes\.observer \|\| ''/);
   assert.match(hooks, /db\.follow_up_details = changes\.followUpDetails \|\| ''/);
-  assert.match(hooks, /db\.follow_up_count = Number\.isFinite/);
+  assert.match(hooks, /db\.follow_up_count = toNullableNumber\(changes\.followUpCount\) \?\? 0/);
 });
 
 test('metric check-in requires a date and the mapper cannot receive a blank one unguarded', () => {
   const detail = read('src/objectiveDetail.jsx');
   assert.match(detail, /if \(!metricDraft\.date\) \{ addToast\(\{ type: 'error', message: 'Pick a check-in date/);
+  const hooks = read('src/hooks/useSupabase.js');
+  assert.match(hooks, /if \(!checkin\.date\) throw new Error\('Pick a check-in date before saving\.'\)/);
+  assert.match(hooks, /const checkinValue = toNullableNumber\(checkin\.value\)/);
+});
+
+test('subtask, workflow, and project typed fields are coerced before writes', () => {
+  const hooks = read('src/hooks/useSupabase.js');
+  assert.match(hooks, /weight: toNullableNumber\(subtask\.weight\) \?\? 1/);
+  assert.match(hooks, /is_milestone: toBoolean\(subtask\.isMilestone\)/);
+  assert.match(hooks, /step_order: toNullableNumber\(step\.stepOrder\) \?\? 0/);
+  assert.match(hooks, /run_the_business: toBoolean\(project\.runTheBusiness\)/);
+  assert.match(hooks, /budget_estimate: toNullableNumber\(project\.budgetEstimate\)/);
+  assert.match(hooks, /is_active: toBoolean\(draft\.isActive, true\)/);
+  assert.match(hooks, /patch\.is_active = toBoolean\(changes\.isActive\)/);
 });
 
 test('a cleared KPI target saves as null, not silent zero', () => {

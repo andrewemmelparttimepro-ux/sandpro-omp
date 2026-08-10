@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { toNullableBoolean } from '../../src/lib/coerce.js';
+import { toBoolean, toNullableBoolean } from '../../src/lib/coerce.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (path) => readFileSync(join(root, path), 'utf8');
@@ -30,6 +30,15 @@ test('toNullableBoolean coerces every UI value shape a draft can hold', () => {
   assert.equal(toNullableBoolean('garbage'), null);
 });
 
+test('toBoolean preserves explicit false strings for required columns', () => {
+  assert.equal(toBoolean(false), false);
+  assert.equal(toBoolean('false'), false);
+  assert.equal(toBoolean('0'), false);
+  assert.equal(toBoolean('true'), true);
+  assert.equal(toBoolean(''), false);
+  assert.equal(toBoolean('', true), true);
+});
+
 test('NCR payload mappers route optional booleans through toNullableBoolean', () => {
   const hooks = read('src/hooks/useSupabase.js');
 
@@ -53,7 +62,8 @@ test('every boolean column of ncr_reports is coerced in the insert payload', () 
   const payload = hooks.slice(payloadStart, hooks.indexOf('});', payloadStart));
 
   // Boolean columns of public.ncr_reports. If you add one, add it here and
-  // coerce it with toNullableBoolean (nullable) or Boolean() (required).
+  // coerce it with toNullableBoolean (nullable), toBoolean (required), or an
+  // explicit status comparison when the database value is derived.
   const BOOLEAN_COLUMNS = [
     'closed',
     'containment_required',
@@ -65,10 +75,19 @@ test('every boolean column of ncr_reports is coerced in the insert payload', () 
     const line = payload.split('\n').find((l) => l.trim().startsWith(`${column}:`));
     assert.ok(line, `ncrInsertPayload is missing boolean column ${column}`);
     assert.ok(
-      /toNullableBoolean\(|Boolean\(|===/.test(line),
-      `${column} must be coerced (toNullableBoolean/Boolean), got: ${line.trim()}`
+      /toNullableBoolean\(|toBoolean\(|===/.test(line),
+      `${column} must be coerced (toNullableBoolean/toBoolean), got: ${line.trim()}`
     );
   }
+});
+
+test('required NCR booleans never use truthiness at a write boundary', () => {
+  const hooks = read('src/hooks/useSupabase.js');
+  assert.match(hooks, /containment_required: toBoolean\(draft\.containmentRequired\)/);
+  assert.match(hooks, /customer_approval_required: toBoolean\(draft\.customerApprovalRequired\)/);
+  assert.match(hooks, /db\.containment_required = toBoolean\(changes\.containmentRequired\)/);
+  assert.match(hooks, /db\.customer_approval_required = toBoolean\(changes\.customerApprovalRequired\)/);
+  assert.match(hooks, /const isClosed = toBoolean\(changes\.closed\)/);
 });
 
 test('error toasts persist long enough to read and report', () => {

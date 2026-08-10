@@ -87,24 +87,33 @@ test.describe('production gauntlet', () => {
     const calloutRows = page.locator('.lv-ncr-owner-rows');
     expect(await calloutRows.count(), 'dashboard: callout must be collapsed by default').toBe(0);
     await expectNoErrorToast('dashboard');
-    // One-click type chips: Tasks narrows the list, All restores it; the
-    // legacy chip reveals KPA imports and collapses back to a clean login.
+    // One-click type chips: each selection is exclusive and every rendered row
+    // matches it. Legacy replaces a previous type filter instead of stacking
+    // invisibly on top of it, then All restores the clean current-work login.
     const rowsBefore = await listRows.count();
-    await page.locator('.lv-type-row .lv-aging-chip:has-text("Tasks")').first().click();
+    const typeChip = label => page.locator(`.lv-type-row .lv-aging-chip:has-text("${label}")`).first();
+    const taskChip = typeChip('Tasks');
+    await taskChip.click();
     await page.waitForTimeout(800);
     const taskRows = await listRows.count();
     expect(taskRows, 'dashboard: Tasks chip filters the list').toBeLessThanOrEqual(rowsBefore);
-    await page.locator('.lv-type-row .lv-aging-chip:has-text("All")').first().click();
-    await page.waitForTimeout(600);
+    expect(await page.locator('.lv-row .lv-type').allTextContents(), 'dashboard: Tasks shows only tasks')
+      .toEqual(Array(taskRows).fill('Task'));
     const legacyChip = page.locator('.lv-legacy-chip').first();
     await expect(legacyChip, 'dashboard: legacy chip present').toBeVisible();
     await legacyChip.click();
     await page.waitForTimeout(800);
-    const withLegacy = await listRows.count();
-    await legacyChip.click();
+    const legacyRows = await listRows.count();
+    const legacyBadge = Number(await legacyChip.locator('.lv-aging-count').textContent());
+    expect(await legacyChip.getAttribute('aria-pressed'), 'dashboard: Legacy is active').toBe('true');
+    expect(await taskChip.getAttribute('aria-pressed'), 'dashboard: Tasks is no longer active').toBe('false');
+    expect(legacyRows, 'dashboard: Legacy count equals the revealed list').toBe(legacyBadge);
+    expect(await page.locator('.lv-row .lv-type').allTextContents(), 'dashboard: Legacy shows only NCRs')
+      .toEqual(Array(legacyRows).fill('NCR'));
+    await typeChip('All').click();
     await page.waitForTimeout(800);
-    const withoutLegacy = await listRows.count();
-    expect(withLegacy, 'dashboard: legacy chip reveals imports').toBeGreaterThanOrEqual(withoutLegacy);
+    expect(await legacyChip.getAttribute('aria-pressed'), 'dashboard: All exits Legacy').toBe('false');
+    expect(await typeChip('All').getAttribute('aria-pressed'), 'dashboard: All is active').toBe('true');
     await expectNoErrorToast('dashboard chips');
     await page.screenshot({ path: 'tmp/proofs/gauntlet/01-dashboard.png', fullPage: false });
 

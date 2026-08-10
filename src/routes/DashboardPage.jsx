@@ -577,6 +577,7 @@ const DashboardListView = ({
   const [originator, setOriginator] = useState("all");
   const [assigned, setAssigned] = useState("all");
   const [aging, setAging] = useState("all_due");
+  const [showLegacy, setShowLegacy] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [unknownNcrDrafts, setUnknownNcrDrafts] = useState({});
   const [savingUnknownNcr, setSavingUnknownNcr] = useState("");
@@ -593,6 +594,7 @@ const DashboardListView = ({
     setOriginator("all");
     setAssigned("all");
     setAging(filterPreset.aging || "all_due");
+    setShowLegacy(false);
   }, [filterPreset?.aging, filterPreset?.version]);
 
   // One canonical row per item — the de-duplicated "pen list", digital.
@@ -698,11 +700,9 @@ const DashboardListView = ({
     });
     return opts;
   }, [type]);
-  const [showLegacy, setShowLegacy] = useState(false);
-  const matchesListFilters = useCallback(row => {
+  const matchesBaseFilters = useCallback(row => {
     if (dept !== "all" && row.dept !== dept) return false;
     if (sub !== "all" && row.klass !== sub && row.group !== sub) return false;
-    if (type !== "all" && row.kind !== type) return false;
     if (linked === "ncr" && !row.linkedNcr) return false;
     if (linked === "okr" && !row.linkedOkr) return false;
     if (linked === "project" && !row.linkedProject) return false;
@@ -710,15 +710,19 @@ const DashboardListView = ({
     if (originator !== "all" && row.originatorId !== originator) return false;
     if (assigned !== "all" && row.ownerId !== assigned && !row.memberIds.includes(assigned)) return false;
     return true;
-  }, [dept, sub, type, linked, originator, assigned]);
+  }, [dept, sub, linked, originator, assigned]);
   // Legacy KPA imports (300+ days old, most will never close) stay behind a
-  // one-click chip instead of blasting every login. Excluding them HERE keeps
-  // every downstream number coherent: aging counts, the list, the
-  // unknown-owner callout all see the same base.
-  const preAging = useMemo(() => rows.filter(row => matchesListFilters(row) && (showLegacy || !row.legacy)), [rows, matchesListFilters, showLegacy]);
+  // mutually exclusive one-click view instead of blasting every login. The
+  // regular type chips always show current work; Legacy imports shows only the
+  // historical KPA NCRs, even when the previous selection was Tasks/Projects.
+  const preAging = useMemo(() => rows.filter(row => (
+    matchesBaseFilters(row)
+    && (showLegacy ? row.legacy : !row.legacy && (type === "all" || row.kind === type))
+  )), [rows, matchesBaseFilters, showLegacy, type]);
   // The chip's count respects the active aging bucket so the number always
-  // matches what one click reveals (the Jake lesson: count = list, always).
-  const legacyCount = useMemo(() => rows.filter(row => row.legacy && matchesListFilters(row) && rowMatchesAging(row, aging)).length, [rows, matchesListFilters, aging]);
+  // matches what one click reveals. It intentionally ignores the current type
+  // because the Legacy chip replaces that selection in one click.
+  const legacyCount = useMemo(() => rows.filter(row => row.legacy && matchesBaseFilters(row) && rowMatchesAging(row, aging)).length, [rows, matchesBaseFilters, aging]);
 
   // Live counts per aging bucket so the size of what's slipping is visible
   // before anyone clicks — the cost of ignoring it is never hidden.
@@ -743,7 +747,7 @@ const DashboardListView = ({
   }), [preAging, profileIds]);
   const unknownNcrRows = useMemo(() => unknownNcrAll.slice(0, 4), [unknownNcrAll]);
   const hasActiveFilters = dept !== "all" || sub !== "all" || type !== "all" || linked !== "all" || originator !== "all" || assigned !== "all" || aging !== "all_due" || showLegacy;
-  const activeFilterCount = [dept, sub, type, linked, originator, assigned].filter(value => value !== "all").length + (aging !== "all_due" ? 1 : 0);
+  const activeFilterCount = [dept, sub, type, linked, originator, assigned].filter(value => value !== "all").length + (aging !== "all_due" ? 1 : 0) + (showLegacy ? 1 : 0);
   const clearAll = () => {
     setDept("all");
     setSub("all");
@@ -841,6 +845,7 @@ const DashboardListView = ({
           {filterSelect("Subdepartment", sub, setSub, subOptions)}
           {filterSelect("Type", type, v => {
           setType(v);
+          setShowLegacy(false);
           if (v === "project" && linked === "project" || v === "ncr" && linked === "ncr") setLinked("all");
         }, [{
           id: "task",
@@ -863,23 +868,27 @@ const DashboardListView = ({
         })))}
         </div>
 
-        <div className="lv-aging-row lv-type-row">
+        <div className="lv-aging-row lv-type-row" role="group" aria-label="Filter by work type">
           <span className="lv-aging-label">Type</span>
-          {[{ id: "all", label: "All" }, { id: "task", label: "Tasks" }, { id: "project", label: "Projects" }, { id: "ncr", label: "NCRs" }].map(option => <button key={option.id} type="button" className={`lv-aging-chip ${type === option.id ? "active" : ""}`} onClick={() => {
+          {[{ id: "all", label: "All" }, { id: "task", label: "Tasks" }, { id: "project", label: "Projects" }, { id: "ncr", label: "NCRs" }].map(option => <button key={option.id} type="button" className={`lv-aging-chip ${!showLegacy && type === option.id ? "active" : ""}`} aria-pressed={!showLegacy && type === option.id} onClick={() => {
             setType(option.id);
+            setShowLegacy(false);
             if (option.id === "project" && linked === "project" || option.id === "ncr" && linked === "ncr") setLinked("all");
           }}>
               {option.label}
             </button>)}
-          <button type="button" className={`lv-aging-chip lv-legacy-chip ${showLegacy ? "active" : ""}`} onClick={() => setShowLegacy(value => !value)} title="Imported from the legacy KPA system — most predate OMP and may never be closed">
+          <button type="button" className={`lv-aging-chip lv-legacy-chip ${showLegacy ? "active" : ""}`} aria-pressed={showLegacy} onClick={() => {
+            setType("all");
+            setShowLegacy(value => !value);
+          }} title="Show only imports from the legacy KPA system — most predate OMP and may never be closed">
             Legacy imports
             {legacyCount > 0 && <span className="lv-aging-count">{legacyCount}</span>}
           </button>
         </div>
 
-        <div className="lv-aging-row">
+        <div className="lv-aging-row" role="group" aria-label="Filter by due date">
           <span className="lv-aging-label">Aging</span>
-          {DASHBOARD_AGING_BUCKETS.map(bucket => <button key={bucket.id} type="button" className={`lv-aging-chip ${aging === bucket.id ? "active" : ""} ${bucket.id === "past_due" ? "danger" : ""}`} onClick={() => setAging(bucket.id)}>
+          {DASHBOARD_AGING_BUCKETS.map(bucket => <button key={bucket.id} type="button" className={`lv-aging-chip ${aging === bucket.id ? "active" : ""} ${bucket.id === "past_due" ? "danger" : ""}`} aria-pressed={aging === bucket.id} onClick={() => setAging(bucket.id)}>
               {bucket.label}
               {bucket.id !== "all_due" && agingCounts[bucket.id] > 0 && <span className="lv-aging-count">{agingCounts[bucket.id]}</span>}
             </button>)}
