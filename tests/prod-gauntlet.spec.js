@@ -59,6 +59,13 @@ test.describe('production gauntlet', () => {
       if (await el.isVisible({ timeout: 700 }).catch(() => false)) await el.click({ force: true }).catch(() => {});
     }
 
+    const dismissOverlays = async () => {
+      for (const sel of ['.brief-close', '.framework-explainer-close', '.new-feature-close', 'button:has-text("Got it")']) {
+        const el = page.locator(sel).first();
+        if (await el.isVisible({ timeout: 500 }).catch(() => false)) await el.click({ force: true }).catch(() => {});
+      }
+    };
+
     const expectNoErrorToast = async (where) => {
       const toast = page.locator('.toast-error, [class*="toast"][class*="error"]').first();
       const visible = await toast.isVisible({ timeout: 500 }).catch(() => false);
@@ -69,6 +76,7 @@ test.describe('production gauntlet', () => {
     };
 
     // ---- Dashboard (Tasks & Projects, company scope) ----
+    await dismissOverlays();
     const kpiActive = page.locator('.kpi-grid, .global-kpi-strip').first();
     await expect(kpiActive, 'dashboard: KPI strip renders').toBeVisible({ timeout: 20000 });
     const listRows = page.locator('.lv-row');
@@ -118,6 +126,7 @@ test.describe('production gauntlet', () => {
     // ---- Individual scope: strip and list must agree (Jake's bug class) ----
     await page.locator('nav a:has-text("Tasks"), button:has-text("Tasks")').first().click();
     await page.waitForTimeout(3000);
+    await dismissOverlays();
     await page.locator('.dashboard-scope-tab:has-text("Individual"), .dashboard-scope-tab:has-text("Me")').first().click();
     await page.waitForTimeout(4000);
     await expectNoErrorToast('individual scope');
