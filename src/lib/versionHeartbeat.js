@@ -52,3 +52,45 @@ export const startVersionHeartbeat = (onNewVersion) => {
     document.removeEventListener('visibilitychange', onVisible);
   };
 };
+
+// --- Silent auto-apply ------------------------------------------------------
+// The banner is the fallback, not the mechanism. When a newer build exists,
+// the session reloads ITSELF the moment the user isn't looking (tab hidden,
+// phone locked, PWA backgrounded) — invisible by definition. Guards: never
+// with an open modal or focused non-empty field (unsaved work), never twice
+// for the same target build (no reload loops).
+
+const AUTO_RELOAD_STAMP = 'omp-auto-reload-build';
+
+const hasUnsavedWorkOnScreen = () => {
+  if (document.querySelector('.modal-content')) return true;
+  const el = document.activeElement;
+  if (!el) return false;
+  if (el.tagName === 'TEXTAREA' && el.value) return true;
+  if (el.tagName === 'INPUT' && el.value && !['checkbox', 'radio', 'button', 'submit'].includes(el.type)) return true;
+  return false;
+};
+
+export const applyUpdateWhenHidden = (remoteBuild) => {
+  if (typeof window === 'undefined' || !remoteBuild) return () => {};
+  try {
+    if (sessionStorage.getItem(AUTO_RELOAD_STAMP) === remoteBuild) return () => {};
+  } catch {
+    // Storage unavailable — still safe, the stamp only prevents repeats.
+  }
+
+  const attempt = () => {
+    if (document.visibilityState !== 'hidden') return;
+    if (hasUnsavedWorkOnScreen()) return;
+    try {
+      sessionStorage.setItem(AUTO_RELOAD_STAMP, remoteBuild);
+    } catch {
+      // Proceed anyway; worst case is one extra reload attempt next session.
+    }
+    window.location.reload();
+  };
+
+  document.addEventListener('visibilitychange', attempt);
+  attempt();
+  return () => document.removeEventListener('visibilitychange', attempt);
+};

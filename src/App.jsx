@@ -12,7 +12,7 @@ import { Avatar } from './uiPrimitives';
 import { supabase } from './lib/supabase';
 import { humanizeErrorMessage } from './lib/errors';
 import { reportClientError, setTelemetryUser } from './lib/telemetry';
-import { startVersionHeartbeat } from './lib/versionHeartbeat';
+import { startVersionHeartbeat, applyUpdateWhenHidden } from './lib/versionHeartbeat';
 import { getMentionedUsers } from './mentions';
 import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
 import { formatKpiTarget, formatKpiValue } from './kpiSystem';
@@ -705,10 +705,23 @@ function App() {
     setTelemetryUser(profile?.id || null);
   }, [profile?.id]);
 
-  // Stale-bundle heartbeat: when a newer build ships, every open session gets
-  // a persistent refresh banner instead of silently running old code.
+  // Stale-bundle heartbeat: when a newer build ships, the session applies it
+  // ITSELF the next time the user looks away (tab hidden / phone locked /
+  // PWA backgrounded), guarded against unsaved work. The banner remains only
+  // for someone actively mid-screen who wants it sooner.
   const [updateReady, setUpdateReady] = useState(false);
-  useEffect(() => startVersionHeartbeat(() => setUpdateReady(true)), []);
+  const autoApplyCleanupRef = useRef(null);
+  useEffect(() => {
+    const stop = startVersionHeartbeat((remoteBuild) => {
+      setUpdateReady(true);
+      autoApplyCleanupRef.current?.();
+      autoApplyCleanupRef.current = applyUpdateWhenHidden(remoteBuild);
+    });
+    return () => {
+      stop();
+      autoApplyCleanupRef.current?.();
+    };
+  }, []);
 
   // Toast helpers
   const addToast = useCallback((toast) => {
@@ -2309,8 +2322,8 @@ function App() {
       <Suspense fallback={null}>
         {updateReady && (
           <div className="update-ready-banner" role="status">
-            <span>A new version of SandPro OMP is ready.</span>
-            <button type="button" onClick={() => window.location.reload()}>Refresh now</button>
+            <span>A new version is ready — it applies itself when you step away.</span>
+            <button type="button" onClick={() => window.location.reload()}>Update now</button>
           </div>
         )}
         {toasts.length > 0 && <ToastContainer toasts={toasts} removeToast={removeToast} />}
