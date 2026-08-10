@@ -136,4 +136,81 @@ test.describe('production gauntlet', () => {
     expect(failedRequests, `5xx responses: ${failedRequests.join(' | ')}`).toHaveLength(0);
     expect(consoleErrors, `console errors: ${consoleErrors.join(' | ')}`).toHaveLength(0);
   });
+
+  test('mutating circuit: create task, add subtask, verify, self-clean', async ({ page }) => {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+    test.skip(!SERVICE_KEY, 'needs service key for self-cleanup');
+    const TITLE = `GAUNTLET circuit ${new Date().toISOString()} — safe to delete`;
+
+    await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
+      key: STORAGE_KEY,
+      value: JSON.stringify(session),
+    });
+    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(8000);
+    const dismissOverlays = async () => {
+      for (const sel of ['.brief-close', '.framework-explainer-close', '.new-feature-close', 'button:has-text("Got it")']) {
+        const el = page.locator(sel).first();
+        if (await el.isVisible({ timeout: 500 }).catch(() => false)) await el.click({ force: true }).catch(() => {});
+      }
+    };
+    await dismissOverlays();
+
+    try {
+      // Create a task through the real wizard (Malcolm's path).
+      const wizard = page.locator('.wiz-modal');
+      for (let attempt = 0; attempt < 3 && !(await wizard.isVisible().catch(() => false)); attempt += 1) {
+        await dismissOverlays();
+        const newButton = page.getByRole('button', { name: 'New', exact: true }).first();
+        if (await newButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await newButton.click({ force: true });
+        } else {
+          await page.keyboard.press('c');
+        }
+        await wizard.waitFor({ timeout: 6000 }).catch(() => {});
+      }
+      await expect(wizard, 'circuit: wizard opens').toBeVisible();
+      await wizard.getByRole('button', { name: 'Task', exact: true }).click();
+      await wizard.getByRole('button', { name: 'Single', exact: true }).click();
+      await wizard.getByRole('button', { name: 'Standalone', exact: true }).click();
+      await wizard.getByPlaceholder('What needs to happen?').fill(TITLE);
+      const deptSelect = wizard.locator('.wiz-field-grid select').first();
+      await deptSelect.selectOption({ index: 1 }).catch(() => {});
+      await wizard.getByRole('button', { name: /Create Task/ }).click();
+      await wizard.waitFor({ state: 'detached', timeout: 15000 });
+      await expect(page.getByText(TITLE).first(), 'circuit: created task renders').toBeVisible({ timeout: 15000 });
+
+      // The card AUTO-OPENS on create; only click the title if it didn't.
+      const subtasksTab = page.getByRole('button', { name: /Subtasks/ }).first();
+      if (!(await subtasksTab.isVisible({ timeout: 3000 }).catch(() => false))) {
+        await page.getByText(TITLE).first().click({ force: true });
+      }
+      await subtasksTab.click({ force: true }).catch(() => {});
+      const subtaskInput = page.getByPlaceholder('Subtask or milestone title');
+      await expect(subtaskInput, 'circuit: subtask input reachable').toBeVisible({ timeout: 10000 });
+      // A post-create remount can wipe the draft between fill and Add — fill,
+      // verify the value stuck, and retry the whole add once if no row lands.
+      const SUBTASK = 'Gauntlet subtask — safe to delete';
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        await page.waitForTimeout(1200);
+        await subtaskInput.fill(SUBTASK);
+        if ((await subtaskInput.inputValue().catch(() => '')) !== SUBTASK) continue;
+        await page.getByRole('button', { name: 'Add', exact: true }).click();
+        const landed = await page.locator('[data-testid="subtask-row"]').first()
+          .waitFor({ timeout: 8000 }).then(() => true).catch(() => false);
+        if (landed) break;
+      }
+      await expect(page.locator('[data-testid="subtask-row"]').first(), 'circuit: subtask renders').toBeVisible({ timeout: 5000 });
+    } finally {
+      // Self-clean: the QA objective (cascades subtasks/members) and any
+      // telemetry this run produced.
+      const headers = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+      const del = await fetch(`${SUPABASE_URL}/rest/v1/objectives?title=eq.${encodeURIComponent(TITLE)}`, {
+        method: 'DELETE', headers: { ...headers, Prefer: 'return=representation' },
+      });
+      const removed = del.ok ? (await del.json()).length : 0;
+      await fetch(`${SUPABASE_URL}/rest/v1/client_errors?user_id=eq.${session.user.id}`, { method: 'DELETE', headers });
+      expect(removed, 'circuit: QA task cleaned up').toBeGreaterThan(0);
+    }
+  });
 });
