@@ -190,3 +190,24 @@ Shipped 8/5 and validated in production under forced lock contention: resilient
 lock retry, error humanizing, follow-up guard, telemetry pipeline, chaos gate
 #1, and this document. The incident evidence belongs in the originating task;
 an Agent must not backfill a solved incident onto the Fix-It wall.
+
+## Incident — Aug 10, 2026: Create NCR down (boolean '' 22P02)
+
+- A commit authored by a session with a skewed clock (dated Jun 10, parent
+  Aug 9) mapped repeatIssue/recurrencePrevented with `?? null` and was
+  deployed Sun Aug 9 ~7:30 PM. `?? null` passes empty strings; the create
+  draft holds `repeatIssue: ''` → every Create NCR failed with
+  `invalid input syntax for type boolean: ""`.
+- Detected Monday 9:38–9:48 AM via client_errors telemetry (Tim Dibben ×2,
+  Jon Ostby ×2) before the emailed report was read. The toast vanished in 4s —
+  errors now persist 10s.
+- Fix: toNullableBoolean boundary (src/lib/coerce.js) on NCR insert + update;
+  unit tests lock all five ncr_reports boolean columns; release gate now has a
+  static payload-coercion probe. Deployed via full pipeline Mon ~10:20 AM;
+  proven by scripted production create (tmp/ncr-create-proof.mjs, insert 201,
+  self-cleaning).
+- Standing rules: `?? null` is NEVER a sufficient guard in a payload mapper —
+  typed columns cross a coercion helper. Every prod deploy runs the full
+  pipeline; the Sunday deploy that shipped this did not run the NCR-create
+  path in smoke (smoke is read-only) — the pipeline gate now catches the
+  pattern statically instead.
