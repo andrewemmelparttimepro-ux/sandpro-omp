@@ -75,12 +75,10 @@ test.describe('mobile zero-day crop gates', () => {
       await assertNoMobileCrop(page, `kpi ${viewport.label}`);
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-04-kpi.png`), fullPage: true });
 
+      // Fix-It Feed is locked to the two moderators (Andrew + Merci); the QA
+      // account must NOT see it. This doubles as a mobile lockdown check.
       await dismissGuidance(page);
-      await navItem(page, 'Fix-It Feed').click();
-      await expect(page.locator('.fixit-page')).toBeVisible();
-      await resetMainScroll(page);
-      await assertNoMobileCrop(page, `fix-it feed ${viewport.label}`);
-      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-05-fixit.png`), fullPage: true });
+      await expect(navItem(page, 'Fix-It Feed')).toHaveCount(0);
 
       await dismissGuidance(page);
       await navItem(page, 'NCR').click();
