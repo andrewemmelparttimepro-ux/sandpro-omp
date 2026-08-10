@@ -18,9 +18,22 @@ import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
 import { formatKpiTarget, formatKpiValue } from './kpiSystem';
 
 // Safe localStorage — fails gracefully in incognito / strict privacy modes
+// In-memory fallback: when localStorage is blocked (private mode, strict
+// privacy), dismissals still stick for the session — otherwise the brief /
+// explainer overlays re-arm on a timer forever.
+const safeStorageMemory = new Map();
 const safeStorage = {
-  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* noop */ } },
+  get: (k) => {
+    try {
+      const v = localStorage.getItem(k);
+      if (v !== null) return v;
+    } catch { /* fall through */ }
+    return safeStorageMemory.has(k) ? safeStorageMemory.get(k) : null;
+  },
+  set: (k, v) => {
+    safeStorageMemory.set(k, v);
+    try { localStorage.setItem(k, v); } catch { /* memory copy holds */ }
+  },
 };
 import './index.css';
 
@@ -208,7 +221,7 @@ const writeRouteToUrl = (route, replace = false) => {
 // ============================================================================
 // LOGIN SCREEN — Supabase Auth
 // ============================================================================
-const PasswordChangeModal = ({ onSave, userName, reason = "temporary" }) => {
+const PasswordChangeModal = ({ onSave, userName, reason = "temporary", onCancel }) => {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
@@ -253,6 +266,11 @@ const PasswordChangeModal = ({ onSave, userName, reason = "temporary" }) => {
           <button className="btn btn-primary w-full" style={{ justifyContent: "center" }} disabled={loading}>
             {loading ? <Loader2 size={16} className="animate-spin" /> : "Save Password"}
           </button>
+          {onCancel && (
+            <button type="button" className="btn btn-secondary w-full" style={{ justifyContent: "center", marginTop: 10 }} onClick={onCancel}>
+              I didn't request a reset — back to the app
+            </button>
+          )}
         </div>
       </form>
     </div>
@@ -280,7 +298,7 @@ const LoadingScreen = () => (
 // ============================================================================
 function App() {
   // Supabase hooks
-  const { user, profile, loading: authLoading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile } = useAuth();
+  const { user, profile, loading: authLoading, passwordRecovery, clearPasswordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile } = useAuth();
   const shouldLoadFixItFeed = Boolean(user && canAccessFixItFeed(user) && (
     typeof window === 'undefined'
     || !window.matchMedia('(max-width: 768px)').matches
@@ -1832,7 +1850,7 @@ function App() {
 
   return (
     <FieldKeyProvider groups={OMP_GLOSSARY} keyLabel="Definitions" subtitle="Plain-English definitions for every OMP term — OKRs, KRs, blockers, and the rest." showLauncher={false}>
-      {mustSetPassword && <PasswordChangeModal userName={profile?.name} reason={passwordRecovery ? "recovery" : "temporary"} onSave={updatePassword} />}
+      {mustSetPassword && <PasswordChangeModal userName={profile?.name} reason={passwordRecovery ? "recovery" : "temporary"} onSave={updatePassword} onCancel={!mustChangePassword && passwordRecovery ? clearPasswordRecovery : undefined} />}
       {/* HEADER */}
       <header className="header desktop-header">
         <a href={pageHref("dashboard")} onClick={handleHomeClick} className="brand-home" style={{ marginRight: 8 }} aria-label="Go to Dashboard">

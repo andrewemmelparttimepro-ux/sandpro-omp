@@ -1910,6 +1910,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
                   <input value={metricDraft.note} onChange={e => setMetricDraft(d => ({ ...d, note: e.target.value }))} placeholder="Progress note" style={{ flex: "1 1 180px" }} />
                   <button className="btn btn-sm btn-primary" onClick={async () => {
                     if (metricDraft.value === "") return;
+                    if (!metricDraft.date) { addToast({ type: 'error', message: 'Pick a check-in date before logging.' }); return; }
                     await addMetricCheckin?.(localObj.id, { ...metricDraft, value: Number(metricDraft.value), createdBy: currentUser.id });
                     setMetricDraft({ date: new Date().toISOString().slice(0, 10), value: "", note: "" });
                     addToast({ type: 'success', message: 'Metric check-in saved' });

@@ -197,7 +197,7 @@ export const KpiPage = ({
     try {
       const created = await kpiData.createDefinition?.({
         ...newKpiDraft,
-        targetValue: Number(newKpiDraft.targetValue),
+        targetValue: newKpiDraft.targetValue === '' ? null : Number(newKpiDraft.targetValue),
         createdBy: currentUser?.id,
       });
       setSelectedKpiId(created?.id || null);

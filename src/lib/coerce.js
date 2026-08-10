@@ -9,3 +9,15 @@ export const toNullableBoolean = (value) => {
   if (['false', 'no', 'n', '0'].includes(normalized)) return false;
   return null;
 };
+
+// Numeric twin of toNullableBoolean: '' / junk -> null, numeric strings ->
+// numbers (currency symbols and commas stripped). Never lets '' reach a
+// numeric column, and never turns a cleared input into a silent 0.
+export const toNullableNumber = (value) => {
+  if (value === '' || value === null || value === undefined) return null;
+  const stripped = String(value).replace(/[^0-9.-]/g, '');
+  // A junk string strips to nothing — that is null, never a silent 0.
+  if (!stripped || stripped === '-' || stripped === '.' || stripped === '-.') return null;
+  const numeric = Number(stripped);
+  return Number.isFinite(numeric) ? numeric : null;
+};

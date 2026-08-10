@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { toNullableBoolean } from '../lib/coerce';
+import { toNullableBoolean, toNullableNumber } from '../lib/coerce';
 import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress } from '../okrFramework';
 import { getRecurrenceInterval, getNextRecurringDueDate } from '../data';
 import { ensureFlagsLoaded, getFlag } from '../lib/flags';
@@ -273,11 +273,11 @@ const kpiDefinitionToRow = (definition = {}, userId = null) => ({
   owner_id: definition.ownerId || null,
   unit: definition.unit || '',
   direction: definition.direction || 'increase',
-  target_value: definition.targetValue ?? null,
-  yellow_min: definition.yellowMin ?? null,
-  yellow_max: definition.yellowMax ?? null,
-  red_min: definition.redMin ?? null,
-  red_max: definition.redMax ?? null,
+  target_value: toNullableNumber(definition.targetValue),
+  yellow_min: toNullableNumber(definition.yellowMin),
+  yellow_max: toNullableNumber(definition.yellowMax),
+  red_min: toNullableNumber(definition.redMin),
+  red_max: toNullableNumber(definition.redMax),
   thresholds_json: definition.thresholdsJson || {},
   source_type: definition.sourceType || 'manual',
   formula_json: definition.formulaJson || {},
@@ -632,7 +632,9 @@ export function useAuth() {
       .eq('id', userId)
       .single(), 'profile fetch', null);
     if (data) setProfile(data);
-    else if (authUser && error) setProfile(profileFromAuthUser(authUser));
+    // On a failed REFETCH keep the real profile — synthesizing from auth
+    // metadata silently downgrades role and flips permission gates.
+    else if (authUser && error) setProfile(prev => prev || profileFromAuthUser(authUser));
     setLoading(false);
   }, []);
 
@@ -752,7 +754,7 @@ export function useAuth() {
     return data;
   }, [profile?.avatar_url, user?.id]);
 
-  return { user, profile, loading, passwordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile: () => user && fetchProfile(user.id, user) };
+  return { user, profile, loading, passwordRecovery, clearPasswordRecovery: () => setPasswordRecovery(false), signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile: () => user && fetchProfile(user.id, user) };
 }
 
 // ============================================================================
@@ -1605,6 +1607,7 @@ export function useObjectives(enabled = true) {
   const [okrProjects, setOkrProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const objectivesLoadedRef = useRef(false);
   const lastObjectivesFetchAtRef = useRef(0);
   const fetchObjectivesInner = useCallback(async () => {
     if (!enabled) {
@@ -1617,6 +1620,9 @@ export function useObjectives(enabled = true) {
     // the first; within 2.5s of a fetch STARTING, later starts are no-ops.
     if (Date.now() - lastObjectivesFetchAtRef.current < 2500) return null;
     lastObjectivesFetchAtRef.current = Date.now();
+    // The disabled mount pass cleared loading; a real fetch must re-raise it
+    // until first data lands or empty states lie during every slow login.
+    if (!objectivesLoadedRef.current) setLoading(true);
     const { data: authData } = await supabase.auth.getUser();
     const currentUserId = authData?.user?.id || null;
 
@@ -1630,6 +1636,7 @@ export function useObjectives(enabled = true) {
     // Fetch related data in parallel
     const ids = objs.map(o => o.id);
     if (ids.length === 0) {
+      objectivesLoadedRef.current = true;
       setObjectives([]);
       setOkrProjects([]);
       setLoading(false);
@@ -2012,6 +2019,7 @@ export function useObjectives(enabled = true) {
     });
 
     setOkrProjects(localProjects);
+    objectivesLoadedRef.current = true;
     setObjectives(withRollups);
     setLoading(false);
     return withRollups;
@@ -2140,20 +2148,20 @@ export function useObjectives(enabled = true) {
         due_date: obj.dueDate || null,
         start_date: obj.startDate || null,
         department: obj.department || '',
-        acknowledged: obj.acknowledged ?? false,
-        blocker_flag: obj.blockerFlag ?? false,
+        acknowledged: Boolean(obj.acknowledged),
+        blocker_flag: Boolean(obj.blockerFlag),
         blocker_reason: obj.blockerReason || '',
         next_action: obj.nextAction || '',
         type: obj.type || 'simple',
-        baseline_metric: obj.baselineMetric ?? null,
-        target_metric: obj.targetMetric ?? null,
-        current_metric: obj.currentMetric ?? null,
+        baseline_metric: toNullableNumber(obj.baselineMetric),
+        target_metric: toNullableNumber(obj.targetMetric),
+        current_metric: toNullableNumber(obj.currentMetric),
         metric_unit: obj.metricUnit || '',
         measurement_cadence: obj.measurementCadence || 'monthly',
         rollup_method: obj.rollupMethod || 'average',
         okr_level: obj.okrLevel || 'run_the_business',
         okr_period: obj.okrPeriod || '',
-        okr_weight: obj.okrWeight ?? 1,
+        okr_weight: toNullableNumber(obj.okrWeight) ?? 1,
         classification_status: obj.classificationStatus || 'manual',
         classification_confidence: normalizeConfidenceForDb(obj.classificationConfidence ?? 1),
         classification_reason: obj.classificationReason || 'Set during objective creation.',
@@ -2248,23 +2256,23 @@ export function useObjectives(enabled = true) {
     if (changes.progress !== undefined) dbChanges.progress = changes.progress;
     if (changes.dueDate !== undefined) dbChanges.due_date = changes.dueDate || null;
     if (changes.department !== undefined) dbChanges.department = changes.department;
-    if (changes.acknowledged !== undefined) dbChanges.acknowledged = changes.acknowledged;
-    if (changes.blockerFlag !== undefined) dbChanges.blocker_flag = changes.blockerFlag;
+    if (changes.acknowledged !== undefined) dbChanges.acknowledged = Boolean(changes.acknowledged);
+    if (changes.blockerFlag !== undefined) dbChanges.blocker_flag = Boolean(changes.blockerFlag);
     if (changes.blockerReason !== undefined) dbChanges.blocker_reason = changes.blockerReason;
     if (changes.nextAction !== undefined) dbChanges.next_action = changes.nextAction;
-    if (changes.parentId !== undefined) dbChanges.parent_id = changes.parentId;
-    if (changes.startDate !== undefined) dbChanges.start_date = changes.startDate;
-    if (changes.delegatedBy !== undefined) dbChanges.delegated_by = changes.delegatedBy;
+    if (changes.parentId !== undefined) dbChanges.parent_id = changes.parentId || null;
+    if (changes.startDate !== undefined) dbChanges.start_date = changes.startDate || null;
+    if (changes.delegatedBy !== undefined) dbChanges.delegated_by = changes.delegatedBy || null;
     if (changes.type !== undefined) dbChanges.type = changes.type;
-    if (changes.baselineMetric !== undefined) dbChanges.baseline_metric = changes.baselineMetric;
-    if (changes.targetMetric !== undefined) dbChanges.target_metric = changes.targetMetric;
-    if (changes.currentMetric !== undefined) dbChanges.current_metric = changes.currentMetric;
+    if (changes.baselineMetric !== undefined) dbChanges.baseline_metric = toNullableNumber(changes.baselineMetric);
+    if (changes.targetMetric !== undefined) dbChanges.target_metric = toNullableNumber(changes.targetMetric);
+    if (changes.currentMetric !== undefined) dbChanges.current_metric = toNullableNumber(changes.currentMetric);
     if (changes.metricUnit !== undefined) dbChanges.metric_unit = changes.metricUnit;
     if (changes.measurementCadence !== undefined) dbChanges.measurement_cadence = changes.measurementCadence;
     if (changes.rollupMethod !== undefined) dbChanges.rollup_method = changes.rollupMethod;
     if (changes.okrLevel !== undefined) dbChanges.okr_level = changes.okrLevel;
     if (changes.okrPeriod !== undefined) dbChanges.okr_period = changes.okrPeriod;
-    if (changes.okrWeight !== undefined) dbChanges.okr_weight = changes.okrWeight;
+    if (changes.okrWeight !== undefined) dbChanges.okr_weight = toNullableNumber(changes.okrWeight) ?? 1;
     if (changes.classificationStatus !== undefined) dbChanges.classification_status = changes.classificationStatus;
     if (changes.classificationConfidence !== undefined) dbChanges.classification_confidence = normalizeConfidenceForDb(changes.classificationConfidence);
     if (changes.classificationReason !== undefined) dbChanges.classification_reason = changes.classificationReason;
@@ -2915,11 +2923,7 @@ const mapNcrReport = (row) => ({
   signatures: row.signatures || [],
 });
 
-const toNullableNumber = (value) => {
-  if (value === '' || value === null || value === undefined) return null;
-  const numeric = Number(String(value).replace(/[^0-9.-]/g, ''));
-  return Number.isFinite(numeric) ? numeric : null;
-};
+// toNullableNumber moved to ../lib/coerce (shared payload boundary).
 
 const ncrDbChanges = (changes = {}) => {
   const db = {};
@@ -3011,6 +3015,10 @@ const ncrDbChanges = (changes = {}) => {
   if (changes.customerApprovalRequired !== undefined) db.customer_approval_required = Boolean(changes.customerApprovalRequired);
   if (changes.customerApprovalStatus !== undefined) db.customer_approval_status = changes.customerApprovalStatus;
   if (changes.followUpDueDate !== undefined) db.follow_up_due_date = changes.followUpDueDate || null;
+  if (changes.reportDate !== undefined) db.report_date = changes.reportDate || null;
+  if (changes.observer !== undefined) db.observer = changes.observer || '';
+  if (changes.followUpDetails !== undefined) db.follow_up_details = changes.followUpDetails || '';
+  if (changes.followUpCount !== undefined) db.follow_up_count = Number.isFinite(Number(changes.followUpCount)) ? Number(changes.followUpCount) : 0;
   if (changes.updatedBy !== undefined) db.updated_by = changes.updatedBy || null;
   return db;
 };
@@ -3577,7 +3585,8 @@ export function useFixItFeed(enabled = false) {
       .order('created_at', { ascending: false }), 'Fix-It posts fetch');
     if (error) {
       console.error('Error fetching Fix-It Feed:', error);
-      setPosts([]);
+      // Keep the last-known wall — a transient refetch failure must not
+      // blank the feed mid-session.
       setLoading(false);
       return [];
     }
