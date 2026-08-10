@@ -14031,3 +14031,34 @@ button.alt-command-body:disabled {
   font-size: 12px;
   cursor: pointer;
 }
+
+/* Create-NCR long-text section: same label conventions as .org-edit-grid.
+   Was a bare div with unstyled labels — browser default rendered label text
+   inline beside stubby default-width textareas (Andrew, Aug 10). */
+.ncr-create-longtext {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+.ncr-create-longtext label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.ncr-create-longtext label span {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-7);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.ncr-create-longtext label.ncr-checkbox-line {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.ncr-create-longtext textarea {
+  width: 100%;
+  box-sizing: border-box;
+}

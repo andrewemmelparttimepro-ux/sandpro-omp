@@ -3922,11 +3922,7 @@ const NcrPage = ({
                   };
                 })} /> {value}</label>)}
               </div>
-              <div style={{
-              display: 'grid',
-              gap: 10,
-              marginTop: 10
-            }}>
+              <div className="ncr-create-longtext">
                 <label className={ncrRequiredFieldClass(createDraft, 'eventDescription')}><NcrRequiredLabel>Event Description</NcrRequiredLabel><textarea required rows={3} value={createDraft.eventDescription} onChange={event => setCreateDraft(prev => ({
                   ...prev,
                   eventDescription: event.target.value

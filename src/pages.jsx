@@ -767,11 +767,15 @@ export const GlobalKpiStrip = ({
     setCollapsed(readStripCollapsed(storageKey, collapseByDefault));
   }, [storageKey, collapseByDefault]);
   const directReports = getDirectReports(currentUser.id);
+  // One model, one truth: the strip counts exactly what its own list can
+  // show. DashboardListView excludes company OKRs (they live in the OKR
+  // summary), so the strip does too — mirrored server-side in rpc_kpi_strip.
+  const countableObjectives = objectives.filter(o => o.okrLevel !== "company");
   const scopedObjectives = scope === "individual"
-    ? objectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id))
+    ? countableObjectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id))
     : scope === "team"
-      ? objectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id) || directReports.some(r => isObjectiveAssignedToUser(o, r.id)) || o.delegatedBy === currentUser.id)
-      : objectives;
+      ? countableObjectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id) || directReports.some(r => isObjectiveAssignedToUser(o, r.id)) || o.delegatedBy === currentUser.id)
+      : countableObjectives;
   const allActive = scopedObjectives.filter(o => o.status !== "completed" && o.status !== "cancelled");
   const atRisk = allActive.filter(o => o.status === "at_risk").length;
   const blocked = allActive.filter(o => o.status === "blocked").length;
