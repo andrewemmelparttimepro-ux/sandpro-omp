@@ -87,6 +87,25 @@ test.describe('production gauntlet', () => {
     const calloutRows = page.locator('.lv-ncr-owner-rows');
     expect(await calloutRows.count(), 'dashboard: callout must be collapsed by default').toBe(0);
     await expectNoErrorToast('dashboard');
+    // One-click type chips: Tasks narrows the list, All restores it; the
+    // legacy chip reveals KPA imports and collapses back to a clean login.
+    const rowsBefore = await listRows.count();
+    await page.locator('.lv-type-row .lv-aging-chip:has-text("Tasks")').first().click();
+    await page.waitForTimeout(800);
+    const taskRows = await listRows.count();
+    expect(taskRows, 'dashboard: Tasks chip filters the list').toBeLessThanOrEqual(rowsBefore);
+    await page.locator('.lv-type-row .lv-aging-chip:has-text("All")').first().click();
+    await page.waitForTimeout(600);
+    const legacyChip = page.locator('.lv-legacy-chip').first();
+    await expect(legacyChip, 'dashboard: legacy chip present').toBeVisible();
+    await legacyChip.click();
+    await page.waitForTimeout(800);
+    const withLegacy = await listRows.count();
+    await legacyChip.click();
+    await page.waitForTimeout(800);
+    const withoutLegacy = await listRows.count();
+    expect(withLegacy, 'dashboard: legacy chip reveals imports').toBeGreaterThanOrEqual(withoutLegacy);
+    await expectNoErrorToast('dashboard chips');
     await page.screenshot({ path: 'tmp/proofs/gauntlet/01-dashboard.png', fullPage: false });
 
     // ---- OKR ----

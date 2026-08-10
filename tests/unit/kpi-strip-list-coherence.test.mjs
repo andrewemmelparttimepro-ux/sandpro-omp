@@ -36,3 +36,16 @@ test('the unknown-owner NCR callout is a collapsed bar with the honest total', (
   assert.match(dashboard, /\{unknownNcrOpen && <div className="lv-ncr-owner-rows">/);
   assert.match(dashboard, /\{unknownNcrAll\.length\} NCR/);
 });
+
+test('legacy KPA imports stay behind a one-click chip, never blasting login', () => {
+  const dashboard = read('src/routes/DashboardPage.jsx');
+  assert.match(dashboard, /const \[showLegacy, setShowLegacy\] = useState\(false\)/);
+  assert.match(dashboard, /showLegacy \|\| !row\.legacy/);
+  assert.match(dashboard, /legacy: String\(report\.sourceSystem \|\| ''\)\.toUpperCase\(\) === 'KPA'/);
+  assert.match(dashboard, /Legacy imports/);
+});
+
+test('one-click type chips exist for Tasks, Projects, and NCRs', () => {
+  const dashboard = read('src/routes/DashboardPage.jsx');
+  assert.match(dashboard, /\{ id: "task", label: "Tasks" \}, \{ id: "project", label: "Projects" \}, \{ id: "ncr", label: "NCRs" \}/);
+});

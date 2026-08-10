@@ -14084,3 +14084,17 @@ button.alt-command-body:disabled {
 .lv-ncr-owner-chevron.open {
   transform: rotate(180deg);
 }
+
+/* One-click type chips + the legacy-imports gate (Andrew, Aug 10: the app is
+   about usability — legacy KPA NCRs must not blast every login). */
+.lv-type-row {
+  padding-top: 8px;
+}
+.lv-legacy-chip {
+  margin-left: auto;
+  border-style: dashed;
+  opacity: 0.85;
+}
+.lv-legacy-chip.active {
+  opacity: 1;
+}

@@ -651,6 +651,7 @@ const DashboardListView = ({
     const ncrRows = ncrReports.map(report => ({
       kind: "ncr",
       id: `ncr-${report.id}`,
+      legacy: String(report.sourceSystem || '').toUpperCase() === 'KPA',
       ncr: report,
       title: report.normalizedFailureSummary || report.eventDescription || report.reportNumber || "NCR report",
       dept: resolveNcrDept(report),
@@ -697,7 +698,8 @@ const DashboardListView = ({
     });
     return opts;
   }, [type]);
-  const preAging = useMemo(() => rows.filter(row => {
+  const [showLegacy, setShowLegacy] = useState(false);
+  const matchesListFilters = useCallback(row => {
     if (dept !== "all" && row.dept !== dept) return false;
     if (sub !== "all" && row.klass !== sub && row.group !== sub) return false;
     if (type !== "all" && row.kind !== type) return false;
@@ -708,7 +710,13 @@ const DashboardListView = ({
     if (originator !== "all" && row.originatorId !== originator) return false;
     if (assigned !== "all" && row.ownerId !== assigned && !row.memberIds.includes(assigned)) return false;
     return true;
-  }), [rows, dept, sub, type, linked, originator, assigned]);
+  }, [dept, sub, type, linked, originator, assigned]);
+  // Legacy KPA imports (300+ days old, most will never close) stay behind a
+  // one-click chip instead of blasting every login. Excluding them HERE keeps
+  // every downstream number coherent: aging counts, the list, the
+  // unknown-owner callout all see the same base.
+  const preAging = useMemo(() => rows.filter(row => matchesListFilters(row) && (showLegacy || !row.legacy)), [rows, matchesListFilters, showLegacy]);
+  const legacyCount = useMemo(() => rows.filter(row => row.legacy && matchesListFilters(row)).length, [rows, matchesListFilters]);
 
   // Live counts per aging bucket so the size of what's slipping is visible
   // before anyone clicks — the cost of ignoring it is never hidden.
@@ -732,7 +740,7 @@ const DashboardListView = ({
     return da - db;
   }), [preAging, profileIds]);
   const unknownNcrRows = useMemo(() => unknownNcrAll.slice(0, 4), [unknownNcrAll]);
-  const hasActiveFilters = dept !== "all" || sub !== "all" || type !== "all" || linked !== "all" || originator !== "all" || assigned !== "all" || aging !== "all_due";
+  const hasActiveFilters = dept !== "all" || sub !== "all" || type !== "all" || linked !== "all" || originator !== "all" || assigned !== "all" || aging !== "all_due" || showLegacy;
   const activeFilterCount = [dept, sub, type, linked, originator, assigned].filter(value => value !== "all").length + (aging !== "all_due" ? 1 : 0);
   const clearAll = () => {
     setDept("all");
@@ -742,6 +750,7 @@ const DashboardListView = ({
     setOriginator("all");
     setAssigned("all");
     setAging("all_due");
+    setShowLegacy(false);
   };
   const linkedLabelOf = row => {
     if (row.kind === "ncr") return row.linkedOkr ? "OKR" : "NCR record";
@@ -850,6 +859,20 @@ const DashboardListView = ({
           id: p.id,
           label: p.name
         })))}
+        </div>
+
+        <div className="lv-aging-row lv-type-row">
+          <span className="lv-aging-label">Type</span>
+          {[{ id: "all", label: "All" }, { id: "task", label: "Tasks" }, { id: "project", label: "Projects" }, { id: "ncr", label: "NCRs" }].map(option => <button key={option.id} type="button" className={`lv-aging-chip ${type === option.id ? "active" : ""}`} onClick={() => {
+            setType(option.id);
+            if (option.id === "project" && linked === "project" || option.id === "ncr" && linked === "ncr") setLinked("all");
+          }}>
+              {option.label}
+            </button>)}
+          <button type="button" className={`lv-aging-chip lv-legacy-chip ${showLegacy ? "active" : ""}`} onClick={() => setShowLegacy(value => !value)} title="Imported from the legacy KPA system — most predate OMP and may never be closed">
+            Legacy imports
+            {legacyCount > 0 && <span className="lv-aging-count">{legacyCount}</span>}
+          </button>
         </div>
 
         <div className="lv-aging-row">
