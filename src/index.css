@@ -12834,6 +12834,96 @@ button.alt-command-body:disabled {
   flex-shrink: 0;
 }
 
+.lv-card-header {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(420px, 620px) minmax(120px, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 70px;
+  padding: 12px 16px;
+}
+
+.lv-card-heading,
+.lv-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lv-card-heading .text-xs {
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.lv-card-actions {
+  justify-self: end;
+  justify-content: flex-end;
+}
+
+.lv-work-type-switcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  width: 100%;
+  max-width: 620px;
+  justify-self: center;
+}
+
+.lv-work-type-button {
+  min-width: 0;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.lv-work-type-button:hover {
+  border-color: var(--accent-6);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.lv-work-type-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.lv-work-type-button.active {
+  border-color: color-mix(in srgb, var(--brand) 58%, var(--border));
+  background: var(--brand-bg-strong);
+  color: var(--brand);
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--brand) 13%, transparent);
+}
+
+.lv-work-type-button b {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent-4);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.lv-work-type-button.active b {
+  background: var(--brand);
+  color: #fff;
+}
+
 .lv-filter {
   display: flex;
   flex-direction: column;
@@ -13078,8 +13168,12 @@ button.alt-command-body:disabled {
 .lv-aging.tone-none { color: var(--text-muted); background: transparent; border-color: var(--border); }
 
 @media (max-width: 720px) {
-  .lv-card .card-header > .text-xs { display: none; }
-  .lv-card .card-header > .text-md { white-space: nowrap; }
+  .lv-card-header { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 10px 12px; }
+  .lv-card-heading .text-xs { display: none; }
+  .lv-card-heading .text-md { white-space: nowrap; }
+  .lv-work-type-switcher { grid-column: 1 / -1; grid-row: 2; max-width: none; gap: 7px; }
+  .lv-work-type-button { min-height: 44px; padding: 8px 9px; }
+  .lv-card-actions { grid-column: 2; grid-row: 1; }
   .lv-filter-toggle { display: inline-flex; margin-left: auto; }
   .lv-controls { display: none; }
   .lv-controls.open { display: block; }
@@ -14085,13 +14179,12 @@ button.alt-command-body:disabled {
   transform: rotate(180deg);
 }
 
-/* One-click type chips + the legacy-imports gate (Andrew, Aug 10: the app is
-   about usability — legacy KPA NCRs must not blast every login). */
-.lv-type-row {
-  padding-top: 8px;
+/* The legacy-import gate stays secondary to the always-visible Task / Project /
+   NCR controls above. Legacy KPA NCRs must never blast every login. */
+.lv-legacy-row {
+  justify-content: flex-end;
 }
 .lv-legacy-chip {
-  margin-left: auto;
   border-style: dashed;
   opacity: 0.85;
 }

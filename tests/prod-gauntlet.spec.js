@@ -87,18 +87,41 @@ test.describe('production gauntlet', () => {
     const calloutRows = page.locator('.lv-ncr-owner-rows');
     expect(await calloutRows.count(), 'dashboard: callout must be collapsed by default').toBe(0);
     await expectNoErrorToast('dashboard');
-    // One-click type chips: each selection is exclusive and every rendered row
-    // matches it. Legacy replaces a previous type filter instead of stacking
-    // invisibly on top of it, then All restores the clean current-work login.
-    const rowsBefore = await listRows.count();
-    const typeChip = label => page.locator(`.lv-type-row .lv-aging-chip:has-text("${label}")`).first();
-    const taskChip = typeChip('Tasks');
-    await taskChip.click();
+    // The primary control is exactly three large buttons — no Type dropdown and
+    // no horizontally hidden chip strip. Every selection is exclusive and the
+    // visible list count matches the count printed on its button.
+    const typeButton = kind => page.locator(`.lv-work-type-button[data-work-type="${kind}"]`).first();
+    const taskButton = typeButton('task');
+    const projectButton = typeButton('project');
+    const ncrButton = typeButton('ncr');
+    await expect(taskButton, 'dashboard: Tasks button is visible').toBeVisible();
+    await expect(projectButton, 'dashboard: Projects button is visible').toBeVisible();
+    await expect(ncrButton, 'dashboard: NCRs button is visible').toBeVisible();
+    expect(await page.locator('.lv-filterbar .lv-filter').filter({ hasText: /^Type$/ }).count(), 'dashboard: Type dropdown is gone').toBe(0);
+
+    await taskButton.click();
     await page.waitForTimeout(800);
     const taskRows = await listRows.count();
-    expect(taskRows, 'dashboard: Tasks chip filters the list').toBeLessThanOrEqual(rowsBefore);
+    expect(taskRows, 'dashboard: Tasks count equals its button').toBe(Number(await taskButton.locator('b').textContent()));
     expect(await page.locator('.lv-row .lv-type').allTextContents(), 'dashboard: Tasks shows only tasks')
       .toEqual(Array(taskRows).fill('Task'));
+
+    await projectButton.click();
+    await page.waitForTimeout(800);
+    const projectRows = await listRows.count();
+    expect(projectRows, 'dashboard: Projects count equals its button').toBe(Number(await projectButton.locator('b').textContent()));
+    expect(await page.locator('.lv-row .lv-type').allTextContents(), 'dashboard: Projects shows only projects')
+      .toEqual(Array(projectRows).fill('Project'));
+
+    await ncrButton.click();
+    await page.waitForTimeout(800);
+    const currentNcrRows = await listRows.count();
+    expect(currentNcrRows, 'dashboard: NCR count equals its button').toBe(Number(await ncrButton.locator('b').textContent()));
+    expect(await page.locator('.lv-row .lv-type').allTextContents(), 'dashboard: NCRs shows only current NCRs')
+      .toEqual(Array(currentNcrRows).fill('NCR'));
+
+    await taskButton.click();
+    await page.waitForTimeout(500);
     const legacyChip = page.locator('.lv-legacy-chip').first();
     await expect(legacyChip, 'dashboard: legacy chip present').toBeVisible();
     await legacyChip.click();
@@ -106,15 +129,15 @@ test.describe('production gauntlet', () => {
     const legacyRows = await listRows.count();
     const legacyBadge = Number(await legacyChip.locator('.lv-aging-count').textContent());
     expect(await legacyChip.getAttribute('aria-pressed'), 'dashboard: Legacy is active').toBe('true');
-    expect(await taskChip.getAttribute('aria-pressed'), 'dashboard: Tasks is no longer active').toBe('false');
+    expect(await taskButton.getAttribute('aria-pressed'), 'dashboard: Tasks is no longer active').toBe('false');
     expect(legacyRows, 'dashboard: Legacy count equals the revealed list').toBe(legacyBadge);
     expect(await page.locator('.lv-row .lv-type').allTextContents(), 'dashboard: Legacy shows only NCRs')
       .toEqual(Array(legacyRows).fill('NCR'));
-    await typeChip('All').click();
+    await taskButton.click();
     await page.waitForTimeout(800);
-    expect(await legacyChip.getAttribute('aria-pressed'), 'dashboard: All exits Legacy').toBe('false');
-    expect(await typeChip('All').getAttribute('aria-pressed'), 'dashboard: All is active').toBe('true');
-    await expectNoErrorToast('dashboard chips');
+    expect(await legacyChip.getAttribute('aria-pressed'), 'dashboard: Tasks exits Legacy').toBe('false');
+    expect(await taskButton.getAttribute('aria-pressed'), 'dashboard: Tasks is active').toBe('true');
+    await expectNoErrorToast('dashboard type buttons');
     await page.screenshot({ path: 'tmp/proofs/gauntlet/01-dashboard.png', fullPage: false });
 
     // ---- OKR ----

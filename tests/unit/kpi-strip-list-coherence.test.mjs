@@ -40,16 +40,26 @@ test('the unknown-owner NCR callout is a collapsed bar with the honest total', (
 test('legacy KPA imports stay behind a one-click chip, never blasting login', () => {
   const dashboard = read('src/routes/DashboardPage.jsx');
   assert.match(dashboard, /const \[showLegacy, setShowLegacy\] = useState\(false\)/);
+  assert.match(dashboard, /const \[type, setType\] = useState\("task"\)/);
   assert.match(dashboard, /showLegacy \? row\.legacy : !row\.legacy && \(type === "all" \|\| row\.kind === type\)/);
-  assert.match(dashboard, /setType\("all"\);\n\s*setShowLegacy\(value => !value\)/);
-  assert.match(dashboard, /setType\(option\.id\);\n\s*setShowLegacy\(false\)/);
+  assert.match(dashboard, /setShowLegacy\(value => !value\);\n\s*setUnknownNcrOpen\(false\)/);
+  assert.match(dashboard, /setType\(optionId\);\n\s*setShowLegacy\(false\)/);
   assert.match(dashboard, /legacy: String\(report\.sourceSystem \|\| ''\)\.toUpperCase\(\) === 'KPA'/);
   assert.match(dashboard, /Legacy imports/);
 });
 
-test('one-click type chips exist for Tasks, Projects, and NCRs', () => {
+test('three prominent work buttons replace the Type dropdown', () => {
   const dashboard = read('src/routes/DashboardPage.jsx');
-  assert.match(dashboard, /\{ id: "task", label: "Tasks" \}, \{ id: "project", label: "Projects" \}, \{ id: "ncr", label: "NCRs" \}/);
-  assert.match(dashboard, /aria-label="Filter by work type"/);
-  assert.match(dashboard, /aria-pressed=\{!showLegacy && type === option\.id\}/);
+  assert.match(dashboard, /id: "task",\n\s*label: "Tasks",\n\s*Icon: List/);
+  assert.match(dashboard, /id: "project",\n\s*label: "Projects",\n\s*Icon: Layers/);
+  assert.match(dashboard, /id: "ncr",\n\s*label: "NCRs",\n\s*Icon: ClipboardCheck/);
+  assert.match(dashboard, /className="lv-work-type-switcher"/);
+  assert.match(dashboard, /className=\{`lv-work-type-button \$\{active \? "active" : ""\}`\}/);
+  assert.match(dashboard, /aria-label="Show tasks, projects, or NCRs"/);
+  assert.match(dashboard, /data-work-type=\{option\.id\}/);
+  assert.doesNotMatch(dashboard, /filterSelect\("Type"/);
+
+  const styles = read('src/index.css');
+  assert.match(styles, /\.lv-work-type-switcher \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*\.lv-work-type-switcher \{[^}]*grid-column: 1 \/ -1/);
 });

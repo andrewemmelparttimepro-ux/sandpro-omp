@@ -519,6 +519,19 @@ const DASHBOARD_AGING_BUCKETS = [{
   label: "Completed"
 } // stays selectable — closed work gets referenced
 ];
+const DASHBOARD_WORK_TYPES = [{
+  id: "task",
+  label: "Tasks",
+  Icon: List
+}, {
+  id: "project",
+  label: "Projects",
+  Icon: Layers
+}, {
+  id: "ncr",
+  label: "NCRs",
+  Icon: ClipboardCheck
+}];
 const startOfLocalDay = value => {
   const d = new Date(value);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -572,7 +585,7 @@ const DashboardListView = ({
 }) => {
   const [dept, setDept] = useState("all");
   const [sub, setSub] = useState("all");
-  const [type, setType] = useState("all");
+  const [type, setType] = useState("task");
   const [linked, setLinked] = useState("all");
   const [originator, setOriginator] = useState("all");
   const [assigned, setAssigned] = useState("all");
@@ -589,7 +602,7 @@ const DashboardListView = ({
     if (!filterPreset?.version) return;
     setDept("all");
     setSub("all");
-    setType("all");
+    setType("task");
     setLinked("all");
     setOriginator("all");
     setAssigned("all");
@@ -746,12 +759,21 @@ const DashboardListView = ({
     return da - db;
   }), [preAging, profileIds]);
   const unknownNcrRows = useMemo(() => unknownNcrAll.slice(0, 4), [unknownNcrAll]);
-  const hasActiveFilters = dept !== "all" || sub !== "all" || type !== "all" || linked !== "all" || originator !== "all" || assigned !== "all" || aging !== "all_due" || showLegacy;
-  const activeFilterCount = [dept, sub, type, linked, originator, assigned].filter(value => value !== "all").length + (aging !== "all_due" ? 1 : 0) + (showLegacy ? 1 : 0);
+  const workTypeCounts = useMemo(() => Object.fromEntries(DASHBOARD_WORK_TYPES.map(option => [
+    option.id,
+    rows.filter(row => !row.legacy && row.kind === option.id && matchesBaseFilters(row) && rowMatchesAging(row, aging)).length
+  ])), [rows, matchesBaseFilters, aging]);
+  const selectWorkType = optionId => {
+    setType(optionId);
+    setShowLegacy(false);
+    setUnknownNcrOpen(false);
+    if (optionId === "project" && linked === "project" || optionId === "ncr" && linked === "ncr") setLinked("all");
+  };
+  const hasActiveFilters = dept !== "all" || sub !== "all" || linked !== "all" || originator !== "all" || assigned !== "all" || aging !== "all_due" || showLegacy;
+  const activeFilterCount = [dept, sub, linked, originator, assigned].filter(value => value !== "all").length + (aging !== "all_due" ? 1 : 0) + (showLegacy ? 1 : 0);
   const clearAll = () => {
     setDept("all");
     setSub("all");
-    setType("all");
     setLinked("all");
     setOriginator("all");
     setAssigned("all");
@@ -816,24 +838,44 @@ const DashboardListView = ({
     flex: 1,
     minHeight: 0
   }}>
-      <div className="card-header">
-        <Filter size={14} color="var(--brand)" />
-        <span className="text-md font-bold">List view</span>
-        <Badge color="var(--brand)">{filtered.length}</Badge>
-        <span className="text-xs text-muted" style={{
-        marginLeft: 4
-      }}>drill from the whole company down to a single line</span>
-        <button
-          type="button"
-          className={`lv-filter-toggle ${filtersOpen ? "active" : ""}`}
-          onClick={() => setFiltersOpen(value => !value)}
-          aria-expanded={filtersOpen}
-          aria-controls="dashboard-list-filters"
-        >
-          <Filter size={13} />
-          Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-        </button>
-        {hasActiveFilters && <button type="button" className="lv-clear" onClick={clearAll}>Clear filters</button>}
+      <div className="card-header lv-card-header">
+        <div className="lv-card-heading">
+          <Filter size={14} color="var(--brand)" />
+          <span className="text-md font-bold">List view</span>
+          <Badge color="var(--brand)">{filtered.length}</Badge>
+          <span className="text-xs text-muted">choose the work you want to see</span>
+        </div>
+        <div className="lv-work-type-switcher" role="group" aria-label="Show tasks, projects, or NCRs">
+          {DASHBOARD_WORK_TYPES.map(option => {
+          const active = !showLegacy && type === option.id;
+          const WorkTypeIcon = option.Icon;
+          return <button
+              key={option.id}
+              type="button"
+              className={`lv-work-type-button ${active ? "active" : ""}`}
+              aria-pressed={active}
+              data-work-type={option.id}
+              onClick={() => selectWorkType(option.id)}
+            >
+              <WorkTypeIcon size={17} strokeWidth={2} />
+              <span>{option.label}</span>
+              <b>{workTypeCounts[option.id]}</b>
+            </button>;
+        })}
+        </div>
+        <div className="lv-card-actions">
+          <button
+            type="button"
+            className={`lv-filter-toggle ${filtersOpen ? "active" : ""}`}
+            onClick={() => setFiltersOpen(value => !value)}
+            aria-expanded={filtersOpen}
+            aria-controls="dashboard-list-filters"
+          >
+            <Filter size={13} />
+            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+          </button>
+          {hasActiveFilters && <button type="button" className="lv-clear" onClick={clearAll}>Clear filters</button>}
+        </div>
       </div>
 
       <div id="dashboard-list-filters" className={`lv-controls ${filtersOpen ? "open" : ""}`}>
@@ -843,20 +885,6 @@ const DashboardListView = ({
           setSub("all");
         }, OMP_DEPARTMENTS)}
           {filterSelect("Subdepartment", sub, setSub, subOptions)}
-          {filterSelect("Type", type, v => {
-          setType(v);
-          setShowLegacy(false);
-          if (v === "project" && linked === "project" || v === "ncr" && linked === "ncr") setLinked("all");
-        }, [{
-          id: "task",
-          label: "Task"
-        }, {
-          id: "project",
-          label: "Project"
-        }, {
-          id: "ncr",
-          label: "NCR"
-        }])}
           {filterSelect("Linked to", linked, setLinked, linkedOptions)}
           {filterSelect("Originator", originator, setOriginator, profiles.map(p => ({
           id: p.id,
@@ -868,18 +896,10 @@ const DashboardListView = ({
         })))}
         </div>
 
-        <div className="lv-aging-row lv-type-row" role="group" aria-label="Filter by work type">
-          <span className="lv-aging-label">Type</span>
-          {[{ id: "all", label: "All" }, { id: "task", label: "Tasks" }, { id: "project", label: "Projects" }, { id: "ncr", label: "NCRs" }].map(option => <button key={option.id} type="button" className={`lv-aging-chip ${!showLegacy && type === option.id ? "active" : ""}`} aria-pressed={!showLegacy && type === option.id} onClick={() => {
-            setType(option.id);
-            setShowLegacy(false);
-            if (option.id === "project" && linked === "project" || option.id === "ncr" && linked === "ncr") setLinked("all");
-          }}>
-              {option.label}
-            </button>)}
+        <div className="lv-aging-row lv-legacy-row">
           <button type="button" className={`lv-aging-chip lv-legacy-chip ${showLegacy ? "active" : ""}`} aria-pressed={showLegacy} onClick={() => {
-            setType("all");
             setShowLegacy(value => !value);
+            setUnknownNcrOpen(false);
           }} title="Show only imports from the legacy KPA system — most predate OMP and may never be closed">
             Legacy imports
             {legacyCount > 0 && <span className="lv-aging-count">{legacyCount}</span>}
