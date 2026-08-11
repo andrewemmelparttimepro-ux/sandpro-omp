@@ -13605,6 +13605,11 @@ button.alt-command-body:disabled {
   border-color: var(--accent-5);
 }
 
+/* Coaching empty states (item 11): a new user's blank day shows the lead's
+   recent items — quieter than real rows, still clickable. */
+.myday-lead-row { opacity: 0.85; }
+.myday-lead-row:hover { opacity: 1; }
+
 /* Quiet hours + mutes (item 10). */
 .quiet-hours-pickers {
   display: flex;

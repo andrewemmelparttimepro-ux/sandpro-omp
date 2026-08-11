@@ -1930,7 +1930,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                   </button>
                 ))}
               </div>
-              {directoryRows.length === 0 && <EmptyState icon={Users} text="No matching directory entries." />}
+              {directoryRows.length === 0 && <EmptyState icon={Users} text={orgSearch ? `Nobody matches "${orgSearch}".` : "No matching directory entries."} action={orgSearch ? <button type="button" className="btn btn-secondary btn-sm" onClick={() => setOrgSearch("")}>Clear search</button> : null} />}
             </div>
           ) : orgViewMode === "compact" ? (
             <div className="org-compact-view" aria-label="Compact organization view">

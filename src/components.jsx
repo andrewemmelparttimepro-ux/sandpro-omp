@@ -1112,6 +1112,11 @@ const safeUser = (id) => {
 const DAILY_NEW_FEATURES = [
   {
     date: 'Aug 11',
+    title: 'Empty screens now tell you what to do',
+    body: 'A filtered-out list offers one tap to clear the filters. A blank day points at the work around you. Nothing in OMP just says "nothing here" anymore.',
+  },
+  {
+    date: 'Aug 11',
     title: 'My Day — your day, above all scopes',
     body: 'A new first tab on Tasks & Projects: the five things that need you today, your overdue, and what you are waiting on from others. If you are not an executive, you now land there first — Company stays one tap away.',
   },

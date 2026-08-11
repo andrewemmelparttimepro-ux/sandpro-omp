@@ -1866,7 +1866,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
                   }}><Plus size={12} /> Add</button>
                 </div>
               </div>
-              {localObj.subtasks.length === 0 && <EmptyState icon={Layers} text="No subtasks or milestones yet." />}
+              {localObj.subtasks.length === 0 && <EmptyState icon={Layers} text="No subtasks yet — the box above adds the first one. Break the work into steps and progress computes itself." />}
               {localObj.subtasks.map(st => {
                 const stOwner = getUser(st.ownerId);
                 const isEditing = editingSubtaskId === st.id && subtaskEditDraft;

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Search, ChevronDown, ChevronLeft, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle, Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3, Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText, Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw, PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio, ClipboardCheck, Sun } from 'lucide-react';
-import { getUser, getProfiles, getStatusColor, getStatusLabel, formatDate, timeAgo, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, isObjectiveAssignedToUser, getRecurrenceLabel } from '../data';
+import { getUser, getProfiles, getStatusColor, getStatusLabel, formatDate, timeAgo, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, getProfileManagerIds, isObjectiveAssignedToUser, getRecurrenceLabel } from '../data';
 import { Avatar, Badge } from '../uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from '../sharedWidgets';
 import { useAltNotes } from '../hooks/useSupabase';
@@ -625,11 +625,27 @@ const MyDayView = ({
   };
   const dateLine = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   const waitingVisible = showAllWaiting ? day.waitingOnOthers : day.waitingOnOthers.slice(0, 6);
+  const dayIsBlank = day.needsTodayTotal === 0 && day.overdue.length === 0 && day.waitingOnOthers.length === 0;
+  // Item 11: a brand-new user's empty day coaches instead of shrugging —
+  // their lead's recent open items are the best picture of the week.
+  const leadItems = useMemo(() => {
+    if (!dayIsBlank) return [];
+    const leadIds = getProfileManagerIds(currentUser);
+    if (!leadIds.length) return [];
+    return objectives
+      .filter(o => o.status !== "completed" && o.status !== "cancelled" && o.okrLevel !== "company"
+        && (leadIds.includes(o.createdBy) || leadIds.includes(o.ownerId)))
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 3);
+  }, [dayIsBlank, currentUser, objectives]);
+  const leadName = leadItems.length ? (getUser(getProfileManagerIds(currentUser)[0]).name || "your lead").split(" ")[0] : "";
   const todayEmptyText = day.overdue.length > 0
     ? "Nothing new today — your overdue list is the day's work."
     : day.waitingOnOthers.length > 0
       ? "Nothing needs you today. A nudge on what you're waiting for might unstick someone."
-      : "Nothing needs you today. Company view is one tap away when you want more.";
+      : leadItems.length
+        ? `Nothing assigned to you yet. Here's what ${leadName}'s crew is on — it's the best picture of the week:`
+        : "Nothing needs you today. Company view is one tap away when you want more.";
   return <div className="myday-view" data-testid="myday-view">
       <header className="myday-header">
         <div>
@@ -649,7 +665,16 @@ const MyDayView = ({
             <Badge color="var(--brand)">{day.needsToday.length}</Badge>
           </header>
           {day.needsToday.length === 0
-            ? <EmptyState icon={CheckCircle2} text={todayEmptyText} />
+            ? <>
+                <EmptyState icon={CheckCircle2} text={todayEmptyText} />
+                {leadItems.map(item => <div key={item.id} className="lv-row myday-row myday-lead-row" onClick={() => onOpenCard?.(item)}>
+                    <div className="myday-row-copy">
+                      <div className="text-md font-medium truncate">{item.title}</div>
+                      <div className="text-xs text-muted truncate">{getUser(item.ownerId).name || "Unassigned"}</div>
+                    </div>
+                    <AgingPill row={{ isCompleted: false, dueDate: item.dueDate, description: item.description }} />
+                  </div>)}
+              </>
             : day.needsToday.map((item, index) => <MyDayRow key={item.key} item={item} index={index} onOpen={openItem} onComplete={onCompleteObjective} />)}
           {day.needsTodayTotal > MY_DAY_CAP && <div className="myday-more">
               +{day.needsTodayTotal - MY_DAY_CAP} more waiting behind these — the five come first
@@ -1062,7 +1087,13 @@ const DashboardListView = ({
       overflowY: "auto",
       padding: "4px 12px 10px"
     }}>
-        {filtered.length === 0 ? <EmptyState icon={Filter} text={hasActiveFilters ? "Nothing matches this drill-down." : "Nothing here yet."} /> : filtered.map(row => {
+        {filtered.length === 0 ? <EmptyState
+          icon={Filter}
+          text={hasActiveFilters
+            ? "Nothing matches this drill-down — one of these filters is doing the hiding."
+            : "Nothing here yet. The orange + New button up top starts the first task — it takes about twenty seconds."}
+          action={hasActiveFilters ? <button type="button" className="btn btn-primary btn-sm" onClick={clearAll}>Clear filters</button> : null}
+        /> : filtered.map(row => {
         const linkedLabel = linkedLabelOf(row);
         const owner = getUser(row.ownerId);
         const canQuickComplete = row.kind === "task" && !row.isCompleted && onCompleteObjective;
