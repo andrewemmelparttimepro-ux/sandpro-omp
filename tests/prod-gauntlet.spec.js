@@ -146,6 +146,16 @@ test.describe('production gauntlet', () => {
     await expectNoErrorToast('dashboard type buttons');
     await page.screenshot({ path: 'tmp/proofs/gauntlet/01-dashboard.png', fullPage: false });
 
+    // ---- Search everything (Cmd/Ctrl+K) ----
+    await page.keyboard.press('ControlOrMeta+k');
+    const cmdbar = page.locator('.cmdbar');
+    await expect(cmdbar, 'search: command bar opens on Cmd/Ctrl+K').toBeVisible({ timeout: 5000 });
+    await page.keyboard.type('RFID');
+    await expect(page.locator('.cmdbar-row', { hasText: /RFID/i }).first(), 'search: finds the RFID task').toBeVisible({ timeout: 5000 });
+    await page.keyboard.press('Escape');
+    await expect(cmdbar, 'search: Escape closes the bar').toBeHidden({ timeout: 3000 });
+    await expectNoErrorToast('search');
+
     // ---- OKR ----
     await page.locator('nav a:has-text("OKR"), button:has-text("OKR")').first().click();
     await page.waitForTimeout(4000);

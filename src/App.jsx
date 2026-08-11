@@ -13,6 +13,7 @@ import { supabase } from './lib/supabase';
 import { humanizeErrorMessage } from './lib/errors';
 import { reportClientError, setTelemetryUser } from './lib/telemetry';
 import { startVersionHeartbeat, applyUpdateWhenHidden } from './lib/versionHeartbeat';
+import { CommandBar } from './commandBar';
 import { getMentionedUsers } from './mentions';
 import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
 import { formatKpiTarget, formatKpiValue } from './kpiSystem';
@@ -354,6 +355,7 @@ function App() {
   const [route, setRoute] = useState(() => readRouteFromLocation());
   const [openCard, setOpenCard] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [commandBarOpen, setCommandBarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
@@ -846,6 +848,12 @@ function App() {
   useEffect(() => {
     const handler = (e) => {
       const target = e.target;
+      // Cmd/Ctrl+K opens Search everything from anywhere — including inputs.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandBarOpen(open => !open);
+        return;
+      }
       if (
         target?.tagName === "INPUT"
         || target?.tagName === "TEXTAREA"
@@ -856,6 +864,7 @@ function App() {
       if (e.key.toLowerCase() === "c" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setShowCreateForm(true); }
       if (e.key === "/" && !e.metaKey) { e.preventDefault(); updateRoute({ page: "objectives" }); setTimeout(() => { const el = document.querySelector('input[placeholder*="Search"]'); if (el) el.focus(); }, 100); }
       if (e.key === "Escape") {
+        setCommandBarOpen(false);
         setOpenCard(null);
         setShowCreateForm(false);
         setShowNotifications(false);
@@ -1884,6 +1893,11 @@ function App() {
           {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
+        {/* Search everything (Cmd/Ctrl+K) */}
+        <button className="icon-btn" title="Search everything (⌘K)" aria-label="Search everything" onClick={() => setCommandBarOpen(true)}>
+          <Search size={18} />
+        </button>
+
         {/* Notifications */}
         <div style={{ position: "relative" }}>
           <button className={`icon-btn ${showNotifications ? 'active' : ''}`} title="Notifications" aria-label="Notifications" onClick={() => { setShowNotifications(!showNotifications); setShowUserMenu(false); }}>
@@ -1961,6 +1975,9 @@ function App() {
           <CurrentPageIcon size={14} />
           <span>{currentPageMeta.label}</span>
         </div>
+        <button className="mobile-icon-btn" onClick={() => setCommandBarOpen(true)} aria-label="Search everything">
+          <Search size={19} />
+        </button>
         <button className="mobile-icon-btn mobile-create-button" onClick={() => setShowCreateForm(true)} aria-label="Create new">
           <Plus size={20} />
         </button>
@@ -2344,6 +2361,21 @@ function App() {
             <button type="button" onClick={() => window.location.reload()}>Update now</button>
           </div>
         )}
+        <CommandBar
+          open={commandBarOpen}
+          onClose={() => setCommandBarOpen(false)}
+          objectives={objectives}
+          okrProjects={okrProjects}
+          ncrReports={ncrReports}
+          profiles={profiles}
+          onOpenObjective={(objOrId) => {
+            const obj = typeof objOrId === 'object' ? objOrId : objectives.find(o => o.id === objOrId);
+            if (obj) handleOpenCard(obj);
+          }}
+          onOpenNcr={(id) => { setNcrFocusReportId(id); updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS }); }}
+          onNavigate={(pageId) => updateRoute({ page: pageId === "dashboard" ? "dashboard" : pageId })}
+          onCreateTask={() => setShowCreateForm(true)}
+        />
         {toasts.length > 0 && <ToastContainer toasts={toasts} removeToast={removeToast} />}
       </Suspense>
       {(showNotifications || showUserMenu) && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => { setShowNotifications(false); setShowUserMenu(false); }} />}

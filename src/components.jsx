@@ -1106,6 +1106,42 @@ const safeUser = (id) => {
   return { id: id || 'unknown', name: 'Unassigned', initials: '—', color: '#94A3B8' };
 };
 
+// The SandPro Daily's below-the-fold section, "for the time being" (Andrew,
+// Aug 11): the top fold stays title + numbers; below the break, New Features.
+// STANDING RULE: every user-visible change ships with an entry here.
+const DAILY_NEW_FEATURES = [
+  {
+    date: 'Aug 11',
+    title: 'Search everything — one keystroke',
+    body: 'Press Cmd/Ctrl+K anywhere, or tap the magnifier in the top bar: tasks, NCRs, projects, people, and pages, found as you type. Arrow keys to move, Enter to open.',
+  },
+  {
+    date: 'Aug 11',
+    title: 'Four big buttons: All, Tasks, Projects, NCRs',
+    body: 'Pick what you are looking at with one tap. The count on each button always equals exactly what the list below shows.',
+  },
+  {
+    date: 'Aug 10',
+    title: 'Old KPA records are out of your way',
+    body: 'Legacy imports from the old system no longer flood your login. They live behind the dashed "Legacy imports" chip — one click shows them, one click puts them away.',
+  },
+  {
+    date: 'Aug 10',
+    title: 'The app updates itself',
+    body: 'When we ship a fix, your session picks it up on its own the next time you switch away. Nobody will ever be asked to "try refreshing" again.',
+  },
+  {
+    date: 'Aug 10',
+    title: 'Error messages you can actually read',
+    body: 'Problems now show in plain English and stay on screen for ten seconds — long enough to read, screenshot, and send.',
+  },
+  {
+    date: 'Aug 10',
+    title: 'NCR fixes across the board',
+    body: 'Creating an NCR works everywhere again, the long-text section of the form is properly laid out, and closeout edits now save every field.',
+  },
+];
+
 const DAILY_BULLETIN = {
   id: '2026-06-24-company-wide-launch',
   kicker: 'SandPro Times Special Edition',
@@ -1367,37 +1403,19 @@ export const DailyBrief = ({ objectives, currentUser, onDismiss, onOpenCard, onO
         <div className="brief-body">
           {bulletin ? (
             <div className="brief-bulletin">
-              <div className="brief-section-head">{bulletin.kicker}</div>
-              <h2 className="brief-headline brief-bulletin-headline">{bulletin.headline}</h2>
-              <div className="brief-byline">{bulletin.byline} &middot; {today.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
-              <p className="brief-body-text brief-bulletin-intro">{bulletin.intro}</p>
-
-              <section className="brief-rollout-hero" aria-label="Company-wide SandPro OMP rollout">
-                <div className="brief-rollout-date">
-                  <span>{bulletin.rollout.date}</span>
-                  <strong>Company-wide</strong>
-                </div>
-                <div className="brief-rollout-copy">
-                  <div className="brief-section-head">{bulletin.rollout.eyebrow}</div>
-                  <h3>{bulletin.rollout.title}</h3>
-                  <p>{bulletin.rollout.body}</p>
-                  <b>{bulletin.rollout.action}</b>
-                </div>
-              </section>
-
-              <div className="brief-bulletin-grid">
-                {bulletin.updates.map((item, index) => {
-                  const Icon = index === 0 ? Building2 : index === 1 ? CheckCircle2 : Smartphone;
-                  return (
-                    <div className="brief-bulletin-card" key={item.title}>
-                      <div className="brief-bulletin-icon"><Icon size={18} /></div>
-                      <div>
-                        <h3>{item.title}</h3>
-                        <p>{item.body}</p>
-                      </div>
+              <div className="brief-section-head">New Features</div>
+              <h2 className="brief-headline brief-bulletin-headline">What changed in your OMP</h2>
+              <div className="brief-byline">Shipped and verified on production &middot; updated {dateStr}</div>
+              <div className="brief-features">
+                {DAILY_NEW_FEATURES.map(feature => (
+                  <div className="brief-feature" key={feature.title}>
+                    <span className="brief-feature-date">{feature.date}</span>
+                    <div>
+                      <h3>{feature.title}</h3>
+                      <p>{feature.body}</p>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
 
               <div className="brief-install-panel">
