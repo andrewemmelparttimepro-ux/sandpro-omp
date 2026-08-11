@@ -1112,6 +1112,11 @@ const safeUser = (id) => {
 const DAILY_NEW_FEATURES = [
   {
     date: 'Aug 11',
+    title: 'Undo — a ten-second safety net',
+    body: 'Completed, deleted, or changed the status of something by mistake? The confirmation now carries an Undo button for ten seconds. Deleting a task even brings its subtasks back.',
+  },
+  {
+    date: 'Aug 11',
     title: 'Leads: your Monday crew brief (starts Monday)',
     body: 'Every lead gets one email at 6:00 AM each Monday: what slipped, what is due this week, and what your crew closed — each line opens the item in OMP. No login needed to read it.',
   },

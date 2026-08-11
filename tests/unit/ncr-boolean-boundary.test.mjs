@@ -92,5 +92,5 @@ test('required NCR booleans never use truthiness at a write boundary', () => {
 
 test('error toasts persist long enough to read and report', () => {
   const app = read('src/App.jsx');
-  assert.match(app, /entry\?\.type === 'error' \? 10000 : 4000/);
+  assert.match(app, /entry\?\.type === 'error' \? 10000 : \(entry\?\.undo \? 10000 : 4000\)/);
 });

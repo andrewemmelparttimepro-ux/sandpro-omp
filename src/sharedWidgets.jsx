@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import {
+import { RotateCcw,
   X, AlertTriangle, MessageSquare, Users, Paperclip, CheckCircle2,
   HelpCircle, FileText, Download, Loader2, File, Mic, UserPlus, Layers,
 } from 'lucide-react';
@@ -119,6 +119,14 @@ export const ToastContainer = ({ toasts, removeToast }) => (
         {t.type === 'success' && <CheckCircle2 size={16} />}
         {t.type === 'error' && <AlertTriangle size={16} />}
         <span style={{ flex: 1 }}>{t.message}</span>
+        {t.undo && (
+          <button
+            className="toast-undo"
+            onClick={() => { try { t.undo(); } finally { removeToast(t.id); } }}
+          >
+            <RotateCcw size={13} /> Undo
+          </button>
+        )}
         <button onClick={() => removeToast(t.id)} style={{ color: "inherit", opacity: 0.7 }}><X size={14} /></button>
       </div>
     ))}

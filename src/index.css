@@ -14519,3 +14519,22 @@ button.alt-command-body:disabled {
     font-weight: 750;
   }
 }
+
+/* Undo affordance on toasts (Over-The-Top item 5) */
+.toast-undo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0.95;
+  flex: none;
+}
+.toast-undo:hover { background: rgba(255, 255, 255, 0.14); }

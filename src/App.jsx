@@ -764,9 +764,10 @@ function App() {
       if (friendly !== toast.message) entry = { ...toast, message: friendly };
     }
     setToasts(prev => [...prev, { ...entry, id }]);
-    // Errors stay up long enough to read and screenshot; telemetry has the
-    // raw message either way.
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), entry?.type === 'error' ? 10000 : 4000);
+    // Errors and undo offers stay up long enough to read and act on;
+    // everything else clears in 4s.
+    const lifespan = entry?.type === 'error' ? 10000 : (entry?.undo ? 10000 : 4000);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), lifespan);
   }, []);
   const removeToast = useCallback((id) => setToasts(prev => prev.filter(t => t.id !== id)), []);
 
@@ -1110,9 +1111,36 @@ function App() {
         || ['jfeil@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro'].includes(profileEmail)
       );
       if (!canDelete) throw new Error('Only the creator or an admin can delete this objective.');
+      // Snapshot before deletion so a 10-second Undo can recreate it.
+      const snapshot = objectives.find(obj => obj.id === id);
       await deleteObjective(id);
       handleCloseCard();
-      addToast({ type: 'success', message: 'Objective deleted' });
+      addToast({
+        type: 'success',
+        message: 'Objective deleted',
+        undo: snapshot ? async () => {
+          const recreated = await createObjective({
+            title: snapshot.title,
+            description: snapshot.description || '',
+            ownerId: snapshot.assignmentGroupId ? null : (snapshot.ownerId || profile.id),
+            assignmentGroupId: snapshot.assignmentGroupId || null,
+            createdBy: profile.id,
+            status: snapshot.status || 'not_started',
+            priority: snapshot.priority || 'medium',
+            progress: snapshot.progress || 0,
+            dueDate: snapshot.dueDate || null,
+            department: snapshot.department || '',
+            class: snapshot.class || null,
+            type: snapshot.type || 'simple',
+            okrLevel: snapshot.okrLevel || 'run_the_business',
+            nextAction: snapshot.nextAction || '',
+          });
+          for (const st of snapshot.subtasks || []) {
+            await addSubtask(recreated.id, { title: st.title, ownerId: st.ownerId || null, dueDate: st.dueDate || null, weight: st.weight, isMilestone: st.isMilestone, progress: st.progress || 0 });
+          }
+          addToast({ type: 'success', message: `"${snapshot.title}" restored` });
+        } : undefined,
+      });
     } catch (err) {
       addToast({ type: 'error', message: err.message });
     }
@@ -2280,7 +2308,11 @@ function App() {
               onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
               onKpiClick={applyDashboardKpiFilter}
             />}
-            {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onCompleteObjective={(obj) => handleUpdateCard({ ...obj, status: 'completed', progress: 100, updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: 'completed', progress: 100, note: 'Status changed to Completed' }] })} onNcrClick={(report) => { setNcrFocusReportId(report?.id ?? null); updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS }); }} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
+            {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onCompleteObjective={async (obj) => {
+              const prevStatus = obj.status; const prevProgress = obj.progress;
+              await handleUpdateCard({ ...obj, status: 'completed', progress: 100, updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: 'completed', progress: 100, note: 'Status changed to Completed' }] });
+              addToast({ type: 'success', message: `"${obj.title}" completed`, undo: () => handleUpdateCard({ ...obj, status: prevStatus, progress: prevProgress, updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: prevStatus, progress: prevProgress, note: 'Completion undone' }] }) });
+            }} onNcrClick={(report) => { setNcrFocusReportId(report?.id ?? null); updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS }); }} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
               status: preset.status || "all",
               owner: preset.scope === "individual" ? currentUser.id : "all",
               due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),

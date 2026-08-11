@@ -943,6 +943,8 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   };
 
   const updateStatus = (newStatus) => {
+    const prevStatus = localObj.status;
+    const prevProgress = localObj.progress;
     const nextProgress = getStatusProgress(newStatus);
     doUpdate({
       status: newStatus,
@@ -956,7 +958,15 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
           : `Status changed to ${getStatusLabel(newStatus)}`,
       }]
     });
-    addToast({ type: 'success', message: `Status updated to ${getStatusLabel(newStatus)}` });
+    addToast({
+      type: 'success',
+      message: `Status updated to ${getStatusLabel(newStatus)}`,
+      undo: () => doUpdate({
+        status: prevStatus,
+        progress: prevProgress,
+        updates: [...localObj.updates, { ts: new Date().toISOString(), status: prevStatus, progress: prevProgress, note: `Reverted to ${getStatusLabel(prevStatus)}` }],
+      }),
+    });
   };
 
   const reopenObjective = () => {
@@ -1118,10 +1128,25 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   const confirmDeleteSubtask = async () => {
     if (!subtaskDeleteTarget || !deleteSubtask) return;
     try {
-      await deleteSubtask(subtaskDeleteTarget.id);
+      const removed = subtaskDeleteTarget;
+      await deleteSubtask(removed.id);
       setSubtaskDeleteTarget(null);
       cancelEditSubtask();
-      addToast({ type: 'success', message: 'Subtask deleted' });
+      addToast({
+        type: 'success',
+        message: 'Subtask deleted',
+        undo: addSubtask ? async () => {
+          await addSubtask(localObj.id, {
+            title: removed.title,
+            ownerId: removed.ownerId || null,
+            dueDate: removed.dueDate || null,
+            weight: removed.weight,
+            isMilestone: removed.isMilestone,
+            progress: removed.progress || 0,
+          });
+          await refreshOpenObjective();
+        } : undefined,
+      });
       await refreshOpenObjective();
     } catch (err) {
       addToast({ type: 'error', message: err.message || 'Could not delete subtask' });

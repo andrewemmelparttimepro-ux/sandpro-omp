@@ -337,6 +337,24 @@ test.describe('production gauntlet', () => {
         if (landed) break;
       }
       await expect(page.locator('[data-testid="subtask-row"]').first(), 'circuit: subtask renders').toBeVisible({ timeout: 5000 });
+
+      // Undo (item 5): close the card, complete the task from its row, then
+      // Undo — the task returns to the active list.
+      await page.locator('.modal-overlay .brief-close, [aria-label="Close"]').first().click().catch(() => {});
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.waitForTimeout(600);
+      const taskRow = page.locator('.lv-row', { hasText: TITLE }).first();
+      if (await taskRow.isVisible({ timeout: 4000 }).catch(() => false)) {
+        const completeBtn = taskRow.locator('.lv-quick-complete');
+        if (await completeBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+          await completeBtn.click();
+          const undo = page.locator('.toast-undo').first();
+          await expect(undo, 'undo: the completion toast offers Undo').toBeVisible({ timeout: 6000 });
+          await undo.click();
+          await page.waitForTimeout(1500);
+          await expect(page.locator('.lv-row', { hasText: TITLE }).first(), 'undo: the task is back in the active list').toBeVisible({ timeout: 8000 });
+        }
+      }
     } finally {
       // Self-clean: the QA objective (cascades subtasks/members) and any
       // telemetry this run produced.

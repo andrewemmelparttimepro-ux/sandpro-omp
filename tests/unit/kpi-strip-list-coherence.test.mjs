@@ -69,7 +69,7 @@ test('the thumb bar and one-tap complete are wired (item 3)', () => {
   const app = read('src/App.jsx');
   assert.match(app, /isMobileViewport && <MobileNav/);
   assert.match(app, /window\.matchMedia\('\(max-width: 720px\)'\)\.matches \? "individual" : "company"/);
-  assert.match(app, /onCompleteObjective=\{\(obj\) => handleUpdateCard\(\{ \.\.\.obj, status: 'completed', progress: 100/);
+  assert.match(app, /onCompleteObjective=\{async \(obj\) => \{[\s\S]*?status: 'completed', progress: 100/);
 
   const nav = read('src/mobileNav.jsx');
   assert.match(nav, /mobile-bottom-nav/);
