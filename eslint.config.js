@@ -5,7 +5,9 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', '.vercel', 'playwright-report', 'test-results', '.codex_work', 'output', 'tmp', 'backups']),
+  // .claude holds agent worktrees (parallel checkouts of this repo) — linting
+  // their copies double-reports every file and runs without this config's env.
+  globalIgnores(['dist', '.vercel', 'playwright-report', 'test-results', '.codex_work', 'output', 'tmp', 'backups', '.claude']),
   {
     files: ['**/*.{js,jsx,mjs}'],
     extends: [

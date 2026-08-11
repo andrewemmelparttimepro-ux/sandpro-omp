@@ -476,4 +476,26 @@ test.describe('production gauntlet', () => {
     expect(res.ok, `voice: transcription answers (${res.status} ${data?.error || ''})`).toBeTruthy();
     expect(String(data?.text || ''), 'voice: the words come back').toMatch(/pressure|gauge|pump/i);
   });
+
+  test('company pulse: the signed one-pager renders live, and a bad link stays dark', async () => {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+    test.skip(!SERVICE_KEY, 'needs service key to read the link token');
+    const rows = await fetch(`${SUPABASE_URL}/rest/v1/pulse_links?revoked=eq.false&select=token&limit=1`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    }).then((r) => r.json());
+    expect(Array.isArray(rows) && rows.length > 0, 'pulse: an active link exists').toBeTruthy();
+
+    const page = await fetch(`${BASE}/pulse?k=${rows[0].token}`);
+    const html = await page.text();
+    expect(page.status, 'pulse: the signed link renders').toBe(200);
+    expect(html, 'pulse: masthead present').toContain('COMPANY PULSE');
+    expect(html, 'pulse: objectives section present').toContain('Company objectives');
+    expect(html, 'pulse: department table present').toContain('Active work by department');
+    expect(html, 'pulse: quality section present').toContain('Quality exposure');
+    expect((html.match(/data-pulse-objective/g) || []).length, 'pulse: company objectives carry real rows').toBeGreaterThan(0);
+    expect(html, 'pulse: the audience is never named').not.toMatch(/jake/i);
+
+    const dark = await fetch(`${BASE}/pulse?k=00000000-0000-4000-8000-000000000000`);
+    expect(dark.status, 'pulse: a bad token stays dark').toBe(404);
+  });
 });

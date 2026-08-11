@@ -46,6 +46,12 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/pulse",
+      "destination": "/api/pulse"
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/daily-digest",
