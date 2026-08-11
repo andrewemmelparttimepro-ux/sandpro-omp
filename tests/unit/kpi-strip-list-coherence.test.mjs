@@ -64,3 +64,22 @@ test('three prominent work buttons replace the Type dropdown', () => {
   assert.match(styles, /\.lv-work-type-switcher \{[^}]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 720px\)[\s\S]*\.lv-work-type-switcher \{[^}]*grid-column: 1 \/ -1/);
 });
+
+test('the thumb bar and one-tap complete are wired (item 3)', () => {
+  const app = read('src/App.jsx');
+  assert.match(app, /isMobileViewport && <MobileNav/);
+  assert.match(app, /window\.matchMedia\('\(max-width: 720px\)'\)\.matches \? "individual" : "company"/);
+  assert.match(app, /onCompleteObjective=\{\(obj\) => handleUpdateCard\(\{ \.\.\.obj, status: 'completed', progress: 100/);
+
+  const nav = read('src/mobileNav.jsx');
+  assert.match(nav, /mobile-bottom-nav/);
+  assert.match(nav, /isAction: true/);
+
+  const dashboard = read('src/routes/DashboardPage.jsx');
+  assert.match(dashboard, /lv-quick-complete/);
+  assert.match(dashboard, /event\.stopPropagation\(\); onCompleteObjective\(row\.obj\)/);
+
+  const styles = read('src/index.css');
+  assert.match(styles, /env\(safe-area-inset-bottom/);
+  assert.match(styles, /\.ncr-mobile-photo-entry \{[^}]*order: -1/);
+});

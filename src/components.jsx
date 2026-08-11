@@ -1112,6 +1112,11 @@ const safeUser = (id) => {
 const DAILY_NEW_FEATURES = [
   {
     date: 'Aug 11',
+    title: 'A phone layout built for thumbs',
+    body: 'On your phone: a bottom bar puts Tasks, OKR, NCR, Org, and the big + New under your thumb; your own work opens first; task rows complete with one tap; and on the NCR page the camera button leads. Built for gloves and sunlight.',
+  },
+  {
+    date: 'Aug 11',
     title: 'Works with zero bars: the outbox',
     body: 'Create a task or file an NCR (photos included) with no signal. It saves to your outbox — the chip in the corner shows what is waiting — and sends itself the moment you are back online.',
   },

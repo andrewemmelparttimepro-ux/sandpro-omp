@@ -582,6 +582,7 @@ const DashboardListView = ({
   allNcrReports = ncrReports,
   currentUser,
   onOpenCard,
+  onCompleteObjective,
   onProjectClick,
   onNcrClick,
   onUpdateNcrReport,
@@ -956,9 +957,11 @@ const DashboardListView = ({
         {filtered.length === 0 ? <EmptyState icon={Filter} text={hasActiveFilters ? "Nothing matches this drill-down." : "Nothing here yet."} /> : filtered.map(row => {
         const linkedLabel = linkedLabelOf(row);
         const owner = getUser(row.ownerId);
+        const canQuickComplete = row.kind === "task" && !row.isCompleted && onCompleteObjective;
         return <div key={row.id} className="lv-row" onClick={() => {
           if (row.kind === "task") onOpenCard?.(row.obj);else if (row.kind === "project") onProjectClick?.(row.project);else onNcrClick?.(row.ncr);
         }}>
+          {canQuickComplete && <button type="button" className="lv-quick-complete" aria-label={`Mark ${row.title} completed`} onClick={(event) => { event.stopPropagation(); onCompleteObjective(row.obj); }}><Check size={13} strokeWidth={3} /></button>}
               <span className={`lv-type ${row.kind}`}>{row.kind === "task" ? "Task" : row.kind === "project" ? "Project" : "NCR"}</span>
               <div style={{
             flex: 1,
@@ -993,6 +996,7 @@ export const DashboardPage = ({
   onAltPreferenceChange,
   onAltTagPerson,
   onOpenCard,
+  onCompleteObjective,
   onNcrClick,
   onUpdateNcrReport,
   onKpiClick,
@@ -1025,7 +1029,7 @@ export const DashboardPage = ({
   }}>
       {isAlternativeDashboard ? <AlternativeDashboardView objectives={objectives} currentUser={currentUser} preferences={altDashboardPreferences} presence={altDashboardPresence} onOpenCard={onOpenCard} onPreferenceChange={onAltPreferenceChange} onAltTagPerson={onAltTagPerson} /> : <>
       {/* The list view — Jake's home-screen drill-down */}
-      <DashboardListView objectives={scopedObjectives} allObjectives={objectives} okrProjects={scopedProjects} ncrReports={scopedNcrReports} allNcrReports={ncrReports} currentUser={currentUser} filterPreset={filterPreset} onOpenCard={onOpenCard} onProjectClick={project => onKpiClick?.({
+      <DashboardListView objectives={scopedObjectives} allObjectives={objectives} okrProjects={scopedProjects} ncrReports={scopedNcrReports} allNcrReports={ncrReports} currentUser={currentUser} filterPreset={filterPreset} onOpenCard={onOpenCard} onCompleteObjective={onCompleteObjective} onProjectClick={project => onKpiClick?.({
         label: project.name,
         view: "tree"
       })} onNcrClick={onNcrClick} onUpdateNcrReport={onUpdateNcrReport} />

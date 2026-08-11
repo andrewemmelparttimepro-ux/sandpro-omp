@@ -14435,3 +14435,87 @@ button.alt-command-body:disabled {
   font-weight: 750;
   cursor: pointer;
 }
+
+/* ============================================================================
+   THUMB BAR + ONE-TAP COMPLETE — Over-The-Top item 3 (mobile only)
+   ========================================================================= */
+.mobile-bottom-nav { display: none; }
+.lv-quick-complete { display: none; }
+
+@media (max-width: 720px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3000;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+    background: var(--surface-raised, #fff);
+    border-top: 1px solid var(--border);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -6px 24px rgba(15, 23, 42, 0.08);
+  }
+  .mobile-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-height: 48px;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 12px;
+  }
+  .mobile-bottom-nav-item.active { color: var(--brand); }
+  .mobile-bottom-nav-item.action {
+    background: var(--brand);
+    color: #fff;
+    min-height: 52px;
+    margin-top: -18px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand) 45%, transparent);
+  }
+  /* Content never hides behind the thumb bar. */
+  .app-content, main, .dashboard-page { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  .outbox-chip-wrap { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+
+  /* One-tap complete: a thumb-sized circle on task rows. */
+  .lv-quick-complete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-6);
+    background: var(--surface-raised, #fff);
+    color: transparent;
+    cursor: pointer;
+    align-self: center;
+  }
+  .lv-quick-complete:active {
+    border-color: var(--success, #10b981);
+    background: var(--success, #10b981);
+    color: #fff;
+  }
+
+  /* Camera-first NCR: the photo entry is the page's loudest button. */
+  .ncr-mobile-photo-entry {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+    background: var(--brand) !important;
+    color: #fff !important;
+    border-color: var(--brand) !important;
+    min-height: 48px;
+    font-weight: 750;
+  }
+}

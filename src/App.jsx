@@ -16,6 +16,7 @@ import { startVersionHeartbeat, applyUpdateWhenHidden } from './lib/versionHeart
 import { CommandBar } from './commandBar';
 import { createOutbox, isNetworkError } from './lib/outbox';
 import { OutboxChip } from './outboxChip';
+import { MobileNav } from './mobileNav';
 
 // One outbox for the whole session (module-level so hot paths share it).
 const fieldOutbox = createOutbox();
@@ -541,7 +542,10 @@ function App() {
   const dashboardMode = 'standard';
 
   // View type scope — shared by the global KPI strip and the Tasks & Projects list
-  const [viewScope, setViewScope] = useState("company");
+  // Thumb-first: a phone opens on YOUR work; Company stays one tap away.
+  const [viewScope, setViewScope] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches ? "individual" : "company"
+  ));
   const [dashboardFilterPreset, setDashboardFilterPreset] = useState({ aging: "all_due", version: 0 });
   useEffect(() => {
     if (!profile?.role) return;
@@ -2036,9 +2040,6 @@ function App() {
         <button className="mobile-icon-btn" onClick={() => setCommandBarOpen(true)} aria-label="Search everything">
           <Search size={19} />
         </button>
-        <button className="mobile-icon-btn mobile-create-button" onClick={() => setShowCreateForm(true)} aria-label="Create new">
-          <Plus size={20} />
-        </button>
         <button className="mobile-icon-btn" onClick={() => { setShowNotifications(!showNotifications); setShowUserMenu(false); }} aria-label="Notifications">
           <Bell size={19} />
           {unreadCount > 0 && <span className="badge-count">{unreadCount > 9 ? "9+" : unreadCount}</span>}
@@ -2279,7 +2280,7 @@ function App() {
               onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
               onKpiClick={applyDashboardKpiFilter}
             />}
-            {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onNcrClick={(report) => { setNcrFocusReportId(report?.id ?? null); updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS }); }} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
+            {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onCompleteObjective={(obj) => handleUpdateCard({ ...obj, status: 'completed', progress: 100, updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: 'completed', progress: 100, note: 'Status changed to Completed' }] })} onNcrClick={(report) => { setNcrFocusReportId(report?.id ?? null); updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS }); }} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
               status: preset.status || "all",
               owner: preset.scope === "individual" ? currentUser.id : "all",
               due: preset.overdue ? "overdue" : String(preset.dueWindow || "all"),
@@ -2420,6 +2421,7 @@ function App() {
           </div>
         )}
         <OutboxChip outbox={fieldOutbox} onDrainNow={drainOutbox} />
+        {isMobileViewport && <MobileNav activePage={route.page || "dashboard"} onNavigate={(pageId) => updateRoute({ page: pageId })} onCreate={() => setShowCreateForm(true)} />}
         <CommandBar
           open={commandBarOpen}
           onClose={() => setCommandBarOpen(false)}

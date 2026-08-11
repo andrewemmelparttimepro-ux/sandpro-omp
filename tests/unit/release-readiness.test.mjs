@@ -1493,8 +1493,8 @@ test('mobile PWA rebuild has install assets, safe-area shell, and phone-native w
   assert.match(sw, /addEventListener\('notificationclick'/);
 
   assert.match(app, /mobile-topbar/);
-  assert.match(app, /mobile-create-button/);
-  assert.match(app, /aria-label="Create new"/);
+  assert.match(app, /<MobileNav activePage/); // create moved to the thumb bar (item 3)
+  assert.match(read('src/mobileNav.jsx'), /'Create new'/); // create affordance lives in the thumb bar now
   assert.match(app, /mobile-user-drawer/);
   assert.match(app, /handleNotificationClick/);
   assert.match(app, /const showDashboardSurface = route\.page === "dashboard" \|\| \(route\.page === "fixit" && !isMobileViewport\)/);

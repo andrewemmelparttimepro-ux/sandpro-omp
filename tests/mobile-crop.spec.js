@@ -33,20 +33,22 @@ test.describe('mobile zero-day crop gates', () => {
       await page.goto('/');
       await dismissGuidance(page);
       await expect(page.locator('.mobile-topbar')).toBeVisible({ timeout: 30_000 });
+      const bottomNav = page.locator('.mobile-bottom-nav');
       await resetMainScroll(page);
       await assertNoMobileCrop(page, `dashboard ${viewport.label}`);
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-01-dashboard.png`), fullPage: true });
 
       await dismissGuidance(page);
       await page.getByRole('button', { name: 'Create new', exact: true }).click();
+      const wiz = page.locator('.wiz-modal');
       await expect(page.getByRole('heading', { name: 'Create New' })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Task', exact: true })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Project', exact: true })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'NCR', exact: true })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'OKR', exact: true })).toHaveCount(0);
-      await page.getByRole('button', { name: 'Task', exact: true }).click();
-      await page.getByRole('button', { name: 'Single' }).click();
-      await page.getByRole('button', { name: 'Standalone' }).click();
+      await expect(wiz.getByRole('button', { name: 'Task', exact: true })).toBeVisible();
+      await expect(wiz.getByRole('button', { name: 'Project', exact: true })).toBeVisible();
+      await expect(wiz.getByRole('button', { name: 'NCR', exact: true })).toBeVisible();
+      await expect(wiz.getByRole('button', { name: 'OKR', exact: true })).toHaveCount(0);
+      await wiz.getByRole('button', { name: 'Task', exact: true }).click();
+      await wiz.getByRole('button', { name: 'Single' }).click();
+      await wiz.getByRole('button', { name: 'Standalone' }).click();
       await page.getByPlaceholder('What needs to happen?').fill('Mobile zero-day visual check');
       await page.getByPlaceholder(/Context, details/).fill('Checking the full-screen mobile Create New wizard does not crop on iPhone widths.');
       await assertNoMobileCrop(page, `create wizard ${viewport.label}`);
@@ -55,7 +57,7 @@ test.describe('mobile zero-day crop gates', () => {
       await expect(page.locator('.wiz-modal')).toHaveCount(0);
 
       await dismissGuidance(page);
-      await navItem(page, 'OKR').click();
+      await bottomNav.getByRole('button', { name: 'OKR' }).click();
       await expect(page.locator('.okr-mobile-sections')).toBeVisible();
       await resetMainScroll(page);
       await assertNoMobileCrop(page, `okr ${viewport.label}`);
@@ -80,15 +82,29 @@ test.describe('mobile zero-day crop gates', () => {
       await dismissGuidance(page);
       await expect(navItem(page, 'Fix-It Feed')).toHaveCount(0);
 
+      // Thumb bar (Over-The-Top item 3): present, safe, and it navigates.
+      await expect(bottomNav).toBeVisible();
+      await bottomNav.getByRole('button', { name: 'NCR' }).click();
+      await expect(page.locator('.ncr-page')).toBeVisible();
+      await expect(page.locator('.ncr-mobile-photo-entry')).toBeVisible();
+      await bottomNav.getByRole('button', { name: 'Tasks' }).click();
+      await page.waitForTimeout(1200);
       await dismissGuidance(page);
-      await navItem(page, 'NCR').click();
+      // Phones open on YOUR work; the QA account may own none — flip to
+      // Company to assert the one-tap complete circle on a real task row.
+      await page.locator('.dashboard-scope-tab', { hasText: /Company/ }).first().click();
+      await page.waitForTimeout(1200);
+      await expect(page.locator('.lv-quick-complete').first()).toBeVisible();
+
+      await dismissGuidance(page);
+      await bottomNav.getByRole('button', { name: 'NCR' }).click();
       await expect(page.locator('.ncr-page')).toBeVisible();
       await resetMainScroll(page);
       await assertNoMobileCrop(page, `ncr ${viewport.label}`);
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-06-ncr.png`), fullPage: true });
 
       await dismissGuidance(page);
-      await navItem(page, 'Organization').click();
+      await bottomNav.getByRole('button', { name: 'Org' }).click();
       await expect(page.getByPlaceholder('Search people...')).toBeVisible();
       await resetMainScroll(page);
       await assertNoMobileCrop(page, `organization ${viewport.label}`);
