@@ -218,6 +218,17 @@ export const canUseVoiceCapture = (user, voiceForAll = false) => (
   voiceForAll || VOICE_CAPTURE_PILOT_EMAILS.includes((user?.email || "").toLowerCase())
 );
 
+// Quiet hours + per-item mute pilot (item 10, same standing rule): Andrew +
+// the QA accounts first; `quiet_hours_all` app flag opens it to everyone.
+export const QUIET_HOURS_PILOT_EMAILS = [
+  "andrew@ndai.pro",
+  "release-smoke-admin@objectivetracker.net",
+  "release-smoke-member@objectivetracker.net",
+];
+export const canUseQuietHours = (user, flagOn = false) => (
+  flagOn || QUIET_HOURS_PILOT_EMAILS.includes((user?.email || "").toLowerCase())
+);
+
 export const canAccessFixItFeed = (user) => (
   FIX_IT_FEED_MODERATOR_EMAILS.includes((user?.email || "").toLowerCase())
 );

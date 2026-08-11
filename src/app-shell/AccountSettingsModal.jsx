@@ -1,6 +1,14 @@
 import { useRef, useState } from 'react';
-import { Settings, X, Camera, Loader2, Upload, Trash2, Sun, Moon, Smartphone, KeyRound, LogOut } from 'lucide-react';
+import { Settings, X, Camera, Loader2, Upload, Trash2, Sun, Moon, Smartphone, KeyRound, LogOut, MoonStar } from 'lucide-react';
 import { Avatar } from '../uiPrimitives';
+import { canUseQuietHours } from '../data';
+import { useAppFlag } from '../lib/flags';
+import { useQuietHours } from '../hooks/useSupabase';
+
+const HOUR_LABELS = Array.from({ length: 24 }, (_, hour) => ({
+  hour,
+  label: new Date(2026, 0, 1, hour).toLocaleTimeString('en-US', { hour: 'numeric' }),
+}));
 
 export default function AccountSettingsModal({
   currentUser,
@@ -20,6 +28,18 @@ export default function AccountSettingsModal({
   onSignOut,
 }) {
   const avatarInputRef = useRef(null);
+  const quietFlagOn = useAppFlag('quiet_hours_all');
+  const quietHoursVisible = canUseQuietHours(currentUser, quietFlagOn);
+  const quietHours = useQuietHours(quietHoursVisible ? currentUser?.id : null);
+  const [quietError, setQuietError] = useState('');
+  const saveQuiet = async (changes) => {
+    setQuietError('');
+    try {
+      await quietHours.save(changes);
+    } catch (error) {
+      setQuietError(error.message || 'Could not save quiet hours.');
+    }
+  };
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [passwordStatus, setPasswordStatus] = useState('');
@@ -188,6 +208,43 @@ export default function AccountSettingsModal({
                 {pushNotifications.enabled ? 'Disable' : 'Enable'}
               </button>
             </div>
+            {quietHoursVisible && (
+              <div className="account-settings-row quiet-hours-row" data-testid="quiet-hours-settings">
+                <div>
+                  <div className="text-sm font-bold flex items-center gap-6"><MoonStar size={13} /> Quiet hours</div>
+                  <div className="text-xs text-muted">
+                    {quietHours.enabled
+                      ? `Pushes hold from ${HOUR_LABELS[quietHours.start]?.label} to ${HOUR_LABELS[quietHours.end]?.label} CT — one catch-up in the morning. Priority alerts still ring.`
+                      : 'Hold non-urgent pushes overnight; the bell keeps everything.'}
+                  </div>
+                  {quietError && <div className="text-xs" style={{ color: 'var(--error)', marginTop: 4 }}>{quietError}</div>}
+                  {quietHours.enabled && (
+                    <div className="quiet-hours-pickers">
+                      <label>From
+                        <select value={quietHours.start} onChange={(e) => saveQuiet({ start: Number(e.target.value) })}>
+                          {HOUR_LABELS.map(({ hour, label }) => <option key={hour} value={hour}>{label}</option>)}
+                        </select>
+                      </label>
+                      <label>to
+                        <select value={quietHours.end} onChange={(e) => saveQuiet({ end: Number(e.target.value) })}>
+                          {HOUR_LABELS.map(({ hour, label }) => <option key={hour} value={hour}>{label}</option>)}
+                        </select>
+                      </label>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={quietHours.enabled}
+                  aria-label="Toggle quiet hours"
+                  className={`ai-switch ${quietHours.enabled ? 'on' : ''}`}
+                  onClick={() => saveQuiet({ enabled: !quietHours.enabled })}
+                >
+                  <span />
+                </button>
+              </div>
+            )}
             {canManageAiFeatures && (
               <div className="account-settings-row">
                 <div>

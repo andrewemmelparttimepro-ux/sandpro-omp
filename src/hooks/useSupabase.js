@@ -4,6 +4,7 @@ import { toBoolean, toNullableBoolean, toNullableNumber } from '../lib/coerce';
 import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress } from '../okrFramework';
 import { getRecurrenceInterval, getNextRecurringDueDate } from '../data';
 import { ensureFlagsLoaded, getFlag } from '../lib/flags';
+import { humanizeErrorMessage } from '../lib/errors';
 import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
 import { parseKpiCsv } from '../kpiSystem';
 import { buildNcrImportDbPayload } from '../ncrImport';
@@ -3945,4 +3946,95 @@ export function useNotifications(userId) {
   };
 
   return { notifications: sortNotifications(notifications), loading, markRead, markAllRead, createNotification, refetch: fetchNotifications };
+}
+
+// ============================================================================
+// QUIET HOURS + PER-OBJECTIVE MUTES — Over-The-Top item 10
+// ============================================================================
+
+// The user's own mutes (RLS: own rows only). Muting silences pushes for that
+// objective server-side; the bell panel still records events.
+export function useObjectiveMutes(userId) {
+  const [mutedIds, setMutedIds] = useState(() => new Set());
+
+  useEffect(() => {
+    if (!userId) { setMutedIds(new Set()); return; }
+    let alive = true;
+    (async () => {
+      const rows = await nullableSelect(
+        supabase.from('objective_mutes').select('objective_id').eq('user_id', userId),
+        [],
+        'objective mutes fetch',
+      );
+      if (alive) setMutedIds(new Set((rows || []).map((row) => row.objective_id)));
+    })();
+    return () => { alive = false; };
+  }, [userId]);
+
+  const toggleMute = async (objectiveId) => {
+    if (!userId || !objectiveId) return false;
+    const muted = mutedIds.has(objectiveId);
+    // Optimistic — a mute toggle must feel instant; revert on failure.
+    setMutedIds((prev) => {
+      const next = new Set(prev);
+      if (muted) next.delete(objectiveId); else next.add(objectiveId);
+      return next;
+    });
+    const { error } = muted
+      ? await supabase.from('objective_mutes').delete().eq('user_id', userId).eq('objective_id', objectiveId)
+      : await supabase.from('objective_mutes').insert({ user_id: userId, objective_id: objectiveId });
+    if (error) {
+      setMutedIds((prev) => {
+        const next = new Set(prev);
+        if (muted) next.add(objectiveId); else next.delete(objectiveId);
+        return next;
+      });
+      throw new Error(humanizeErrorMessage(error.message));
+    }
+    return !muted;
+  };
+
+  return { mutedIds, toggleMute };
+}
+
+// Quiet-hours preference read/save. The upsert carries only its own columns,
+// so it can never clobber the push/email toggles that share the row.
+export function useQuietHours(userId) {
+  const [prefs, setPrefs] = useState({ enabled: false, start: 19, end: 6, loaded: false });
+
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    (async () => {
+      const { data } = await supabase
+        .from('notification_preferences')
+        .select('quiet_hours_enabled,quiet_start,quiet_end')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (alive) {
+        setPrefs({
+          enabled: Boolean(data?.quiet_hours_enabled),
+          start: Number.isFinite(Number(data?.quiet_start)) ? Number(data.quiet_start) : 19,
+          end: Number.isFinite(Number(data?.quiet_end)) ? Number(data.quiet_end) : 6,
+          loaded: true,
+        });
+      }
+    })();
+    return () => { alive = false; };
+  }, [userId]);
+
+  const save = async (next) => {
+    const merged = { ...prefs, ...next, loaded: true };
+    setPrefs(merged);
+    const { error } = await supabase.from('notification_preferences').upsert({
+      user_id: userId,
+      quiet_hours_enabled: merged.enabled,
+      quiet_start: merged.start,
+      quiet_end: merged.end,
+    }, { onConflict: 'user_id' });
+    if (error) throw new Error(humanizeErrorMessage(error.message));
+    return merged;
+  };
+
+  return { ...prefs, save };
 }

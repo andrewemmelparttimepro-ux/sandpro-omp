@@ -48,7 +48,23 @@ export const notificationAllowsPush = (prefs, type) => {
   if (type === 'overdue') return prefs?.overdue_alerts !== false;
   if (type === 'due_soon' || type === 'stale') return prefs?.due_reminders !== false;
   if (type === 'daily_digest') return true;
+  if (type === 'quiet_catchup') return true; // the morning batch that ends a quiet night
   return false;
+};
+
+// Over-The-Top item 10: quiet hours. A CT hour window (start → end, crossing
+// midnight when start > end) inside which non-priority pushes are HELD — the
+// in-app bell still collects everything, and the morning catch-up delivers
+// one summary. Priority pings ("Jake priority") always break through.
+export const isInQuietHours = (prefs, now = new Date()) => {
+  if (!prefs?.quiet_hours_enabled) return false;
+  const start = Number.isFinite(Number(prefs.quiet_start)) ? Number(prefs.quiet_start) : 19;
+  const end = Number.isFinite(Number(prefs.quiet_end)) ? Number(prefs.quiet_end) : 6;
+  if (start === end) return false;
+  const hour = Number(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago', hour: 'numeric', hour12: false,
+  }).format(now)) % 24;
+  return start < end ? (hour >= start && hour < end) : (hour >= start || hour < end);
 };
 
 const pushTitle = (type) => {
@@ -62,6 +78,7 @@ const pushTitle = (type) => {
   if (type === 'due_soon') return 'SandPro OMP due soon';
   if (type === 'stale') return 'SandPro OMP needs an update';
   if (type === 'daily_digest') return 'The SandPro Times';
+  if (type === 'quiet_catchup') return 'While you were away — SandPro OMP';
   if (type === 'fixit_new') return 'New SandPro Fix-It item';
   if (type === 'fixit_agent') return 'SandPro Fix-It update';
   return 'SandPro OMP';
@@ -135,6 +152,42 @@ export const sendPushNotifications = async ({
       error: 'Push is disabled for this notification type.',
     });
     return { skipped: true, reason: 'preference_disabled' };
+  }
+
+  // Item 10: an explicit mute on this objective silences its pushes — even
+  // priority ones; the user said so. The in-app bell still records the event.
+  if (objectiveId) {
+    const { data: mute } = await supabase
+      .from('objective_mutes')
+      .select('user_id')
+      .eq('user_id', targetUserId)
+      .eq('objective_id', objectiveId)
+      .maybeSingle();
+    if (mute) {
+      await insertLog(supabase, {
+        user_id: targetUserId,
+        notification_id: notificationId,
+        objective_id: objectiveId,
+        type,
+        status: 'skipped_muted',
+        error: 'The recipient muted this objective.',
+      });
+      return { skipped: true, reason: 'objective_muted' };
+    }
+  }
+
+  // Item 10: quiet hours hold non-priority pushes; the morning catch-up
+  // (and the bell panel) carries what was held.
+  if (priority !== 'priority' && type !== 'quiet_catchup' && isInQuietHours(prefs)) {
+    await insertLog(supabase, {
+      user_id: targetUserId,
+      notification_id: notificationId,
+      objective_id: objectiveId,
+      type,
+      status: 'skipped_quiet_hours',
+      error: 'Held for quiet hours.',
+    });
+    return { skipped: true, reason: 'quiet_hours' };
   }
 
   if (!configureVapid()) {

@@ -2974,3 +2974,34 @@ CREATE POLICY "Flags readable by authenticated"
 INSERT INTO public.app_flags (key, enabled) VALUES ('server_counts', false)
 ON CONFLICT (key) DO NOTHING;
 -- rpc_kpi_strip / rpc_ncr_counts: see migration phase1_server_counts.
+
+-- ---------------------------------------------------------------------------
+-- Over-The-Top items 8 + 10 (2026-08-11, applied via MCP; recorded here so
+-- the schema stays reproducible).
+-- Item 8: pulse_links — signed, revocable links for the Company Pulse
+-- one-pager. Service-role only: RLS enabled with NO client policies.
+-- Item 10: quiet hours on notification_preferences + per-objective mutes.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.pulse_links (
+  token uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  label text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  revoked boolean NOT NULL DEFAULT false
+);
+ALTER TABLE public.pulse_links ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.notification_preferences
+  ADD COLUMN IF NOT EXISTS quiet_hours_enabled boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS quiet_start smallint NOT NULL DEFAULT 19,
+  ADD COLUMN IF NOT EXISTS quiet_end smallint NOT NULL DEFAULT 6;
+
+CREATE TABLE IF NOT EXISTS public.objective_mutes (
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  objective_id uuid NOT NULL REFERENCES public.objectives(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, objective_id)
+);
+ALTER TABLE public.objective_mutes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own mutes" ON public.objective_mutes;
+CREATE POLICY "Users manage own mutes" ON public.objective_mutes
+  FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);

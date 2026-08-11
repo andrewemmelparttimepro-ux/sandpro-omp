@@ -1,5 +1,5 @@
 import { objectiveUrl } from '../_shared/email.js';
-import { sendPushNotifications } from '../_shared/push.js';
+import { isInQuietHours, sendPushNotifications } from '../_shared/push.js';
 import { getRequiredEnv, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
 const assertCron = (req) => {
@@ -143,6 +143,39 @@ export default async function handler(req, res) {
           url: ctaUrl,
         }).catch((error) => ({ channel: 'push', error: error.message })));
       }
+    }
+
+    // Item 10: the morning catch-up. Quiet hours HOLD pushes overnight; this
+    // delivers one honest summary per user once their window ends — the batch
+    // the doc promised, not a re-buzz per item.
+    for (const pref of prefs.filter((p) => p.quiet_hours_enabled && p.push_enabled !== false)) {
+      if (isInQuietHours(pref)) continue; // their morning hasn't come yet
+      const { count } = await supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', pref.user_id)
+        .eq('is_read', false)
+        .gte('created_at', new Date(Date.now() - 16 * 3600000).toISOString());
+      if (!count) continue;
+      const { data: alreadySent } = await supabase
+        .from('push_delivery_log')
+        .select('id')
+        .eq('user_id', pref.user_id)
+        .eq('type', 'quiet_catchup')
+        .eq('status', 'sent')
+        .gte('created_at', `${dayKey()}T00:00:00.000Z`)
+        .limit(1)
+        .maybeSingle();
+      if (alreadySent?.id) continue;
+      results.push(await sendPushNotifications({
+        targetUserId: pref.user_id,
+        notificationId: null,
+        type: 'quiet_catchup',
+        objective: null,
+        prefs: pref,
+        message: `${count} update${count === 1 ? '' : 's'} waited quietly overnight — they're in your bell when you're ready.`,
+        url: 'https://objectivetracker.net/',
+      }).catch((error) => ({ channel: 'push', error: error.message })));
     }
 
     return json(res, 200, { processed: results.length, results });

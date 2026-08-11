@@ -40,7 +40,16 @@ const section = (title, rowsHtml, emptyLine) => `
   <h3 style="font-size:11px;letter-spacing:1.5px;color:#9a8f7d;margin:22px 0 4px;">${title}</h3>
   <table width="100%" cellpadding="0" cellspacing="0">${rowsHtml || `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;">${emptyLine}</td></tr>`}</table>`;
 
-const buildDigestHtml = ({ lead, crew, pastDue, dueThisWeek, completed }) => {
+// Item 10: the weekly noise report — "you sent 47, 12 were opened." A lead
+// sees their own signal-to-noise; protecting attention is retention. Returns
+// null when the lead sent nothing (no line beats a zero-shame line).
+export const buildNoiseLine = ({ sent, opened }) => {
+  if (!sent) return null;
+  const rate = Math.round((opened / sent) * 100);
+  return `Signal check: you sent ${sent} notification${sent === 1 ? '' : 's'} last week — ${opened} ${opened === 1 ? 'was' : 'were'} opened (${rate}%). Fewer, sharper pings get read.`;
+};
+
+const buildDigestHtml = ({ lead, crew, pastDue, dueThisWeek, completed, noiseLine }) => {
   const dateLine = chicagoNow().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const crewNames = crew.filter(p => p.id !== lead.id).map(p => (p.name || '').split(' ')[0]).filter(Boolean);
   return `
@@ -53,6 +62,7 @@ const buildDigestHtml = ({ lead, crew, pastDue, dueThisWeek, completed }) => {
   ${section(`SLIPPED — NEEDS A DECISION (${pastDue.length})`, pastDue.map(({ objective, owner }) => row(objective, owner, '#b91c1c')).join(''), 'Nothing slipped. Clean week behind you.')}
   ${section(`DUE THIS WEEK (${dueThisWeek.length})`, dueThisWeek.map(({ objective, owner }) => row(objective, owner, '#b45309')).join(''), 'Nothing due this week yet.')}
   ${section(`CLOSED LAST WEEK (${completed.length})`, completed.map(({ objective, owner }) => row(objective, owner, '#0D7A3E')).join(''), 'Nothing closed last week.')}
+  ${noiseLine ? `<div style="margin-top:18px;padding:10px 14px;border-left:3px solid #9a8f7d;font-size:12.5px;color:#4b5563;background:#faf9f6;">${esc(noiseLine)}</div>` : ''}
   <div style="margin-top:26px;padding:14px;background:#f8f7f4;border-radius:10px;font-size:12.5px;color:#4b5563;">
     Tap any line to open it in OMP. This brief sends every Monday at 6:00 AM — reply to Andrew if a name or number looks wrong.
   </div>
@@ -100,7 +110,16 @@ export default async function handler(req, res) {
       continue;
     }
 
-    const html = buildDigestHtml({ lead, crew, pastDue, dueThisWeek, completed });
+    // Item 10: the lead's own notification noise, last 7 days.
+    const [{ count: sent }, { count: opened }] = await Promise.all([
+      supabase.from('notifications').select('id', { count: 'exact', head: true })
+        .eq('sender_id', lead.id).gte('created_at', weekBack.toISOString()),
+      supabase.from('notifications').select('id', { count: 'exact', head: true })
+        .eq('sender_id', lead.id).eq('is_read', true).gte('created_at', weekBack.toISOString()),
+    ]);
+    const noiseLine = buildNoiseLine({ sent: sent || 0, opened: opened || 0 });
+
+    const html = buildDigestHtml({ lead, crew, pastDue, dueThisWeek, completed, noiseLine });
     const isPreview = previewAs && String(lead.email).toLowerCase() === previewAs;
     const subject = `${isPreview ? `[PREVIEW — ${(lead.name || '').split(' ')[0]}'s digest] ` : ''}Your crew's week — ${pastDue.length} slipped, ${dueThisWeek.length} due (SandPro OMP)`;
     const outcome = await sendLeadDigestEmail({ userId: lead.id, to: isPreview ? 'andrew@ndai.pro' : lead.email, subject, html });

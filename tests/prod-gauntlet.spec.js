@@ -557,4 +557,89 @@ test.describe('production gauntlet', () => {
       await fetch(`${SUPABASE_URL}/rest/v1/client_errors?user_id=eq.${memberSession.user.id}`, { method: 'DELETE', headers });
     }
   });
+
+  test('quiet circuit: a muted objective and a quiet window both hold the push, priority breaks through, self-clean', async () => {
+    // Item 10, proven at the API layer on production: the send-event fan-out
+    // reports exactly why a push was held. No real phone buzzes: the QA
+    // admin has no push subscription, and every state is restored after.
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+    test.skip(!SERVICE_KEY, 'needs service key for setup/cleanup');
+    const headers = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' };
+    const TITLE = `GAUNTLET quiet ${new Date().toISOString()} — safe to delete`;
+    const userToken = { apikey: ANON_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' };
+
+    // A QA objective to mute.
+    const ins = await fetch(`${SUPABASE_URL}/rest/v1/objectives`, {
+      method: 'POST',
+      headers: { ...userToken, Prefer: 'return=representation' },
+      body: JSON.stringify({ title: TITLE, owner_id: session.user.id, created_by: session.user.id, status: 'not_started' }),
+    }).then((r) => r.json());
+    const objectiveId = ins?.[0]?.id;
+    expect(Boolean(objectiveId), 'quiet circuit: QA objective inserts').toBeTruthy();
+
+    const sendEvent = (body) => fetch(`${BASE}/api/notifications/send-event`, {
+      method: 'POST',
+      headers: userToken,
+      body: JSON.stringify({ targetUserId: session.user.id, objectiveId, message: 'gauntlet quiet probe', ...body }),
+    }).then((r) => r.json());
+
+    // The preference gate rightly runs first — with push disabled, the reason
+    // would be preference_disabled and the mute/quiet gates never speak. Turn
+    // push on for the QA account during the circuit; prior state restores in
+    // the finally (the account has no push subscriptions, so nothing buzzes).
+    const priorPrefs = await fetch(
+      `${SUPABASE_URL}/rest/v1/notification_preferences?user_id=eq.${session.user.id}&select=push_enabled,quiet_hours_enabled,quiet_start,quiet_end`,
+      { headers },
+    ).then((r) => r.json());
+    await fetch(`${SUPABASE_URL}/rest/v1/notification_preferences?on_conflict=user_id`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify({ user_id: session.user.id, push_enabled: true }),
+    });
+
+    try {
+      // 1) Mute holds the push — with the reason on the record.
+      await fetch(`${SUPABASE_URL}/rest/v1/objective_mutes`, {
+        method: 'POST', headers: userToken, body: JSON.stringify({ user_id: session.user.id, objective_id: objectiveId }),
+      });
+      const muted = await sendEvent({ type: 'comment' });
+      expect(muted?.push?.reason, 'quiet circuit: mute holds the push').toBe('objective_muted');
+      await fetch(`${SUPABASE_URL}/rest/v1/objective_mutes?user_id=eq.${session.user.id}&objective_id=eq.${objectiveId}`, {
+        method: 'DELETE', headers: userToken,
+      });
+
+      // 2) A quiet window covering RIGHT NOW holds a normal push...
+      const nowCT = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour: 'numeric', hour12: false }).format(new Date())) % 24;
+      await fetch(`${SUPABASE_URL}/rest/v1/notification_preferences?on_conflict=user_id`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify({ user_id: session.user.id, quiet_hours_enabled: true, quiet_start: (nowCT + 23) % 24, quiet_end: (nowCT + 2) % 24 }),
+      });
+      const held = await sendEvent({ type: 'comment' });
+      expect(held?.push?.reason, 'quiet circuit: quiet hours hold the push').toBe('quiet_hours');
+
+      // 3) ...and a priority ping still breaks through (any non-quiet reason).
+      const urgent = await sendEvent({ type: 'comment', priority: 'priority' });
+      expect(urgent?.push?.reason, 'quiet circuit: priority breaks through').not.toBe('quiet_hours');
+    } finally {
+      const restore = priorPrefs?.[0]
+        ? {
+          push_enabled: Boolean(priorPrefs[0].push_enabled),
+          quiet_hours_enabled: Boolean(priorPrefs[0].quiet_hours_enabled),
+          quiet_start: priorPrefs[0].quiet_start ?? 19,
+          quiet_end: priorPrefs[0].quiet_end ?? 6,
+        }
+        : { push_enabled: false, quiet_hours_enabled: false };
+      await fetch(`${SUPABASE_URL}/rest/v1/notification_preferences?user_id=eq.${session.user.id}`, {
+        method: 'PATCH', headers, body: JSON.stringify(restore),
+      });
+      await fetch(`${SUPABASE_URL}/rest/v1/objective_mutes?user_id=eq.${session.user.id}`, { method: 'DELETE', headers });
+      await fetch(`${SUPABASE_URL}/rest/v1/objectives?title=eq.${encodeURIComponent(TITLE)}`, {
+        method: 'DELETE', headers: { ...headers, Prefer: 'return=representation' },
+      });
+      await fetch(`${SUPABASE_URL}/rest/v1/push_delivery_log?user_id=eq.${session.user.id}&objective_id=eq.${objectiveId}`, {
+        method: 'DELETE', headers,
+      });
+    }
+  });
 });

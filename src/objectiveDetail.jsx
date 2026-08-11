@@ -5,11 +5,13 @@ import {
   Image, File, Film, Music, Archive, TrendingUp, Layers, ArrowLeft,
   Target, CheckCircle2, Building2, Plus, Edit3, Trash2, Flag, Loader2, Mic,
   Sparkles, AlertCircle, Users, UserPlus, HelpCircle, Bell, Home, Smartphone, SmilePlus, Languages,
-  ThumbsUp, Wrench, Handshake
+  ThumbsUp, Wrench, Handshake, BellOff
 } from 'lucide-react';
 import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT, getObjectiveAssignmentLabel, getRecurrenceLabel, getMissedCycleLabel } from './data';
 import { findMentionCandidates, getActiveMention, getMentionedUsers, insertMentionText } from './mentions';
 import { LockedHint } from './LockedHint';
+import { useAppFlag } from './lib/flags';
+import { canUseQuietHours } from './data';
 import { Avatar, Badge } from './uiPrimitives';
 import {
   ProgressBar as SharedProgressBar,
@@ -575,7 +577,7 @@ const ProjectAssessmentPanel = ({
   );
 };
 
-export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "messages", onTabChange, onClose, onUpdate, onDelete, currentUser, addToast, onEdit, uploadObjectiveFile, deleteObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, onMarkMessagesRead, onUpdateMessage, onSetMessageReaction, onRemoveMessageReaction, onTranslateMessage, runObjectiveStarter, aiFeaturesEnabled = false, createNotification }) => {
+export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "messages", onTabChange, onClose, onUpdate, onDelete, currentUser, addToast, onEdit, uploadObjectiveFile, deleteObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, onMarkMessagesRead, onUpdateMessage, onSetMessageReaction, onRemoveMessageReaction, onTranslateMessage, runObjectiveStarter, aiFeaturesEnabled = false, createNotification, mutedObjectiveIds = null, onToggleObjectiveMute = null }) => {
   const [activeTab, setActiveTab] = useState(initialTab || "messages");
   const messageDraftKey = `sandpro-message-draft-${currentUser.id}-${obj.id}`;
   const [newMessage, setNewMessage] = useState(() => readDraft(messageDraftKey, ""));
@@ -671,6 +673,9 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   const unreadMessages = (localObj.messages || []).filter(message => message.isUnread).length;
   const firstUnreadMessageId = (localObj.messages || []).find(message => message.isUnread)?.id || null;
   const currentUserEmail = (currentUser.email || "").toLowerCase();
+  const quietHoursFlagOn = useAppFlag('quiet_hours_all');
+  const canMuteObjectives = canUseQuietHours(currentUser, quietHoursFlagOn) && Boolean(mutedObjectiveIds);
+  const isObjectiveMuted = Boolean(mutedObjectiveIds?.has?.(localObj.id));
   const canDeleteObjective = Boolean(onDelete && (
     localObj.createdBy === currentUser.id
     || currentUser.role === "executive"
@@ -1374,6 +1379,26 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
               </button>
               {canDeleteObjective && <button className="icon-btn" onClick={() => setShowDeleteConfirm(true)} title="Delete"><Trash2 size={16} /></button>}
               {!canDeleteObjective && onDelete && <LockedHint capability="delete_objective" variant="icon" currentUser={currentUser} ctx={{ createdBy: localObj.createdBy }} createNotification={createNotification} addToast={addToast} />}
+              {/* Item 10: mute this objective — pushes go quiet for YOU only;
+                  the bell panel still records everything. Pilot-gated. */}
+              {canMuteObjectives && onToggleObjectiveMute && (
+                <button
+                  className={`icon-btn objective-mute-toggle ${isObjectiveMuted ? 'muted' : ''}`}
+                  data-testid="objective-mute-toggle"
+                  title={isObjectiveMuted ? 'Unmute — resume phone alerts for this item' : 'Mute — stop phone alerts for this item (the bell still collects them)'}
+                  aria-pressed={isObjectiveMuted}
+                  onClick={async () => {
+                    try {
+                      const nowMuted = await onToggleObjectiveMute(localObj.id);
+                      addToast?.({ type: 'success', message: nowMuted ? 'Muted — this item stops buzzing your phone.' : 'Unmuted — phone alerts resume for this item.' });
+                    } catch (error) {
+                      addToast?.({ type: 'error', message: error.message || 'Could not update the mute.' });
+                    }
+                  }}
+                >
+                  {isObjectiveMuted ? <BellOff size={16} /> : <Bell size={16} />}
+                </button>
+              )}
               <button onClick={onClose} className="btn btn-xs btn-secondary mobile-only"><ArrowLeft size={12} /> Back</button>
               <button onClick={onClose} className="icon-btn" title="Close objective" aria-label="Close objective"><X size={20} /></button>
             </div>
