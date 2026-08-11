@@ -79,3 +79,21 @@ test('the Daily leads below the fold with New Features (standing rule)', () => {
   // The stale June rollout story is gone from the render.
   assert.doesNotMatch(components, /brief-rollout-hero/);
 });
+
+test('the Monday lead digest is wired with a safe recipient policy (item 4)', () => {
+  const email = read('api/_shared/email.js');
+  assert.match(email, /export const sendLeadDigestEmail/);
+  assert.match(email, /LEAD_DIGEST_ENABLED === '1'/);
+  assert.match(email, /andrew@ndai\.pro/);
+  assert.match(email, /lead_digest:\$\{recipient\}:\$\{isoWeekKey\(\)\}/);
+
+  const cron = read('api/cron/monday-lead-digest.js');
+  assert.match(cron, /profiles\.some\(p => p\.reports_to === lead\.id\)/);
+  assert.match(cron, /okr_level !== 'company'/);
+  assert.match(cron, /SLIPPED — NEEDS A DECISION/);
+  assert.match(cron, /\?objective=/);
+
+  const vercel = read('vercel.json');
+  assert.match(vercel, /monday-lead-digest/);
+  assert.match(vercel, /0 11 \* \* 1/);
+});

@@ -1112,6 +1112,11 @@ const safeUser = (id) => {
 const DAILY_NEW_FEATURES = [
   {
     date: 'Aug 11',
+    title: 'Leads: your Monday crew brief (starts Monday)',
+    body: 'Every lead gets one email at 6:00 AM each Monday: what slipped, what is due this week, and what your crew closed — each line opens the item in OMP. No login needed to read it.',
+  },
+  {
+    date: 'Aug 11',
     title: 'A phone layout built for thumbs',
     body: 'On your phone: a bottom bar puts Tasks, OKR, NCR, Org, and the big + New under your thumb; your own work opens first; task rows complete with one tap; and on the NCR page the camera button leads. Built for gloves and sunlight.',
   },

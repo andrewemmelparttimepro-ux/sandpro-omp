@@ -116,3 +116,81 @@ export const sendLoggedEmail = async ({ userId, objectiveId, type, to, subject, 
   }).eq('id', logRow.id);
   return { sent: true, id: payload.id };
 };
+
+// Over-The-Top item 4: the Monday lead digest. Deliberately separate policy
+// from the daily digest: weekly dedupe per lead, and one switch —
+// LEAD_DIGEST_ENABLED=1 sends to real leads; unset, only andrew@ndai.pro
+// receives (preview mode), so the template is reviewable in a real inbox
+// before the fleet gets it.
+const isoWeekKey = () => {
+  const chicago = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+  const year = chicago.getFullYear();
+  const start = new Date(year, 0, 1);
+  const week = Math.ceil((((chicago - start) / 86400000) + start.getDay() + 1) / 7);
+  return `${year}-W${String(week).padStart(2, '0')}`;
+};
+
+export const leadDigestRecipientAllowed = (email) => {
+  const recipient = normalizeEmail(email);
+  if (recipient === 'andrew@ndai.pro') return true;
+  return process.env.LEAD_DIGEST_ENABLED === '1';
+};
+
+export const sendLeadDigestEmail = async ({ userId, to, subject, html }) => {
+  const recipient = normalizeEmail(to);
+  if (!leadDigestRecipientAllowed(recipient)) return { skipped: true, reason: 'lead_digest_disabled' };
+
+  const supabase = getSupabaseAdmin();
+  const dedupeKey = `lead_digest:${recipient}:${isoWeekKey()}`;
+  const { data: existing, error: existingError } = await supabase
+    .from('email_delivery_log')
+    .select('id')
+    .eq('recipient', recipient)
+    .eq('notification_type', 'lead_digest')
+    .eq('dedupe_key', dedupeKey)
+    .in('status', ['queued', 'sent'])
+    .limit(1)
+    .maybeSingle();
+  if (existingError) throw existingError;
+  if (existing?.id) return { deduped: true, reason: 'one_digest_per_week' };
+
+  const { data: logRow, error: insertError } = await supabase
+    .from('email_delivery_log')
+    .insert({
+      user_id: userId || null,
+      notification_type: 'lead_digest',
+      dedupe_key: dedupeKey,
+      recipient,
+      subject,
+      status: 'queued',
+    })
+    .select()
+    .single();
+  if (insertError) {
+    if (/duplicate key|unique/i.test(insertError.message || '')) return { deduped: true };
+    throw insertError;
+  }
+
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    await supabase.from('email_delivery_log').update({ status: 'skipped_no_provider', error: 'RESEND_API_KEY is not configured.' }).eq('id', logRow.id);
+    return { skipped: true };
+  }
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || 'SandPro OMP <onboarding@resend.dev>',
+      to: recipient,
+      subject,
+      html,
+    }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    await supabase.from('email_delivery_log').update({ status: 'failed', error: payload.message || `Resend HTTP ${response.status}` }).eq('id', logRow.id);
+    return { failed: true, error: payload.message || `Resend HTTP ${response.status}` };
+  }
+  await supabase.from('email_delivery_log').update({ status: 'sent', provider_id: payload.id || null, sent_at: new Date().toISOString() }).eq('id', logRow.id);
+  return { sent: true, id: payload.id };
+};
