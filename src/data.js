@@ -209,6 +209,15 @@ export const getNextRecurringDueDate = (dueDate, interval, todayIso = null) => {
 // else sees the feed in their profile at all. Mirrored by RLS on the
 // fix_it_* tables — this helper only controls UI surfaces.
 export const FIX_IT_FEED_MODERATOR_EMAILS = ["andrew@ndai.pro", "mjimenez@sandpro.com"];
+// Voice capture pilot (Andrew, 8/11): item 7 rolls out to Andrew's profile
+// first — plus the QA smoke admin so the production gauntlet can walk the
+// pipeline. Widen to everyone by enabling the `voice_capture_all` app flag
+// (SQL flip, no deploy). Server-enforced too in api/voice/transcribe.js.
+export const VOICE_CAPTURE_PILOT_EMAILS = ["andrew@ndai.pro", "release-smoke-admin@objectivetracker.net"];
+export const canUseVoiceCapture = (user, voiceForAll = false) => (
+  voiceForAll || VOICE_CAPTURE_PILOT_EMAILS.includes((user?.email || "").toLowerCase())
+);
+
 export const canAccessFixItFeed = (user) => (
   FIX_IT_FEED_MODERATOR_EMAILS.includes((user?.email || "").toLowerCase())
 );

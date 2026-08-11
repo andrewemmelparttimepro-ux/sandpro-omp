@@ -5,6 +5,9 @@
 // Born Aug 10, 2026 after "there is broken shit everywhere despite you
 // telling me it is fine" — read-only smoke was not enough.
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const BASE = process.env.SANDPRO_BASE_URL || 'https://objectivetracker.net';
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
@@ -324,6 +327,9 @@ test.describe('production gauntlet', () => {
       await wizard.getByRole('button', { name: 'Single', exact: true }).click();
       await wizard.getByRole('button', { name: 'Standalone', exact: true }).click();
       await wizard.getByPlaceholder('What needs to happen?').fill(TITLE);
+      // Item 7: the smoke admin is in the voice pilot — the hold-to-talk
+      // button must render on the wizard form for pilot users.
+      await expect(wizard.locator('[data-testid="voice-capture-button"]'), 'circuit: voice capture button present for pilot users').toBeVisible();
       const deptSelect = wizard.locator('.wiz-field-grid select').first();
       await deptSelect.selectOption({ index: 1 }).catch(() => {});
       await wizard.getByRole('button', { name: /Create Task/ }).click();
@@ -442,5 +448,32 @@ test.describe('production gauntlet', () => {
       await fetch(`${SUPABASE_URL}/rest/v1/client_errors?user_id=eq.${session.user.id}`, { method: 'DELETE', headers });
       expect(removed, 'myday circuit: QA task cleaned up').toBeGreaterThan(0);
     }
+  });
+
+  test('voice pipeline: a real spoken clip transcribes on production', async () => {
+    // Item 7's proof gate: POST a fixture recording ("Replace the pressure
+    // gauge on pump three before Friday", generated with macOS `say`) to the
+    // live endpoint as the pilot smoke admin and require the words back.
+    const fixturePath = join(dirname(fileURLToPath(import.meta.url)), 'fixtures/voice-capture-gauntlet.wav');
+    const audio = readFileSync(fixturePath).toString('base64');
+    const res = await fetch(`${BASE}/api/voice/transcribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ audio, mimeType: 'audio/wav', accessToken: session.access_token }),
+    });
+    const data = await res.json().catch(() => ({}));
+    // Until OPENAI_API_KEY lands in Vercel prod env, the endpoint answers a
+    // clean 503 — skip loudly rather than block deploys; anything else that
+    // isn't a transcript is a real failure. The moment the key exists this
+    // test enforces the full pipeline on every deploy.
+    test.skip(
+      res.status === 503 && /not configured/i.test(data?.error || ''),
+      'voice: OPENAI_API_KEY not yet configured in production — pipeline unverified',
+    );
+    expect(res.ok, `voice: transcription answers (${res.status} ${data?.error || ''})`).toBeTruthy();
+    expect(String(data?.text || ''), 'voice: the words come back').toMatch(/pressure|gauge|pump/i);
   });
 });

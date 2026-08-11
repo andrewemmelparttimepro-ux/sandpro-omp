@@ -13604,6 +13604,44 @@ button.alt-command-body:disabled {
   background: var(--accent-3);
   border-color: var(--accent-5);
 }
+
+/* Voice-first capture (item 7) — the hold-to-talk button. */
+.voice-capture-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--accent-6);
+  background: var(--accent-2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.voice-capture-button:hover { border-color: var(--brand); color: var(--brand); }
+.voice-capture-button.phase-recording {
+  border-style: solid;
+  border-color: var(--error);
+  background: var(--error-bg);
+  color: var(--error);
+  animation: voice-capture-pulse 1.4s ease-in-out infinite;
+}
+.voice-capture-button.phase-transcribing {
+  border-style: solid;
+  border-color: var(--accent-6);
+  color: var(--text-muted);
+  cursor: wait;
+}
+@keyframes voice-capture-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+  50% { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
+}
 @media (max-width: 900px) {
   .myday-grid { grid-template-columns: minmax(0, 1fr); }
   .myday-today { grid-row: auto; }

@@ -10,6 +10,8 @@ import {
 import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, canManageOkrs, isObjectiveAssignedToUser, getRecurrenceLabel } from './data';
 import { Avatar, Badge } from './uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from './sharedWidgets';
+import { VoiceCaptureButton } from './VoiceCaptureButton';
+import { applyTranscriptToDraft } from './voiceCapture';
 import { useAltNotes } from './hooks/useSupabase';
 import { useServerCounts } from './hooks/useServerCounts';
 import { useAppFlag } from './lib/flags';
@@ -1234,6 +1236,20 @@ export const CreateWizardModal = ({
                 <span>Description</span>
                 <textarea rows={2} value={description} onChange={e => setDescription(e.target.value)} placeholder="Context, details, links…" />
               </label>
+              {/* Item 7: hold a button, describe the problem — the transcript
+                  drafts the title and fills the description. Pilot-gated; the
+                  button renders only for allowed profiles. */}
+              <VoiceCaptureButton
+                currentUser={currentUser}
+                addToast={(toast) => setError(toast?.message || '')}
+                label="Describe it — hold to talk"
+                onTranscript={(text) => {
+                  setError("");
+                  const draft = applyTranscriptToDraft({ title, description }, text);
+                  setTitle(draft.title);
+                  setDescription(draft.description);
+                }}
+              />
               <div className="wiz-field-grid">
                 <label className="wiz-field">
                   <span>Main department *</span>

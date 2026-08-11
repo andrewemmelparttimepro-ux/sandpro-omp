@@ -7,6 +7,7 @@ import { getProfiles, formatDate, timeAgo, DEPARTMENTS, DEFAULT_DEPARTMENT, getD
 import { Avatar, Badge } from "../uiPrimitives";
 
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from "../sharedWidgets";
+import { VoiceCaptureButton } from "../VoiceCaptureButton";
 
 
 import { supabase } from "../lib/supabase";
@@ -3938,6 +3939,17 @@ const NcrPage = ({
                   ...prev,
                   eventDescription: event.target.value
                 }))} /></label>
+                {/* Item 7: describe the problem out loud — the transcription
+                    lands in the event description. Pilot-gated. */}
+                <VoiceCaptureButton
+                  currentUser={currentUser}
+                  addToast={addToast}
+                  label="Describe it — hold to talk"
+                  onTranscript={(text) => setCreateDraft(prev => ({
+                    ...prev,
+                    eventDescription: prev.eventDescription?.trim() ? `${prev.eventDescription.replace(/\s+$/, '')}\n\n${text}` : text,
+                  }))}
+                />
                 <label className="ncr-checkbox-line"><input type="checkbox" checked={createDraft.containmentRequired} onChange={event => setCreateDraft(prev => ({
                   ...prev,
                   containmentRequired: event.target.checked,
