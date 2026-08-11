@@ -5,6 +5,7 @@ const cleanEnvValue = (value) => String(value || '').trim();
 const isRecoverableNavigatorLockError = (error) => Boolean(
   error?.isAcquireTimeout
   || /lock broken by another request with the ['"]steal['"] option/i.test(String(error?.message || ''))
+  || /lock was stolen by another request/i.test(String(error?.message || ''))
   || /released because another request stole it/i.test(String(error?.message || ''))
 );
 

@@ -1144,31 +1144,6 @@ const DAILY_NEW_FEATURES = [
 
 const DAILY_BULLETIN = {
   id: '2026-06-24-company-wide-launch',
-  kicker: 'SandPro Times Special Edition',
-  headline: 'SandPro OMP goes company-wide next Wednesday',
-  byline: 'Company-Wide Rollout · Wednesday, June 24, 2026',
-  intro: 'This is the headline item for the week: SandPro OMP moves from the working team into company-wide SandPro use next Wednesday, June 24, 2026. Every team should know where objectives live, how updates get made, and how to use the app before rollout day.',
-  rollout: {
-    eyebrow: 'Company-Wide Launch',
-    date: 'Wednesday, June 24',
-    title: 'SandPro OMP opens to all of SandPro next Wednesday',
-    body: 'The OMP dashboard is becoming a company-wide operating layer. Objectives, updates, tags, due dates, Fix-It items, NCR visibility, and mobile access all need to feel ready for people across SandPro, not just the pilot group.',
-    action: 'Treat this as the priority story: confirm your objectives, clean up stale updates, and be ready to help teammates find their work in OMP.',
-  },
-  updates: [
-    {
-      title: 'All SandPro teams included',
-      body: 'The rollout is company-wide. The app needs to read as the operating home for SandPro, with objectives and issue follow-through visible beyond the original pilot team.',
-    },
-    {
-      title: 'Clean objective hygiene before launch',
-      body: 'Owners should make sure objectives have current status, realistic due dates, supporting teammates where needed, and a clear next action before Wednesday.',
-    },
-    {
-      title: 'Mobile access matters',
-      body: 'The installed PWA and push setup remain important because company-wide use means people will check work from the floor, field, and phone, not only from a desktop.',
-    },
-  ],
   iosSteps: [
     'Open objectivetracker.net in Safari.',
     'Tap Share, then Add to Home Screen.',

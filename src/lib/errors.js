@@ -14,6 +14,7 @@ export const GENERIC_FAILURE_MESSAGE =
 // Transient connection-class failures: safe to present as "try again".
 const TRANSIENT_PATTERNS = [
   /lock broken by another request with the ['"]steal['"] option/i, // auth-js Web Lock steal victim
+  /lock was stolen by another request/i, // auth-js Web Lock steal victim (Safari/Edge wording)
   /released because another request stole it/i, // auth-js Web Lock steal victim
   /navigator lockmanager/i,
   /acquiring an exclusive navigator/i,

@@ -23,6 +23,12 @@ test('the current auth-js lock-broken variant is also treated as transient', () 
   assert.equal(humanizeErrorMessage(current), CONNECTION_HICCUP_MESSAGE);
 });
 
+test('the short auth-js stolen-lock variant is also treated as transient', () => {
+  const current = 'Lock was stolen by another request';
+  assert.equal(isTransientConnectionError(new Error(current)), true);
+  assert.equal(humanizeErrorMessage(current), CONNECTION_HICCUP_MESSAGE);
+});
+
 test('fetch failures read as connection hiccups', () => {
   assert.equal(humanizeErrorMessage('Failed to fetch'), CONNECTION_HICCUP_MESSAGE);
   assert.equal(humanizeErrorMessage('Load failed'), CONNECTION_HICCUP_MESSAGE);
