@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
-import {
+import { Search,
   Target, Bell, Plus, LayoutDashboard, Network, ChevronDown, X,
   LogOut, Loader2, Sun, Moon, Newspaper, Sparkles, Wrench, ClipboardCheck,
   Settings, RefreshCw, BarChart3, BookOpen
