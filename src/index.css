@@ -13605,6 +13605,67 @@ button.alt-command-body:disabled {
   border-color: var(--accent-5);
 }
 
+/* Permission legibility (item 9) — the lock that explains itself. */
+.locked-hint { position: relative; display: inline-flex; }
+.locked-hint-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--accent-6);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.locked-hint-chip:hover { color: var(--text); border-color: var(--accent-7); }
+.locked-hint-tab .locked-hint-chip {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-6);
+  background: transparent;
+}
+.locked-hint-tab .locked-hint-chip:hover { color: var(--accent-8); background: var(--accent-3); }
+.locked-hint-icon .locked-hint-chip { padding: 6px; border-radius: 8px; }
+.locked-hint-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 220;
+  width: 260px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-5);
+  background: var(--surface-raised, #fff);
+  box-shadow: 0 14px 44px rgba(15, 23, 42, 0.18);
+  text-align: left;
+  cursor: default;
+}
+.locked-hint-pop strong { display: block; font-size: 12.5px; color: var(--text); }
+.locked-hint-pop p { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--text-muted); }
+.locked-hint-pop .locked-hint-who b { color: var(--text); font-weight: 700; }
+.locked-hint-request {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--brand-border, rgba(255,127,2,0.35));
+  background: var(--brand-bg, rgba(255,127,2,0.08));
+  color: var(--brand);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.locked-hint-request:disabled { opacity: 0.75; cursor: default; }
+
 /* Voice-first capture (item 7) — the hold-to-talk button. */
 .voice-capture-button {
   display: inline-flex;

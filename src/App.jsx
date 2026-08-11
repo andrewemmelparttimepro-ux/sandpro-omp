@@ -2339,6 +2339,8 @@ function App() {
               isAltActive={showDashboardSurface && dashboardMode === ALT_DASHBOARD_MODE}
               onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
               onKpiClick={applyDashboardKpiFilter}
+              onRequestAccessNotify={createNotification}
+              onRequestAccessToast={addToast}
             />}
             {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onCompleteObjective={async (obj) => {
               const prevStatus = obj.status; const prevProgress = obj.progress;
@@ -2359,7 +2361,7 @@ function App() {
             })} />}
           </Suspense>
           <Suspense fallback={<RouteLoader />}>
-            {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onQuickStatus={handleQuickStatusObjective} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
+            {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} createNotification={createNotification} addToast={addToast} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onQuickStatus={handleQuickStatusObjective} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
             {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
             {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
             {route.page === "fixit" && isMobileViewport && canAccessFixItFeed(profile) && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} focusPostId={new URLSearchParams(window.location.search).get('fixit')} />}

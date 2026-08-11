@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { getUser, getProfiles, getStatusColor, getStatusLabel, getStatusBg, getPriorityColor, formatDate, formatObjectiveTimestamp, timeAgo, isOverdue, STATUS_CONFIG, generateId, DEFAULT_DEPARTMENT, getObjectiveAssignmentLabel, getRecurrenceLabel, getMissedCycleLabel } from './data';
 import { findMentionCandidates, getActiveMention, getMentionedUsers, insertMentionText } from './mentions';
+import { LockedHint } from './LockedHint';
 import { Avatar, Badge } from './uiPrimitives';
 import {
   ProgressBar as SharedProgressBar,
@@ -1372,6 +1373,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
                 <Flag size={16} color={localObj.blockerFlag ? "#EF4444" : undefined} />
               </button>
               {canDeleteObjective && <button className="icon-btn" onClick={() => setShowDeleteConfirm(true)} title="Delete"><Trash2 size={16} /></button>}
+              {!canDeleteObjective && onDelete && <LockedHint capability="delete_objective" variant="icon" currentUser={currentUser} ctx={{ createdBy: localObj.createdBy }} createNotification={createNotification} addToast={addToast} />}
               <button onClick={onClose} className="btn btn-xs btn-secondary mobile-only"><ArrowLeft size={12} /> Back</button>
               <button onClick={onClose} className="icon-btn" title="Close objective" aria-label="Close objective"><X size={20} /></button>
             </div>

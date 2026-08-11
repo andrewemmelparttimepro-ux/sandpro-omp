@@ -498,4 +498,63 @@ test.describe('production gauntlet', () => {
     const dark = await fetch(`${BASE}/pulse?k=00000000-0000-4000-8000-000000000000`);
     expect(dark.status, 'pulse: a bad token stays dark').toBe(404);
   });
+
+  test('permission legibility circuit: the locked OKR sheet explains itself, the ask pings the right people, self-clean', async ({ page }) => {
+    // Item 9, walked as the QA MEMBER (a manager who is NOT an OKR editor):
+    // the lock chip renders, names who can, and one tap lands an
+    // access_request notification for an executive. Pilot-gated — the member
+    // QA account is in the pilot precisely so this circuit can run.
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+    const MEMBER_EMAIL = process.env.SANDPRO_SMOKE_MEMBER_EMAIL;
+    const MEMBER_PASSWORD = process.env.SANDPRO_SMOKE_MEMBER_PASSWORD;
+    test.skip(!SERVICE_KEY || !MEMBER_EMAIL || !MEMBER_PASSWORD, 'needs member creds + service key');
+
+    const memberRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: ANON_KEY },
+      body: JSON.stringify({ email: MEMBER_EMAIL, password: MEMBER_PASSWORD }),
+    });
+    expect(memberRes.ok, 'legibility: member auth').toBeTruthy();
+    const memberSession = await memberRes.json();
+    const headers = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+
+    await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
+      key: STORAGE_KEY,
+      value: JSON.stringify(memberSession),
+    });
+    try {
+      await page.goto(`${BASE}/?page=okr`, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(8000);
+      for (const sel of ['.brief-close', '.framework-explainer-close', '.new-feature-close', 'button:has-text("Got it")']) {
+        const el = page.locator(sel).first();
+        if (await el.isVisible({ timeout: 500 }).catch(() => false)) await el.click({ force: true }).catch(() => {});
+      }
+      const hint = page.locator('[data-testid="locked-hint"][data-capability="manage_okrs"]').first();
+      await expect(hint, 'legibility: the locked OKR sheet wears its lock').toBeVisible({ timeout: 15000 });
+      await hint.locator('.locked-hint-chip').click();
+      const pop = page.locator('.locked-hint-pop');
+      await expect(pop, 'legibility: the lock explains why').toBeVisible({ timeout: 4000 });
+      await expect(pop, 'legibility: the lock names who can').toContainText('Who can:');
+      await page.screenshot({ path: 'tmp/proofs/gauntlet/08-legibility.png' });
+      const ask = pop.locator('.locked-hint-request');
+      await expect(ask, 'legibility: one-tap request offered').toBeVisible();
+      await ask.click();
+      await expect(ask, 'legibility: the ask acknowledges itself').toContainText(/Sent|Requested/, { timeout: 15000 });
+
+      await expect
+        .poll(async () => {
+          const rows = await fetch(
+            `${SUPABASE_URL}/rest/v1/notifications?type=eq.access_request&sender_id=eq.${memberSession.user.id}&select=id,user_id&limit=10`,
+            { headers },
+          ).then((r) => r.json());
+          return Array.isArray(rows) ? rows.length : 0;
+        }, { message: 'legibility: the ask lands as real notifications', timeout: 15000 })
+        .toBeGreaterThan(0);
+    } finally {
+      await fetch(`${SUPABASE_URL}/rest/v1/notifications?type=eq.access_request&sender_id=eq.${memberSession.user.id}`, {
+        method: 'DELETE', headers,
+      });
+      await fetch(`${SUPABASE_URL}/rest/v1/client_errors?user_id=eq.${memberSession.user.id}`, { method: 'DELETE', headers });
+    }
+  });
 });

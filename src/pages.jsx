@@ -12,6 +12,7 @@ import { Avatar, Badge } from './uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from './sharedWidgets';
 import { VoiceCaptureButton } from './VoiceCaptureButton';
 import { applyTranscriptToDraft } from './voiceCapture';
+import { LockedHint } from './LockedHint';
 import { useAltNotes } from './hooks/useSupabase';
 import { useServerCounts } from './hooks/useServerCounts';
 import { useAppFlag } from './lib/flags';
@@ -754,6 +755,8 @@ export const GlobalKpiStrip = ({
   onKpiClick,
   page = "dashboard",
   isMobile = false,
+  onRequestAccessNotify = null,
+  onRequestAccessToast = null,
 }) => {
   const isSlimPage = GLOBAL_KPI_SLIM_PAGES.has(page);
   const storageKey = isMobile
@@ -855,15 +858,20 @@ export const GlobalKpiStrip = ({
         { id: "company", label: "Company" },
         { id: "team", label: isMobile ? "Team" : "My team", disabled: !isExecutive && !isManager },
         { id: "individual", label: isMobile ? "Me" : "Individual" },
-      ].filter(s => !s.disabled).map(s => (
-        <button
-          key={s.id}
-          type="button"
-          className={`dashboard-scope-tab ${scope === s.id && !isAltActive ? 'active' : ''}`}
-          onClick={() => onScopeChange?.(s.id)}
-        >
-          {s.label}
-        </button>
+      ].map(s => (
+        s.disabled
+          // Item 9: a hidden tab is an invisible permission. In the legibility
+          // pilot the locked tab stays visible and explains itself; outside
+          // the pilot it disappears exactly as before.
+          ? <LockedHint key={s.id} capability="team_scope" variant="tab" currentUser={currentUser} createNotification={onRequestAccessNotify} addToast={onRequestAccessToast} />
+          : <button
+              key={s.id}
+              type="button"
+              className={`dashboard-scope-tab ${scope === s.id && !isAltActive ? 'active' : ''}`}
+              onClick={() => onScopeChange?.(s.id)}
+            >
+              {s.label}
+            </button>
       ))}
     </div>
   );

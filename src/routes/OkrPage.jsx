@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react';
 import { ChevronDown, ChevronRight, Download, Plus } from 'lucide-react';
 import { getStatusColor, getStatusLabel, getStatusBg, canManageOkrs, isObjectiveAssignedToUser, getObjectiveAssignmentLabel } from '../data';
+import { LockedHint } from '../LockedHint';
 import { OKR_LEVEL_LABELS, getAssumedOkrLevel } from '../okrFramework';
 
 // Extracted from src/pages.jsx to make OkrPage a real lazy route module.
@@ -58,7 +59,7 @@ const OKR_SHEET_STATUSES = [
 ];
 const okrSheetStatusLabel = (status) => OKR_SHEET_STATUSES.find(s => s.id === status)?.label || getStatusLabel(status);
 
-export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveCheckin, onQuickStatus }) => {
+export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveCheckin, onQuickStatus, createNotification = null, addToast = null }) => {
   const [view, setView] = useState("edit");
   const [drafts, setDrafts] = useState({});
   const [collapsedSections, setCollapsedSections] = useState(() => new Set());
@@ -194,6 +195,11 @@ export const OkrPage = ({ objectives, currentUser, onOpenCard, onAddOkr, onSaveC
           )}
           {canManageOkrSheet && (
             <button type="button" className="btn btn-primary" onClick={onAddOkr}><Plus size={14} /> Add main OKR</button>
+          )}
+          {/* Item 9: the locked sheet explains itself — why, who can, and a
+              one-tap request that pings the right people. */}
+          {!canManageOkrSheet && (
+            <LockedHint capability="manage_okrs" currentUser={currentUser} createNotification={createNotification} addToast={addToast} label="Why can't I edit?" />
           )}
         </div>
       </div>
