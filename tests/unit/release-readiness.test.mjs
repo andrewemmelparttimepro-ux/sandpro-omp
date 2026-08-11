@@ -695,18 +695,18 @@ test('new user-facing features include dismissible help that can be reopened', (
   }
 });
 
-test('The SandPro Times can publish bulletin-board updates with PWA guidance', () => {
+test('The SandPro Daily leads with numbers, then New Features (Aug 11 format)', () => {
   const app = read('src/App.jsx');
   const component = read('src/components.jsx') + read('src/objectiveDetail.jsx');
   const css = read('src/index.css');
   assert.match(app, /DAILY_BRIEF_STORAGE_VERSION/);
-  assert.match(app, /bulletin-2026-06-24-company-wide-launch/);
-  assert.match(component, /DAILY_BULLETIN/);
-  assert.match(component, /SandPro Times Special Edition/);
-  assert.match(component, /SandPro OMP goes company-wide next Wednesday/);
-  assert.match(component, /Wednesday, June 24, 2026/);
-  assert.match(component, /Company-Wide Launch/);
-  assert.match(component, /Company-wide/);
+  // Top fold unchanged: masthead + clickable number strip. Below the break:
+  // the New Features section (standing rule — every change gets an entry).
+  assert.match(component, /DAILY_NEW_FEATURES/);
+  assert.match(component, /New Features/);
+  assert.match(component, /What changed in your OMP/);
+  assert.match(component, /brief-features/);
+  assert.doesNotMatch(component, /SandPro OMP goes company-wide next Wednesday/);
   assert.match(component, /iPhone Safari/);
   assert.match(component, /Android Chrome/);
   assert.match(component, /Mobile Browser vs Installed PWA/);
