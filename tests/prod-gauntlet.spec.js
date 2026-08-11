@@ -150,7 +150,8 @@ test.describe('production gauntlet', () => {
     await page.keyboard.press('ControlOrMeta+k');
     const cmdbar = page.locator('.cmdbar');
     await expect(cmdbar, 'search: command bar opens on Cmd/Ctrl+K').toBeVisible({ timeout: 5000 });
-    await page.keyboard.type('RFID');
+    // fill() focuses the input itself — immune to the autofocus timer race.
+    await cmdbar.locator('input').fill('RFID');
     await expect(page.locator('.cmdbar-row', { hasText: /RFID/i }).first(), 'search: finds the RFID task').toBeVisible({ timeout: 5000 });
     await page.keyboard.press('Escape');
     await expect(cmdbar, 'search: Escape closes the bar').toBeHidden({ timeout: 3000 });
