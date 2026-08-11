@@ -1609,7 +1609,7 @@ export function useObjectives(enabled = true) {
 
   const objectivesLoadedRef = useRef(false);
   const lastObjectivesFetchAtRef = useRef(0);
-  const fetchObjectivesInner = useCallback(async () => {
+  const fetchObjectivesInner = useCallback(async ({ dedupeBoot = false } = {}) => {
     if (!enabled) {
       setObjectives([]);
       setOkrProjects([]);
@@ -1617,8 +1617,12 @@ export function useObjectives(enabled = true) {
       return [];
     }
     // Boot-time effect churn can start a second identical pull moments after
-    // the first; within 2.5s of a fetch STARTING, later starts are no-ops.
-    if (Date.now() - lastObjectivesFetchAtRef.current < 2500) return null;
+    // the first; within 2.5s of a fetch STARTING, later BOOT starts are
+    // no-ops. Only the mount effect opts in: item 6's production gauntlet
+    // caught an Undo whose post-write refresh landed inside this window and
+    // silently vanished — the server reverted, the UI stayed stuck on the
+    // undone state. A refetch that follows a write must always pull.
+    if (dedupeBoot && Date.now() - lastObjectivesFetchAtRef.current < 2500) return null;
     lastObjectivesFetchAtRef.current = Date.now();
     // The disabled mount pass cleared loading; a real fetch must re-raise it
     // until first data lands or empty states lie during every slow login.
@@ -2028,9 +2032,14 @@ export function useObjectives(enabled = true) {
   // Single-flight: concurrent triggers (boot + realtime bursts) share one
   // request instead of issuing 3-5 duplicate full pulls.
   const inFlightFetchRef = useRef(null);
-  const fetchObjectives = useCallback(async () => {
-    if (inFlightFetchRef.current) return inFlightFetchRef.current;
-    const run = fetchObjectivesInner();
+  const fetchObjectives = useCallback(async ({ dedupeBoot = false } = {}) => {
+    if (inFlightFetchRef.current) {
+      if (dedupeBoot) return inFlightFetchRef.current;
+      // A refetch that follows a write must observe the write: the in-flight
+      // pull may have started before the commit, so wait it out, then pull.
+      await inFlightFetchRef.current.catch(() => {});
+    }
+    const run = fetchObjectivesInner({ dedupeBoot });
     inFlightFetchRef.current = run;
     try {
       return await run;
@@ -2060,7 +2069,7 @@ export function useObjectives(enabled = true) {
     return merged;
   }, []);
 
-  useEffect(() => { fetchObjectives(); }, [fetchObjectives]);
+  useEffect(() => { fetchObjectives({ dedupeBoot: true }); }, [fetchObjectives]);
 
   // Realtime subscription for objectives
   useEffect(() => {
@@ -2283,8 +2292,7 @@ export function useObjectives(enabled = true) {
     if (changes.targetText !== undefined) dbChanges.target_text = changes.targetText || null;
 
     if (!Object.keys(dbChanges).length) {
-      await fetchObjectives();
-      return;
+      return await fetchObjectives();
     }
 
     const { data: currentObjective, error: currentObjectiveError } = await supabase
@@ -2297,8 +2305,7 @@ export function useObjectives(enabled = true) {
     const statusChanged = changes.status !== undefined && !valuesEqual(currentObjective?.status, dbChanges.status);
     const progressChanged = changes.progress !== undefined && !valuesEqual(currentObjective?.progress, dbChanges.progress);
     if (!hasChangedFields(currentObjective, dbChanges)) {
-      await fetchObjectives();
-      return;
+      return await fetchObjectives();
     }
 
     const { data: updatedRows, error } = await supabase
@@ -2339,7 +2346,7 @@ export function useObjectives(enabled = true) {
       const interval = getRecurrenceInterval(recurRow?.description);
       const nextDue = interval ? getNextRecurringDueDate(recurRow?.due_date, interval) : null;
       if (nextDue) {
-        await updateObjective(id, {
+        return await updateObjective(id, {
           status: 'not_started',
           progress: 0,
           dueDate: nextDue,
@@ -2349,11 +2356,13 @@ export function useObjectives(enabled = true) {
           newValue: 'not_started',
           currentStatus: 'completed',
         });
-        return;
       }
     }
 
-    await fetchObjectives();
+    // Return the fresh list so callers (handleUpdateCard) can reuse this pull
+    // instead of immediately starting a second identical one — the completion
+    // toast (and its ten-second Undo) should not wait behind two full pulls.
+    return await fetchObjectives();
   };
 
   // DELETE

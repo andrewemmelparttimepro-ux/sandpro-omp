@@ -42,6 +42,34 @@ test('every one-click consequential action offers a real reversal', () => {
   assert.match(detail, /undo: addSubtask \? async \(\) => \{\s*await addSubtask\(localObj\.id, \{\s*title: removed\.title/);
 });
 
+test('undo restores travel the explicit _restore lane, not the stale diff', () => {
+  // Item 6's production gauntlet caught this: an undo resubmits the PRIOR
+  // value, handleUpdateCard diffs it against objectives captured before the
+  // action, sees "no change", and silently writes nothing. The restore lane
+  // declares intent; updateObjective still diffs against the live server row.
+  const app = read('src/App.jsx');
+  assert.match(app, /if \(updated\._restore\) \{/);
+  assert.match(app, /changes\.status = updated\.status;\s*changes\.progress = updated\.progress;/);
+  // One-tap complete undo declares the restore.
+  assert.match(app, /undo: \(\) => handleUpdateCard\(\{ \.\.\.obj, status: prevStatus, progress: prevProgress, _restore: true/);
+
+  // Card status-change undo declares the restore too.
+  const detail = read('src/objectiveDetail.jsx');
+  assert.match(detail, /status: prevStatus,\s*progress: prevProgress,[\s\S]{0,300}?_restore: true/);
+});
+
+test('post-write refetches never dedupe into the boot window', () => {
+  // Second half of the same gauntlet catch: the restore reached the server,
+  // but the follow-up refetch started inside the 2.5s boot-dedupe window and
+  // silently returned null — the UI never observed the write. Only the mount
+  // effect may dedupe; every explicit refetch pulls, waiting out any
+  // in-flight pull that may predate the commit.
+  const hook = read('src/hooks/useSupabase.js');
+  assert.match(hook, /if \(dedupeBoot && Date\.now\(\) - lastObjectivesFetchAtRef\.current < 2500\) return null;/);
+  assert.match(hook, /useEffect\(\(\) => \{ fetchObjectives\(\{ dedupeBoot: true \}\); \}, \[fetchObjectives\]\);/);
+  assert.match(hook, /await inFlightFetchRef\.current\.catch\(\(\) => \{\}\);/);
+});
+
 test('destructive dialogs tell the truth about undo (partial vs full)', () => {
   const detail = readFileSync(join(root, 'src/objectiveDetail.jsx'), 'utf8');
   // No dialog claims the flat falsehood anymore.

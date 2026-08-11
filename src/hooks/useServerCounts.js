@@ -13,6 +13,11 @@ export const useServerCounts = (rpcName, args, enabled) => {
       setData(null);
       return undefined;
     }
+    // Scope switch: drop the previous scope's numbers immediately — the
+    // client-computed fallback is scope-correct NOW, while stale server
+    // counts from another scope are the "count doesn't match the surface"
+    // bug class. Fresh RPC numbers replace the fallback when they land.
+    setData(null);
     let alive = true;
     const run = async () => {
       try {

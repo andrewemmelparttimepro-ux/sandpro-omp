@@ -200,6 +200,20 @@ test.describe('production gauntlet', () => {
     await expectNoErrorToast('individual scope');
     await page.screenshot({ path: 'tmp/proofs/gauntlet/05-individual.png' });
 
+    // ---- My Day (item 6): the personal view above all scopes ----
+    await page.locator('.dashboard-scope-tab:has-text("My Day")').first().click();
+    await page.waitForTimeout(3000);
+    await expect(page.locator('.myday-view'), 'my day: view renders').toBeVisible({ timeout: 10000 });
+    for (const section of ['today', 'overdue', 'waiting']) {
+      await expect(page.locator(`.myday-section[data-section="${section}"]`), `my day: ${section} section renders`).toBeVisible();
+    }
+    expect(
+      await page.locator('.myday-section[data-section="today"] .myday-row').count(),
+      'my day: the five stay five',
+    ).toBeLessThanOrEqual(5);
+    await expectNoErrorToast('my day');
+    await page.screenshot({ path: 'tmp/proofs/gauntlet/06-myday.png' });
+
     // ---- Global failure sweeps ----
     // A lone transient fetch failure is jobsite reality — the app keeps last
     // data through it by design. More than two, or ANY other error, fails.
@@ -357,6 +371,76 @@ test.describe('production gauntlet', () => {
       const removed = del.ok ? (await del.json()).length : 0;
       await fetch(`${SUPABASE_URL}/rest/v1/client_errors?user_id=eq.${session.user.id}`, { method: 'DELETE', headers });
       expect(removed, 'circuit: QA task cleaned up').toBeGreaterThan(0);
+    }
+  });
+
+  test('my day circuit: due-today task joins the five, one-tap completes, Undo restores, self-clean', async ({ page }) => {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+    test.skip(!SERVICE_KEY, 'needs service key for self-cleanup');
+    // "AAA" leads the due-today tie-break (ties sort by title), so the QA task
+    // deterministically lands inside the five even on a busy account.
+    const TITLE = `AAA GAUNTLET myday ${new Date().toISOString()} — safe to delete`;
+
+    // Insert with the signed-in user's token — same RLS path the app uses.
+    const ins = await fetch(`${SUPABASE_URL}/rest/v1/objectives`, {
+      method: 'POST',
+      headers: {
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({
+        title: TITLE,
+        owner_id: session.user.id,
+        created_by: session.user.id,
+        status: 'not_started',
+        due_date: new Date().toISOString(),
+      }),
+    });
+    expect(ins.ok, 'myday circuit: QA task inserts').toBeTruthy();
+
+    await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
+      key: STORAGE_KEY,
+      value: JSON.stringify(session),
+    });
+    try {
+      await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(8000);
+      const dismissOverlays = async () => {
+        for (const sel of ['.brief-close', '.framework-explainer-close', '.new-feature-close', 'button:has-text("Got it")']) {
+          const el = page.locator(sel).first();
+          if (await el.isVisible({ timeout: 500 }).catch(() => false)) await el.click({ force: true }).catch(() => {});
+        }
+      };
+      await dismissOverlays();
+      await page.locator('.dashboard-scope-tab:has-text("My Day")').first().click();
+      const row = () => page.locator('.myday-section[data-section="today"] .myday-row', { hasText: 'GAUNTLET myday' }).first();
+      await expect(row(), 'myday circuit: the due-today task joins the five').toBeVisible({ timeout: 20000 });
+      await page.screenshot({ path: 'tmp/proofs/gauntlet/07-myday-circuit.png' });
+
+      // One-tap complete from My Day — and the toast must carry Undo (item 5).
+      // The toast waits for the write + one full refetch on real prod latency,
+      // so give it a window wider than one slow pull.
+      await row().locator('.myday-complete').click();
+      const undo = page.locator('.toast-undo').first();
+      await expect(undo, 'myday circuit: completion toast offers Undo').toBeVisible({ timeout: 15000 });
+      await undo.click();
+      await expect(row(), 'myday circuit: Undo returns the task to the five').toBeVisible({ timeout: 20000 });
+      // The chosen scope sticks: a late profile fetch must never yank the
+      // user back to their role default after they clicked a tab.
+      await expect(
+        page.locator('.dashboard-scope-tab', { hasText: 'My Day' }).first(),
+        'myday circuit: the chosen scope survives late profile loads',
+      ).toHaveClass(/active/);
+    } finally {
+      const headers = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+      const del = await fetch(`${SUPABASE_URL}/rest/v1/objectives?title=eq.${encodeURIComponent(TITLE)}`, {
+        method: 'DELETE', headers: { ...headers, Prefer: 'return=representation' },
+      });
+      const removed = del.ok ? (await del.json()).length : 0;
+      await fetch(`${SUPABASE_URL}/rest/v1/client_errors?user_id=eq.${session.user.id}`, { method: 'DELETE', headers });
+      expect(removed, 'myday circuit: QA task cleaned up').toBeGreaterThan(0);
     }
   });
 });

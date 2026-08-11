@@ -17,6 +17,7 @@ import { CommandBar } from './commandBar';
 import { createOutbox, isNetworkError } from './lib/outbox';
 import { OutboxChip } from './outboxChip';
 import { MobileNav } from './mobileNav';
+import { defaultScopeForRole } from './myDay';
 
 // One outbox for the whole session (module-level so hot paths share it).
 const fieldOutbox = createOutbox();
@@ -542,15 +543,26 @@ function App() {
   const dashboardMode = 'standard';
 
   // View type scope — shared by the global KPI strip and the Tasks & Projects list
-  // Thumb-first: a phone opens on YOUR work; Company stays one tap away.
+  // Item 6: My Day is the default landing for every non-executive, desktop and
+  // mobile — the company scope answers the manager's question; My Day answers
+  // the human's. Executives keep the company room.
   const [viewScope, setViewScope] = useState(() => (
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches ? "individual" : "company"
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches ? "myday" : "company"
   ));
   const [dashboardFilterPreset, setDashboardFilterPreset] = useState({ aging: "all_due", version: 0 });
+  // The role default applies ONCE per login, and never after the user has
+  // picked a tab themselves — a slow profile fetch must not yank someone out
+  // of the scope they just chose (the item 6 gauntlet photographed exactly
+  // that clobber on a fresh session).
+  const scopePickedRef = useRef(false);
+  const roleDefaultForRef = useRef(null);
   useEffect(() => {
-    if (!profile?.role) return;
-    setViewScope(profile.role === "executive" ? "company" : profile.role === "manager" ? "team" : "individual");
-  }, [profile?.role]);
+    if (!profile?.role || !profile?.id) return;
+    if (roleDefaultForRef.current === profile.id) return;
+    roleDefaultForRef.current = profile.id;
+    if (scopePickedRef.current) return;
+    setViewScope(defaultScopeForRole(profile.role));
+  }, [profile?.role, profile?.id]);
   const [wizardInitialType, setWizardInitialType] = useState(null);
 
   useEffect(() => {
@@ -1004,6 +1016,21 @@ function App() {
       if (updated.classificationStatus !== orig.classificationStatus) changes.classificationStatus = updated.classificationStatus;
       if (updated.classificationConfidence !== orig.classificationConfidence) changes.classificationConfidence = updated.classificationConfidence;
       if (updated.classificationReason !== orig.classificationReason) changes.classificationReason = updated.classificationReason;
+      // Undo restore lane (item 6 gauntlet catch): an undo resubmits the OLD
+      // value, and the diff above compares it against this render's objectives
+      // — captured before the action being undone — so restore-to-prior reads
+      // as "no change" and silently writes nothing. `_restore` declares the
+      // intent explicitly; updateObjective still diffs against the live server
+      // row, so a genuine no-op stays suppressed and concurrent edits by
+      // someone else are never clobbered.
+      if (updated._restore) {
+        changes.status = updated.status;
+        changes.progress = updated.progress;
+        changes.updateNote = updated._restoreNote || `Reverted to ${updated.status}`;
+        changes.actionType = 'status_change';
+        changes.oldValue = orig.status;
+        changes.newValue = updated.status;
+      }
       changes.currentStatus = orig.status;
       changes.currentProgress = orig.progress;
       changes.userId = profile.id;
@@ -1071,8 +1098,9 @@ function App() {
         }
       }
 
+      let freshFromUpdate = null;
       if (Object.keys(changes).length > 0) {
-        await updateObjective(updated.id, changes);
+        freshFromUpdate = await updateObjective(updated.id, changes);
         needsRefresh = true;
         const watcherIds = new Set([orig.ownerId, ...(orig.assignmentGroupMemberIds || []), ...(orig.members || []).map(m => m.userId).filter(Boolean)]);
         watcherIds.delete(null);
@@ -1090,9 +1118,10 @@ function App() {
         }
       }
 
-      // Refresh the open card
+      // Refresh the open card — reuse the pull updateObjective already made
+      // rather than starting a second identical one.
       if (needsRefresh) {
-        const fresh = await refetchObjectives();
+        const fresh = Array.isArray(freshFromUpdate) ? freshFromUpdate : await refetchObjectives();
         const refreshed = fresh?.find(o => o.id === updated.id);
         if (refreshed) setOpenCard(refreshed);
       }
@@ -1747,6 +1776,9 @@ function App() {
                 ? "next_21_30"
                 : "all_due";
     setDashboardFilterPreset(current => ({ aging, version: current.version + 1 }));
+    // A KPI drill-down needs the list below it. From My Day, the numbers are
+    // Individual's — land on the Individual list so count and list agree.
+    setViewScope(current => (current === "myday" ? "individual" : current));
     setDashboardMode('standard');
   }, [setDashboardMode]);
 
@@ -2302,7 +2334,7 @@ function App() {
               page={shellPage}
               isMobile={isMobileViewport}
               scope={viewScope}
-              onScopeChange={(next) => { setViewScope(next); if (showDashboardSurface) setDashboardMode('standard'); }}
+              onScopeChange={(next) => { scopePickedRef.current = true; setViewScope(next); if (showDashboardSurface) setDashboardMode('standard'); }}
               showAltToggle={false}
               isAltActive={showDashboardSurface && dashboardMode === ALT_DASHBOARD_MODE}
               onAltToggle={() => setDashboardMode(dashboardMode === ALT_DASHBOARD_MODE ? 'standard' : ALT_DASHBOARD_MODE)}
@@ -2311,7 +2343,7 @@ function App() {
             {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onCompleteObjective={async (obj) => {
               const prevStatus = obj.status; const prevProgress = obj.progress;
               await handleUpdateCard({ ...obj, status: 'completed', progress: 100, updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: 'completed', progress: 100, note: 'Status changed to Completed' }] });
-              addToast({ type: 'success', message: `"${obj.title}" completed`, undo: () => handleUpdateCard({ ...obj, status: prevStatus, progress: prevProgress, updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: prevStatus, progress: prevProgress, note: 'Completion undone' }] }) });
+              addToast({ type: 'success', message: `"${obj.title}" completed`, undo: () => handleUpdateCard({ ...obj, status: prevStatus, progress: prevProgress, _restore: true, _restoreNote: 'Completion undone', updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: prevStatus, progress: prevProgress, note: 'Completion undone' }] }) });
             }} onNcrClick={(report) => { setNcrFocusReportId(report?.id ?? null); updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS }); }} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
               status: preset.status || "all",
               owner: preset.scope === "individual" ? currentUser.id : "all",

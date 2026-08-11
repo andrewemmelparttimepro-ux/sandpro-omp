@@ -767,13 +767,16 @@ export const GlobalKpiStrip = ({
     setCollapsed(readStripCollapsed(storageKey, collapseByDefault));
   }, [storageKey, collapseByDefault]);
   const directReports = getDirectReports(currentUser.id);
+  // My Day (item 6) is a personal lens over Individual's numbers — the strip
+  // counts YOUR work while the surface below shows the day's cut of it.
+  const countScope = scope === "myday" ? "individual" : scope;
   // One model, one truth: the strip counts exactly what its own list can
   // show. DashboardListView excludes company OKRs (they live in the OKR
   // summary), so the strip does too — mirrored server-side in rpc_kpi_strip.
   const countableObjectives = objectives.filter(o => o.okrLevel !== "company");
-  const scopedObjectives = scope === "individual"
+  const scopedObjectives = countScope === "individual"
     ? countableObjectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id))
-    : scope === "team"
+    : countScope === "team"
       ? countableObjectives.filter(o => isObjectiveAssignedToUser(o, currentUser.id) || directReports.some(r => isObjectiveAssignedToUser(o, r.id)) || o.delegatedBy === currentUser.id)
       : countableObjectives;
   const allActive = scopedObjectives.filter(o => o.status !== "completed" && o.status !== "cancelled");
@@ -804,7 +807,7 @@ export const GlobalKpiStrip = ({
   const serverCountsOn = useAppFlag('server_counts');
   const sc = useServerCounts(
     'rpc_kpi_strip',
-    { p_scope: scope, p_report_ids: scope === "team" ? directReports.map(r => r.id) : [] },
+    { p_scope: countScope, p_report_ids: countScope === "team" ? directReports.map(r => r.id) : [] },
     serverCountsOn,
   );
   const nActive = sc ? Number(sc.active) : allActive.length;
@@ -846,6 +849,7 @@ export const GlobalKpiStrip = ({
   const scopeTabs = (
     <div className="dashboard-scope-tabs">
       {[
+        { id: "myday", label: "My Day" },
         { id: "company", label: "Company" },
         { id: "team", label: isMobile ? "Team" : "My team", disabled: !isExecutive && !isManager },
         { id: "individual", label: isMobile ? "Me" : "Individual" },
@@ -929,10 +933,10 @@ export const GlobalKpiStrip = ({
       {!collapsed && (
         <div id="global-kpi-strip-body">
           <div className="kpi-grid flex gap-10 flex-shrink-0" style={{ paddingBottom: 12, overflowX: "auto", display: "grid", gridTemplateColumns: "repeat(4, minmax(150px, 1fr))", gap: 10 }}>
-            <KPICard bucket="state" icon={Target} label="Active" value={nActive} sub="not completed or cancelled" color="#3B82F6" breakdown={activeBreakdown} onClick={() => onKpiClick?.({ label: "Active", activeOnly: true, scope })} />
-            <KPICard bucket="state" icon={CheckCircle2} label="Completed" value={nCompleted} sub="finished work" color="#10B981" breakdown={completedBreakdown} onClick={() => onKpiClick?.({ label: "Completed", status: "completed", scope })} />
-            <KPICard bucket="time" icon={AlertTriangle} label="Past Due" value={nOverdue} sub={`${nAtRisk} at risk · ${nBlocked} blocked`} color="#EF4444" breakdown={overdueBreakdown} onClick={() => onKpiClick?.({ label: "Past Due", overdue: true, activeOnly: true, scope })} />
-            <DueHorizonStrip items={dueHorizonItems} onSelect={(item) => onKpiClick?.({ label: `Due Next ${item.label}`, dueWindow: item.dueWindow, activeOnly: true, scope })} />
+            <KPICard bucket="state" icon={Target} label="Active" value={nActive} sub="not completed or cancelled" color="#3B82F6" breakdown={activeBreakdown} onClick={() => onKpiClick?.({ label: "Active", activeOnly: true, scope: countScope })} />
+            <KPICard bucket="state" icon={CheckCircle2} label="Completed" value={nCompleted} sub="finished work" color="#10B981" breakdown={completedBreakdown} onClick={() => onKpiClick?.({ label: "Completed", status: "completed", scope: countScope })} />
+            <KPICard bucket="time" icon={AlertTriangle} label="Past Due" value={nOverdue} sub={`${nAtRisk} at risk · ${nBlocked} blocked`} color="#EF4444" breakdown={overdueBreakdown} onClick={() => onKpiClick?.({ label: "Past Due", overdue: true, activeOnly: true, scope: countScope })} />
+            <DueHorizonStrip items={dueHorizonItems} onSelect={(item) => onKpiClick?.({ label: `Due Next ${item.label}`, dueWindow: item.dueWindow, activeOnly: true, scope: countScope })} />
           </div>
         </div>
       )}

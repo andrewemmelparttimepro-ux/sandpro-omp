@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
-import { Search, ChevronDown, ChevronLeft, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle, Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3, Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText, Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw, PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio, ClipboardCheck } from 'lucide-react';
+import { Search, ChevronDown, ChevronLeft, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle, Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3, Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText, Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw, PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio, ClipboardCheck, Sun } from 'lucide-react';
 import { getUser, getProfiles, getStatusColor, getStatusLabel, formatDate, timeAgo, DEPARTMENTS, DEFAULT_DEPARTMENT, getDirectReports, isObjectiveAssignedToUser, getRecurrenceLabel } from '../data';
 import { Avatar, Badge } from '../uiPrimitives';
 import { ProgressBar, KPICard, ObjectiveCard, EmptyState, FeatureHelp, FilePreviewModal, TagMentionControl } from '../sharedWidgets';
@@ -9,6 +9,7 @@ import { ALT_COMPUTE_MODES, ALT_DASHBOARD_MODE, ALT_TIME_KEYS, buildAltInteracti
 import { getAltNotesPreview, normalizeAltNotesState } from '../altNotes';
 import { KPI_STATUS_META } from '../kpiSystem';
 import { OMP_DEPARTMENTS, OMP_DEPARTMENT_CLASSES, OKR_GROUP_TO_DEPARTMENT, OMP_RECURRENCE_REPEATS, getOkrGroupDepartment, getNcrGroupDepartment } from '../ompFramework';
+import { buildMyDay, MY_DAY_CAP, daysUntilDue } from '../myDay';
 const AltNotesPopup = lazy(() => import('../AltNotesPopup'));
 const mergeAltPreferences = (preferences = {}) => ({
   ...DEFAULT_ALT_DASHBOARD_PREFS,
@@ -536,16 +537,8 @@ const DASHBOARD_WORK_TYPES = [{
   label: "NCRs",
   Icon: ClipboardCheck
 }];
-const startOfLocalDay = value => {
-  const d = new Date(value);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-};
-
-// Date-only day math in local time (avoids the UTC off-by-one at boundaries)
-const daysUntilDue = dueDate => {
-  if (!dueDate) return null;
-  return Math.round((startOfLocalDay(dueDate) - startOfLocalDay(new Date())) / 86400000);
-};
+// Day math now lives in src/myDay.js (imported above) so the list view and
+// My Day can never disagree about what "today" means.
 const rowMatchesAging = (row, bucket) => {
   if (bucket === "completed") return row.isCompleted;
   if (row.isCompleted) return false;
@@ -574,6 +567,121 @@ const AgingPill = ({
   if (days <= 7) return <span className="lv-aging tone-soon">{mark}Due in {days}d</span>;
   return <span className="lv-aging tone-far">{mark}Due in {days}d</span>;
 };
+// ============================================================================
+// MY DAY — Over-The-Top item 6
+// ----------------------------------------------------------------------------
+// The personal view above all scopes: the five things that need me today, my
+// overdue, my waiting-on-others. Ranking and membership rules live in
+// src/myDay.js (unit-locked); this renders exactly what the builder returns.
+// ============================================================================
+
+const MY_DAY_KIND_LABELS = { task: "Task", subtask: "Subtask", project: "Project", ncr: "NCR" };
+
+const MyDayRow = ({ item, index, showOwner = false, onOpen, onComplete }) => {
+  const owner = showOwner && item.ownerId ? getUser(item.ownerId) : null;
+  return <div className="lv-row myday-row" data-kind={item.kind} onClick={() => onOpen(item)}>
+      {typeof index === "number" && <span className="myday-index" aria-hidden="true">{index + 1}</span>}
+      {item.kind === "task" && onComplete && <button type="button" className="myday-complete" aria-label={`Mark ${item.title} completed`} onClick={event => { event.stopPropagation(); onComplete(item.objective); }}>
+          <Check size={14} strokeWidth={3} />
+        </button>}
+      <div className="myday-row-copy">
+        <div className="text-md font-medium truncate">{item.title}</div>
+        <div className="text-xs text-muted truncate">
+          {MY_DAY_KIND_LABELS[item.kind] || "Task"}
+          {item.context ? ` · ${item.context}` : ""}
+        </div>
+      </div>
+      {owner && <div className="myday-owner" title={item.ownerLabel || owner.name}>
+          <Avatar user={owner} size={20} />
+          <span className="text-xs text-muted">{(item.ownerLabel || owner.name || "—").split(" ")[0]}</span>
+        </div>}
+      {item.reason
+        ? <span className={`lv-aging tone-${item.tone}`}>{item.reason}</span>
+        : <AgingPill row={{ isCompleted: false, dueDate: item.dueDate, description: item.description }} />}
+    </div>;
+};
+
+const MyDayView = ({
+  objectives,
+  okrProjects,
+  ncrReports,
+  currentUser,
+  onOpenCard,
+  onCompleteObjective,
+  onProjectClick,
+  onNcrClick
+}) => {
+  const [showAllWaiting, setShowAllWaiting] = useState(false);
+  const day = useMemo(() => buildMyDay({
+    objectives,
+    okrProjects,
+    ncrReports,
+    userId: currentUser.id
+  }), [objectives, okrProjects, ncrReports, currentUser.id]);
+  const openItem = item => {
+    if (item.kind === "project") onProjectClick?.(item.project);
+    else if (item.kind === "ncr") onNcrClick?.(item.ncr);
+    else onOpenCard?.(item.objective);
+  };
+  const dateLine = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const waitingVisible = showAllWaiting ? day.waitingOnOthers : day.waitingOnOthers.slice(0, 6);
+  const todayEmptyText = day.overdue.length > 0
+    ? "Nothing new today — your overdue list is the day's work."
+    : day.waitingOnOthers.length > 0
+      ? "Nothing needs you today. A nudge on what you're waiting for might unstick someone."
+      : "Nothing needs you today. Company view is one tap away when you want more.";
+  return <div className="myday-view" data-testid="myday-view">
+      <header className="myday-header">
+        <div>
+          <h2>My Day</h2>
+          <span>{dateLine}</span>
+        </div>
+        {day.clearedToday > 0 && <span className="myday-cleared">
+            <CheckCircle2 size={14} />
+            {day.clearedToday} cleared today
+          </span>}
+      </header>
+      <div className="myday-grid">
+        <section className="card myday-section myday-today" data-section="today">
+          <header className="myday-section-head">
+            <Sun size={15} />
+            <strong>Needs me today</strong>
+            <Badge color="var(--brand)">{day.needsToday.length}</Badge>
+          </header>
+          {day.needsToday.length === 0
+            ? <EmptyState icon={CheckCircle2} text={todayEmptyText} />
+            : day.needsToday.map((item, index) => <MyDayRow key={item.key} item={item} index={index} onOpen={openItem} onComplete={onCompleteObjective} />)}
+          {day.needsTodayTotal > MY_DAY_CAP && <div className="myday-more">
+              +{day.needsTodayTotal - MY_DAY_CAP} more waiting behind these — the five come first
+            </div>}
+        </section>
+        <section className="card myday-section" data-section="overdue">
+          <header className="myday-section-head">
+            <AlertTriangle size={15} />
+            <strong>My overdue</strong>
+            {day.overdue.length > 0 && <Badge color="var(--error)">{day.overdue.length}</Badge>}
+          </header>
+          {day.overdue.length === 0
+            ? <EmptyState icon={CheckCircle2} text="Nothing overdue. Clean slate." />
+            : day.overdue.map(item => <MyDayRow key={item.key} item={item} onOpen={openItem} onComplete={onCompleteObjective} />)}
+        </section>
+        <section className="card myday-section" data-section="waiting">
+          <header className="myday-section-head">
+            <Clock size={15} />
+            <strong>Waiting on others</strong>
+            {day.waitingOnOthers.length > 0 && <Badge color="var(--warning)">{day.waitingOnOthers.length}</Badge>}
+          </header>
+          {day.waitingOnOthers.length === 0
+            ? <EmptyState icon={Users} text="You're not waiting on anyone." />
+            : waitingVisible.map(item => <MyDayRow key={item.key} item={item} showOwner onOpen={openItem} />)}
+          {day.waitingOnOthers.length > 6 && !showAllWaiting && <button type="button" className="myday-show-all" onClick={() => setShowAllWaiting(true)}>
+              Show all {day.waitingOnOthers.length}
+            </button>}
+        </section>
+      </div>
+    </div>;
+};
+
 const DashboardListView = ({
   objectives,
   allObjectives = objectives,
@@ -1027,7 +1135,10 @@ export const DashboardPage = ({
     flexDirection: "column",
     overflow: "hidden"
   }}>
-      {isAlternativeDashboard ? <AlternativeDashboardView objectives={objectives} currentUser={currentUser} preferences={altDashboardPreferences} presence={altDashboardPresence} onOpenCard={onOpenCard} onPreferenceChange={onAltPreferenceChange} onAltTagPerson={onAltTagPerson} /> : <>
+      {isAlternativeDashboard ? <AlternativeDashboardView objectives={objectives} currentUser={currentUser} preferences={altDashboardPreferences} presence={altDashboardPresence} onOpenCard={onOpenCard} onPreferenceChange={onAltPreferenceChange} onAltTagPerson={onAltTagPerson} /> : scope === "myday" ? <MyDayView objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} onOpenCard={onOpenCard} onCompleteObjective={onCompleteObjective} onProjectClick={project => onKpiClick?.({
+        label: project.name,
+        view: "tree"
+      })} onNcrClick={onNcrClick} /> : <>
       {/* The list view — Jake's home-screen drill-down */}
       <DashboardListView objectives={scopedObjectives} allObjectives={objectives} okrProjects={scopedProjects} ncrReports={scopedNcrReports} allNcrReports={ncrReports} currentUser={currentUser} filterPreset={filterPreset} onOpenCard={onOpenCard} onCompleteObjective={onCompleteObjective} onProjectClick={project => onKpiClick?.({
         label: project.name,

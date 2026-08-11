@@ -964,6 +964,10 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
       undo: () => doUpdate({
         status: prevStatus,
         progress: prevProgress,
+        // The restore lane: without it, resubmitting the prior status diffs as
+        // "no change" against pre-action state and never reaches the server.
+        _restore: true,
+        _restoreNote: `Reverted to ${getStatusLabel(prevStatus)}`,
         updates: [...localObj.updates, { ts: new Date().toISOString(), status: prevStatus, progress: prevProgress, note: `Reverted to ${getStatusLabel(prevStatus)}` }],
       }),
     });
