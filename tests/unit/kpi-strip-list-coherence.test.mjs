@@ -50,6 +50,7 @@ test('legacy KPA imports stay behind a one-click chip, never blasting login', ()
 
 test('three prominent work buttons replace the Type dropdown', () => {
   const dashboard = read('src/routes/DashboardPage.jsx');
+  assert.match(dashboard, /id: "all",\n\s*label: "All",\n\s*Icon: LayoutGrid/);
   assert.match(dashboard, /id: "task",\n\s*label: "Tasks",\n\s*Icon: List/);
   assert.match(dashboard, /id: "project",\n\s*label: "Projects",\n\s*Icon: Layers/);
   assert.match(dashboard, /id: "ncr",\n\s*label: "NCRs",\n\s*Icon: ClipboardCheck/);
@@ -60,6 +61,6 @@ test('three prominent work buttons replace the Type dropdown', () => {
   assert.doesNotMatch(dashboard, /filterSelect\("Type"/);
 
   const styles = read('src/index.css');
-  assert.match(styles, /\.lv-work-type-switcher \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /\.lv-work-type-switcher \{[^}]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 720px\)[\s\S]*\.lv-work-type-switcher \{[^}]*grid-column: 1 \/ -1/);
 });

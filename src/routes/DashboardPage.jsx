@@ -520,6 +520,10 @@ const DASHBOARD_AGING_BUCKETS = [{
 } // stays selectable — closed work gets referenced
 ];
 const DASHBOARD_WORK_TYPES = [{
+  id: "all",
+  label: "All",
+  Icon: LayoutGrid
+}, {
   id: "task",
   label: "Tasks",
   Icon: List
@@ -761,7 +765,7 @@ const DashboardListView = ({
   const unknownNcrRows = useMemo(() => unknownNcrAll.slice(0, 4), [unknownNcrAll]);
   const workTypeCounts = useMemo(() => Object.fromEntries(DASHBOARD_WORK_TYPES.map(option => [
     option.id,
-    rows.filter(row => !row.legacy && row.kind === option.id && matchesBaseFilters(row) && rowMatchesAging(row, aging)).length
+    rows.filter(row => !row.legacy && (option.id === "all" || row.kind === option.id) && matchesBaseFilters(row) && rowMatchesAging(row, aging)).length
   ])), [rows, matchesBaseFilters, aging]);
   const selectWorkType = optionId => {
     setType(optionId);
@@ -857,7 +861,7 @@ const DashboardListView = ({
               data-work-type={option.id}
               onClick={() => selectWorkType(option.id)}
             >
-              <WorkTypeIcon size={17} strokeWidth={2} />
+              <WorkTypeIcon size={18} strokeWidth={2.1} />
               <span>{option.label}</span>
               <b>{workTypeCounts[option.id]}</b>
             </button>;

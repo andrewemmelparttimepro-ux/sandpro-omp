@@ -91,13 +91,19 @@ test.describe('production gauntlet', () => {
     // no horizontally hidden chip strip. Every selection is exclusive and the
     // visible list count matches the count printed on its button.
     const typeButton = kind => page.locator(`.lv-work-type-button[data-work-type="${kind}"]`).first();
+    const allButton = typeButton('all');
     const taskButton = typeButton('task');
     const projectButton = typeButton('project');
     const ncrButton = typeButton('ncr');
+    await expect(allButton, 'dashboard: All button is visible').toBeVisible();
     await expect(taskButton, 'dashboard: Tasks button is visible').toBeVisible();
     await expect(projectButton, 'dashboard: Projects button is visible').toBeVisible();
     await expect(ncrButton, 'dashboard: NCRs button is visible').toBeVisible();
     expect(await page.locator('.lv-filterbar .lv-filter').filter({ hasText: /^Type$/ }).count(), 'dashboard: Type dropdown is gone').toBe(0);
+
+    await allButton.click();
+    await page.waitForTimeout(800);
+    expect(await listRows.count(), 'dashboard: All count equals its button').toBe(Number(await allButton.locator('b').textContent()));
 
     await taskButton.click();
     await page.waitForTimeout(800);

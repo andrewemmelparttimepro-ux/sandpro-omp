@@ -12863,16 +12863,16 @@ button.alt-command-body:disabled {
 
 .lv-work-type-switcher {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 9px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
   width: 100%;
-  max-width: 620px;
+  max-width: 760px;
   justify-self: center;
 }
 
 .lv-work-type-button {
   min-width: 0;
-  min-height: 46px;
+  min-height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12883,17 +12883,19 @@ button.alt-command-body:disabled {
   background: var(--surface-raised);
   color: var(--text-muted);
   font: inherit;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 750;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 3px 10px rgba(15, 23, 42, 0.05);
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
 }
 
 .lv-work-type-button:hover {
   border-color: var(--accent-6);
   color: var(--text);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.07), 0 8px 18px rgba(15, 23, 42, 0.09);
 }
 
 .lv-work-type-button:focus-visible {
@@ -12902,10 +12904,10 @@ button.alt-command-body:disabled {
 }
 
 .lv-work-type-button.active {
-  border-color: color-mix(in srgb, var(--brand) 58%, var(--border));
+  border-color: var(--brand);
   background: var(--brand-bg-strong);
   color: var(--brand);
-  box-shadow: 0 3px 12px color-mix(in srgb, var(--brand) 13%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent), 0 4px 14px color-mix(in srgb, var(--brand) 22%, transparent);
 }
 
 .lv-work-type-button b {
