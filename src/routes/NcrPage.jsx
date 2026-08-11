@@ -1872,6 +1872,7 @@ const NcrPage = ({
   onHydrateReport,
   onUpdateReport,
   onCreateReport,
+  onQueueNcrFiles,
   onCreateActionItem,
   onUpdateActionItem,
   onUploadAttachment,
@@ -2742,6 +2743,16 @@ const NcrPage = ({
         createdBy: currentUser?.id,
         updatedBy: currentUser?.id
       });
+      if (created?.queued) {
+        // Offline: the report is in the outbox; park the evidence with it.
+        if (queuedEvidenceFiles.length > 0) {
+          await onQueueNcrFiles?.(created.outboxId, queuedEvidenceFiles.map(file => ({ name: file.name, type: file.type, blob: file })));
+        }
+        setCreateEvidenceFiles([]);
+        setShowCreateModal(false);
+        setCreating(false);
+        return;
+      }
       let uploadedEvidenceCount = 0;
       let uploadError = null;
       if (queuedEvidenceFiles.length > 0 && onUploadAttachment) {

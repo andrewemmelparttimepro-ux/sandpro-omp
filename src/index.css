@@ -14338,3 +14338,100 @@ button.alt-command-body:disabled {
 }
 .brief-feature h3 { font-size: 14px; margin-bottom: 3px; }
 .brief-feature p { font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+
+/* ============================================================================
+   OUTBOX — offline field capture (Over-The-Top item 2)
+   ========================================================================= */
+.outbox-chip-wrap {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 3100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.outbox-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: #111827;
+  color: #f9fafb;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+}
+.outbox-chip.offline {
+  background: #b45309;
+}
+.outbox-panel {
+  width: min(88vw, 360px);
+  background: var(--surface-raised, #fff);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
+  padding: 12px;
+}
+.outbox-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 2px 4px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.outbox-panel-head span { font-size: 10.5px; color: var(--text-muted); }
+.outbox-item { padding: 10px 4px; border-bottom: 1px solid var(--border); }
+.outbox-item-main { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.outbox-item-kind {
+  flex: none;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: var(--accent-4);
+  color: var(--text-muted);
+}
+.outbox-item-title { font-size: 12.5px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.outbox-item-files { flex: none; font-size: 10px; color: var(--text-muted); }
+.outbox-item-error { margin-top: 4px; font-size: 10.5px; color: var(--error, #b91c1c); }
+.outbox-item-actions { display: flex; gap: 8px; margin-top: 6px; }
+.outbox-item-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 8px;
+  padding: 4px 9px;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 650;
+  cursor: pointer;
+  color: var(--text);
+}
+.outbox-item-actions button.danger { color: var(--error, #b91c1c); }
+.outbox-send-now {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}

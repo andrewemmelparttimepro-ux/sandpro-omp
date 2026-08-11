@@ -209,6 +209,69 @@ test.describe('production gauntlet', () => {
     expect(transient.length, `excessive transient fetch failures (${transient.length})`).toBeLessThanOrEqual(2);
   });
 
+  test('offline outbox: queue a task with no network, send it on reconnect, self-clean', async ({ page, context }) => {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+    test.skip(!SERVICE_KEY, 'needs service key for self-cleanup');
+    const TITLE = `GAUNTLET offline ${new Date().toISOString()} — safe to delete`;
+
+    await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
+      key: STORAGE_KEY,
+      value: JSON.stringify(session),
+    });
+    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(8000);
+    const dismissOverlays = async () => {
+      for (const sel of ['.brief-close', '.framework-explainer-close', '.new-feature-close', 'button:has-text("Got it")']) {
+        const el = page.locator(sel).first();
+        if (await el.isVisible({ timeout: 500 }).catch(() => false)) await el.click({ force: true }).catch(() => {});
+      }
+    };
+    for (let i = 0; i < 10; i += 1) {
+      await dismissOverlays();
+      if (await page.locator('.lv-row').first().isVisible({ timeout: 800 }).catch(() => false)) break;
+    }
+
+    try {
+      // Kill the network, create through the real wizard.
+      await context.setOffline(true);
+      const wizard = page.locator('.wiz-modal');
+      for (let attempt = 0; attempt < 3 && !(await wizard.isVisible().catch(() => false)); attempt += 1) {
+        await dismissOverlays();
+        const newButton = page.getByRole('button', { name: 'New', exact: true }).first();
+        if (await newButton.isVisible({ timeout: 2000 }).catch(() => false)) await newButton.click({ force: true });
+        else await page.keyboard.press('c');
+        await wizard.waitFor({ timeout: 6000 }).catch(() => {});
+      }
+      await expect(wizard, 'offline: wizard opens').toBeVisible();
+      await wizard.getByRole('button', { name: 'Task', exact: true }).click();
+      await wizard.getByRole('button', { name: 'Single', exact: true }).click();
+      await wizard.getByRole('button', { name: 'Standalone', exact: true }).click();
+      await wizard.getByPlaceholder('What needs to happen?').fill(TITLE);
+      await wizard.locator('.wiz-field-grid select').first().selectOption({ index: 1 }).catch(() => {});
+      await wizard.getByRole('button', { name: /Create Task/ }).click();
+      await wizard.waitFor({ state: 'detached', timeout: 20000 });
+
+      // The honest chip appears with the queued item.
+      const chip = page.locator('.outbox-chip');
+      await expect(chip, 'offline: outbox chip shows the queued work').toBeVisible({ timeout: 10000 });
+      await expect(chip, 'offline: chip counts one item').toContainText('1 waiting to send');
+
+      // Signal returns; the outbox drains itself.
+      await context.setOffline(false);
+      await expect(chip, 'reconnect: outbox empties after sending').toBeHidden({ timeout: 30000 });
+      await expect(page.getByText(TITLE).first(), 'reconnect: the task exists for real').toBeVisible({ timeout: 20000 });
+    } finally {
+      await context.setOffline(false);
+      const headers = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+      const del = await fetch(`${SUPABASE_URL}/rest/v1/objectives?title=eq.${encodeURIComponent(TITLE)}`, {
+        method: 'DELETE', headers: { ...headers, Prefer: 'return=representation' },
+      });
+      const removed = del.ok ? (await del.json()).length : 0;
+      await fetch(`${SUPABASE_URL}/rest/v1/client_errors?user_id=eq.${session.user.id}`, { method: 'DELETE', headers });
+      console.log(`offline circuit cleanup: removed ${removed}`);
+    }
+  });
+
   test('mutating circuit: create task, add subtask, verify, self-clean', async ({ page }) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
     test.skip(!SERVICE_KEY, 'needs service key for self-cleanup');

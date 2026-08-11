@@ -1112,6 +1112,11 @@ const safeUser = (id) => {
 const DAILY_NEW_FEATURES = [
   {
     date: 'Aug 11',
+    title: 'Works with zero bars: the outbox',
+    body: 'Create a task or file an NCR (photos included) with no signal. It saves to your outbox — the chip in the corner shows what is waiting — and sends itself the moment you are back online.',
+  },
+  {
+    date: 'Aug 11',
     title: 'Search everything — one keystroke',
     body: 'Press Cmd/Ctrl+K anywhere, or tap the magnifier in the top bar: tasks, NCRs, projects, people, and pages, found as you type. Arrow keys to move, Enter to open.',
   },

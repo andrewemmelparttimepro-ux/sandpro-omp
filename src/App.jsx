@@ -14,6 +14,11 @@ import { humanizeErrorMessage } from './lib/errors';
 import { reportClientError, setTelemetryUser } from './lib/telemetry';
 import { startVersionHeartbeat, applyUpdateWhenHidden } from './lib/versionHeartbeat';
 import { CommandBar } from './commandBar';
+import { createOutbox, isNetworkError } from './lib/outbox';
+import { OutboxChip } from './outboxChip';
+
+// One outbox for the whole session (module-level so hot paths share it).
+const fieldOutbox = createOutbox();
 import { getMentionedUsers } from './mentions';
 import { ALT_DASHBOARD_MODE, playAltDashboardThunk } from './altDashboard';
 import { formatKpiTarget, formatKpiValue } from './kpiSystem';
@@ -893,6 +898,50 @@ function App() {
     await signOut();
   };
 
+  const createNcrReportWithOutbox = async (draft) => {
+    try {
+      return await createNcrReport(draft);
+    } catch (error) {
+      if (!isNetworkError(error)) throw error;
+      const item = await fieldOutbox.enqueue({
+        kind: 'ncr',
+        title: `NCR ${draft.reportNumber || ''}`.trim(),
+        payload: draft,
+      });
+      addToast({ type: 'info', message: `You're offline — NCR ${draft.reportNumber || ''} is saved to your outbox and will send itself.` });
+      return { queued: true, outboxId: item.id, id: null, reportNumber: draft.reportNumber };
+    }
+  };
+
+  // Drain the outbox through the real create paths whenever we're online.
+  const drainOutbox = useCallback(() => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    fieldOutbox.drain({
+      task: async (item) => { await handleWizardCreateTask(item.payload); },
+      ncr: async (item) => {
+        const created = await createNcrReport(item.payload);
+        for (const file of item.files || []) {
+          const blob = new File([file.blob], file.name, { type: file.type });
+          await uploadNcrAttachment(created.id, blob, profile?.id, 'evidence');
+        }
+      },
+    }, {
+      onSent: (item) => addToast({ type: 'success', message: `Outbox: "${item.title}" sent.` }),
+      onFailed: (item) => addToast({ type: 'error', message: `Outbox: "${item.title}" was rejected — open the outbox to review.` }),
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
+
+  useEffect(() => {
+    window.addEventListener('online', drainOutbox);
+    const timer = window.setInterval(drainOutbox, 60000);
+    drainOutbox();
+    return () => {
+      window.removeEventListener('online', drainOutbox);
+      window.clearInterval(timer);
+    };
+  }, [drainOutbox]);
+
   const handleOpenCard = (obj, tab = "messages") => {
     setOpenCard(obj);
     updateRoute(prev => ({ ...prev, objectiveId: obj.id, objectiveTab: tab }));
@@ -1294,8 +1343,11 @@ function App() {
     addToast({ type: 'error', message: `${label} was created, but a follow-up step didn't finish (links, tags, tasks, or files). Open it to complete setup.` });
   };
 
-  const handleWizardCreateTask = async ({ title, description, department, class: klass, ownerId, assignmentGroupId, dueDate, link, parentId, taggedIds = [], files = [] }) => {
-    const created = await createObjective({
+  const handleWizardCreateTask = async (draft) => {
+    const { title, description, department, class: klass, ownerId, assignmentGroupId, dueDate, link, parentId, taggedIds = [], files = [] } = draft;
+    let created;
+    try {
+      created = await createObjective({
       title, description, ownerId, assignmentGroupId,
       createdBy: profile.id,
       delegatedBy: ownerId && ownerId !== profile.id ? profile.id : null,
@@ -1304,7 +1356,13 @@ function App() {
       nextAction: '', type: 'simple', rollupMethod: 'average',
       parentId: link === 'okr' ? parentId : null,
       okrLevel: link === 'okr' ? 'department' : 'run_the_business',
-    });
+      });
+    } catch (error) {
+      if (!isNetworkError(error)) throw error;
+      await fieldOutbox.enqueue({ kind: 'task', title, payload: draft });
+      addToast({ type: 'info', message: `You're offline — "${title}" is saved to your outbox and will send itself.` });
+      return { queued: true };
+    }
     try {
       if (link === 'project' && parentId) {
         const proj = okrProjects.find(pr => pr.id === parentId);
@@ -2240,7 +2298,7 @@ function App() {
             {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
             {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
             {route.page === "fixit" && isMobileViewport && canAccessFixItFeed(profile) && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} focusPostId={new URLSearchParams(window.location.search).get('fixit')} />}
-            {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} initialReportId={ncrFocusReportId} onHydrateReport={hydrateNcrReport} onUpdateReport={updateNcrReport} onCreateReport={createNcrReport} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
+            {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} initialReportId={ncrFocusReportId} onHydrateReport={hydrateNcrReport} onUpdateReport={updateNcrReport} onCreateReport={createNcrReportWithOutbox} onQueueNcrFiles={(outboxId, files) => fieldOutbox.attachFiles(outboxId, files)} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
             {route.page === "organization" && <OrgPage objectives={objectives} assignmentGroups={assignmentGroups} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}
           </Suspense>
         </main>
@@ -2361,6 +2419,7 @@ function App() {
             <button type="button" onClick={() => window.location.reload()}>Update now</button>
           </div>
         )}
+        <OutboxChip outbox={fieldOutbox} onDrainNow={drainOutbox} />
         <CommandBar
           open={commandBarOpen}
           onClose={() => setCommandBarOpen(false)}
