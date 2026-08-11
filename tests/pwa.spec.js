@@ -20,8 +20,11 @@ test.describe('PWA installability and cache safety', () => {
     const sw = await response.text();
     expect(sw).toContain('CACHE_NAME');
     expect(sw).not.toContain("CACHE_NAME = 'sandpro-omp-shell-v1'");
-    expect(sw).toContain("CACHE_NAME = 'sandpro-omp-shell-v12'");
+    expect(sw).toContain("CACHE_NAME = 'sandpro-omp-shell-v13'");
     expect(sw).toContain('fetch(request)');
+    // Item 12: hashed build assets are the ONE cache-first class — immutable
+    // by construction. Everything else stays network-first.
+    expect(sw).toContain("url.pathname.startsWith('/assets/')");
     expect(sw).toContain('OFFLINE_HTML');
     expect(sw).toContain('supabase.co');
     expect(sw).toContain('/api/');

@@ -229,6 +229,17 @@ export const canUseQuietHours = (user, flagOn = false) => (
   flagOn || QUIET_HOURS_PILOT_EMAILS.includes((user?.email || "").toLowerCase())
 );
 
+// Snapshot boot pilot (item 12, standing rule): the last-good board renders
+// instantly for returning pilot users; `snapshot_boot_all` opens it up.
+export const SNAPSHOT_BOOT_PILOT_EMAILS = [
+  "andrew@ndai.pro",
+  "release-smoke-admin@objectivetracker.net",
+  "release-smoke-member@objectivetracker.net",
+];
+export const canUseSnapshotBoot = (user, flagOn = false) => (
+  flagOn || SNAPSHOT_BOOT_PILOT_EMAILS.includes((user?.email || "").toLowerCase())
+);
+
 export const canAccessFixItFeed = (user) => (
   FIX_IT_FEED_MODERATOR_EMAILS.includes((user?.email || "").toLowerCase())
 );

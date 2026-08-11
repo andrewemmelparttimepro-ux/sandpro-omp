@@ -1485,7 +1485,7 @@ test('mobile PWA rebuild has install assets, safe-area shell, and phone-native w
   assert.doesNotMatch(favicon, /863bff|vite/i);
   assert.match(sw, /\/brand\/sandpro-omp-logo\.png/);
   assert.match(sw, /\/favicon-omp-v3\.png/);
-  assert.match(sw, /sandpro-omp-shell-v12/);
+  assert.match(sw, /sandpro-omp-shell-v13/);
   assert.match(sw, /OFFLINE_HTML/);
   assert.match(sw, /supabase\.co/);
   assert.match(sw, /pathname\.startsWith\('\/api\/'\)/);

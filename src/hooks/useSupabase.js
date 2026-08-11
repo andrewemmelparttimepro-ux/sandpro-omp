@@ -5,6 +5,7 @@ import { applyAutoClassification, buildProjectGateBlockers, getObjectiveProgress
 import { getRecurrenceInterval, getNextRecurringDueDate } from '../data';
 import { ensureFlagsLoaded, getFlag } from '../lib/flags';
 import { humanizeErrorMessage } from '../lib/errors';
+import { readSnapshot, snapshotEligible, writeSnapshot } from '../lib/snapshotBoot';
 import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
 import { parseKpiCsv } from '../kpiSystem';
 import { buildNcrImportDbPayload } from '../ncrImport';
@@ -2027,6 +2028,11 @@ export function useObjectives(enabled = true) {
     objectivesLoadedRef.current = true;
     setObjectives(withRollups);
     setLoading(false);
+    // Item 12: refresh the boot snapshot AFTER paint — the write must never
+    // tax the pull that produced it. Eligibility marker only (pilot/flag).
+    if (currentUserId && snapshotEligible(currentUserId)) {
+      setTimeout(() => { writeSnapshot(currentUserId, { objectives: withRollups, okrProjects: localProjects }); }, 800);
+    }
     return withRollups;
   }, [enabled]);
 
@@ -2071,6 +2077,31 @@ export function useObjectives(enabled = true) {
   }, []);
 
   useEffect(() => { fetchObjectives({ dedupeBoot: true }); }, [fetchObjectives]);
+
+  // Item 12 snapshot boot: an eligible returning user's last-good board
+  // paints before the network answers. Applied only while the first real
+  // fetch is still outstanding — fresh data always wins the race.
+  useEffect(() => {
+    if (!enabled) return undefined;
+    let alive = true;
+    (async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      if (!userId || !snapshotEligible(userId)) return;
+      const snapshot = await readSnapshot(userId);
+      if (!alive || !snapshot || objectivesLoadedRef.current) return;
+      setObjectives(snapshot.objectives);
+      setOkrProjects(snapshot.okrProjects || []);
+      objectivesLoadedRef.current = true; // suppress the loading flash; fetch continues behind
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, [enabled]);
+
+  // Local patch for optimistic writes: the UI moves now, the network follows.
+  const patchObjectiveLocal = useCallback((id, changes) => {
+    setObjectives((prev) => prev.map((o) => (o.id === id ? { ...o, ...changes } : o)));
+  }, []);
 
   // Realtime subscription for objectives
   useEffect(() => {
@@ -2848,7 +2879,7 @@ export function useObjectives(enabled = true) {
     await fetchObjectives();
   };
 
-  return { objectives, okrProjects, loading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, hydrateObjective, refetch: fetchObjectives };
+  return { objectives, okrProjects, loading, patchObjectiveLocal, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, hydrateObjective, refetch: fetchObjectives };
 }
 
 const mapNcrReport = (row) => ({

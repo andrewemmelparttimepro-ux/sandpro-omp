@@ -1112,6 +1112,11 @@ const safeUser = (id) => {
 const DAILY_NEW_FEATURES = [
   {
     date: 'Aug 11',
+    title: 'OMP got faster — especially on jobsite signal',
+    body: 'The app now keeps its own parts on your device instead of re-downloading them every open, a loading sketch appears instantly instead of a white screen, and one-tap complete responds the moment you tap. More speed is coming.',
+  },
+  {
+    date: 'Aug 11',
     title: 'Empty screens now tell you what to do',
     body: 'A filtered-out list offers one tap to clear the filters. A blank day points at the work around you. Nothing in OMP just says "nothing here" anymore.',
   },

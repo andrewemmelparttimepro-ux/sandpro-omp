@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sandpro-omp-shell-v12';
+const CACHE_NAME = 'sandpro-omp-shell-v13';
 const SHELL_ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -54,6 +54,21 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.hostname.includes('supabase.co') || url.pathname.startsWith('/api/')) return;
   if (url.pathname === '/version.json') return; // heartbeat must always hit the network
+  // Item 12: hashed build assets are immutable — cache-first saves the
+  // whole bundle re-download on every LTE boot. A new deploy ships new
+  // hashes (new URLs), so a stale hit is impossible.
+  if (url.origin === self.location.origin && url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(request).then((hit) => hit || fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      }))
+    );
+    return;
+  }
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)

@@ -642,4 +642,39 @@ test.describe('production gauntlet', () => {
       });
     }
   });
+
+  test('lte circuit: a warm boot reaches visible work fast on a phone connection', async ({ browser }) => {
+    // Item 12's finish line, walked on every deploy: LTE-class throttling
+    // (12 Mbps / 70 ms RTT, 4x CPU), one cold visit to fill the service
+    // worker and the pilot snapshot, then the warm reload that IS the field
+    // reality. Gate at 1500 ms (target is sub-second; margin absorbs CI
+    // variance) — the measured number prints for the record.
+    test.setTimeout(120000);
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Network.enable');
+    await cdp.send('Network.emulateNetworkConditions', {
+      offline: false, latency: 70, downloadThroughput: (12 * 1024 * 1024) / 8, uploadThroughput: (3 * 1024 * 1024) / 8,
+    });
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
+      key: STORAGE_KEY,
+      value: JSON.stringify(session),
+    });
+    try {
+      await page.goto(`${BASE}/`, { waitUntil: 'commit' });
+      await page.locator('.myday-view, .lv-row, .lv-card').first().waitFor({ timeout: 45000 });
+      await page.waitForTimeout(6000); // service worker install + deferred snapshot write
+
+      const start = Date.now();
+      await page.reload({ waitUntil: 'commit' });
+      await page.locator('.myday-view, .lv-row, .lv-card').first().waitFor({ timeout: 30000 });
+      const warmMs = Date.now() - start;
+      console.log(`lte circuit: warm boot to visible work in ${warmMs} ms`);
+      expect(warmMs, `lte: warm boot stays fast (${warmMs} ms)`).toBeLessThan(1500);
+    } finally {
+      await context.close();
+    }
+  });
 });

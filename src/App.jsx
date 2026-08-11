@@ -6,7 +6,7 @@ import { Search,
 } from 'lucide-react';
 import { FieldKeyProvider } from './glossary';
 import { OMP_GLOSSARY, useFieldKey } from './glossaryData';
-import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, canManageOkrs, canAccessFixItFeed, formatDate } from './data';
+import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, canManageOkrs, canAccessFixItFeed, canUseSnapshotBoot, formatDate } from './data';
 import { useAuth, useProfiles, useObjectives, useAssignmentGroups, useNotifications, usePushNotifications, useFixItFeed, useNcrReports, useAlternativeDashboard, useKpis, useObjectiveMutes } from './hooks/useSupabase';
 import { Avatar } from './uiPrimitives';
 import { supabase } from './lib/supabase';
@@ -18,6 +18,8 @@ import { createOutbox, isNetworkError } from './lib/outbox';
 import { OutboxChip } from './outboxChip';
 import { MobileNav } from './mobileNav';
 import { defaultScopeForRole } from './myDay';
+import { useAppFlag } from './lib/flags';
+import { clearSnapshot, setSnapshotEligibility } from './lib/snapshotBoot';
 
 // One outbox for the whole session (module-level so hot paths share it).
 const fieldOutbox = createOutbox();
@@ -313,7 +315,7 @@ function App() {
     || readRouteFromLocation().page === 'fixit'
   ));
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
-  const { objectives: rawObjectives, okrProjects, loading: objLoading, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, hydrateObjective, refetch: refetchObjectives } = useObjectives(Boolean(user));
+  const { objectives: rawObjectives, okrProjects, loading: objLoading, patchObjectiveLocal, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, hydrateObjective, refetch: refetchObjectives } = useObjectives(Boolean(user));
   const {
     assignmentGroups,
     createAssignmentGroup,
@@ -340,6 +342,13 @@ function App() {
   const pushNotifications = usePushNotifications(profile?.id);
   // Item 10: the user's per-objective mutes (pilot-gated at render sites).
   const objectiveMutes = useObjectiveMutes(profile?.id);
+  // Item 12: maintain the snapshot-boot eligibility marker for NEXT boot —
+  // flags load too late to gate the boot path itself.
+  const snapshotBootForAll = useAppFlag('snapshot_boot_all');
+  useEffect(() => {
+    if (!profile?.id) return;
+    setSnapshotEligibility(profile.id, canUseSnapshotBoot(profile, snapshotBootForAll));
+  }, [profile, snapshotBootForAll]);
   // null id disables the alt-dashboard machinery (fetches, presence pings,
   // realtime channels) for every client while the retired code still exists.
   const altDashboard = useAlternativeDashboard(null);
@@ -914,6 +923,8 @@ function App() {
 
   const handleSignOut = async () => {
     setShowAccountSettings(false);
+    // Item 12: shared field tablets — the cached board leaves with the user.
+    if (profile?.id) await clearSnapshot(profile.id);
     await signOut();
   };
 
@@ -2345,9 +2356,17 @@ function App() {
               onRequestAccessToast={addToast}
             />}
             {showDashboardSurface && <DashboardPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} scope={viewScope} dashboardMode={dashboardMode} filterPreset={dashboardFilterPreset} altDashboardPreferences={altDashboard.preferences} altDashboardPresence={altDashboard.presence} onAltPreferenceChange={updateAltDashboardPreference} onAltTagPerson={handleQuickTagObjective} onOpenCard={handleOpenCard} onCompleteObjective={async (obj) => {
+              // Item 12: optimistic — the row moves and the Undo toast shows
+              // NOW; the write follows and reverts honestly on failure.
               const prevStatus = obj.status; const prevProgress = obj.progress;
-              await handleUpdateCard({ ...obj, status: 'completed', progress: 100, updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: 'completed', progress: 100, note: 'Status changed to Completed' }] });
+              patchObjectiveLocal(obj.id, { status: 'completed', progress: 100 });
               addToast({ type: 'success', message: `"${obj.title}" completed`, undo: () => handleUpdateCard({ ...obj, status: prevStatus, progress: prevProgress, _restore: true, _restoreNote: 'Completion undone', updates: [...(obj.updates || []), { ts: new Date().toISOString(), status: prevStatus, progress: prevProgress, note: 'Completion undone' }] }) });
+              try {
+                await updateObjective(obj.id, { status: 'completed', progress: 100, updateNote: 'Status changed to Completed', actionType: 'status_change', oldValue: prevStatus, newValue: 'completed', currentStatus: prevStatus, currentProgress: prevProgress, userId: profile.id });
+              } catch (err) {
+                patchObjectiveLocal(obj.id, { status: prevStatus, progress: prevProgress });
+                addToast({ type: 'error', message: err.message || 'The completion did not save — the row is back.' });
+              }
             }} onNcrClick={(report) => { setNcrFocusReportId(report?.id ?? null); updateRoute({ page: "ncr", filters: DEFAULT_OBJECTIVE_FILTERS }); }} onUpdateNcrReport={updateNcrReport} onKpiClick={(preset) => showObjectivesWithFilters({
               status: preset.status || "all",
               owner: preset.scope === "individual" ? currentUser.id : "all",
