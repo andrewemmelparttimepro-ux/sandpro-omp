@@ -72,6 +72,9 @@ export default async function handler(req, res) {
   const byId = new Map(profiles.map(p => [p.id, p]));
   const leads = profiles.filter(lead => profiles.some(p => p.reports_to === lead.id) && lead.email);
   const onlyLead = String(req.query?.to || '').toLowerCase();
+  // Preview mode: build a real lead's digest but deliver it to Andrew,
+  // clearly labeled — the template is reviewable without emailing the lead.
+  const previewAs = String(req.query?.preview_as || '').toLowerCase();
 
   const now = chicagoNow();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -81,6 +84,7 @@ export default async function handler(req, res) {
   const results = [];
   for (const lead of leads) {
     if (onlyLead && String(lead.email).toLowerCase() !== onlyLead) continue;
+    if (previewAs && String(lead.email).toLowerCase() !== previewAs) continue;
     const crew = [lead, ...profiles.filter(p => p.reports_to === lead.id)];
     const crewIds = new Set(crew.map(p => p.id));
     const crewObjectives = objectives.filter(o => crewIds.has(o.owner_id) && o.okr_level !== 'company');
@@ -97,9 +101,10 @@ export default async function handler(req, res) {
     }
 
     const html = buildDigestHtml({ lead, crew, pastDue, dueThisWeek, completed });
-    const subject = `Your crew's week — ${pastDue.length} slipped, ${dueThisWeek.length} due (SandPro OMP)`;
-    const outcome = await sendLeadDigestEmail({ userId: lead.id, to: lead.email, subject, html });
-    results.push({ lead: lead.email, ...outcome });
+    const isPreview = previewAs && String(lead.email).toLowerCase() === previewAs;
+    const subject = `${isPreview ? `[PREVIEW — ${(lead.name || '').split(' ')[0]}'s digest] ` : ''}Your crew's week — ${pastDue.length} slipped, ${dueThisWeek.length} due (SandPro OMP)`;
+    const outcome = await sendLeadDigestEmail({ userId: lead.id, to: isPreview ? 'andrew@ndai.pro' : lead.email, subject, html });
+    results.push({ lead: lead.email, preview: isPreview || undefined, ...outcome });
   }
 
   return json(res, 200, { leads: leads.length, results });
