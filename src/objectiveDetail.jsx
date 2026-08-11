@@ -2139,7 +2139,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
           <div className="modal-content" style={{ width: "min(92vw, 420px)" }}>
             <div className="card-header"><Trash2 size={16} color="var(--error)" /><span className="text-md font-bold">Delete Subtask</span></div>
             <div style={{ padding: 16 }}>
-              <p className="text-sm text-secondary" style={{ lineHeight: 1.5, marginBottom: 12 }}>Delete "{subtaskDeleteTarget.title}" from this objective? This cannot be undone.</p>
+              <p className="text-sm text-secondary" style={{ lineHeight: 1.5, marginBottom: 12 }}>Delete "{subtaskDeleteTarget.title}" from this objective? You'll have ten seconds to undo.</p>
               <div className="flex gap-8 justify-between">
                 <button className="btn btn-secondary" onClick={() => setSubtaskDeleteTarget(null)}>Cancel</button>
                 <button className="btn btn-danger" onClick={confirmDeleteSubtask}>Delete</button>
@@ -2153,7 +2153,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
           <div className="modal-content" style={{ width: "min(92vw, 420px)" }}>
             <div className="card-header"><Trash2 size={16} color="var(--error)" /><span className="text-md font-bold">Delete Objective</span></div>
             <div style={{ padding: 16 }}>
-              <p className="text-sm text-secondary" style={{ lineHeight: 1.5, marginBottom: 12 }}>This deletes the objective, messages, files, check-ins, subtasks, and activity. This cannot be undone.</p>
+              <p className="text-sm text-secondary" style={{ lineHeight: 1.5, marginBottom: 12 }}>This deletes the objective, messages, files, check-ins, subtasks, and activity. You'll have ten seconds to undo — that brings back the objective and its subtasks, but not its message history or files.</p>
               <div className="flex gap-8 justify-between">
                 <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
                 <button className="btn btn-danger" onClick={() => onDelete(localObj.id)}>Delete</button>

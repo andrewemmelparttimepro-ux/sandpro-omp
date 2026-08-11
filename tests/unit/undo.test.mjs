@@ -41,3 +41,13 @@ test('every one-click consequential action offers a real reversal', () => {
   // Subtask delete re-adds the removed subtask.
   assert.match(detail, /undo: addSubtask \? async \(\) => \{\s*await addSubtask\(localObj\.id, \{\s*title: removed\.title/);
 });
+
+test('destructive dialogs tell the truth about undo (partial vs full)', () => {
+  const detail = readFileSync(join(root, 'src/objectiveDetail.jsx'), 'utf8');
+  // No dialog claims the flat falsehood anymore.
+  assert.doesNotMatch(detail, /This cannot be undone/);
+  // Subtask delete is fully undoable.
+  assert.match(detail, /from this objective\? You'll have ten seconds to undo/);
+  // Objective delete is honest that undo is partial.
+  assert.match(detail, /not its message history or files/);
+});
