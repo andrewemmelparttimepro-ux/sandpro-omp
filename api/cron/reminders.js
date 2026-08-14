@@ -9,6 +9,14 @@ const assertCron = (req) => {
 };
 
 const dayKey = () => new Date().toISOString().slice(0, 10);
+
+// Aug 14 audit: ~150 stale nags/day were read ~10% of the time — volume was
+// training people to ignore OMP. Stale ("hasn't been touched in a week")
+// now nags once a week, Monday morning; blockers, at-risk, overdue, and
+// due-soon remain daily because those are same-day actionable.
+const isMondayInChicago = () => new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Chicago', weekday: 'short',
+}).format(new Date()) === 'Mon';
 const ensureReminderNotification = async ({ supabase, userId, objectiveId, type, message }) => {
   const startOfDay = `${dayKey()}T00:00:00.000Z`;
   const { data: existing, error: selectError } = await supabase
@@ -96,6 +104,7 @@ export default async function handler(req, res) {
     for (const objective of objectives) {
       const type = eventForObjective(objective);
       if (!type) continue;
+      if (type === 'stale' && !isMondayInChicago()) continue;
       const recipientIds = new Set([objective.owner_id, ...(membersByObjective[objective.id] || []).map(m => m.user_id)]);
       for (const userId of recipientIds) {
         const profile = profileById.get(userId);

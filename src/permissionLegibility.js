@@ -6,7 +6,7 @@
 // precisely because permissions are invisible even to admins — this makes
 // authority legible. The chip/popover lives in src/LockedHint.jsx.
 // ============================================================================
-import { canManageOkrs, canManageOrgChart } from './data.js';
+import { canManageOkrs, canManageOrgChart, isRoboAccount } from './data.js';
 
 const ADMIN_DELETE_EMAILS = ['jfeil@sandpro.com', 'tdibben@sandpro.com', 'andrew@ndai.pro'];
 
@@ -61,8 +61,10 @@ const byAskPriority = (a, b) => {
 export const resolveCapability = (capabilityId, user, profiles = [], ctx = {}) => {
   const capability = CAPABILITIES[capabilityId];
   if (!capability) return null;
+  // QA and agent accounts hold real permissions but are nobody to ask —
+  // they never appear in a who-can list or receive an access request.
   const allowedUsers = profiles
-    .filter((profile) => profile?.id && capability.allows(profile, ctx))
+    .filter((profile) => profile?.id && !isRoboAccount(profile.email) && capability.allows(profile, ctx))
     .sort(byAskPriority);
   return {
     id: capabilityId,

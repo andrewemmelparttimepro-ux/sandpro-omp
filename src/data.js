@@ -229,6 +229,12 @@ export const canUseQuietHours = (user, flagOn = false) => (
   flagOn || QUIET_HOURS_PILOT_EMAILS.includes((user?.email || "").toLowerCase())
 );
 
+// QA/agent accounts never belong in people-facing lists (who-can, rosters).
+// Mirrors the digest cron's server-side isRoboAccount.
+export const isRoboAccount = (email = "") => (
+  /release-smoke|qa-agent|agent\.fixit|mobile-zero-day|thrawn@/i.test(email)
+);
+
 // Snapshot boot pilot (item 12, standing rule): the last-good board renders
 // instantly for returning pilot users; `snapshot_boot_all` opens it up.
 export const SNAPSHOT_BOOT_PILOT_EMAILS = [

@@ -1111,6 +1111,16 @@ const safeUser = (id) => {
 // STANDING RULE: every user-visible change ships with an entry here.
 const DAILY_NEW_FEATURES = [
   {
+    date: 'Aug 14',
+    title: 'Locked buttons now explain themselves',
+    body: 'Hit something you can\'t edit? A small lock tells you why, names who can, and one tap sends them a request — no more guessing or texting around.',
+  },
+  {
+    date: 'Aug 14',
+    title: 'Quiet hours and per-item mute',
+    body: 'In Settings, set quiet hours and phone alerts hold overnight — one catch-up in the morning, urgent alerts still ring. On any task, tap the bell to mute just that item. The bell panel always keeps everything.',
+  },
+  {
     date: 'Aug 11',
     title: 'OMP got faster — especially on jobsite signal',
     body: 'The app now keeps its own parts on your device instead of re-downloading them every open, a loading sketch appears instantly instead of a white screen, and one-tap complete responds the moment you tap. More speed is coming.',

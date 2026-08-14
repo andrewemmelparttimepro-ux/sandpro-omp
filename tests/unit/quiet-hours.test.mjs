@@ -55,6 +55,12 @@ test('the enforcement order is honest: mute beats everything, priority beats qui
   assert.match(push, /While you were away — SandPro OMP/);
 });
 
+test('stale nags fire Mondays only; same-day-actionable types stay daily', () => {
+  const cron = read('api/cron/reminders.js');
+  assert.match(cron, /isMondayInChicago/);
+  assert.match(cron, /if \(type === 'stale' && !isMondayInChicago\(\)\) continue;/);
+});
+
 test('the morning catch-up batches instead of re-buzzing', () => {
   const cron = read('api/cron/reminders.js');
   assert.match(cron, /quiet_hours_enabled && p\.push_enabled !== false/);

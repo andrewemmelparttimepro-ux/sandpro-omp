@@ -26,6 +26,7 @@ const PROFILES = [
   { id: 'm', name: 'Merci Jimenez', email: 'mjimenez@sandpro.com', role: 'manager' },
   { id: 'c', name: 'Crew Member', email: 'crew@sandpro.com', role: 'contributor' },
   { id: 'a', name: 'Andrew Emmel', email: 'andrew@ndai.pro', role: 'executive' },
+  { id: 'qa', name: 'Release Smoke Admin', email: 'release-smoke-admin@objectivetracker.net', role: 'executive' },
 ];
 
 test('a locked capability resolves with why-copy and the real allowed people', () => {
@@ -36,6 +37,8 @@ test('a locked capability resolves with why-copy and the real allowed people', (
   const allowedNames = okr.allowedUsers.map((p) => p.name);
   assert.ok(allowedNames.includes('Jake Feil') && allowedNames.includes('Tim Dibben'));
   assert.ok(!allowedNames.includes('Crew Member'));
+  // QA accounts hold permissions but are nobody to ask — never listed, never pinged.
+  assert.ok(!allowedNames.includes('Release Smoke Admin'));
 
   const merci = PROFILES[2];
   assert.equal(resolveCapability('team_scope', merci, PROFILES).locked, false, 'managers hold team view');
