@@ -26,17 +26,19 @@ test('push payload uses the current brand icons', () => {
   assert.equal(payload.options.badge, '/pwa/sandpro-omp-icon-192-v3.png');
 });
 
-test('subscriptions heal after push-service rotation', () => {
+test('an expired Installed PWA endpoint heals without overriding opt-out', () => {
   const hook = read('src/hooks/useSupabase.js');
   assert.match(hook, /healPushSubscription/);
   assert.match(hook, /persistPushSubscription/);
   assert.match(hook, /notification_preferences/);
   assert.match(hook, /data\?\.push_enabled === true/);
   assert.match(hook, /isStandalonePwa/);
+  assert.match(hook, /marker === 'off'/);
 
   const shared = read('api/_shared/push.js');
   assert.match(shared, /pushDeliveryOptions\(type, payload\.urgent\)/);
 
   const unsubscribe = read('api/push/unsubscribe.js');
+  assert.match(unsubscribe, /\.eq\('endpoint', endpoint\)/);
   assert.ok(!/let query = supabase/.test(unsubscribe), 'unsubscribe must stay endpoint-scoped');
 });
