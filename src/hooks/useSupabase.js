@@ -9,6 +9,7 @@ import { readSnapshot, snapshotEligible, writeSnapshot } from '../lib/snapshotBo
 import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashboard';
 import { parseKpiCsv } from '../kpiSystem';
 import { buildNcrImportDbPayload } from '../ncrImport';
+import { getNcrFileMimeType, isNcrImageAttachment, NCR_IMAGE_PREVIEW_TRANSFORM } from '../lib/ncrFiles';
 import {
   ALT_NOTES_BUCKET,
   ALT_NOTES_EDITOR_EMPTY_DOC,
@@ -108,10 +109,13 @@ const nullableSelect = async (query, fallback = [], label = 'optional query') =>
 
 // Fresh short-lived URL for one NCR file, resolved at view/click time so a
 // link can never arrive dead (load-time signing timeout) or expire mid-session.
-export const resolveNcrFileUrl = async (file = {}) => {
+export const resolveNcrFileUrl = async (file = {}, { preview = false } = {}) => {
   const path = file.storagePath || file.storage_path;
   if (path) {
-    const fresh = await createSignedUrlSafe('ncr-files', path);
+    const options = preview && isNcrImageAttachment(file)
+      ? { transform: NCR_IMAGE_PREVIEW_TRANSFORM }
+      : undefined;
+    const fresh = await createSignedUrlSafe('ncr-files', path, 60 * 60, options);
     if (fresh) return fresh;
   }
   return file.url || '';
@@ -195,11 +199,11 @@ const mapNcrAuditEvent = (event) => ({
   createdAt: event.created_at,
 });
 
-const createSignedUrlSafe = async (bucket, path, expiresIn = 60 * 60) => {
+const createSignedUrlSafe = async (bucket, path, expiresIn = 60 * 60, options = undefined) => {
   if (!path) return '';
   try {
     const { data, error } = await withTimeout(
-      supabase.storage.from(bucket).createSignedUrl(path, expiresIn),
+      supabase.storage.from(bucket).createSignedUrl(path, expiresIn, options),
       3000,
       { data: null, error: new Error('Timed out while signing storage URL') },
     );
@@ -3407,10 +3411,11 @@ export function useNcrReports(enabled = false) {
     const ts = Date.now();
     const safeName = file.name.replace(/[^\w.!@()+,=\-\s]/g, '_');
     const path = `${ncrId}/${ts}_${safeName}`;
+    const uploadMimeType = getNcrFileMimeType(file);
     const { error: uploadError } = await supabase.storage.from('ncr-files').upload(path, file, {
       cacheControl: '3600',
       upsert: false,
-      contentType: file.type || 'application/octet-stream',
+      contentType: uploadMimeType,
     });
     if (uploadError) throw uploadError;
     const { data, error } = await supabase.from('ncr_attachments').insert({
@@ -3419,9 +3424,9 @@ export function useNcrReports(enabled = false) {
       uploaded_by: uploadedBy,
       name: file.name,
       purpose,
-      type: getFileType(file.type),
+      type: getFileType(uploadMimeType),
       size: formatSize(file.size),
-      mime_type: file.type || 'application/octet-stream',
+      mime_type: uploadMimeType,
       storage_path: path,
       url: '',
     }).select('*').single();

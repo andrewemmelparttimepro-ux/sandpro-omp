@@ -25,6 +25,7 @@ import { ALT_COMPUTE_MODES, ALT_DASHBOARD_MODE, ALT_TIME_KEYS, DEFAULT_ALT_DASHB
 import { isImportedNcrClosedValue, normalizeCsvHeader, parseCsvText, tableRowsToObjects } from "../ncrImport";
 
 import { KPI_STATUS_META } from "../kpiSystem";
+import { isNcrImageAttachment } from "../lib/ncrFiles";
 
 import { OMP_DEPARTMENTS, OMP_DEPARTMENT_CLASSES, OKR_GROUP_TO_DEPARTMENT, OMP_RECURRENCE_REPEATS, getNcrGroupDepartment, suggestNcrDepartment } from "../ompFramework";
 
@@ -960,8 +961,6 @@ const NcrBreakdownCard = ({
     </div>;
 };
 
-const isNcrImageAttachment = (file = {}) => String(file.mimeType || file.type || '').startsWith('image/') || /\.(png|jpe?g|gif|webp|heic|heif)$/i.test(String(file.name || file.url || ''));
-
 const NCR_PHOTO_ACCEPT = 'image/*,.heic,.heif';
 
 const NCR_DOCUMENT_ACCEPT = ['application/pdf', 'text/*', '.txt', '.md', '.csv', '.json', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip'].join(',');
@@ -1044,14 +1043,15 @@ const ncrSignedUrlCache = new Map();
 const NCR_SIGNED_URL_REUSE_MS = 45 * 60 * 1000;
 
 const useNcrFileDisplayUrl = (file) => {
-  const key = file?.storagePath || '';
+  const storagePath = file?.storagePath || file?.storage_path || '';
+  const key = storagePath ? `preview:${storagePath}` : '';
   const cached = key ? ncrSignedUrlCache.get(key) : null;
   const cachedFresh = cached && Date.now() - cached.ts < NCR_SIGNED_URL_REUSE_MS ? cached.url : '';
   const [url, setUrl] = useState(cachedFresh || file?.url || '');
   useEffect(() => {
     if (!key || cachedFresh) return undefined;
     let alive = true;
-    resolveNcrFileUrl(file).then((fresh) => {
+    resolveNcrFileUrl(file, { preview: true }).then((fresh) => {
       if (!alive || !fresh) return;
       ncrSignedUrlCache.set(key, { url: fresh, ts: Date.now() });
       setUrl(fresh);
@@ -1097,6 +1097,8 @@ const NcrFileLink = ({ file, addToast, className, 'aria-label': ariaLabel, child
 
 const NcrImageFileLink = ({ file, addToast, className, 'aria-label': ariaLabel, caption }) => {
   const displayUrl = useNcrFileDisplayUrl(file);
+  const [previewFailed, setPreviewFailed] = useState(false);
+  useEffect(() => setPreviewFailed(false), [displayUrl]);
   return (
     <a
       href={file?.url || '#'}
@@ -1105,8 +1107,13 @@ const NcrImageFileLink = ({ file, addToast, className, 'aria-label': ariaLabel, 
       aria-label={ariaLabel}
       rel="noreferrer"
     >
-      <img src={displayUrl || undefined} alt={caption} loading="lazy" />
-      <span>{caption}</span>
+      {displayUrl && !previewFailed
+        ? <img src={displayUrl} alt={caption} loading="lazy" onError={() => setPreviewFailed(true)} />
+        : <div className="ncr-image-preview-status" aria-hidden="true">
+            {displayUrl ? <AlertTriangle size={18} /> : <Loader2 size={18} className="spin" />}
+            <small>{displayUrl ? 'Preview unavailable — open file' : 'Loading picture…'}</small>
+          </div>}
+      <span className="ncr-image-caption">{caption}</span>
     </a>
   );
 };
