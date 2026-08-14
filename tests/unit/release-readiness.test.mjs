@@ -1123,6 +1123,7 @@ test('assigned objective members can reopen and update assigned objectives', () 
   assert.match(migration, /Objective team can update objectives/);
   assert.match(migration, /public\.objective_members m/);
   assert.match(migration, /m\.role IN \('assignee', 'manager'\)/);
+  assert.match(migration, /viewer\.role IN \('executive', 'manager'\)/);
   assert.match(migration, /WITH CHECK/);
 });
 

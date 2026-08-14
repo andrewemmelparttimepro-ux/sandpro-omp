@@ -2439,7 +2439,7 @@ CREATE POLICY "Objective team can update objectives"
     )
     OR EXISTS (
       SELECT 1 FROM public.profiles viewer
-      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role = 'executive'
+      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role IN ('executive', 'manager')
     )
   )
   WITH CHECK (
@@ -2458,7 +2458,7 @@ CREATE POLICY "Objective team can update objectives"
     )
     OR EXISTS (
       SELECT 1 FROM public.profiles viewer
-      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role = 'executive'
+      WHERE viewer.id = (SELECT auth.uid()) AND viewer.role IN ('executive', 'manager')
     )
   );
 
