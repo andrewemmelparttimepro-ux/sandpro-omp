@@ -63,6 +63,13 @@ test('isNetworkError separates jobsite reality from real errors', () => {
   assert.equal(isNetworkError(new Error('invalid input syntax for type boolean')), false);
 });
 
+test('IndexedDB outbox reopens once when mobile Safari closes its cached connection', () => {
+  const lib = read('src/lib/outbox.js');
+  assert.match(lib, /db\.onclose = \(\) => \{ dbPromise = null; \}/);
+  assert.match(lib, /database connection is closing\|database connection is closed\|invalidstateerror/i);
+  assert.match(lib, /return tx\(mode, fn, false\)/);
+});
+
 test('the outbox is wired: create paths queue on network failure, chip renders, drain runs', () => {
   const app = read('src/App.jsx');
   assert.match(app, /const fieldOutbox = createOutbox\(\)/);

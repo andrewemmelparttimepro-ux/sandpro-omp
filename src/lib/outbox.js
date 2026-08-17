@@ -19,21 +19,48 @@ const makeIdbAdapter = () => {
       dbPromise = new Promise((resolve, reject) => {
         const req = indexedDB.open(DB_NAME, 1);
         req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: 'id' });
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const db = req.result;
+          // Mobile Safari may close IndexedDB while the app is suspended.
+          // Drop the cached handle so the next operation opens a fresh one.
+          db.onclose = () => { dbPromise = null; };
+          db.onversionchange = () => {
+            db.close();
+            dbPromise = null;
+          };
+          resolve(db);
+        };
+        req.onerror = () => {
+          dbPromise = null;
+          reject(req.error);
+        };
       });
     }
     return dbPromise;
   };
-  const tx = async (mode, fn) => {
-    const db = await openDb();
-    return new Promise((resolve, reject) => {
-      const t = db.transaction(STORE, mode);
-      const store = t.objectStore(STORE);
-      const result = fn(store);
-      t.oncomplete = () => resolve(result?.result !== undefined ? result.result : result);
-      t.onerror = () => reject(t.error);
-    });
+  const tx = async (mode, fn, retry = true) => {
+    try {
+      const db = await openDb();
+      return await new Promise((resolve, reject) => {
+        let t;
+        try {
+          t = db.transaction(STORE, mode);
+          const store = t.objectStore(STORE);
+          const result = fn(store);
+          t.oncomplete = () => resolve(result?.result !== undefined ? result.result : result);
+          t.onerror = () => reject(t.error);
+          t.onabort = () => reject(t.error);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    } catch (error) {
+      const connectionClosed = /database connection is closing|database connection is closed|invalidstateerror/i
+        .test(String(error?.message || error));
+      if (!retry || !connectionClosed) throw error;
+      dbPromise = null;
+      return tx(mode, fn, false);
+    }
   };
   return {
     all: () => tx('readonly', (store) => {
