@@ -2,11 +2,9 @@
 //
 /* global __OMP_BUILD_ID__ */
 // Every red toast, unhandled rejection, and window error lands in the
-// `client_errors` table (write-only from the client; readable via service
-// role only). Telemetry is best-effort and must NEVER throw, block, or
-// surface to the user. Per-session dedupe + a hard cap keep it quiet.
-
-import { supabase } from './supabase';
+// `/api/client-error` applies server-side bounds and rate limits before its
+// service-role insert. Telemetry is best-effort and must NEVER throw, block,
+// or surface to the user. Per-session dedupe + a hard cap keep it quiet.
 
 const SESSION_SEND_CAP = 25;
 const PER_SIGNATURE_COOLDOWN_MS = 30_000;
@@ -18,11 +16,7 @@ const NOISE_PATTERNS = [
 
 const sentAt = new Map();
 let sendCount = 0;
-let currentUserId = null;
-
-export const setTelemetryUser = (userId) => {
-  currentUserId = userId || null;
-};
+export const setTelemetryUser = () => {};
 
 const buildId = typeof __OMP_BUILD_ID__ !== 'undefined' ? __OMP_BUILD_ID__ : 'dev';
 
@@ -42,15 +36,15 @@ export const reportClientError = (source, message, extra = {}) => {
       message: text.slice(0, 1000),
       stack: extra.stack ? String(extra.stack).slice(0, 4000) : null,
       page: typeof location !== 'undefined' ? `${location.pathname}${location.search}`.slice(0, 300) : null,
-      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 300) : null,
       context: extra.context ? JSON.stringify(extra.context).slice(0, 2000) : null,
-      user_id: extra.userId || currentUserId,
-      app_version: buildId,
+      appVersion: buildId,
     };
-    void supabase
-      .from('client_errors')
-      .insert(row)
-      .then(() => {}, () => {});
+    void fetch('/api/client-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(row),
+      keepalive: true,
+    }).catch(() => {});
   } catch {
     // Telemetry must never become its own incident.
   }

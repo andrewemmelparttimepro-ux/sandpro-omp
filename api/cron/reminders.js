@@ -1,12 +1,7 @@
 import { objectiveUrl } from '../_shared/email.js';
 import { isInQuietHours, sendPushNotifications } from '../_shared/push.js';
-import { getRequiredEnv, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
-
-const assertCron = (req) => {
-  const expected = getRequiredEnv('CRON_SECRET');
-  const actual = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  return actual && actual === expected;
-};
+import { isAuthorizedCronRequest } from '../_shared/cronAuth.js';
+import { getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
 const dayKey = () => new Date().toISOString().slice(0, 10);
 
@@ -85,7 +80,7 @@ const eventForObjective = (objective) => {
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
   try {
-    if (!assertCron(req)) return json(res, 401, { error: 'Unauthorized cron request.' });
+    if (!isAuthorizedCronRequest(req)) return json(res, 401, { error: 'Unauthorized cron request.' });
     const supabase = getSupabaseAdmin();
     const [{ data: objectives = [] }, { data: profiles = [] }, { data: prefs = [] }, { data: members = [] }] = await Promise.all([
       supabase.from('objectives').select('*').not('status', 'eq', 'completed').not('status', 'eq', 'cancelled'),

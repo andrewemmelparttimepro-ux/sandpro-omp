@@ -10,8 +10,8 @@ test.describe('mobile pull to refresh', () => {
   });
 
   test('pulling down at the top of the mobile app shows release state and reloads', async ({ page }) => {
-    await navItem(page, 'Fix-It Feed').click();
-    await expect(page.locator('.fixit-page')).toBeVisible();
+    await navItem(page, 'Tasks & Projects').click();
+    await expect(page.locator('.dashboard-page')).toBeVisible();
     await page.evaluate(() => {
       const main = document.querySelector('.main-content');
       if (main) main.scrollTop = 0;

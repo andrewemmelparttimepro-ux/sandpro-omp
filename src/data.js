@@ -204,11 +204,6 @@ export const getNextRecurringDueDate = (dueDate, interval, todayIso = null) => {
   return `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`;
 };
 
-// The Fix-It Feed wall is restricted to its two human moderators (Andrew's
-// call, Aug 5 2026): every change request routes through Merci, so nobody
-// else sees the feed in their profile at all. Mirrored by RLS on the
-// fix_it_* tables — this helper only controls UI surfaces.
-export const FIX_IT_FEED_MODERATOR_EMAILS = ["andrew@ndai.pro", "mjimenez@sandpro.com"];
 // Voice capture pilot (Andrew, 8/11): item 7 rolls out to Andrew's profile
 // first — plus the QA smoke admin so the production gauntlet can walk the
 // pipeline. Widen to everyone by enabling the `voice_capture_all` app flag
@@ -244,10 +239,6 @@ export const SNAPSHOT_BOOT_PILOT_EMAILS = [
 ];
 export const canUseSnapshotBoot = (user, flagOn = false) => (
   flagOn || SNAPSHOT_BOOT_PILOT_EMAILS.includes((user?.email || "").toLowerCase())
-);
-
-export const canAccessFixItFeed = (user) => (
-  FIX_IT_FEED_MODERATOR_EMAILS.includes((user?.email || "").toLowerCase())
 );
 
 export const canManageOkrs = (user) => {

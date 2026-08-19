@@ -1102,7 +1102,7 @@ const DashboardListView = ({
         }}>
           {canQuickComplete && <button type="button" className="lv-quick-complete" aria-label={`Mark ${row.title} completed`} onClick={(event) => { event.stopPropagation(); onCompleteObjective(row.obj); }}><Check size={13} strokeWidth={3} /></button>}
               <span className={`lv-type ${row.kind}`}>{row.kind === "task" ? "Task" : row.kind === "project" ? "Project" : "NCR"}</span>
-              <div style={{
+              <div className="lv-row-main" style={{
             flex: 1,
             minWidth: 0
           }}>

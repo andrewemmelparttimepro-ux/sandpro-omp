@@ -23,12 +23,9 @@ test.describe('Jake module redesign traps', () => {
     await expect(page.getByLabel('Collapsed KPI summary')).toBeVisible();
     await page.getByRole('button', { name: /Show overview/i }).click({ force: true });
     await expect(page.locator('.global-kpi-strip .kpi-grid')).toBeVisible();
-    await expect(page.getByTitle('Open Fix-It Feed')).toBeVisible();
-    await page.getByTitle('Open Fix-It Feed').click();
-    await expect(page.locator('aside.admin-sidebar-fixit')).toBeVisible();
-    await expect(page.getByRole('tab', { name: /Active/i })).toBeVisible();
+    await expect(page.getByTitle('Open Fix-It Feed')).toHaveCount(0);
     await expect(oldObjectivesNav(page)).toHaveCount(0);
-    await expect(page.locator('.global-kpi-strip')).toHaveCount(0);
+    await expect(page.locator('.global-kpi-strip')).toBeVisible();
 
     await page.goto('/?page=okr', { waitUntil: 'domcontentloaded' });
     await dismissGuidance(page);

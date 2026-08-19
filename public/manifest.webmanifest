@@ -45,12 +45,6 @@
       "description": "Open objective tracking"
     },
     {
-      "name": "Fix-It Feed",
-      "short_name": "Fix-It",
-      "url": "/?page=fixit",
-      "description": "Capture and review product feedback"
-    },
-    {
       "name": "NCR Tracker",
       "short_name": "NCR",
       "url": "/?page=ncr",

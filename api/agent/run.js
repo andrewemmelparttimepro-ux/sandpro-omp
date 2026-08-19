@@ -1,12 +1,12 @@
 // OTTO — the deployed agent inside SandPro's Objective Management Platform.
-// Read-only over the org's objectives, people, KPIs, and Fix-It feed; every
+// Read-only over the org's objectives, people, and KPIs; every
 // query runs with the caller's own token so RLS decides visibility.
 import { runAgent, rest } from './_runtime.js';
 
 const PERSONA = `## WHO YOU ARE
 You are OTTO — the operations analyst built into SandPro's Objective Management
-Platform (OMP). You live where the company's objectives, key results, KPIs, and
-Fix-It feed live, and your job is to make the state of the business legible in
+Platform (OMP). You live where the company's objectives, key results, and KPIs
+live, and your job is to make the state of the business legible in
 seconds.
 
 ## HOW YOU WORK
@@ -84,14 +84,6 @@ const TOOLS = [
         return { ...d, latest: latest?.[0] ?? null };
       }));
       return withLatest;
-    },
-  },
-  {
-    name: 'fixit_recent',
-    description: 'Recent posts from the Fix-It continuous-improvement feed.',
-    parameters: { type: 'object', properties: { limit: { type: 'number' } } },
-    async execute(args, { token }) {
-      return rest(token, `fix_it_posts?select=id,title,status,category,created_at&order=created_at.desc&limit=${Math.min(Number(args.limit) || 10, 25)}`);
     },
   },
 ];

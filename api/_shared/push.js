@@ -35,11 +35,8 @@ export const isUrgentPushType = (type, objective, priority = 'normal') => (
   || (type === 'due_soon' && isHighPriorityObjective(objective))
 );
 
-const isFixItPushType = (type) => ['fixit_new', 'fixit_agent'].includes(type);
-
 export const notificationAllowsPush = (prefs, type) => {
   if (prefs && prefs.push_enabled === false) return false;
-  if (isFixItPushType(type)) return true;
   if (type === 'mention') return true; // an @ is a direct address — always deliver
   if (type === 'comment') return prefs?.comment_notifications !== false;
   if (type === 'assignment' || type === 'delegation') return prefs?.delegation_alerts !== false;
@@ -79,8 +76,6 @@ const pushTitle = (type) => {
   if (type === 'stale') return 'SandPro OMP needs an update';
   if (type === 'daily_digest') return 'The SandPro Times';
   if (type === 'quiet_catchup') return 'While you were away — SandPro OMP';
-  if (type === 'fixit_new') return 'New SandPro Fix-It item';
-  if (type === 'fixit_agent') return 'SandPro Fix-It update';
   return 'SandPro OMP';
 };
 

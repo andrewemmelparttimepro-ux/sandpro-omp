@@ -3,7 +3,7 @@ import {
   Search, ChevronDown, ChevronLeft, Target, CheckCircle2, AlertTriangle, Clock, AlertCircle,
   Building2, Activity, MessageSquare, Network, X, Filter, Layers, LayoutGrid, Columns3,
   Plus, UserPlus, Shield, Download, Upload, Settings, Users, BarChart3, FileText,
-  Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Wrench, Camera, RefreshCw,
+  Globe, Mail, Bell, Star, List, Edit3, Check, Paperclip, Send, Trash2, Loader2, Image, File as FileIcon, Camera, RefreshCw,
   PieChart, MapPin, Sparkles, UserCircle, Calendar, DollarSign, GripVertical, Volume2, VolumeX, Radio,
   ClipboardCheck
 } from 'lucide-react';
@@ -1830,7 +1830,7 @@ export const OrgPage = ({ objectives, onOpenCard, currentUser, onUpdateUser, onD
                 "Drop a person or group on Company root to make them top-level.",
                 "Click an entry, then Edit, to update its title, department, or reporting manager.",
                 "Use Add Entry > Group placeholder for teams such as Field Service Technicians that need no email or login.",
-                "Delete removes employees who are no longer tied to objectives, subtasks, messages, or Fix-It posts.",
+                "Delete removes employees who are no longer tied to objectives, subtasks, messages, or retained audit records.",
                 "Role changes are kept separate from org cleanup and are limited to platform administrators.",
                 "Use the zoom and Fit controls to size the tree, then drag blank canvas space to pan around the chart.",
                 "Use Fit, Root, or Selected when the tree gets away from view.",
@@ -2542,11 +2542,7 @@ const SettingsPanel = ({ currentUser, objectives, createNotification, onUpdateUs
 export const AdminSidebar = ({
   isOpen,
   onToggle,
-  requestedSection = null,
   onSectionChange,
-  showFixIt = false,
-  fixItCount = 0,
-  fixItContent = null,
   objectives,
   ncrReports = [],
   currentUser,
@@ -2560,9 +2556,7 @@ export const AdminSidebar = ({
   onRemoveAssignmentGroupMember,
   onAssignmentGroupsChanged,
 }) => {
-  const [activeSection, setActiveSection] = useState(
-    (requestedSection === "fixit" && !showFixIt ? null : requestedSection) || "users"
-  );
+  const [activeSection, setActiveSection] = useState("users");
   const [showInvite, setShowInvite] = useState(false);
   const [inviteStatus, setInviteStatus] = useState("");
   const [exportFilters, setExportFilters] = useState({ status: "all", owner: "all", department: "all", priority: "all" });
@@ -2580,9 +2574,6 @@ export const AdminSidebar = ({
     managerIds: [],
   });
   const sections = [
-    // Fix-It Feed is moderator-only; the section disappears entirely for
-    // everyone else (mirrored by RLS — hiding the button is not the fence).
-    ...(showFixIt ? [{ id: "fixit", label: "Feed", icon: Wrench, count: fixItCount }] : []),
     { id: "users", label: "Users", icon: Users },
     { id: "groups", label: "Groups", icon: UserPlus },
     { id: "departments", label: "Depts", icon: Building2 },
@@ -2590,9 +2581,6 @@ export const AdminSidebar = ({
     { id: "export", label: "Export", icon: Download },
     { id: "settings", label: "Settings", icon: Settings },
   ];
-  useEffect(() => {
-    if (requestedSection && (requestedSection !== "fixit" || showFixIt)) setActiveSection(requestedSection);
-  }, [requestedSection, showFixIt]);
   const selectSection = (sectionId, options = {}) => {
     setActiveSection(sectionId);
     onSectionChange?.(sectionId, options);
@@ -2737,9 +2725,8 @@ export const AdminSidebar = ({
       <aside className="admin-sidebar admin-sidebar-collapsed" aria-label="Admin sidebar">
         <button className="icon-btn active" onClick={onToggle} title="Open Admin"><Shield size={16} /></button>
         {sections.map(s => (
-          <button key={s.id} className={`icon-btn admin-sidebar-icon ${s.id === 'fixit' ? 'admin-sidebar-fixit-icon' : ''}`} onClick={() => selectSection(s.id, { open: true })} title={s.id === 'fixit' ? 'Open Fix-It Feed' : s.label} aria-label={s.id === 'fixit' ? `Open Fix-It Feed, ${s.count} active` : s.label}>
+          <button key={s.id} className="icon-btn admin-sidebar-icon" onClick={() => selectSection(s.id, { open: true })} title={s.label} aria-label={s.label}>
             <s.icon size={16} />
-            {s.id === 'fixit' && s.count > 0 && <span className="admin-sidebar-count">{s.count > 99 ? '99+' : s.count}</span>}
           </button>
         ))}
       </aside>
@@ -2747,12 +2734,11 @@ export const AdminSidebar = ({
   }
 
   return (
-    <aside className={`admin-sidebar admin-sidebar-open ${activeSection === 'fixit' ? 'admin-sidebar-fixit' : ''}`} aria-label="Admin sidebar">
+    <aside className="admin-sidebar admin-sidebar-open" aria-label="Admin sidebar">
       <div className="card-header justify-between admin-sidebar-header">
         <div className="flex items-center gap-8">
-          {activeSection === 'fixit' ? <Wrench size={15} color="var(--brand)" /> : <Shield size={14} color="var(--brand)" />}
-          <span className="text-md font-bold">{activeSection === 'fixit' ? 'Fix-It Feed' : 'Admin Panel'}</span>
-          {activeSection === 'fixit' && <span className="admin-sidebar-admin-badge">Admin</span>}
+          <Shield size={14} color="var(--brand)" />
+          <span className="text-md font-bold">Admin Panel</span>
         </div>
         <button className="icon-btn" onClick={onToggle} title="Close admin sidebar" aria-label="Close admin sidebar"><X size={16} /></button>
       </div>
@@ -2761,11 +2747,10 @@ export const AdminSidebar = ({
           <button key={s.id} onClick={() => selectSection(s.id)} className="flex items-center gap-4" style={{
             padding: "6px 10px", borderRadius: "6px 6px 0 0", background: activeSection === s.id ? "var(--accent-2)" : "transparent",
             color: activeSection === s.id ? "var(--brand)" : "var(--accent-7)", fontSize: 11, fontWeight: 600, whiteSpace: "nowrap"
-          }}><s.icon size={12} />{s.label}{s.id === 'fixit' && <span className="admin-section-count">{s.count}</span>}</button>
+          }}><s.icon size={12} />{s.label}</button>
         ))}
       </div>
-      <div className={`admin-sidebar-content ${activeSection === 'fixit' ? 'admin-sidebar-content-fixit' : ''}`}>
-        {activeSection === "fixit" && fixItContent}
+      <div className="admin-sidebar-content">
         {activeSection === "users" && (
           <div>
             <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>

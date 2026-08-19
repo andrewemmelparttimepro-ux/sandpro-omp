@@ -22,4 +22,18 @@ export default defineConfig({
   define: {
     __OMP_BUILD_ID__: JSON.stringify(BUILD_ID),
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react-vendor'
+          if (id.includes('node_modules/@supabase/')) return 'supabase-vendor'
+          if (id.includes('node_modules/@tiptap/') || id.includes('node_modules/prosemirror-')) return 'editor-vendor'
+          if (/node_modules\/(write-excel-file|read-excel-file|archiver|fflate)\//.test(id)) return 'document-vendor'
+          return undefined
+        },
+      },
+    },
+  },
 })

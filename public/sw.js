@@ -30,7 +30,7 @@ const OFFLINE_HTML = `<!doctype html>
   <body>
     <main>
       <h1><strong>SandPro OMP</strong> is offline</h1>
-      <p>Reconnect to load current objectives, Fix-It items, NCR reports, and organization data.</p>
+      <p>Reconnect to load current objectives, NCR reports, and organization data.</p>
     </main>
   </body>
 </html>`;

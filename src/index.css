@@ -13211,8 +13211,12 @@ button.alt-command-body:disabled {
   .lv-aging-label { position: sticky; left: 0; z-index: 1; padding-right: 4px; background: var(--surface); }
   .lv-aging-chip { flex: 0 0 auto; }
   .lv-owner-name { display: none; }
-  .lv-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 5px 8px; padding: 10px 4px; }
+  .lv-row { display: grid; grid-template-columns: 34px auto minmax(0, 1fr); gap: 5px 8px; padding: 10px 4px; }
   .lv-row > .flex.items-center { display: none; }
+  .lv-row .lv-quick-complete { grid-column: 1; grid-row: 1; }
+  .lv-row .lv-type { grid-column: 2; grid-row: 1; }
+  .lv-row .lv-row-main { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+  .lv-row > .lv-aging { grid-column: 1 / span 2; grid-row: 2; justify-self: start; }
   .lv-row .text-md { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
   .lv-row .text-xs { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
   .lv-type { align-self: start; margin-top: 2px; }

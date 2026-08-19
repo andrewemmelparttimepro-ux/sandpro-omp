@@ -60,7 +60,6 @@ import {
   getNcrGroupDepartment,
 } from './ompFramework';
 import KpiPageRoute from './routes/KpiPage';
-import FixItFeedPageRoute from './routes/FixItFeedPage';
 import NcrPageRoute from './routes/NcrPage';
 import OkrPageRoute from './routes/OkrPage';
 import OrgPageRoute from './routes/OrgPage';
@@ -1027,6 +1026,49 @@ export const CreateWizardModal = ({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
+  const modalRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement;
+    const modal = modalRef.current;
+    closeButtonRef.current?.focus();
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCloseRef.current?.();
+        return;
+      }
+      if (event.key !== 'Tab' || !modal) return;
+      const focusable = [...modal.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+      )].filter(element => !element.hidden && element.getClientRects().length > 0);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        modal.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
+    };
+  }, []);
 
   const profiles = getProfiles();
   const selectableOkrs = objectives
@@ -1173,17 +1215,17 @@ export const CreateWizardModal = ({
 
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-content wiz-modal">
+      <div ref={modalRef} className="modal-content wiz-modal" role="dialog" aria-modal="true" aria-labelledby="create-wizard-title" tabIndex={-1}>
         <div className="wiz-head">
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h2>Create New</h2>
+            <h2 id="create-wizard-title">Create New</h2>
             <p className="text-xs text-muted">Guided clicks, no interpretation. Every earlier answer stays re-selectable.</p>
             <div className="wiz-progress" role="progressbar" aria-valuenow={progressDone} aria-valuemin={0} aria-valuemax={progressChecks.length} aria-label="Creation progress">
               <div className="wiz-progress-track"><div className="wiz-progress-fill" style={{ width: `${progressPct}%` }} /></div>
               <span className="wiz-progress-text">{progressDone} of {progressChecks.length} — originator &amp; assignee captured for you</span>
             </div>
           </div>
-          <button className="wiz-close" onClick={onClose} aria-label="Close"><X size={16} /></button>
+          <button ref={closeButtonRef} type="button" className="wiz-close" onClick={onClose} aria-label="Close"><X size={16} /></button>
         </div>
 
         <div className="wiz-body">
@@ -3082,7 +3124,6 @@ export const ObjectivesPage = ({ objectives, okrProjects = [], onOpenCard, curre
 // ============================================================================
 // FIX-IT FEED — beta feedback wall
 export const KpiPage = KpiPageRoute;
-export const FixItFeedPage = FixItFeedPageRoute;
 
 // NCR TRACKER — Non-Conformance Reports
 export const NcrPage = NcrPageRoute;

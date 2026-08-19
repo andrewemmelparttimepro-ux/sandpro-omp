@@ -12,7 +12,8 @@ test.describe('PWA installability and cache safety', () => {
     expect(manifest.orientation).toBe('portrait-primary');
     expect(manifest.icons.some((icon) => icon.src === '/pwa/sandpro-omp-icon-192-v3.png' && icon.purpose.includes('maskable'))).toBeTruthy();
     expect(manifest.icons.some((icon) => icon.src === '/pwa/sandpro-omp-icon-512-v3.png' && icon.purpose.includes('maskable'))).toBeTruthy();
-    expect(manifest.shortcuts.map((shortcut) => shortcut.url)).toEqual(expect.arrayContaining(['/?page=objectives', '/?page=fixit', '/?page=ncr']));
+    expect(manifest.shortcuts.map((shortcut) => shortcut.url)).toEqual(expect.arrayContaining(['/?page=objectives', '/?page=ncr']));
+    expect(manifest.shortcuts.map((shortcut) => shortcut.url)).not.toContain('/?page=fixit');
   });
 
   test('service worker is network-first, online-safe, and has a clear offline fallback', async ({ page }) => {

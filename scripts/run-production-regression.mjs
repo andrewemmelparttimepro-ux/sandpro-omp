@@ -47,10 +47,6 @@ const objectivePrefixes = [
   'Mention Notification Objective',
   'Merci feedback smoke',
 ];
-const fixItPrefixes = [
-  'Fix-It QA Archive Workflow',
-  'Fix-It QA Comment Thread',
-];
 const ncrPrefixes = [
   'QA-CLOSE-',
   'QA-OBJ-',
@@ -85,40 +81,6 @@ const removeGeneratedObjectives = async () => {
         console.error(`Could not delete ${objective.title}: ${deleteError.message}`);
       } else {
         console.log(`Cleaned objective: ${objective.title}`);
-      }
-    }
-  }
-};
-
-const removeGeneratedFixItPosts = async () => {
-  for (const prefix of fixItPrefixes) {
-    const { data: posts = [], error } = await supabase
-      .from('fix_it_posts')
-      .select('id,body')
-      .ilike('body', `${prefix}%`);
-
-    if (error) {
-      console.error(`Could not list cleanup Fix-It posts for ${prefix}: ${error.message}`);
-      continue;
-    }
-
-    for (const post of posts) {
-      const { data: files = [] } = await supabase
-        .from('fix_it_attachments')
-        .select('storage_path')
-        .eq('post_id', post.id);
-      const storagePaths = files.map((file) => file.storage_path).filter(Boolean);
-      if (storagePaths.length) {
-        await supabase.storage.from('fix-it-files').remove(storagePaths);
-      }
-      const { error: deleteError } = await supabase
-        .from('fix_it_posts')
-        .delete()
-        .eq('id', post.id);
-      if (deleteError) {
-        console.error(`Could not delete Fix-It post ${post.id}: ${deleteError.message}`);
-      } else {
-        console.log(`Cleaned Fix-It post: ${post.body}`);
       }
     }
   }
@@ -206,7 +168,6 @@ let testStatus = 1;
 
 try {
   await removeGeneratedObjectives();
-  await removeGeneratedFixItPosts();
   await removeGeneratedNcrReports();
   await supabase.from('profiles').delete().ilike('email', 'qa+%@objectivetracker.net');
   await supabase.from('profiles').delete().ilike('email', 'merci-feedback-%@ndai.pro');
@@ -220,8 +181,6 @@ try {
     'tests/mutating-workflows.spec.js',
     'tests/release-workflows.spec.js',
     'tests/mention-notifications.spec.js',
-    'tests/fix-it-workflow.spec.js',
-    'tests/fix-it-comments.spec.js',
     'tests/ncr-tracker.spec.js',
     'tests/auth-recovery.spec.js',
   ];
@@ -257,7 +216,6 @@ try {
   console.error(error.message);
 } finally {
   await removeGeneratedObjectives();
-  await removeGeneratedFixItPosts();
   await removeGeneratedNcrReports();
   await deleteQaUser(qaUser);
   await deleteQaUser(mentionUser);

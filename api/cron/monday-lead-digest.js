@@ -1,18 +1,12 @@
 import { sendLeadDigestEmail } from '../_shared/email.js';
-import { getRequiredEnv, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
+import { isAuthorizedCronRequest } from '../_shared/cronAuth.js';
+import { getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
 // Over-The-Top item 4: every lead gets one email, Monday 6:00 AM CT — their
 // crew's week. What slipped, what's due, what closed; every line a doorway
 // into the app. No login required to READ it: the content is in the email.
 // Recipient policy lives in sendLeadDigestEmail (LEAD_DIGEST_ENABLED switch;
 // andrew@ndai.pro always receives for preview).
-
-const assertCron = (req) => {
-  const expected = getRequiredEnv('CRON_SECRET');
-  const actual = (req.headers.authorization || '').replace(/^Bearer\s+/i, '')
-    || String(req.query?.secret || '');
-  return actual && actual === expected;
-};
 
 const esc = (value = '') => String(value)
   .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -70,7 +64,7 @@ const buildDigestHtml = ({ lead, crew, pastDue, dueThisWeek, completed, noiseLin
 };
 
 export default async function handler(req, res) {
-  if (!assertCron(req)) return json(res, 401, { error: 'unauthorized' });
+  if (!isAuthorizedCronRequest(req)) return json(res, 401, { error: 'unauthorized' });
 
   const supabase = getSupabaseAdmin();
   const [{ data: profiles, error: pErr }, { data: objectives, error: oErr }] = await Promise.all([

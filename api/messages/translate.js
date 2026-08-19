@@ -1,4 +1,5 @@
 import { getAuthedProfile, json } from '../_shared/supabaseAdmin.js';
+import { rateLimitUser, setRateLimitHeaders } from '../_shared/rateLimit.js';
 
 const TRANSLATION_SCHEMA = {
   type: 'object',
@@ -119,6 +120,14 @@ export default async function handler(req, res) {
   try {
     const auth = await getAuthedProfile(req, req.body?.accessToken || '');
     if (auth.error) return json(res, 401, { error: auth.error });
+
+    const rate = await rateLimitUser(auth.profile.id, {
+      scope: 'message-translate',
+      limit: 30,
+      windowSeconds: 60,
+    });
+    setRateLimitHeaders(res, rate);
+    if (!rate.allowed) return json(res, 429, { error: 'Translation rate limit reached. Try again shortly.' });
 
     const text = String(req.body?.text || '').trim();
     if (!text) return json(res, 400, { error: 'Text is required.' });

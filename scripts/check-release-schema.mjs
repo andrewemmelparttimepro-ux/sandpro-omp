@@ -83,6 +83,7 @@ const checks = [
   ['subtasks release columns', 'subtasks', 'id,due_date,weight,is_milestone,milestone_date'],
   ['objective_updates release columns', 'objective_updates', 'id,user_id,action_type,old_value,new_value,reference_id'],
   ['client_errors table', 'client_errors', 'id,user_id,source,message,stack,page,user_agent,context,app_version,created_at'],
+  ['API rate limit events table', 'api_rate_limit_events', 'id,actor_key,scope,created_at'],
   ['app_flags table', 'app_flags', 'key,enabled,updated_at'],
 ];
 

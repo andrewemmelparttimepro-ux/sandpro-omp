@@ -11,6 +11,8 @@
 // tenants; providers over fetch. A runtime that can break because of a
 // package update is a runtime that will.
 
+import { rateLimitUser, setRateLimitHeaders } from '../_shared/rateLimit.js';
+
 // Values pasted into dashboards sometimes arrive with a LITERAL \n on the
 // end (two characters, not a newline). Strip both forms — a URL with a
 // stray escape breaks every request downstream with an unhelpful error.
@@ -165,6 +167,19 @@ export async function runAgent({ req, res, agentName, persona, toolCatalog, call
   const auth = await authedUser(req);
   if (!auth) return json(res, 401, { error: 'Missing or invalid authorization' });
   const { token, user } = auth;
+
+  try {
+    const rate = await rateLimitUser(user.id, {
+      scope: 'agent-run',
+      limit: 20,
+      windowSeconds: 3600,
+    });
+    setRateLimitHeaders(res, rate);
+    if (!rate.allowed) return json(res, 429, { error: 'Agent rate limit reached. Try again later.' });
+  } catch (error) {
+    console.warn('[agent-runtime] rate limit unavailable', error.message);
+    return json(res, 503, { error: 'Agent is temporarily unavailable.' });
+  }
 
   const message = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
   const requestedThread = typeof req.body?.thread_id === 'string' ? req.body.thread_id : null;

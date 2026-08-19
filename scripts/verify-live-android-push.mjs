@@ -84,14 +84,10 @@ try {
     ['at_risk', 'Android push QA: at-risk'],
     ['overdue', 'Android push QA: overdue'],
     ['due_soon', 'Android push QA: high-priority due-soon'],
-    ['fixit_new', 'Android push QA: new Fix-It item'],
-    ['fixit_agent', 'Android push QA: Agent update'],
   ];
 
   for (const [type, message] of events) {
-    const url = type.startsWith('fixit')
-      ? `${baseUrl}/?page=fixit`
-      : `${baseUrl}/?page=objectives&objective=${objectiveId}`;
+    const url = `${baseUrl}/?page=objectives&objective=${objectiveId}`;
     const result = await sendPushNotifications({
       targetUserId,
       type,

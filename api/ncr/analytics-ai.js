@@ -1,4 +1,5 @@
 import { getAuthedProfile, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
+import { rateLimitUser, setRateLimitHeaders } from '../_shared/rateLimit.js';
 
 const PROVISIONAL_FAILURE_CODES = [
   { code: 'HRU', label: 'HRU failure', aliases: ['hru', 'hydraulic release unit'] },
@@ -141,9 +142,21 @@ export default async function handler(req, res) {
     const body = readBody(req);
     const auth = await getAuthedProfile(req, body.accessToken);
     if (auth.error) return json(res, 401, { error: auth.error });
+    if (!['executive', 'manager'].includes(String(auth.profile.role || '').toLowerCase())) {
+      return json(res, 403, { error: 'NCR analytics is limited to managers and executives.' });
+    }
+
+    const rate = await rateLimitUser(auth.profile.id, {
+      scope: 'ncr-analytics-ai',
+      limit: 10,
+      windowSeconds: 600,
+    });
+    setRateLimitHeaders(res, rate);
+    if (!rate.allowed) return json(res, 429, { error: 'NCR analytics rate limit reached. Try again later.' });
 
     const question = String(body.question || '').trim();
     if (!question) return json(res, 400, { error: 'question is required.' });
+    if (question.length > 1000) return json(res, 400, { error: 'question is too long.' });
 
     const supabase = getSupabaseAdmin();
     const { data: reports, error } = await supabase

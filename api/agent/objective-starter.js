@@ -1,4 +1,5 @@
 import { getAuthedProfile, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
+import { rateLimitUser, setRateLimitHeaders } from '../_shared/rateLimit.js';
 import {
   STARTER_SCHEMA,
   OBJECTIVE_ASSISTANT_AGENT_KEY,
@@ -24,6 +25,34 @@ const safeFilename = (value = 'objective') => value
   .replace(/\s+/g, '-')
   .slice(0, 60)
   .toLowerCase() || 'objective';
+
+const OBJECTIVE_ASSISTANT_PILOT_EMAILS = new Set([
+  'andrew@ndai.pro',
+  'release-smoke-admin@objectivetracker.net',
+]);
+
+const canPrepareObjective = async (supabase, profile, objective) => {
+  if (['executive', 'manager'].includes(String(profile?.role || '').toLowerCase())) return true;
+  if ([objective.owner_id, objective.created_by, objective.delegated_by].includes(profile.id)) return true;
+  const { data: membership } = await supabase
+    .from('objective_members')
+    .select('id')
+    .eq('objective_id', objective.id)
+    .eq('user_id', profile.id)
+    .in('role', ['owner', 'manager', 'assignee'])
+    .limit(1)
+    .maybeSingle();
+  if (membership?.id) return true;
+  if (!objective.assignment_group_id) return false;
+  const { data: groupMembership } = await supabase
+    .from('assignment_group_members')
+    .select('group_id')
+    .eq('group_id', objective.assignment_group_id)
+    .eq('user_id', profile.id)
+    .limit(1)
+    .maybeSingle();
+  return Boolean(groupMembership?.group_id);
+};
 
 const selectObjectiveContext = async (supabase, objectiveId) => {
   const { data: objective, error } = await supabase
@@ -135,11 +164,25 @@ export default async function handler(req, res) {
     const body = readBody(req);
     const auth = await getAuthedProfile(req, body.accessToken);
     if (auth.error) return json(res, 401, { error: auth.error });
+    if (!OBJECTIVE_ASSISTANT_PILOT_EMAILS.has(String(auth.profile.email || '').toLowerCase())) {
+      return json(res, 403, { error: 'Objective Assistant is not enabled for this profile.' });
+    }
+
+    const rate = await rateLimitUser(auth.profile.id, {
+      scope: 'objective-starter',
+      limit: 5,
+      windowSeconds: 3600,
+    });
+    setRateLimitHeaders(res, rate);
+    if (!rate.allowed) return json(res, 429, { error: 'Objective Assistant rate limit reached. Try again later.' });
 
     const { objectiveId } = body;
     if (!objectiveId) return json(res, 400, { error: 'objectiveId is required.' });
 
     const context = await selectObjectiveContext(supabase, objectiveId);
+    if (!(await canPrepareObjective(supabase, auth.profile, context.objective))) {
+      return json(res, 403, { error: 'You do not have permission to modify this objective.' });
+    }
     const preparedAt = new Date().toISOString();
     const webSearchEnabled = process.env.AGENT_WEB_SEARCH_ENABLED !== 'false';
     const snapshot = buildObjectiveSnapshot(context);

@@ -1,16 +1,11 @@
 import { isPilotEmailRecipient, notificationAllowsEmail, objectiveUrl, sendLoggedEmail } from '../_shared/email.js';
 import { sendPushNotifications } from '../_shared/push.js';
-import { getRequiredEnv, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
+import { isAuthorizedCronRequest } from '../_shared/cronAuth.js';
+import { getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
 
 const CHICAGO_TIME_ZONE = 'America/Chicago';
 const MAX_BUCKET_ROWS = 12;
 const ACTIVE_STATUSES = new Set(['completed', 'cancelled']);
-
-const assertCron = (req) => {
-  const expected = getRequiredEnv('CRON_SECRET');
-  const actual = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  return actual && actual === expected;
-};
 
 const htmlEscape = (value = '') => String(value)
   .replaceAll('&', '&amp;')
@@ -418,7 +413,7 @@ export const buildTimesEmail = ({ req, profile, views, completedYesterday = 0 })
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
   try {
-    if (!assertCron(req)) return json(res, 401, { error: 'Unauthorized cron request.' });
+    if (!isAuthorizedCronRequest(req)) return json(res, 401, { error: 'Unauthorized cron request.' });
     const supabase = getSupabaseAdmin();
     const queryResults = await Promise.all([
       supabase.from('profiles').select('*'),

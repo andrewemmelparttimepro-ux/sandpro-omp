@@ -3,6 +3,7 @@
 // NCR. Auth + shape mirror api/messages/translate.js; audio arrives as a
 // base64 JSON body (clips are capped at 90s ≈ well under limits).
 import { getAuthedProfile, getSupabaseAdmin, json } from '../_shared/supabaseAdmin.js';
+import { rateLimitUser, setRateLimitHeaders } from '../_shared/rateLimit.js';
 
 const MAX_AUDIO_BYTES = 5 * 1024 * 1024;
 
@@ -83,6 +84,14 @@ export default async function handler(req, res) {
     if (!(await isVoiceCaptureAllowed(auth.profile))) {
       return json(res, 403, { error: 'Voice capture is in a limited pilot right now.' });
     }
+
+    const rate = await rateLimitUser(auth.profile.id, {
+      scope: 'voice-transcribe',
+      limit: 10,
+      windowSeconds: 600,
+    });
+    setRateLimitHeaders(res, rate);
+    if (!rate.allowed) return json(res, 429, { error: 'Voice transcription rate limit reached. Try again later.' });
 
     if (!process.env.OPENAI_API_KEY) {
       return json(res, 503, { error: 'Voice transcription is not configured.' });

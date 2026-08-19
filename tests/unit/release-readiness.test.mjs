@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -94,7 +94,7 @@ test('KPI command center is a first-class goal-linked route', () => {
   assert.match(app, /id: "okr", label: "OKR"/);
   assert.match(app, /id: "ncr", label: "NCR"/);
   assert.doesNotMatch(app, /id: "kpi", label: "KPI"/); // KPI pulled from nav — the OKR page is Jake's KPI report
-  assert.match(app, /id: "fixit", label: "Fix-It Feed"/);
+  assert.doesNotMatch(app, /id: "fixit", label: "Fix-It Feed"/);
   assert.match(app, /NAV_PARENT = \{ objectives: "dashboard", kpi: "dashboard" \}/);
   assert.match(app, /useKpis/);
   assert.match(app, /KpiPage/);
@@ -286,7 +286,6 @@ test('Web Push is a visible direct-work layer on top of in-app notifications', (
   const baseline = read('supabase/migration.sql');
   const sender = read('api/_shared/push.js');
   const endpoint = read('api/notifications/send-event.js');
-  const fixItEndpoint = read('api/fixit/push-event.js');
   const hook = read('src/hooks/useSupabase.js');
   const settings = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const sw = read('public/sw.js');
@@ -304,21 +303,16 @@ test('Web Push is a visible direct-work layer on top of in-app notifications', (
   assert.match(sender, /VAPID_SUBJECT/);
   assert.match(sender, /requireInteraction: urgent/);
   assert.match(sender, /silent: false/);
-  assert.match(sender, /fixit_new/);
-  assert.match(sender, /fixit_agent/);
   assert.match(endpoint, /sendPushNotifications/);
   assert.match(endpoint, /notificationId/);
   assert.match(sender, /type === 'mention'\) return true/);
   assert.match(sender, /type === 'comment'\) return prefs\?\.comment_notifications/);
-  assert.match(fixItEndpoint, /sendPushNotifications/);
-  assert.match(fixItEndpoint, /targetUserId/);
   assert.match(hook, /Notification\.requestPermission/);
   assert.match(hook, /pushManager\.subscribe/);
   assert.match(settings, /Push Notification Setup/);
   assert.match(settings, /Android: open in Chrome, Install app, then enable push from the installed app/);
   assert.match(read('src/App.jsx'), /On Android, open SandPro OMP in Chrome, install the app/);
   assert.match(androidSmoke, /android|linux arm|galaxy|sm-s|s25/i);
-  assert.match(androidSmoke, /fixit_agent/);
   assert.match(androidSmoke, /cleanup verified for live Android push QA/);
   assert.match(sw, /addEventListener\('push'/);
   assert.match(sw, /addEventListener\('notificationclick'/);
@@ -329,8 +323,6 @@ test('Web Push is a visible direct-work layer on top of in-app notifications', (
   assert.equal(notificationAllowsPush({ push_enabled: true, comment_notifications: false }, 'comment'), false);
   assert.equal(notificationAllowsPush({ push_enabled: true, due_reminders: true }, 'due_soon', { priority: 'medium' }), true);
   assert.equal(notificationAllowsPush({ push_enabled: true, due_reminders: true }, 'due_soon', { priority: 'high' }), true);
-  assert.equal(notificationAllowsPush({ push_enabled: true }, 'fixit_new'), true);
-  assert.equal(notificationAllowsPush({ push_enabled: true }, 'fixit_agent'), true);
   assert.equal(notificationAllowsPush({ push_enabled: true, delegation_alerts: true }, 'acknowledgement'), true);
   assert.equal(notificationAllowsPush({ push_enabled: false, delegation_alerts: true }, 'assignment'), false);
 });
@@ -743,41 +735,25 @@ test('daily digest cron sends The SandPro Times with clickable objective context
   assert.match(digest, /subject: `The SandPro Times/);
 });
 
-test('Fix-It Feed is a sidebar route with file-backed persistence', () => {
+test('retired Fix-It Feed preserves history while removing every live surface', () => {
   const app = read('src/App.jsx');
-  const pages = readMany('src/pages.jsx', 'src/routes/FixItFeedPage.jsx', 'src/routes/OrgPage.jsx');
-  const hook = read('src/hooks/useSupabase.js');
   const migration = read('supabase/release_ready_migration.sql');
+  const manifest = read('public/manifest.webmanifest');
+  const agent = read('api/agent/run.js');
 
-  assert.match(app, /"fixit"/);
-  assert.match(app, /Fix-It Feed/);
-  assert.match(app, /desktopPages = pages\.filter\(page => page\.id !== "fixit"\)/);
-  assert.match(app, /variant="rail"/);
-  assert.match(app, /useFixItFeed/);
-  assert.match(pages, /export const FixItFeedPage/);
-  assert.match(pages, /I'm on it/);
-  assert.match(pages, /Chronological beta feedback wall/);
-  assert.match(hook, /fix_it_posts/);
-  assert.match(hook, /fix_it_attachments/);
-  assert.match(hook, /fix-it-files/);
-  assert.match(hook, /reopened_by/);
-  assert.match(hook, /reopen_count/);
-  assert.match(pages, /Reopened from/);
-  assert.match(pages, /reopenedFromStatus: post\.status/);
-  assert.match(pages, /fixit-reopened-banner/);
-  assert.match(pages, /fixit-post-reopened/);
-  assert.match(pages, />Reopened</);
-  assert.match(migration, /Fix-It posts viewable by all authenticated/);
-  assert.match(migration, /reopened_from_status/);
+  assert.doesNotMatch(app, /"fixit"/);
+  assert.doesNotMatch(app, /useFixItFeed/);
+  assert.doesNotMatch(manifest, /page=fixit/);
+  assert.doesNotMatch(agent, /fixit_recent/);
+  assert.match(migration, /Historical rows and storage/);
+  assert.match(migration, /REVOKE ALL ON TABLE public\.fix_it_posts FROM anon, authenticated/);
+  assert.match(migration, /DROP TABLE public\.fix_it_posts/);
+  assert.doesNotMatch(migration, /DROP TABLE IF EXISTS public\.fix_it_posts/);
 });
 
-test('Fix-It Feed accepts pasted clipboard attachments', () => {
-  const pages = readMany('src/pages.jsx', 'src/routes/FixItFeedPage.jsx');
-  assert.match(pages, /getClipboardFiles/);
-  assert.match(pages, /nameClipboardFile/);
-  assert.match(pages, /pasted-fix-it/);
-  assert.match(pages, /onPaste=\{handlePaste\}/);
-  assert.match(pages, /Drop or paste screenshots/);
+test('retired Fix-It push endpoint and route module are absent', () => {
+  assert.equal(existsSync(join(root, 'api/fixit/push-event.js')), false);
+  assert.equal(existsSync(join(root, 'src/routes/FixItFeedPage.jsx')), false);
 });
 
 test('new feature announcements point users to newly shipped tabs once', () => {
@@ -785,10 +761,10 @@ test('new feature announcements point users to newly shipped tabs once', () => {
   const css = read('src/index.css');
 
   assert.match(app, /NEW_FEATURE_ANNOUNCEMENTS/);
-  assert.match(app, /fix-it-feed-v1/);
+  assert.match(app, /ncr-platform-v1/);
   assert.match(app, /sandpro-new-feature-seen/);
-  assert.match(app, /New: Fix-It Feed/);
-  assert.match(app, /Open feed/);
+  assert.match(app, /New: NCR Tracker/);
+  assert.match(app, />Open tab</);
   assert.match(app, /nav-new-badge/);
   assert.match(css, /new-feature-popover/);
   assert.match(css, /nav-pill-feature/);
@@ -1288,90 +1264,27 @@ test('mention notifications open messages and use push-only fan-out', () => {
   assert.match(hook, /detailText: context\.detailText/);
 });
 
-test('Fix-It Feed fixed status does not show still in-progress ownership copy', () => {
-  const pages = read('src/pages.jsx');
-  const css = read('src/index.css');
+test('Fix-It Feed runtime data hook is retired', () => {
   const hook = read('src/hooks/useSupabase.js');
-  const migration = read('supabase/release_ready_migration.sql');
-
-  assert.match(pages, /post\.status === 'fixed' \|\| post\.status === 'agent_done'/);
-  assert.match(pages, /Fixed by/);
-  assert.match(pages, /validation complete/);
-  assert.match(pages, /Validation proof/);
-  assert.match(pages, /Back to Fix-It Feed/);
-  assert.match(pages, /validation-proof-done/);
-  assert.match(pages, /onUploadValidationProof/);
-  assert.match(pages, /agent_done/);
-  assert.match(pages, /fixit-archive-btn/);
-  assert.match(pages, /fixit-validation-pill/);
-  assert.match(pages, /getFixItActorName/);
-  assert.match(pages, /isFixItAgentUser/);
-  assert.match(pages, /view === 'archive' \? archivedPosts : activePosts/);
-  assert.match(pages, /fixit-fixed-by/);
-  assert.match(css, /\.fixit-tabs/);
-  assert.match(css, /\.fixit-fixed-by/);
-  assert.match(css, /\.fixit-validation-pill/);
-  assert.match(css, /\.validation-proof-modal/);
-  assert.match(css, /\.validation-proof-back/);
-  assert.match(css, /100dvh !important/);
-  assert.match(css, /\.fixit-archive-btn/);
-  assert.match(css, /\.fixit-agent-done/);
-  assert.match(css, /\.fixit-archived/);
-  assert.match(hook, /agent_tested_by/);
-  assert.match(hook, /validationProof/);
-  assert.match(hook, /uploadValidationProof/);
-  assert.match(hook, /validation_proof/);
-  assert.match(hook, /human_reviewed_by/);
-  assert.match(hook, /archived_at/);
-  assert.match(migration, /agent_tested_by UUID/);
-  assert.match(migration, /purpose TEXT NOT NULL DEFAULT 'report'/);
-  assert.match(migration, /human_reviewed_by UUID/);
-  assert.match(migration, /archived_at TIMESTAMPTZ/);
-  assert.match(css, /\.tag-mention-menu-portal/);
+  assert.doesNotMatch(hook, /useFixItFeed/);
+  assert.doesNotMatch(hook, /from\('fix_it_posts'\)/);
+  assert.doesNotMatch(hook, /channel\('fix-it-feed'\)/);
 });
 
-test('Fix-It Feed supports per-item comments with file attachments', () => {
-  const pages = read('src/pages.jsx');
-  const css = read('src/index.css');
-  const hook = read('src/hooks/useSupabase.js');
+test('retired Fix-It records remain part of service-role schema validation', () => {
   const migration = read('supabase/release_ready_migration.sql');
   const schemaCheck = read('scripts/check-release-schema.mjs');
-  const app = read('src/App.jsx');
-
-  assert.match(pages, /FixItCommentComposer/);
-  assert.match(pages, /Reply to \$\{replyName\}/);
-  assert.match(pages, /Drop or paste screenshots, PDFs, Office docs, audio, or notes/);
-  assert.match(pages, /post\.comments\.map/);
-  assert.match(pages, /fixit-comment-agent/);
-  assert.match(pages, /Agent reply/);
-  assert.match(pages, /name: 'Agent'/);
-  assert.match(pages, /FIX_IT_AGENT_AVATAR_URL = '\/avatars\/thrawn-agent-avatar\.png'/);
-  assert.match(pages, /getFixItDisplayUser\(commenter\)/);
-  assert.match(pages, /fixit-comment-composer/);
-  assert.match(pages, /FIXIT_COMMON_FILE_ACCEPT/);
-  assert.match(css, /\.fixit-comments/);
-  assert.match(css, /\.fixit-agent-comment-badge/);
-  assert.match(css, /\.fixit-comment-composer/);
-  assert.match(hook, /fix_it_comments/);
-  assert.match(hook, /createComment/);
-  assert.match(hook, /comment_id/);
-  assert.match(hook, /'comment', comment\.id/);
-  assert.match(app, /createComment: createFixItComment/);
-  assert.match(app, /handleCreateFixItComment/);
-  assert.match(app, /Fix-It reply from/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.fix_it_comments/);
   assert.match(migration, /ADD COLUMN IF NOT EXISTS comment_id UUID/);
-  assert.match(migration, /ALTER PUBLICATION supabase_realtime ADD TABLE public\.fix_it_comments/);
+  assert.match(migration, /ALTER PUBLICATION supabase_realtime DROP TABLE public\.fix_it_comments/);
   assert.match(schemaCheck, /fix_it_comments table/);
   assert.match(schemaCheck, /comment_id/);
 });
 
-test('Jake-requested production controls exist for org compact view, NCR export, and Fix-It push updates', () => {
-  const app = read('src/App.jsx');
+test('Jake-requested production controls keep org compact view and NCR export', () => {
   const pages = readMany('src/pages.jsx', 'src/routes/OrgPage.jsx');
   const css = read('src/index.css');
   const mentions = read('src/mentions.js');
-  const endpoint = read('api/fixit/push-event.js');
 
   assert.match(pages, /orgViewMode/);
   assert.match(pages, /Compact/);
@@ -1382,10 +1295,6 @@ test('Jake-requested production controls exist for org compact view, NCR export,
   assert.match(pages, /filteredExportNcrs/);
   assert.match(mentions, /ALL_COMPANY_MENTION/);
   assert.match(mentions, /AllCompany/);
-  assert.match(app, /handleCreateFixItPost/);
-  assert.match(app, /handleUpdateFixItPostStatus/);
-  assert.match(app, /fixit_new/);
-  assert.match(endpoint, /fixit_agent/);
 });
 
 test('objective CSV export is filtered and excludes internal ids', () => {
@@ -1498,7 +1407,7 @@ test('mobile PWA rebuild has install assets, safe-area shell, and phone-native w
   assert.match(read('src/mobileNav.jsx'), /'Create new'/); // create affordance lives in the thumb bar now
   assert.match(app, /mobile-user-drawer/);
   assert.match(app, /handleNotificationClick/);
-  assert.match(app, /const showDashboardSurface = route\.page === "dashboard" \|\| \(route\.page === "fixit" && !isMobileViewport\)/);
+  assert.match(app, /const showDashboardSurface = route\.page === "dashboard";/);
   assert.match(app, /\{showDashboardSurface && <DashboardPage/);
   assert.doesNotMatch(app, /\{currentPage === 0 && <DashboardPage/);
   assert.match(pages, /mobile-objective-list/);

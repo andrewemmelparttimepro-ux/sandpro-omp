@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { Search,
   Target, Bell, Plus, LayoutDashboard, Network, ChevronDown, X,
-  LogOut, Loader2, Sun, Moon, Newspaper, Sparkles, Wrench, ClipboardCheck,
+  LogOut, Loader2, Sun, Moon, Newspaper, Sparkles, ClipboardCheck,
   Settings, RefreshCw, BarChart3, BookOpen
 } from 'lucide-react';
 import { FieldKeyProvider } from './glossary';
 import { OMP_GLOSSARY, useFieldKey } from './glossaryData';
-import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, canManageOkrs, canAccessFixItFeed, canUseSnapshotBoot, formatDate } from './data';
-import { useAuth, useProfiles, useObjectives, useAssignmentGroups, useNotifications, usePushNotifications, useFixItFeed, useNcrReports, useAlternativeDashboard, useKpis, useObjectiveMutes } from './hooks/useSupabase';
+import { setProfiles, getUser, getStatusLabel, generateId, DEFAULT_DEPARTMENT, canManageOkrs, canUseSnapshotBoot, formatDate } from './data';
+import { useAuth, useProfiles, useObjectives, useAssignmentGroups, useNotifications, usePushNotifications, useNcrReports, useAlternativeDashboard, useKpis, useObjectiveMutes } from './hooks/useSupabase';
 import { Avatar } from './uiPrimitives';
 import { supabase } from './lib/supabase';
 import { humanizeErrorMessage } from './lib/errors';
@@ -47,7 +47,7 @@ const safeStorage = {
 };
 import './index.css';
 
-const PAGE_IDS = ["dashboard", "objectives", "okr", "kpi", "fixit", "ncr", "organization"];
+const PAGE_IDS = ["dashboard", "objectives", "okr", "kpi", "ncr", "organization"];
 
 // A deploy replaces hashed lazy chunks; a session opened before it will 404
 // on the next lazy navigation (caught live by telemetry 8/5: "Failed to fetch
@@ -69,7 +69,6 @@ const GlobalKpiStrip = lazyWithReload(() => import('./routes/GlobalKpiStrip'));
 const OkrPage = lazyWithReload(() => import('./routes/OkrPage'));
 const ObjectivesPage = lazyWithReload(() => import('./routes/ObjectivesPage'));
 const KpiPage = lazyWithReload(() => import('./routes/KpiPage'));
-const FixItFeedPage = lazyWithReload(() => import('./routes/FixItFeedPage'));
 const NcrPage = lazyWithReload(() => import('./routes/NcrPage'));
 const OrgPage = lazyWithReload(() => import('./routes/OrgPage'));
 const AdminSidebar = lazyWithReload(() => import('./routes/AdminSidebar'));
@@ -142,13 +141,6 @@ const BRAND_MARK_SRC = '/brand/sandpro-omp-mark.png';
 const ALT_DASHBOARD_HOTKEY_MEDIA = '(min-width: 769px) and (pointer: fine)';
 const NEW_FEATURE_ANNOUNCEMENTS = [
   {
-    id: 'fix-it-feed-v1',
-    navId: 'fixit',
-    page: 'fixit',
-    title: 'New: Fix-It Feed',
-    description: 'Open the right Admin rail to post screenshots, photos, and notes. Agent fixes, validates with proof, then a human archives.',
-  },
-  {
     id: 'ncr-platform-v1',
     navId: 'objectives', // NCR now lives under Objectives (Domain 2 IA)
     page: 'ncr',
@@ -165,11 +157,6 @@ const pushSetupDismissKey = (userId) => `${PUSH_SETUP_DISMISSED_PREFIX}-${userId
 const isPersonalAiDashboardOwner = (userProfile) => {
   const identity = `${userProfile?.name || ''} ${userProfile?.email || ''}`.toLowerCase();
   return identity.includes('andrew emmel') || identity.includes('andrewemmel');
-};
-
-const isFixItAgentPushRecipient = (userProfile) => {
-  const identity = `${userProfile?.name || ''} ${userProfile?.email || ''}`.toLowerCase();
-  return identity.includes('andrew emmel') || identity.includes('andrew@ndai.pro') || identity.includes('andrewemmel');
 };
 
 const readRouteFromLocation = () => {
@@ -309,11 +296,6 @@ const LoadingScreen = () => (
 function App() {
   // Supabase hooks
   const { user, profile, loading: authLoading, passwordRecovery, clearPasswordRecovery, signIn, signUp, signOut, resetPassword, updatePassword, uploadAvatar, removeAvatar, refetchProfile } = useAuth();
-  const shouldLoadFixItFeed = Boolean(user && canAccessFixItFeed(user) && (
-    typeof window === 'undefined'
-    || !window.matchMedia('(max-width: 768px)').matches
-    || readRouteFromLocation().page === 'fixit'
-  ));
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
   const { objectives: rawObjectives, okrProjects, loading: objLoading, patchObjectiveLocal, createObjective, updateObjective, deleteObjective, deleteObjectiveFile, sendMessage, updateMessage, setMessageReaction, removeMessageReaction, markObjectiveMessagesRead, uploadObjectiveFile, addSubtask, updateSubtask, deleteSubtask, addMetricCheckin, addObjectiveMember, removeObjectiveMember, addWorkflowStep, updateWorkflowStep, createOkrProject, updateOkrProject, updateProjectArtifact, captureProjectSignature, uploadProjectAttachment, deleteProjectAttachment, runObjectiveStarter, hydrateObjective, refetch: refetchObjectives } = useObjectives(Boolean(user));
   const {
@@ -336,7 +318,6 @@ function App() {
       };
     });
   }, [assignmentGroups, rawObjectives]);
-  const { posts: fixItPosts, createPost: createFixItPost, createComment: createFixItComment, deleteComment: deleteFixItComment, updatePostStatus: updateFixItPostStatus, uploadValidationProof: uploadFixItValidationProof, deletePost: deleteFixItPost } = useFixItFeed(shouldLoadFixItFeed);
   const { reports: ncrReports, updateReport: updateNcrReport, createReport: createNcrReport, createActionItem: createNcrActionItem, updateActionItem: updateNcrActionItem, uploadAttachment: uploadNcrAttachment, captureSignature: captureNcrSignature, importReports: importNcrReports, hydrateReport: hydrateNcrReport } = useNcrReports(Boolean(user));
   const { notifications, markRead, markAllRead, createNotification: createRawNotification } = useNotifications(profile?.id);
   const pushNotifications = usePushNotifications(profile?.id);
@@ -353,9 +334,6 @@ function App() {
   // realtime channels) for every client while the retired code still exists.
   const altDashboard = useAlternativeDashboard(null);
   const kpiData = useKpis(profile?.id, Boolean(profile));
-  const fixItAgentRecipientIds = useMemo(() => (
-    profiles.filter(isFixItAgentPushRecipient).map(userProfile => userProfile.id)
-  ), [profiles]);
   const createNotification = useCallback((targetUserId, type, objectiveId, message, context = {}) => createRawNotification(
     targetUserId,
     type,
@@ -741,7 +719,6 @@ function App() {
 
     const nextAnnouncement = NEW_FEATURE_ANNOUNCEMENTS.find(feature =>
       !safeStorage.get(featureAnnouncementKey(profile.id, feature.id))
-      && (feature.page !== 'fixit' || canAccessFixItFeed(profile))
     );
     if (!nextAnnouncement) return undefined;
 
@@ -1238,78 +1215,6 @@ function App() {
     return payload.translation;
   };
 
-  const sendFixItPushEvent = useCallback(async ({ postId, type = 'fixit_agent', message }) => {
-    if (!profile?.id || fixItAgentRecipientIds.length === 0 || !message) return;
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token;
-    if (!token) return;
-    const url = `${window.location.origin}/?page=fixit${postId ? `&fixit=${encodeURIComponent(postId)}` : ''}`;
-    await Promise.allSettled(fixItAgentRecipientIds.map(targetUserId => fetch('/api/fixit/push-event', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ targetUserId, type, postId, message, url }),
-    })));
-  }, [fixItAgentRecipientIds, profile?.id]);
-
-  const summarizeFixItPost = useCallback((post, fallbackBody = '') => {
-    const text = String(post?.body || fallbackBody || 'Attachment-only Fix-It item').replace(/\s+/g, ' ').trim();
-    return text.length > 96 ? `${text.slice(0, 93)}...` : text;
-  }, []);
-
-  const summarizeFixItComment = useCallback((body = '', files = []) => {
-    const text = String(body || '').replace(/\s+/g, ' ').trim();
-    const fallback = files?.length ? `${files.length} attachment${files.length === 1 ? '' : 's'}` : 'New reply';
-    const summary = text || fallback;
-    return summary.length > 96 ? `${summary.slice(0, 93)}...` : summary;
-  }, []);
-
-  const handleCreateFixItPost = useCallback(async (payload) => {
-    const post = await createFixItPost(payload);
-    await sendFixItPushEvent({
-      postId: post?.id,
-      type: 'fixit_new',
-      message: `New Fix-It Feed item: ${summarizeFixItPost(post, payload?.body)}`,
-    });
-    return post;
-  }, [createFixItPost, sendFixItPushEvent, summarizeFixItPost]);
-
-  const handleCreateFixItComment = useCallback(async (payload) => {
-    const comment = await createFixItComment(payload);
-    const existingPost = fixItPosts.find(post => post.id === payload?.postId);
-    await sendFixItPushEvent({
-      postId: payload?.postId,
-      type: 'fixit_agent',
-      message: `Fix-It reply from ${profile?.name || 'SandPro OMP'}: ${summarizeFixItComment(payload?.body, payload?.files)} - ${summarizeFixItPost(existingPost)}`,
-    });
-    return comment;
-  }, [createFixItComment, fixItPosts, profile?.name, sendFixItPushEvent, summarizeFixItComment, summarizeFixItPost]);
-
-  const handleUpdateFixItPostStatus = useCallback(async (postId, changes = {}) => {
-    const existingPost = fixItPosts.find(post => post.id === postId);
-    await updateFixItPostStatus(postId, changes);
-    if (changes.status || changes.claimedBy !== undefined || changes.agentTestedAt || changes.archivedAt) {
-      const label = changes.status === 'in_progress'
-        ? 'Agent is on it'
-        : changes.status === 'agent_done'
-          ? 'Agent validation complete'
-          : changes.status === 'archived'
-            ? 'Human reviewed and archived'
-            : changes.status === 'open'
-              ? 'Reopened'
-              : changes.status === 'fixed'
-                ? 'Fixed by Agent'
-                : 'Updated';
-      await sendFixItPushEvent({
-        postId,
-        type: 'fixit_agent',
-        message: `Fix-It update: ${label} - ${summarizeFixItPost(existingPost)}`,
-      });
-    }
-  }, [fixItPosts, sendFixItPushEvent, summarizeFixItPost, updateFixItPostStatus]);
-
   // ── Create New wizard handlers (the one door in) ──────────────────────────
   const uploadWizardObjectiveFiles = async (objectiveId, files = []) => {
     let uploaded = 0;
@@ -1705,28 +1610,18 @@ function App() {
     { id: "dashboard", label: "Tasks & Projects", mobileLabel: "Work", icon: LayoutDashboard },
     { id: "okr", label: "OKR", mobileLabel: "OKR", icon: Target },
     { id: "ncr", label: "NCR", mobileLabel: "NCR", icon: ClipboardCheck },
-    // Fix-It Feed is moderator-only (Andrew + Merci) — everyone else routes
-    // change requests through Merci and never sees the wall.
-    ...(canAccessFixItFeed(profile) ? [{ id: "fixit", label: "Fix-It Feed", mobileLabel: "Fix-It", icon: Wrench }] : []),
     { id: "organization", label: "Organization", mobileLabel: "Org", icon: Network },
   ];
-  const desktopPages = pages.filter(page => page.id !== "fixit");
-
-  // Deep links (?page=fixit) bounce non-moderators back to the dashboard.
-  useEffect(() => {
-    if (profile && route.page === 'fixit' && !canAccessFixItFeed(profile)) {
-      updateRoute({ page: 'dashboard' });
-    }
-  }, [profile, route.page, updateRoute]);
+  const desktopPages = pages;
   // Deep-linked pages that highlight a parent tab. Objectives is hidden (Jake
   // banned the word); KPI is hidden because to Jake "OKRs or KPIs, whatever
   // you want to call it" ARE the OKR page — the command center stays routable
   // at ?page=kpi if automated metrics ever come back.
   const NAV_PARENT = { objectives: "dashboard", kpi: "dashboard" };
-  const shellPage = route.page === "fixit" && !isMobileViewport ? "dashboard" : route.page;
+  const shellPage = route.page;
   const activeNavId = NAV_PARENT[shellPage] || shellPage;
   const currentPage = Math.max(0, pages.findIndex(page => page.id === activeNavId));
-  const showDashboardSurface = route.page === "dashboard" || (route.page === "fixit" && !isMobileViewport);
+  const showDashboardSurface = route.page === "dashboard";
   const currentPageMeta = pages[currentPage] || pages[0];
   const CurrentPageIcon = currentPageMeta.icon;
 
@@ -2285,13 +2180,13 @@ function App() {
             <X size={13} />
           </button>
           <div className="new-feature-icon">
-            <Wrench size={16} />
+            <Sparkles size={16} />
           </div>
           <div className="new-feature-copy">
             <div className="new-feature-title">{activeFeatureAnnouncement.title}</div>
             <p>{activeFeatureAnnouncement.description}</p>
             <div className="new-feature-actions">
-              <button type="button" className="btn btn-primary btn-xs" onClick={openFeatureAnnouncement}>{activeFeatureAnnouncement.page === 'fixit' ? 'Open feed' : 'Open tab'}</button>
+              <button type="button" className="btn btn-primary btn-xs" onClick={openFeatureAnnouncement}>Open tab</button>
               <button type="button" className="btn btn-ghost btn-xs" onClick={() => dismissFeatureAnnouncement()}>Got it</button>
             </div>
           </div>
@@ -2385,7 +2280,6 @@ function App() {
             {route.page === "okr" && <OkrPage objectives={objectives} currentUser={currentUser} createNotification={createNotification} addToast={addToast} onOpenCard={handleOpenCard} onAddOkr={() => { setWizardInitialType("okr"); setShowCreateForm(true); }} onQuickStatus={handleQuickStatusObjective} onSaveCheckin={async (objectiveId, checkin) => { await addMetricCheckin(objectiveId, checkin); addToast({ type: "success", message: "OKR updated" }); }} />}
             {route.page === "objectives" && <ObjectivesPage objectives={objectives} okrProjects={okrProjects} onOpenCard={handleOpenCard} currentUser={currentUser} filters={objectiveFilters} highlightDept={highlightDept} onFiltersChange={handleObjectiveFiltersChange} onClearFilters={clearObjectiveFilters} onQuickTag={handleQuickTagObjective} onQuickStatus={handleQuickStatusObjective} onQuickClassification={handleQuickClassificationObjective} />}
             {route.page === "kpi" && <KpiPage objectives={objectives} okrProjects={okrProjects} ncrReports={ncrReports} currentUser={currentUser} kpiData={kpiData} onOpenObjective={handleOpenCard} onCreateObjectiveFromKpi={handleCreateObjectiveFromKpi} addToast={addToast} />}
-            {route.page === "fixit" && isMobileViewport && canAccessFixItFeed(profile) && <FixItFeedPage posts={fixItPosts} currentUser={currentUser} onCreatePost={handleCreateFixItPost} onCreateComment={handleCreateFixItComment} onDeleteComment={deleteFixItComment} onUpdatePost={handleUpdateFixItPostStatus} onUploadValidationProof={uploadFixItValidationProof} onDeletePost={deleteFixItPost} addToast={addToast} focusPostId={new URLSearchParams(window.location.search).get('fixit')} />}
             {route.page === "ncr" && <NcrPage reports={ncrReports} objectives={objectives} currentUser={currentUser} initialReportId={ncrFocusReportId} onHydrateReport={hydrateNcrReport} onUpdateReport={updateNcrReport} onCreateReport={createNcrReportWithOutbox} onQueueNcrFiles={(outboxId, files) => fieldOutbox.attachFiles(outboxId, files)} onCreateActionItem={createNcrActionItem} onUpdateActionItem={updateNcrActionItem} onUploadAttachment={uploadNcrAttachment} onCaptureSignature={captureNcrSignature} onImportReports={importNcrReports} onCreateObjective={handleCreateObjectiveFromNcr} onOpenObjective={handleOpenCard} addToast={addToast} />}
             {route.page === "organization" && <OrgPage objectives={objectives} assignmentGroups={assignmentGroups} onOpenCard={handleOpenCard} currentUser={currentUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onUsersChanged={refetchProfiles} addToast={addToast} />}
           </Suspense>
@@ -2393,35 +2287,15 @@ function App() {
         {!isMobileViewport && <div className="desktop-admin-shell">
           <Suspense fallback={null}>
             <AdminSidebar
-              showFixIt={canAccessFixItFeed(profile)}
-              isOpen={route.adminOpen || (route.page === "fixit" && canAccessFixItFeed(profile))}
+              isOpen={route.adminOpen}
               onToggle={() => updateRoute(prev => ({
                 ...prev,
-                page: prev.page === "fixit" ? "dashboard" : prev.page,
-                adminOpen: prev.page === "fixit" ? false : !prev.adminOpen,
+                adminOpen: !prev.adminOpen,
               }))}
-              requestedSection={route.page === "fixit" ? "fixit" : null}
               onSectionChange={(sectionId, { open = false } = {}) => updateRoute(prev => ({
                 ...prev,
-                page: sectionId === "fixit" ? "fixit" : prev.page === "fixit" ? "dashboard" : prev.page,
-                adminOpen: open || (prev.page === "fixit" && sectionId !== "fixit") ? true : prev.adminOpen,
+                adminOpen: open ? true : prev.adminOpen,
               }))}
-              fixItCount={fixItPosts.filter(post => post.status !== 'archived').length}
-              fixItContent={(
-                <FixItFeedPage
-                  posts={fixItPosts}
-                  currentUser={currentUser}
-                  onCreatePost={handleCreateFixItPost}
-                  onCreateComment={handleCreateFixItComment}
-                  onDeleteComment={deleteFixItComment}
-                  onUpdatePost={handleUpdateFixItPostStatus}
-                  onUploadValidationProof={uploadFixItValidationProof}
-                  onDeletePost={deleteFixItPost}
-                  addToast={addToast}
-                  variant="rail"
-                  focusPostId={new URLSearchParams(window.location.search).get('fixit')}
-                />
-              )}
               objectives={objectives}
               ncrReports={ncrReports}
               currentUser={currentUser}
