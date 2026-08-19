@@ -218,6 +218,38 @@ const createSignedUrlSafe = async (bucket, path, expiresIn = 60 * 60, options = 
   }
 };
 
+// Sign attachment collections in bounded batches. The old boot path launched
+// one Storage signing request per file, which could exhaust the project's
+// connection allowance when a dashboard hydrated a large evidence set.
+const createSignedUrlsSafe = async (bucket, paths, expiresIn = 60 * 60) => {
+  const uniquePaths = [...new Set((paths || []).filter(Boolean))];
+  const signedByPath = new Map();
+  const batchSize = 100;
+
+  for (let index = 0; index < uniquePaths.length; index += batchSize) {
+    const batch = uniquePaths.slice(index, index + batchSize);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.storage.from(bucket).createSignedUrls(batch, expiresIn),
+        8000,
+        { data: null, error: new Error('Timed out while signing storage URL batch') },
+      );
+      if (error) {
+        console.warn(`[Supabase] signed URL batch skipped for ${bucket}:`, error.message);
+        continue;
+      }
+      (data || []).forEach((entry, entryIndex) => {
+        const path = entry?.path || batch[entryIndex];
+        if (path && entry?.signedUrl) signedByPath.set(path, entry.signedUrl);
+      });
+    } catch (error) {
+      console.warn(`[Supabase] signed URL batch failed for ${bucket}:`, error.message);
+    }
+  }
+
+  return signedByPath;
+};
+
 const getFreshSession = async () => {
   const sessionResult = await withTimeout(
     supabase.auth.getSession(),
@@ -1694,11 +1726,12 @@ export function useObjectives(enabled = true) {
     }, {});
 
     const rawFiles = filesRes.data || [];
-    const signedFiles = await Promise.all(rawFiles.map(async (f) => {
-      let signedUrl = f.url || '';
-      if (f.storage_path) {
-        signedUrl = await createSignedUrlSafe('objective-files', f.storage_path) || signedUrl;
-      }
+    const objectiveFileUrls = await createSignedUrlsSafe(
+      'objective-files',
+      rawFiles.map(file => file.storage_path),
+    );
+    const signedFiles = rawFiles.map((f) => {
+      const signedUrl = objectiveFileUrls.get(f.storage_path) || f.url || '';
       return {
         id: f.id,
         objective_id: f.objective_id,
@@ -1714,13 +1747,14 @@ export function useObjectives(enabled = true) {
         url: signedUrl,
         ts: f.created_at,
       };
-    }));
+    });
 
-    const signedProjectAttachments = await Promise.all((projectAttachments || []).map(async (f) => {
-      let signedUrl = f.url || '';
-      if (f.storage_path) {
-        signedUrl = await createSignedUrlSafe('okr-project-files', f.storage_path) || signedUrl;
-      }
+    const projectFileUrls = await createSignedUrlsSafe(
+      'okr-project-files',
+      (projectAttachments || []).map(file => file.storage_path),
+    );
+    const signedProjectAttachments = (projectAttachments || []).map((f) => {
+      const signedUrl = projectFileUrls.get(f.storage_path) || f.url || '';
       return {
         id: f.id,
         projectId: f.project_id,
@@ -1735,7 +1769,7 @@ export function useObjectives(enabled = true) {
         url: signedUrl,
         createdAt: f.created_at,
       };
-    }));
+    });
 
     const messagesByObj = groupBy(messagesRes.data, 'objective_id');
     const subtasksByObj = groupBy(subtasksRes.data, 'objective_id');
@@ -3678,7 +3712,7 @@ export function useNotifications(userId) {
     const priority = context.priority || (isPriorityNotificationSender(context) ? 'priority' : 'normal');
     const { data, error } = await supabase.from('notifications').insert({
       user_id: targetUserId,
-      sender_id: context.senderId || null,
+      sender_id: context.senderId ?? userId ?? null,
       type,
       objective_id: objectiveId,
       message,

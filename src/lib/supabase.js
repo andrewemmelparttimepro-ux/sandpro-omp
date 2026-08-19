@@ -1,4 +1,5 @@
 import { createClient, navigatorLock } from '@supabase/supabase-js';
+import { createLimitedFetch } from './limitedFetch';
 
 const cleanEnvValue = (value) => String(value || '').trim();
 
@@ -35,6 +36,9 @@ const supportsWebLocks = typeof globalThis !== 'undefined' && Boolean(globalThis
 
 const supabaseUrl = cleanEnvValue(import.meta.env.VITE_SUPABASE_URL);
 const supabaseAnonKey = cleanEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY);
+const limitedSupabaseFetch = typeof globalThis.fetch === 'function'
+  ? createLimitedFetch(globalThis.fetch.bind(globalThis), 4)
+  : undefined;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local');
@@ -50,6 +54,7 @@ export const supabase = createClient(
       detectSessionInUrl: true,
       ...(supportsWebLocks ? { lock: resilientNavigatorLock } : {}),
     },
+    ...(limitedSupabaseFetch ? { global: { fetch: limitedSupabaseFetch } } : {}),
   }
 );
 

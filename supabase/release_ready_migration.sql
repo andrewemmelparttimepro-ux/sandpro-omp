@@ -3139,4 +3139,23 @@ BEGIN
 END
 $$;
 
+-- 2026-08-19 follow-up: attribute browser notifications and remove exactly
+-- redundant permissive policies without changing their effective row sets.
+DROP POLICY IF EXISTS "Notifications insertable" ON public.notifications;
+DROP POLICY IF EXISTS "System can insert notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Authenticated users send attributed notifications" ON public.notifications;
+CREATE POLICY "Authenticated users send attributed notifications"
+ON public.notifications
+FOR INSERT
+TO authenticated
+WITH CHECK (sender_id = (SELECT auth.uid()));
+
+DROP POLICY IF EXISTS "Users view own alt dashboard preferences" ON public.alt_dashboard_preferences;
+DROP POLICY IF EXISTS "KPI alert events viewable by authenticated" ON public.kpi_alert_events;
+DROP POLICY IF EXISTS "Users view own notification preferences" ON public.notification_preferences;
+DROP POLICY IF EXISTS "Own notifications viewable" ON public.notifications;
+DROP POLICY IF EXISTS "Own notifications updatable" ON public.notifications;
+DROP POLICY IF EXISTS "OKR assessment artifacts viewable by all authenticated" ON public.okr_assessment_artifacts;
+DROP POLICY IF EXISTS "OKR project links viewable by all authenticated" ON public.okr_project_kr_links;
+
 NOTIFY pgrst, 'reload schema';

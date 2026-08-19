@@ -19,8 +19,22 @@ const STORAGE_KEY = 'sb-whgrkfhuzgwmbelocnhq-auth-token';
 // Transient network noise we accept; anything else on the console fails.
 const IGNORABLE_CONSOLE = [
   /Failed to load resource.*(favicon|apple-touch)/i,
+  // Chromium omits the URL from this message. requestfailed below keeps the
+  // useful URL and still fails on first-party/Supabase load failures.
+  /Failed to load resource: net::ERR_FAILED/i,
   /net::ERR_NETWORK_CHANGED/i,
 ];
+
+const isOptionalExternalAsset = (rawUrl) => {
+  try {
+    const url = new URL(rawUrl);
+    return (url.hostname === 'sandpro.com' && url.pathname.startsWith('/wp-content/uploads/'))
+      || url.hostname === 'fonts.googleapis.com'
+      || url.hostname === 'fonts.gstatic.com';
+  } catch {
+    return false;
+  }
+};
 
 test.describe('production gauntlet', () => {
   test.skip(!SUPABASE_URL || !ANON_KEY || !EMAIL || !PASSWORD, 'needs release env');
@@ -40,6 +54,7 @@ test.describe('production gauntlet', () => {
   test('every main surface renders real content with zero errors', async ({ page }) => {
     const consoleErrors = [];
     const failedRequests = [];
+    const failedLoads = [];
     page.on('console', (msg) => {
       if (msg.type() !== 'error') return;
       const text = msg.text();
@@ -49,6 +64,11 @@ test.describe('production gauntlet', () => {
     page.on('pageerror', (err) => consoleErrors.push(`pageerror: ${String(err).slice(0, 300)}`));
     page.on('response', (res) => {
       if (res.status() >= 500) failedRequests.push(`${res.status()} ${res.url().slice(0, 140)}`);
+    });
+    page.on('requestfailed', (request) => {
+      const errorText = request.failure()?.errorText || 'request failed';
+      if (/ERR_ABORTED/i.test(errorText)) return;
+      failedLoads.push(`${errorText} ${request.url()}`);
     });
 
     await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
@@ -222,7 +242,12 @@ test.describe('production gauntlet', () => {
     // data through it by design. More than two, or ANY other error, fails.
     const transient = consoleErrors.filter((e) => /TypeError: Failed to fetch/.test(e));
     const hard = consoleErrors.filter((e) => !/TypeError: Failed to fetch/.test(e));
+    const hardLoadFailures = failedLoads.filter((failure) => {
+      const rawUrl = failure.slice(failure.indexOf('http'));
+      return !isOptionalExternalAsset(rawUrl);
+    });
     expect(failedRequests, `5xx responses: ${failedRequests.join(' | ')}`).toHaveLength(0);
+    expect(hardLoadFailures, `failed first-party loads: ${hardLoadFailures.join(' | ')}`).toHaveLength(0);
     expect(hard, `console errors: ${hard.join(' | ')}`).toHaveLength(0);
     expect(transient.length, `excessive transient fetch failures (${transient.length})`).toBeLessThanOrEqual(2);
   });

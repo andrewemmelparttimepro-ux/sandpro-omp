@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 const getAvatarInitials = (user) => {
   const explicit = String(user?.initials || '').trim();
   if (explicit) return explicit.slice(0, 3).toUpperCase();
@@ -12,15 +14,30 @@ const getAvatarInitials = (user) => {
   return id ? id.slice(0, 2).toUpperCase() : '??';
 };
 
-export const Avatar = ({ user, size = 32 }) => (
-  user?.avatar_url ? (
-    <img src={user.avatar_url} alt={user.name || 'User'} className="avatar" style={{ width: size, height: size, objectFit: 'cover', background: user?.color || 'var(--accent-7)' }} />
+export const Avatar = ({ user, size = 32 }) => {
+  const avatarUrl = user?.avatar_url || '';
+  const [failedUrl, setFailedUrl] = useState('');
+
+  useEffect(() => {
+    if (failedUrl && failedUrl !== avatarUrl) setFailedUrl('');
+  }, [avatarUrl, failedUrl]);
+
+  return avatarUrl && failedUrl !== avatarUrl ? (
+    <img
+      src={avatarUrl}
+      alt={user.name || 'User'}
+      className="avatar"
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailedUrl(avatarUrl)}
+      style={{ width: size, height: size, objectFit: 'cover', background: user?.color || 'var(--accent-7)' }}
+    />
   ) : (
     <div className="avatar" style={{ width: size, height: size, background: user?.color || 'var(--accent-7)', fontSize: size * 0.35 }}>
       {getAvatarInitials(user)}
     </div>
-  )
-);
+  );
+};
 
 export const Badge = ({ children, color = '#ff7f02', outline = false }) => (
   <span className="badge" style={{

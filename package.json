@@ -35,7 +35,7 @@
     "test:gauntlet:prod": "node scripts/require-release-env.mjs prod && SANDPRO_BASE_URL=https://objectivetracker.net SANDPRO_SMOKE_BASE_URL=https://objectivetracker.net playwright test tests/prod-gauntlet.spec.js --project=chromium"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.101.1",
+    "@supabase/supabase-js": "2.112.3",
     "@tiptap/extension-character-count": "^3.26.1",
     "@tiptap/extension-placeholder": "^3.26.1",
     "@tiptap/extension-table": "^3.26.1",

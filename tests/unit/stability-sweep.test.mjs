@@ -88,6 +88,27 @@ test('fetch failures keep last-known data instead of blanking', () => {
   assert.match(hooks, /objectivesLoadedRef\.current = true/);
 });
 
+test('boot signs attachment URLs in bounded batches instead of one request per file', () => {
+  const hooks = read('src/hooks/useSupabase.js');
+  assert.match(hooks, /createSignedUrlsSafe/);
+  assert.match(hooks, /\.createSignedUrls\(batch, expiresIn\)/);
+  assert.match(hooks, /const batchSize = 100/);
+  assert.doesNotMatch(hooks, /Promise\.all\(rawFiles\.map\(async \(f\)/);
+  assert.doesNotMatch(hooks, /Promise\.all\(\(projectAttachments \|\| \[\]\)\.map\(async \(f\)/);
+});
+
+test('avatars lazy-load and fall back to initials when a remote headshot fails', () => {
+  const primitives = read('src/uiPrimitives.jsx');
+  assert.match(primitives, /loading="lazy"/);
+  assert.match(primitives, /decoding="async"/);
+  assert.match(primitives, /onError=\{\(\) => setFailedUrl\(avatarUrl\)\}/);
+});
+
+test('browser-created notifications are attributed to the signed-in sender', () => {
+  const hooks = read('src/hooks/useSupabase.js');
+  assert.match(hooks, /sender_id: context\.senderId \?\? userId \?\? null/);
+});
+
 test('overlay dismissals survive blocked localStorage (no re-arm loops)', () => {
   const app = read('src/App.jsx');
   assert.match(app, /const safeStorageMemory = new Map\(\)/);
