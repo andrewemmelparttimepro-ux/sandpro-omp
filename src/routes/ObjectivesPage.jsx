@@ -677,7 +677,7 @@ export const ObjectivesPage = ({
       : getUser(obj.ownerId);
     const workflow = getWorkflowSummary(obj);
     const unreadMessages = getUnreadMessageCount(obj);
-    return <article className="mobile-objective-card" role="button" tabIndex={0} onClick={() => onOpenCard(obj)} onKeyDown={event => {
+    return <article className="mobile-objective-card" data-objective-id={obj.id} role="button" tabIndex={0} onClick={() => onOpenCard(obj)} onKeyDown={event => {
       if (event.key === "Enter" || event.key === " ") onOpenCard(obj);
     }} aria-label={`Open objective: ${obj.title}`}>
         <div className="mobile-objective-card-head">

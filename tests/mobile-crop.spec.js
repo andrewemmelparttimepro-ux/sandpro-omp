@@ -70,6 +70,40 @@ test.describe('mobile zero-day crop gates', () => {
       await assertNoMobileCrop(page, `objectives list ${viewport.label}`);
       await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-03-objectives.png`), fullPage: true });
 
+      const taggedObjective = page.locator('.mobile-objective-card').filter({ has: page.locator('.mobile-tagged-stack .avatar') }).first();
+      const firstObjective = await taggedObjective.count()
+        ? taggedObjective
+        : page.getByRole('button', { name: /^Open objective:/ }).first();
+      await expect(firstObjective).toBeVisible();
+      const objectiveId = await firstObjective.getAttribute('data-objective-id');
+      expect(objectiveId).toBeTruthy();
+      await page.goto(`/?page=objectives&objective=${encodeURIComponent(objectiveId)}`, { waitUntil: 'domcontentloaded' });
+      await dismissGuidance(page);
+      const detailModal = page.locator('.objective-detail-modal');
+      const detailHeader = page.locator('.objective-detail-header');
+      const detailBody = page.locator('.objective-detail-body');
+      await expect(detailModal).toBeVisible();
+      await expect(bottomNav).toHaveCount(0);
+      await expect(page.locator('.mobile-nav')).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
+      await expect(page.locator('.objective-message-composer textarea')).toBeVisible();
+      const [headerBox, bodyBox] = await Promise.all([detailHeader.boundingBox(), detailBody.boundingBox()]);
+      expect(headerBox?.height || viewport.height).toBeLessThan(viewport.height * 0.5);
+      expect(bodyBox?.height || 0).toBeGreaterThan(viewport.height * 0.35);
+      const taggedSummary = page.locator('.tagged-people-summary');
+      await expect(taggedSummary).toBeVisible();
+      await expect(page.locator('.tagged-people-content')).toBeHidden();
+      await taggedSummary.tap();
+      await expect(page.locator('.tagged-people-content')).toBeVisible();
+      await taggedSummary.tap();
+      await expect(page.locator('.tagged-people-content')).toBeHidden();
+      await detailBody.evaluate(element => { element.scrollTop = 0; });
+      await assertNoMobileCrop(page, `objective detail ${viewport.label}`);
+      await page.screenshot({ path: resolve(evidenceDir, `${viewport.label}-03c-objective-detail.png`), fullPage: true });
+      await page.getByRole('button', { name: 'Back', exact: true }).click();
+      await expect(detailModal).toHaveCount(0);
+      await expect(bottomNav).toBeVisible();
+
       await dismissGuidance(page);
       await openKpiPage(page);
       await expect(page.getByRole('heading', { name: /KPI Command Center/i })).toBeVisible();

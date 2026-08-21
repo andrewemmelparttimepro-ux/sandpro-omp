@@ -144,9 +144,9 @@ test.describe('release P0/P1 staging workflows', () => {
     await expect(page.getByText(/Objective created|Objective delegated/i)).toBeVisible();
 
     await navItem(page, 'Objectives').click();
-    await expect(page.locator('.mobile-nav')).toBeVisible();
+    await expect(page.locator('.mobile-bottom-nav')).toBeVisible();
     await expect(page.locator('.mobile-topbar')).toBeVisible();
-    await expect(page.locator('.mobile-new-fab')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Create new' })).toBeVisible();
     await page.getByPlaceholder('Search objectives...').fill(title);
     await expect(page.locator('.mobile-objective-list')).toBeVisible();
     await expect(page.locator('.desktop-objective-views')).toBeHidden();
@@ -162,6 +162,6 @@ test.describe('release P0/P1 staging workflows', () => {
     await page.getByRole('button', { name: 'Files', exact: true }).click();
     await expect(page.getByText('No files attached yet.')).toBeVisible();
     await page.getByRole('button', { name: /Back/i }).click();
-    await expect(page.locator('.mobile-nav')).toBeVisible();
+    await expect(page.locator('.mobile-bottom-nav')).toBeVisible();
   });
 });

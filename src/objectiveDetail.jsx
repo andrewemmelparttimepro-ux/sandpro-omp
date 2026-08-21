@@ -596,6 +596,8 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   const [workflowDraft, setWorkflowDraft] = useState({ title: "", ownerId: currentUser.id, dueDate: "", description: "" });
   const [memberDraft, setMemberDraft] = useState({ userId: "", role: "assignee" });
   const [showTagPicker, setShowTagPicker] = useState(false);
+  const [showMobileTaggedPeople, setShowMobileTaggedPeople] = useState(false);
+  const activeObjectiveIdRef = useRef(obj.id);
   const messagesEndRef = useRef(null);
   const messageFileRef = useRef(null);
   const messageTextRef = useRef(null);
@@ -618,7 +620,18 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   const voiceTimerRef = useRef(null);
   const voiceDiscardRef = useRef(false);
 
-  useEffect(() => { setLocalObj(obj); setProgressValue(obj.progress); setNextActionValue(obj.nextAction || ""); setMetricDraft(d => ({ ...d, value: obj.currentMetric ?? "" })); }, [obj]);
+  useEffect(() => {
+    setLocalObj(obj);
+    setProgressValue(obj.progress);
+    setNextActionValue(obj.nextAction || "");
+    setMetricDraft(d => ({ ...d, value: obj.currentMetric ?? "" }));
+  }, [obj]);
+  useEffect(() => {
+    if (activeObjectiveIdRef.current === obj.id) return;
+    activeObjectiveIdRef.current = obj.id;
+    setShowTagPicker(false);
+    setShowMobileTaggedPeople(false);
+  }, [obj.id]);
   useEffect(() => { if (initialTab) setActiveTab(initialTab); }, [initialTab]);
   useEffect(() => { if (messagesEndRef.current && activeTab === "messages") messagesEndRef.current.scrollIntoView({ behavior: "smooth" }); }, [localObj.messages, activeTab]);
   useEffect(() => { writeDraft(messageDraftKey, newMessage); }, [messageDraftKey, newMessage]);
@@ -1233,7 +1246,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
       <button
         type="button"
         onClick={() => setTab("workflow")}
-        className="card-hover"
+        className="objective-workflow-summary card-hover"
         style={{
           width: "100%",
           margin: "12px 0",
@@ -1306,37 +1319,52 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   };
 
   const TaggedPeopleBar = () => (
-    <div className="tagged-people-bar">
-      <div className="flex items-center gap-6" style={{ flexShrink: 0 }}>
-        <Users size={13} color="var(--brand)" />
-        <span className="text-xs font-bold text-brand">Tagged</span>
-      </div>
-      <div className="tagged-people-list">
-        {taggedMembers.length === 0 ? (
-          <span className="text-xs text-muted">No supporting teammate tagged yet.</span>
-        ) : taggedMembers.map(member => (
-          <div key={member.id} className="tagged-person-chip">
-            <Avatar user={member.user} size={18} />
-            <span>{member.user.name}</span>
-            <Badge color="var(--info)">{tagRoleLabel(member.role)}</Badge>
-            {removeObjectiveMember && <button onClick={(e) => { e.stopPropagation(); untagPerson(member); }} title={`Untag ${member.user.name}`}><X size={11} /></button>}
-          </div>
-        ))}
-      </div>
-      <button className="btn btn-xs btn-secondary" onClick={() => setShowTagPicker(v => !v)}>
-        <UserPlus size={12} /> Tag someone
+    <div className={`tagged-people-bar ${showMobileTaggedPeople ? "mobile-expanded" : ""}`}>
+      <button
+        type="button"
+        className="tagged-people-summary mobile-only"
+        onClick={() => setShowMobileTaggedPeople(value => !value)}
+        aria-expanded={showMobileTaggedPeople}
+        aria-controls={`objective-${localObj.id}-tagged-people`}
+      >
+        <span className="tagged-people-avatar-stack" aria-hidden="true">
+          {taggedMembers.slice(0, 3).map(member => <Avatar key={member.id} user={member.user} size={22} />)}
+        </span>
+        <span>{taggedMembers.length ? `${taggedMembers.length} tagged teammate${taggedMembers.length === 1 ? "" : "s"}` : "No teammates tagged"}</span>
+        <ChevronDown size={16} />
       </button>
-      {showTagPicker && (
-        <div className="tag-picker">
-          <TagMentionControl
-            candidates={tagCandidates}
-            currentUserId={currentUser.id}
-            onTag={tagMentionedPerson}
-            compact
-            placeholder="@name to tag"
-          />
+      <div id={`objective-${localObj.id}-tagged-people`} className="tagged-people-content">
+        <div className="tagged-people-label flex items-center gap-6" style={{ flexShrink: 0 }}>
+          <Users size={13} color="var(--brand)" />
+          <span className="text-xs font-bold text-brand">Tagged</span>
         </div>
-      )}
+        <div className="tagged-people-list">
+          {taggedMembers.length === 0 ? (
+            <span className="text-xs text-muted">No supporting teammate tagged yet.</span>
+          ) : taggedMembers.map(member => (
+            <div key={member.id} className="tagged-person-chip">
+              <Avatar user={member.user} size={18} />
+              <span>{member.user.name}</span>
+              <Badge color="var(--info)">{tagRoleLabel(member.role)}</Badge>
+              {removeObjectiveMember && <button onClick={(e) => { e.stopPropagation(); untagPerson(member); }} title={`Untag ${member.user.name}`} aria-label={`Untag ${member.user.name}`}><X size={11} /></button>}
+            </div>
+          ))}
+        </div>
+        <button className="btn btn-xs btn-secondary tagged-people-add" onClick={() => setShowTagPicker(v => !v)} aria-expanded={showTagPicker}>
+          <UserPlus size={12} /> Tag someone
+        </button>
+        {showTagPicker && (
+          <div className="tag-picker">
+            <TagMentionControl
+              candidates={tagCandidates}
+              currentUserId={currentUser.id}
+              onTag={tagMentionedPerson}
+              compact
+              placeholder="@name to tag"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -1357,9 +1385,9 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
       <div className="modal-content objective-detail-modal" style={{ width: "min(95vw, 720px)", maxHeight: "92vh" }}>
         {/* Header */}
         <div className="objective-detail-header" style={{ padding: "20px 24px 0", borderBottom: "1px solid var(--accent-5)" }}>
-          <div className="flex justify-between" style={{ alignItems: "flex-start", marginBottom: 12 }}>
-            <div style={{ flex: 1, marginRight: 16 }}>
-              <div className="flex gap-6 flex-wrap" style={{ marginBottom: 8 }}>
+          <div className="objective-detail-topline flex justify-between" style={{ alignItems: "flex-start", marginBottom: 12 }}>
+            <div className="objective-detail-title-block" style={{ flex: 1, marginRight: 16 }}>
+              <div className="objective-detail-badges flex gap-6 flex-wrap" style={{ marginBottom: 8 }}>
                 <Badge color={localObj.blockerFlag ? getStatusColor("blocked") : getStatusColor(localObj.status)}>{localObj.blockerFlag ? getStatusLabel("blocked") : getStatusLabel(localObj.status)}</Badge>
                 <Badge color={getPriorityColor(localObj.priority)} outline>{localObj.priority}</Badge>
                 <Badge color={okrMeta.color} outline>{okrMeta.shortLabel}</Badge>
@@ -1372,7 +1400,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.3 }}>{localObj.title}</h2>
               <div className="objective-timestamp-line objective-detail-timestamp">{formatObjectiveTimestamp(localObj)}</div>
             </div>
-            <div className="flex gap-4">
+            <div className="objective-detail-actions flex gap-4">
               {onEdit && <button className="icon-btn" onClick={() => onEdit(localObj)} title="Edit objective"><Edit3 size={16} /></button>}
               <button className="icon-btn" onClick={toggleBlocker} title={localObj.blockerFlag ? "Remove blocker" : "Flag blocker"}>
                 <Flag size={16} color={localObj.blockerFlag ? "#EF4444" : undefined} />
@@ -1399,12 +1427,12 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
                   {isObjectiveMuted ? <BellOff size={16} /> : <Bell size={16} />}
                 </button>
               )}
-              <button onClick={onClose} className="btn btn-xs btn-secondary mobile-only"><ArrowLeft size={12} /> Back</button>
-              <button onClick={onClose} className="icon-btn" title="Close objective" aria-label="Close objective"><X size={20} /></button>
+              <button onClick={onClose} className="btn btn-xs btn-secondary mobile-only objective-mobile-back"><ArrowLeft size={16} /> Back</button>
+              <button onClick={onClose} className="icon-btn objective-detail-close" title="Close objective" aria-label="Close objective"><X size={20} /></button>
             </div>
           </div>
           {/* Owner bar */}
-          <div className="flex items-center gap-16 flex-wrap text-sm text-secondary" style={{ marginBottom: 12 }}>
+          <div className="objective-detail-owner-row flex items-center gap-16 flex-wrap text-sm text-secondary" style={{ marginBottom: 12 }}>
             <div className="flex items-center gap-6">{localObj.assignmentGroupId ? <Users size={20} color="var(--brand)" /> : <Avatar user={owner} size={22} />}<span><strong className="text-primary">{owner.name}</strong> owns</span></div>
             {delegator && <div className="flex items-center gap-6"><ArrowLeft size={12} /><span>Delegated by <strong className="text-primary">{delegator.name}</strong></span></div>}
             <div className="flex items-center gap-4"><Calendar size={12} /><span style={{ color: overdue ? "var(--warning)" : undefined, fontWeight: overdue ? 600 : 400 }}>{formatDate(localObj.dueDate)}</span></div>
@@ -1447,9 +1475,9 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
           <WorkflowSummaryStrip />
           <AgentAssistStrip />
           {/* Tabs */}
-          <div className="flex gap-4" style={{ marginTop: 12, marginBottom: -1, overflowX: "auto" }}>
+          <div className="objective-detail-tabs flex gap-4" role="tablist" aria-label="Task sections" style={{ marginTop: 12, marginBottom: -1, overflowX: "auto" }}>
             {tabs.map(tab => (
-              <button key={tab.id} aria-label={tab.label} aria-selected={activeTab === tab.id} onClick={() => setTab(tab.id)} className="flex items-center gap-4" style={{
+              <button key={tab.id} role="tab" aria-label={tab.label} aria-selected={activeTab === tab.id} onClick={() => setTab(tab.id)} className="flex items-center gap-4" style={{
                 padding: "8px 14px", border: "none", borderBottom: activeTab === tab.id ? "2px solid var(--brand)" : "2px solid transparent",
                 background: "none", color: activeTab === tab.id ? "var(--brand)" : "var(--accent-7)", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap"
               }}>

@@ -34,7 +34,10 @@ test.describe('accessibility smoke', () => {
     await login(page, env.e2eEmail, env.e2ePassword);
     await suppressFirstRunGuides(page);
     await dismissGuidance(page);
-    for (const name of ['Tasks & Projects', 'OKR', 'NCR', 'Organization']) {
+    const navigationLabels = testInfo.project.name === 'mobile-chrome'
+      ? ['Tasks', 'OKR', 'NCR', 'Org']
+      : ['Tasks & Projects', 'OKR', 'NCR', 'Organization'];
+    for (const name of navigationLabels) {
       await expect(navItem(page, name)).toBeVisible();
     }
     const createButton = testInfo.project.name === 'mobile-chrome'

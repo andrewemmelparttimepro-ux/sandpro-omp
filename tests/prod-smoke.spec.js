@@ -50,9 +50,12 @@ test.describe('production read-only smoke', () => {
     }
   });
 
-  test('release smoke member credentials reach the app or the required password-change gate', async ({ page }) => {
+  test('release smoke member credentials reach the app or the required password-change gate', async ({ page }, testInfo) => {
     requireCredentials(env.smokeMemberEmail, env.smokeMemberPassword, 'SANDPRO_SMOKE_MEMBER_EMAIL and SANDPRO_SMOKE_MEMBER_PASSWORD');
     await login(page, env.smokeMemberEmail, env.smokeMemberPassword);
-    await expect(navItem(page, 'Tasks & Projects')).toBeVisible();
+    const tasksNav = testInfo.project.name === 'mobile-chrome'
+      ? page.locator('.mobile-bottom-nav').getByRole('button', { name: 'Tasks' })
+      : navItem(page, 'Tasks & Projects');
+    await expect(tasksNav).toBeVisible();
   });
 });

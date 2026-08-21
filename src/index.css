@@ -5783,6 +5783,19 @@ button.alt-command-body:disabled {
   padding: 8px 0 12px;
 }
 
+.tagged-people-summary {
+  display: none;
+}
+
+.tagged-people-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
 .tagged-people-list {
   display: flex;
   align-items: center;
@@ -12291,25 +12304,238 @@ button.alt-command-body:disabled {
     flex-direction: column;
     height: 100dvh !important;
     max-height: 100dvh !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
     padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
+    padding-bottom: 0;
     border-radius: 0 !important;
+    overscroll-behavior: contain;
   }
 
   .objective-detail-header {
-    position: sticky;
-    top: 0;
+    position: relative;
+    flex: 0 0 auto;
     z-index: 2;
-    padding: 14px 14px 0 !important;
+    padding: 8px 14px 0 !important;
     background: var(--accent-2);
   }
 
   .objective-detail-header h2 {
-    font-size: 17px !important;
+    font-size: 20px !important;
+    line-height: 1.18 !important;
+  }
+
+  .objective-detail-topline {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 8px !important;
+  }
+
+  .objective-detail-title-block {
+    grid-row: 2;
+    min-width: 0;
+    margin-right: 0 !important;
+  }
+
+  .objective-detail-actions {
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .objective-detail-actions .icon-btn {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+  }
+
+  .objective-mobile-back {
+    order: -1;
+    min-height: 42px;
+    margin-right: auto;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .objective-detail-close {
+    display: none !important;
+  }
+
+  .objective-detail-badges {
+    flex-wrap: nowrap !important;
+    max-width: 100%;
+    margin-bottom: 7px !important;
+    padding-bottom: 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .objective-detail-badges::-webkit-scrollbar {
+    display: none;
+  }
+
+  .objective-detail-badges > * {
+    flex: 0 0 auto;
+  }
+
+  .objective-detail-timestamp {
+    margin-top: 4px;
+    font-size: 11px;
+  }
+
+  .objective-detail-owner-row {
+    gap: 8px 14px !important;
+    margin-bottom: 6px !important;
+    font-size: 12px;
+  }
+
+  .objective-detail-owner-row > div:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .tagged-people-bar {
+    display: block;
+    position: relative;
+    padding: 6px 0 7px;
+  }
+
+  .tagged-people-summary.mobile-only {
+    display: flex !important;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 42px;
+    padding: 7px 10px;
+    border: 1px solid var(--accent-5);
+    border-radius: 11px;
+    background: var(--accent-3);
+    color: var(--accent-9);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    text-align: left;
+  }
+
+  .tagged-people-summary > span:nth-child(2) {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .tagged-people-summary > svg {
+    transition: transform 0.16s ease;
+  }
+
+  .tagged-people-bar.mobile-expanded .tagged-people-summary > svg {
+    transform: rotate(180deg);
+  }
+
+  .tagged-people-avatar-stack {
+    display: flex;
+    align-items: center;
+    min-width: 22px;
+  }
+
+  .tagged-people-avatar-stack .avatar + .avatar {
+    margin-left: -7px;
+  }
+
+  .tagged-people-content {
+    display: none;
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    width: auto;
+    max-height: min(44dvh, 360px);
+    padding: 8px;
+    overflow-y: auto;
+    border: 1px solid var(--accent-5);
+    border-radius: 11px;
+    background: var(--accent-2);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .tagged-people-bar.mobile-expanded .tagged-people-content {
+    display: flex;
+  }
+
+  .tagged-people-label {
+    display: none !important;
+  }
+
+  .tagged-people-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .tagged-person-chip {
+    width: 100%;
+    min-height: 40px;
+    padding: 7px 9px 7px 7px;
+    font-size: 12px;
+  }
+
+  .tagged-person-chip > span:not(.badge) {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tagged-person-chip button {
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    flex: 0 0 32px;
+  }
+
+  .tagged-people-add {
+    width: 100%;
+    min-height: 42px;
+    justify-content: center;
+  }
+
+  .objective-detail-header .objective-workflow-summary,
+  .objective-detail-header > .agent-assist-card {
+    display: none !important;
+  }
+
+  .objective-detail-tabs {
+    min-width: 0;
+    margin-top: 6px !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .objective-detail-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .objective-detail-tabs > button {
+    min-height: 44px;
+    flex: 0 0 auto;
+    padding: 8px 12px !important;
+    scroll-snap-align: start;
   }
 
   .objective-detail-body {
+    flex: 1 1 auto;
     min-height: 0;
+    overflow: auto !important;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -12351,8 +12577,8 @@ button.alt-command-body:disabled {
   }
 
   .objective-message-composer {
-    position: sticky;
-    bottom: 0;
+    position: relative;
+    flex: 0 0 auto;
     z-index: 3;
     padding: 10px 12px calc(12px + var(--safe-bottom)) !important;
   }

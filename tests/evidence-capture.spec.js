@@ -46,7 +46,7 @@ test.describe('release evidence capture', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await dismissDailyBrief(page);
-    await expect(page.locator('.mobile-nav')).toBeVisible();
+    await expect(page.locator('.mobile-bottom-nav')).toBeVisible();
     await page.screenshot({ path: resolve(evidenceDir, 'mobile-01-dashboard.png'), fullPage: true });
 
     await navItem(page, 'Objectives').click();

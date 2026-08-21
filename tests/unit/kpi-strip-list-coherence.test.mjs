@@ -67,7 +67,8 @@ test('three prominent work buttons replace the Type dropdown', () => {
 
 test('the thumb bar and one-tap complete are wired (item 3)', () => {
   const app = read('src/App.jsx');
-  assert.match(app, /isMobileViewport && <MobileNav/);
+  assert.match(app, /isMobileViewport && !openCard[^\n]+\(\s*<MobileNav/);
+  assert.doesNotMatch(app, /<nav className="mobile-nav">/);
   // Item 6 upgraded item 3's landing: a phone now opens on My Day (the
   // personal cut of Individual), still your work first, Company one tap away.
   assert.match(app, /window\.matchMedia\('\(max-width: 720px\)'\)\.matches \? "myday" : "company"/);

@@ -2313,17 +2313,6 @@ function App() {
         </div>}
       </div>
 
-      {/* MOBILE BOTTOM NAV */}
-      <nav className="mobile-nav">
-        {pages.map(page => (
-          <a key={page.id} href={pageHref(page.id)} onClick={(event) => handleNavClick(event, page.id)} aria-label={page.label} className={`${activeNavId === page.id ? 'active' : ''} ${activeFeatureAnnouncement?.navId === page.id ? 'nav-pill-feature' : ''}`}>
-            <page.icon size={20} />
-            {page.mobileLabel}
-            {activeFeatureAnnouncement?.navId === page.id && <span className="nav-new-badge" aria-hidden="true">New</span>}
-          </a>
-        ))}
-      </nav>
-
       {/* MODALS */}
       <Suspense fallback={null}>
         {openCard && <SuperCard obj={openCard} objectives={objectives} okrProjects={okrProjects} initialTab={route.objectiveTab} onTabChange={(tab) => updateRoute(prev => ({ ...prev, objectiveTab: tab }), { replace: true })} onClose={handleCloseCard} onUpdate={handleUpdateCard} onDelete={handleDeleteObjective} currentUser={currentUser} addToast={addToast} uploadObjectiveFile={uploadObjectiveFile} deleteObjectiveFile={deleteObjectiveFile} addSubtask={addSubtask} updateSubtask={updateSubtask} deleteSubtask={deleteSubtask} addMetricCheckin={addMetricCheckin} addObjectiveMember={addObjectiveMember} removeObjectiveMember={removeObjectiveMember} addWorkflowStep={addWorkflowStep} updateWorkflowStep={updateWorkflowStep} createOkrProject={createOkrProject} updateOkrProject={updateOkrProject} updateProjectArtifact={updateProjectArtifact} captureProjectSignature={captureProjectSignature} uploadProjectAttachment={uploadProjectAttachment} deleteProjectAttachment={deleteProjectAttachment} onMarkMessagesRead={markObjectiveMessagesRead} onUpdateMessage={handleUpdateMessage} onSetMessageReaction={handleSetMessageReaction} onRemoveMessageReaction={handleRemoveMessageReaction} onTranslateMessage={handleTranslateMessage} runObjectiveStarter={aiFeaturesAvailable ? runObjectiveStarter : null} aiFeaturesEnabled={aiFeaturesAvailable} createNotification={createNotification} mutedObjectiveIds={objectiveMutes.mutedIds} onToggleObjectiveMute={objectiveMutes.toggleMute}
@@ -2382,7 +2371,9 @@ function App() {
           </div>
         )}
         <OutboxChip outbox={fieldOutbox} onDrainNow={drainOutbox} />
-        {isMobileViewport && <MobileNav activePage={route.page || "dashboard"} onNavigate={(pageId) => updateRoute({ page: pageId })} onCreate={() => setShowCreateForm(true)} />}
+        {isMobileViewport && !openCard && !editingObj && !showCreateForm && !showAccountSettings && !showDailyBrief && (
+          <MobileNav activePage={route.page || "dashboard"} onNavigate={(pageId) => updateRoute({ page: pageId })} onCreate={() => setShowCreateForm(true)} />
+        )}
         <CommandBar
           open={commandBarOpen}
           onClose={() => setCommandBarOpen(false)}
