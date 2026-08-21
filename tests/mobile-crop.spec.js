@@ -92,10 +92,13 @@ test.describe('mobile zero-day crop gates', () => {
       expect(bodyBox?.height || 0).toBeGreaterThan(viewport.height * 0.35);
       const taggedSummary = page.locator('.tagged-people-summary');
       await expect(taggedSummary).toBeVisible();
+      await expect(taggedSummary).toHaveAttribute('aria-expanded', 'false');
       await expect(page.locator('.tagged-people-content')).toBeHidden();
       await taggedSummary.tap();
+      await expect(taggedSummary).toHaveAttribute('aria-expanded', 'true');
       await expect(page.locator('.tagged-people-content')).toBeVisible();
       await taggedSummary.tap();
+      await expect(taggedSummary).toHaveAttribute('aria-expanded', 'false');
       await expect(page.locator('.tagged-people-content')).toBeHidden();
       await detailBody.evaluate(element => { element.scrollTop = 0; });
       await assertNoMobileCrop(page, `objective detail ${viewport.label}`);

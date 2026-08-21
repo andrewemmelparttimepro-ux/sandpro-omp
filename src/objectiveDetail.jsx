@@ -596,7 +596,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   const [workflowDraft, setWorkflowDraft] = useState({ title: "", ownerId: currentUser.id, dueDate: "", description: "" });
   const [memberDraft, setMemberDraft] = useState({ userId: "", role: "assignee" });
   const [showTagPicker, setShowTagPicker] = useState(false);
-  const [showMobileTaggedPeople, setShowMobileTaggedPeople] = useState(false);
+  const [showTaggedPeople, setShowTaggedPeople] = useState(false);
   const activeObjectiveIdRef = useRef(obj.id);
   const messagesEndRef = useRef(null);
   const messageFileRef = useRef(null);
@@ -630,7 +630,7 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
     if (activeObjectiveIdRef.current === obj.id) return;
     activeObjectiveIdRef.current = obj.id;
     setShowTagPicker(false);
-    setShowMobileTaggedPeople(false);
+    setShowTaggedPeople(false);
   }, [obj.id]);
   useEffect(() => { if (initialTab) setActiveTab(initialTab); }, [initialTab]);
   useEffect(() => { if (messagesEndRef.current && activeTab === "messages") messagesEndRef.current.scrollIntoView({ behavior: "smooth" }); }, [localObj.messages, activeTab]);
@@ -1319,13 +1319,17 @@ export const SuperCard = ({ obj, objectives, okrProjects = [], initialTab = "mes
   };
 
   const TaggedPeopleBar = () => (
-    <div className={`tagged-people-bar ${showMobileTaggedPeople ? "mobile-expanded" : ""}`}>
+    <div className={`tagged-people-bar ${showTaggedPeople ? "is-expanded" : ""}`}>
       <button
         type="button"
-        className="tagged-people-summary mobile-only"
-        onClick={() => setShowMobileTaggedPeople(value => !value)}
-        aria-expanded={showMobileTaggedPeople}
+        className="tagged-people-summary"
+        onClick={() => {
+          if (showTaggedPeople) setShowTagPicker(false);
+          setShowTaggedPeople(value => !value);
+        }}
+        aria-expanded={showTaggedPeople}
         aria-controls={`objective-${localObj.id}-tagged-people`}
+        aria-label={`${showTaggedPeople ? "Hide" : "Show"} ${taggedMembers.length ? `${taggedMembers.length} tagged teammate${taggedMembers.length === 1 ? "" : "s"}` : "tagged teammates"}`}
       >
         <span className="tagged-people-avatar-stack" aria-hidden="true">
           {taggedMembers.slice(0, 3).map(member => <Avatar key={member.id} user={member.user} size={22} />)}
