@@ -76,11 +76,22 @@ test.describe('production read-only smoke', () => {
 
     const pdfLink = page.locator('a.ncr-event-doc-file').filter({ hasText: 'KPA-NCR-86270964.pdf' }).first();
     await expect(pdfLink).toBeVisible({ timeout: 20_000 });
+    // Headless Chromium keeps popup.url() at about:blank for a successful PDF
+    // navigation because its PDF viewer aborts the document navigation. Prove
+    // the real cross-page request and response instead of the viewer's shell.
+    const signedPdfRequestPromise = page.context().waitForEvent('request', {
+      predicate: request => request.method() === 'GET'
+        && request.url().includes('/storage/v1/object/sign/ncr-files/')
+        && request.url().includes('token='),
+      timeout: 20_000,
+    });
     const popupPromise = page.waitForEvent('popup');
     await pdfLink.click();
     const popup = await popupPromise;
-    await expect.poll(() => popup.url(), { timeout: 20_000 }).toContain('/storage/v1/object/sign/ncr-files/');
-    expect(popup.url()).toContain('token=');
+    const signedPdfRequest = await signedPdfRequestPromise;
+    const signedPdfResponse = await signedPdfRequest.response();
+    expect(signedPdfResponse?.status()).toBe(200);
+    expect(signedPdfResponse?.headers()['content-type']).toContain('application/pdf');
     await expect(page.getByText(/Couldn't create a secure link/i)).toHaveCount(0);
     await popup.close();
   });
