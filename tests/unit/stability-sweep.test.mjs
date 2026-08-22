@@ -65,7 +65,7 @@ test('subtask, workflow, and project typed fields are coerced before writes', ()
   const hooks = read('src/hooks/useSupabase.js');
   assert.match(hooks, /weight: toNullableNumber\(subtask\.weight\) \?\? 1/);
   assert.match(hooks, /is_milestone: toBoolean\(subtask\.isMilestone\)/);
-  assert.match(hooks, /step_order: toNullableNumber\(step\.stepOrder\) \?\? 0/);
+  assert.match(hooks, /insertObjectiveWorkflowStep\(\{ client: supabase, objectiveId, step \}\)/);
   assert.match(hooks, /run_the_business: toBoolean\(project\.runTheBusiness\)/);
   assert.match(hooks, /budget_estimate: toNullableNumber\(project\.budgetEstimate\)/);
   assert.match(hooks, /is_active: toBoolean\(draft\.isActive, true\)/);

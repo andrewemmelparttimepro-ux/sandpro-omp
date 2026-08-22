@@ -58,4 +58,30 @@ test.describe('production read-only smoke', () => {
       : navItem(page, 'Tasks & Projects');
     await expect(tasksNav).toBeVisible();
   });
+
+  test('known NCR PDF opens from private storage with a fresh secure link', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'One desktop proof is enough for the private PDF response.');
+    requireCredentials(env.smokeAdminEmail, env.smokeAdminPassword, 'SANDPRO_SMOKE_ADMIN_EMAIL and SANDPRO_SMOKE_ADMIN_PASSWORD');
+    await login(page, env.smokeAdminEmail, env.smokeAdminPassword);
+    await page.goto('/?page=ncr', { waitUntil: 'domcontentloaded' });
+    await dismissDailyBrief(page);
+    await dismissGuidance(page);
+
+    const search = page.locator('input[placeholder="Search NCRs..."]').filter({ visible: true }).first();
+    await expect(search).toBeVisible({ timeout: 45_000 });
+    await search.fill('86270964');
+    const reportRow = page.locator('tr').filter({ hasText: '#86270964' }).first();
+    await expect(reportRow).toBeVisible();
+    await reportRow.click();
+
+    const pdfLink = page.locator('a.ncr-event-doc-file').filter({ hasText: 'KPA-NCR-86270964.pdf' }).first();
+    await expect(pdfLink).toBeVisible({ timeout: 20_000 });
+    const popupPromise = page.waitForEvent('popup');
+    await pdfLink.click();
+    const popup = await popupPromise;
+    await expect.poll(() => popup.url(), { timeout: 20_000 }).toContain('/storage/v1/object/sign/ncr-files/');
+    expect(popup.url()).toContain('token=');
+    await expect(page.getByText(/Couldn't create a secure link/i)).toHaveCount(0);
+    await popup.close();
+  });
 });

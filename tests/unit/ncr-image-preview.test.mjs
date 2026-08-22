@@ -34,7 +34,7 @@ test('NCR image display signs a transformed preview but file opening keeps the o
   assert.match(hook, /contentType: uploadMimeType/);
   assert.match(hook, /mime_type: uploadMimeType/);
   assert.match(route, /resolveNcrFileUrl\(file, \{ preview: true \}\)/);
-  assert.match(route, /resolveNcrFileUrl\(file\);/);
+  assert.match(route, /resolveNcrFileUrl\(file, \{ required: true \}\)/);
   assert.match(route, /Loading picture…/);
   assert.match(route, /Preview unavailable — open file/);
 });

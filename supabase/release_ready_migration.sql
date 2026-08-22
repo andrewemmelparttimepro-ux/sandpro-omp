@@ -1117,6 +1117,57 @@ ALTER TABLE public.kpi_alert_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kpi_alert_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kpi_import_batches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objective_workflow_steps ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION public.add_objective_workflow_step_atomic(
+  p_objective_id UUID,
+  p_title TEXT,
+  p_description TEXT DEFAULT '',
+  p_requested_order INTEGER DEFAULT 0,
+  p_status TEXT DEFAULT 'todo',
+  p_owner_id UUID DEFAULT NULL,
+  p_due_date TIMESTAMPTZ DEFAULT NULL
+)
+RETURNS SETOF public.objective_workflow_steps
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  IF p_objective_id IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE = '22004', MESSAGE = 'objective_id is required';
+  END IF;
+  IF NULLIF(BTRIM(COALESCE(p_title, '')), '') IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'workflow step title is required';
+  END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_objective_id::TEXT, 0));
+  RETURN QUERY
+  INSERT INTO public.objective_workflow_steps (
+    objective_id, title, description, step_order, status, owner_id, due_date
+  ) VALUES (
+    p_objective_id,
+    BTRIM(p_title),
+    COALESCE(p_description, ''),
+    GREATEST(
+      COALESCE(p_requested_order, 0),
+      COALESCE((
+        SELECT MAX(existing.step_order)
+        FROM public.objective_workflow_steps existing
+        WHERE existing.objective_id = p_objective_id
+      ), 0) + 10
+    ),
+    COALESCE(NULLIF(p_status, ''), 'todo'),
+    p_owner_id,
+    p_due_date
+  ) RETURNING *;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.add_objective_workflow_step_atomic(
+  UUID, TEXT, TEXT, INTEGER, TEXT, UUID, TIMESTAMPTZ
+) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.add_objective_workflow_step_atomic(
+  UUID, TEXT, TEXT, INTEGER, TEXT, UUID, TIMESTAMPTZ
+) TO authenticated;
 ALTER TABLE public.objective_agent_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.okr_projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.okr_project_members ENABLE ROW LEVEL SECURITY;

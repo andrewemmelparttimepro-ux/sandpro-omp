@@ -1069,17 +1069,26 @@ const openNcrFile = async (event, file, addToast) => {
   // freshly signed URL — never a stored one that may have expired.
   const popup = window.open('', '_blank');
   try {
-    const url = await resolveNcrFileUrl(file);
-    if (!url) throw new Error('File URL unavailable');
+    const url = await resolveNcrFileUrl(file, { required: true });
     if (popup) {
       popup.opener = null;
       popup.location.replace(url);
     } else {
       window.location.assign(url);
     }
-  } catch {
+  } catch (error) {
     if (popup) popup.close();
-    addToast?.({ type: 'error', message: `Couldn't open ${file?.name || 'this file'} — check your connection and try again.` });
+    console.error('[NCR] Secure file open failed:', {
+      fileId: file?.id,
+      storagePath: file?.storagePath || file?.storage_path,
+      code: error?.code,
+      status: error?.status,
+      message: error?.message,
+    });
+    addToast?.({
+      type: 'error',
+      message: `Couldn't create a secure link for ${file?.name || 'this file'}. Try again; if it repeats, send the error code ${error?.code || 'SIGNED_URL_FAILED'} to support.`,
+    });
   }
 };
 

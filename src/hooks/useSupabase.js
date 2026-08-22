@@ -10,6 +10,8 @@ import { altPreferenceToRow, normalizeAltDashboardPreference } from '../altDashb
 import { parseKpiCsv } from '../kpiSystem';
 import { buildNcrImportDbPayload } from '../ncrImport';
 import { getNcrFileMimeType, isNcrImageAttachment, NCR_IMAGE_PREVIEW_TRANSFORM } from '../lib/ncrFiles';
+import { createSignedStorageUrl, SignedStorageUrlError } from '../lib/ncrFileAccess';
+import { insertObjectiveWorkflowStep } from '../lib/workflowSteps';
 import {
   ALT_NOTES_BUCKET,
   ALT_NOTES_EDITOR_EMPTY_DOC,
@@ -109,16 +111,39 @@ const nullableSelect = async (query, fallback = [], label = 'optional query') =>
 
 // Fresh short-lived URL for one NCR file, resolved at view/click time so a
 // link can never arrive dead (load-time signing timeout) or expire mid-session.
-export const resolveNcrFileUrl = async (file = {}, { preview = false } = {}) => {
+export const resolveNcrFileUrl = async (file = {}, { preview = false, required = false } = {}) => {
   const path = file.storagePath || file.storage_path;
   if (path) {
     const options = preview && isNcrImageAttachment(file)
       ? { transform: NCR_IMAGE_PREVIEW_TRANSFORM }
       : undefined;
-    const fresh = await createSignedUrlSafe('ncr-files', path, 60 * 60, options);
-    if (fresh) return fresh;
+    try {
+      return await createSignedStorageUrl({
+        client: supabase,
+        bucket: 'ncr-files',
+        path,
+        expiresIn: 60 * 60,
+        options,
+        timeoutMs: preview ? 3000 : 10_000,
+        attempts: preview ? 1 : 2,
+      });
+    } catch (error) {
+      console.warn('[Supabase] NCR secure-link creation failed:', {
+        code: error?.code,
+        status: error?.status,
+        bucket: error?.bucket,
+        path: error?.path,
+        message: error?.message,
+      });
+      if (required) throw error;
+    }
   }
-  return file.url || '';
+  const fallback = file.url || '';
+  if (fallback) return fallback;
+  if (required) throw new SignedStorageUrlError('This NCR file has no usable storage location.', {
+    code: 'MISSING_FILE_URL', bucket: 'ncr-files', path,
+  });
+  return '';
 };
 
 // Lap 1 (2026-08-05): coalesce realtime-triggered refetches. A burst of
@@ -2621,16 +2646,7 @@ export function useObjectives(enabled = true) {
   };
 
   const addWorkflowStep = async (objectiveId, step) => {
-    const { data, error } = await supabase.from('objective_workflow_steps').insert({
-      objective_id: objectiveId,
-      title: step.title,
-      description: step.description || '',
-      step_order: toNullableNumber(step.stepOrder) ?? 0,
-      status: step.status || 'todo',
-      owner_id: step.ownerId || null,
-      due_date: step.dueDate || null,
-    }).select().single();
-    if (error) throw error;
+    const data = await insertObjectiveWorkflowStep({ client: supabase, objectiveId, step });
 
     await supabase.from('objective_updates').insert({
       objective_id: objectiveId,
